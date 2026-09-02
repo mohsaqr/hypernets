@@ -132,14 +132,14 @@
 #' Estrada, E., & Rodriguez-Velazquez, J. A. (2005). Complex networks as
 #' hypergraphs. *arXiv preprint physics/0505137*.
 #'
-#' @note The `"clique"` (CEC) variant is validated against
-#'   `igraph::eigen_centrality` (cosine ~ 1), and `"pagerank"` against
+#' @note The `"clique"`, `"Z"`, and `"H"` variants have an independent
+#'   XGI equivalence runner in `local_testing_and_equivalence/`; clique is
+#'   also validated against `igraph::eigen_centrality` (cosine ~ 1).
+#'   `"pagerank"` is checked against
 #'   `igraph::page_rank` on the collapsed graph of the edge-independent
-#'   case plus a dense linear-system solve. The `"Z"` and `"H"` variants are
-#'   **(experimental)** - validated only against a clean-room list-based
-#'   tensor power iteration (same operator, different loop structure); no
-#'   R package exposes tensor eigenvectors as a primitive for independent
-#'   comparison.
+#'   case plus a dense linear-system solve. Clean-room list-based tensor
+#'   equations remain in the unit suite for deterministic validation without
+#'   Python.
 #'
 #' @export
 hypergraph_centrality <- function(hg,

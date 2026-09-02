@@ -115,14 +115,14 @@ factorial penalty for length and matches the implementation used by
 HypergraphX 1.5 in the legal-hypergraphs analysis.
 }
 \note{
-The \code{"clique"} (CEC) variant is validated against
-\code{igraph::eigen_centrality} (cosine ~ 1), and \code{"pagerank"} against
+The \code{"clique"}, \code{"Z"}, and \code{"H"} variants have an independent
+XGI equivalence runner in \verb{local_testing_and_equivalence/}; clique is
+also validated against \code{igraph::eigen_centrality} (cosine ~ 1).
+\code{"pagerank"} is checked against
 \code{igraph::page_rank} on the collapsed graph of the edge-independent
-case plus a dense linear-system solve. The \code{"Z"} and \code{"H"} variants are
-\strong{(experimental)} - validated only against a clean-room list-based
-tensor power iteration (same operator, different loop structure); no
-R package exposes tensor eigenvectors as a primitive for independent
-comparison.
+case plus a dense linear-system solve. Clean-room list-based tensor
+equations remain in the unit suite for deterministic validation without
+Python.
 }
 \examples{
 df <- data.frame(

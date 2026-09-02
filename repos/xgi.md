@@ -12,9 +12,10 @@
   `line_vector_centrality`.
 - **Relevance**: the centrality set overlaps honets' shipped
   `hypergraph_centrality()` (CEC / Z / H) exactly.
-- **Role for us**: **second independent oracle** for the shipped centralities —
-  add a reticulate cross-check to honets'
-  `local_testing_and_equivalence/` suite.
+- **Role for us**: **second independent oracle** for the shipped centralities.
+  A subprocess-based cross-check for clique, Z and H directions now lives in
+  `local_testing_and_equivalence/test-equiv-centrality-xgi.R`; XGI stays out
+  of honets' runtime dependency graph.
   Also the reference for measure naming when new measures are considered.
 - **Not verified this session**: its generator and stats submodules' exact
   surface.

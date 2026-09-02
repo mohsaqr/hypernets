@@ -23,7 +23,8 @@ on Nestimate and no work in this list requires modifying it.
   exact native assignment solver.
 - [x] Add random hypergraph generators: Bernoulli-incidence G(n,p), SBM,
   k-uniform and k-regular, with `hg_*` and `hypergraph_*` names.
-- [ ] Add an independent XGI oracle for clique, Z and H centralities.
+- [x] Add an independent XGI oracle runner for clique, Z and H centralities;
+  XGI remains a local-validation dependency, never a runtime dependency.
 - [ ] Run the promised multi-seed BERTopic benchmark with effect sizes and
   confidence intervals.
 - [ ] Add conductance to hypergraph community-quality output.
