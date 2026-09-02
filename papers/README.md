@@ -41,6 +41,27 @@ and explicit evaluations of Eqs. 16, 18, and 19. HyperNetX remains the
 author-adjacent external oracle for the shared RDC-Spec pipeline; it does not
 implement the NMF branches.
 
+## HyperGAT
+
+Ding, Wang, Li, Li and Liu (2020), EMNLP, DOI
+[10.18653/v1/2020.emnlp-main.399](https://doi.org/10.18653/v1/2020.emnlp-main.399).
+
+- `hg_hypergat(semantic = "none")`: document-level word nodes, sentence
+  hyperedges, two dual-attention layers, masked pooling and classification;
+  this is the paper's “w/o semantic” ablation.
+- `hg_hypergat(semantic = "lda")`: full semantic construction. LDA is fitted
+  only to labeled training documents; the topic count defaults to the class
+  count; the ten highest-probability words per topic define semantic edges
+  inside each document.
+- `lda_keywords =`: bypasses fitting with a saved topic-keyword list, which
+  is the exact boundary used by the official `generate_lda.py` and
+  `utils.py::get_slice()` pipeline.
+
+The attention layer has float32 forward parity with the official PyTorch
+implementation. Package tests independently check its equations, the exact
+semantic-edge layout, deterministic LDA fitting, training-only input scope,
+and both fitted and precomputed public paths.
+
 ## Legal hypergraphs
 
 Corinna Coupette, Dirk Hartung and Daniel Martin Katz (2024), “Legal

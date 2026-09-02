@@ -30,7 +30,7 @@ never honets runtime dependencies.
 
 | Repository/package | Role | Current status |
 |---|---|---|
-| HyperGAT_TextClassification | Official Ding et al. implementation | Sentence-only HyperGAT shipped; LDA semantic edges and three datasets open |
+| HyperGAT_TextClassification | Official Ding et al. implementation | Sentence and LDA semantic paths shipped; 20NG/MR/Ohsumed runs open |
 | DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity shipped; HyperGCN/HNHN remain open |
 | AllSet | Official AllDeepSets/AllSetTransformer implementation | Model implementation open |
 | BERTopic | Practical embedding/topic baseline | Multi-seed benchmark open |

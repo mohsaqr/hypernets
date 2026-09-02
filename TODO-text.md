@@ -6,10 +6,10 @@ on Nestimate and no work in this list requires modifying it.
 
 ## Paper-method completions
 
-- [ ] Hayashi et al. (2020): add RDC-SymNMF and RDC-JointNMF beside the
-  shipped RDC-Spec clustering.
-- [ ] Ding et al. (2020): add the official LDA semantic-hyperedge path and
-  run HyperGAT on 20NG, MR and Ohsumed as well as R8/R52.
+- [x] Hayashi et al. (2020): RDC-SymNMF, J-NMF and JS-NMF shipped beside
+  RDC-Spec, with direct paper-equation tests.
+- [x] Ding et al. (2020): official LDA semantic-hyperedge path shipped.
+- [ ] Run full semantic HyperGAT on 20NG, MR and Ohsumed as well as R8/R52.
 - [ ] Linmei et al. (2019): implement heterogeneous word/topic/entity HGAT.
 - [ ] Yadati et al. (2019): implement mediator-based HyperGCN.
 - [ ] Dong et al. (2020): implement HNHN with node/edge normalization

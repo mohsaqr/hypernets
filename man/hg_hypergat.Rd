@@ -13,6 +13,15 @@ hg_hypergat(
   stop_words = stop_words_en(),
   min_count = 1L,
   lowercase = TRUE,
+  semantic = c("none", "lda"),
+  lda_keywords = NULL,
+  lda_topics = NULL,
+  lda_top_n = 10L,
+  lda_max_iter = 10L,
+  lda_batch_size = 128L,
+  lda_offset = 50,
+  lda_decay = 0.7,
+  lda_seed = 0L,
   embed_dim = 300L,
   hidden = 100L,
   epochs = 10L,
@@ -37,6 +46,15 @@ text_hypergat(
   stop_words = stop_words_en(),
   min_count = 1L,
   lowercase = TRUE,
+  semantic = c("none", "lda"),
+  lda_keywords = NULL,
+  lda_topics = NULL,
+  lda_top_n = 10L,
+  lda_max_iter = 10L,
+  lda_batch_size = 128L,
+  lda_offset = 50,
+  lda_decay = 0.7,
+  lda_seed = 0L,
   embed_dim = 300L,
   hidden = 100L,
   epochs = 10L,
@@ -73,6 +91,30 @@ vertex.}
 
 \item{lowercase}{Lowercase the text first.}
 
+\item{semantic}{\code{"none"} (default) for sentence hyperedges only, or
+\code{"lda"} to append the paper's semantic topic hyperedges.}
+
+\item{lda_keywords}{Optional precomputed topic keywords: a list of
+character vectors, one per topic. With \code{semantic = "lda"}, \code{NULL} fits
+LDA natively; supplying the list bypasses fitting and reproduces a saved
+official preprocessing run.}
+
+\item{lda_topics}{Number of LDA topics. \code{NULL} (default) uses the number of
+classes, as in the paper. Ignored when \code{lda_keywords} is supplied.}
+
+\item{lda_top_n}{Number of highest-probability words per fitted topic
+(paper default 10).}
+
+\item{lda_max_iter, lda_batch_size}{Online variational-Bayes passes and
+minibatch size (scikit-learn defaults used by the official code: 10 and
+128).}
+
+\item{lda_offset, lda_decay}{Online learning schedule (official values 50
+and 0.7).}
+
+\item{lda_seed}{LDA initialization seed (official value 0), separate from
+the neural training \code{seed}.}
+
 \item{embed_dim, hidden}{Embedding and hidden width (official defaults
 300 and 100).}
 
@@ -103,17 +145,22 @@ A base \code{data.frame}, one row per (kept) document: \code{node},
 probability of the winning class), \code{margin} (winner minus runner-up).
 The training history is attached as attribute \code{"history"}
 (\code{epoch}, \code{loss}, \code{val_accuracy}).
+Attribute \code{"semantic"} records the topic keywords and LDA settings.
 }
 \description{
 Trains the dual-attention hypergraph network of Ding et al. (2020) --
 every document becomes its own hypergraph (its unique words as
 vertices, its sentences as hyperedges), two attention layers aggregate
-words into sentences and sentences back into words, and a masked mean
+words into sentence and optional LDA-topic hyperedges and those hyperedges
+back into words, and a masked mean
 pool feeds a linear classifier. Inductive: only labeled documents are
 trained on, and every document (labeled or not) is scored. Needs the
 suggested \pkg{torch} package. Semantics follow the official
-implementation with sentence hyperedges (the paper's "w/o semantic"
-construction; LDA topic hyperedges are not implemented).
+implementation. \code{semantic = "none"} reproduces its sentence-only
+("w/o semantic") ablation. \code{semantic = "lda"} adds the full paper path:
+online variational-Bayes LDA is fitted to labeled documents only, with the
+topic count defaulting to the number of classes, and each document receives
+one edge per topic containing the topic's top words present in that document.
 }
 \examples{
 \donttest{

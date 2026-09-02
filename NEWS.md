@@ -7,6 +7,12 @@
   (Eq. 18) and JS-NMF (Eq. 19) objectives when an auxiliary node-relation
   matrix is available. All NMF paths expose their objective trace,
   convergence state, iteration count, chosen restart and fitted factors.
+* **Full HyperGAT semantic hyperedges.** `hg_hypergat(semantic = "lda")`
+  now implements the Ding et al. (2020) LDA path in native R: online
+  variational Bayes on labeled training documents, class-count topics, and
+  per-document topic edges from the top words. Precomputed keyword lists are
+  accepted for exact replay of official preprocessing artifacts; the default
+  remains the backward-compatible sentence-only ablation.
 
 * **cograph is the shared graph and plotting engine.** It is promoted from
   Suggests to Imports: honets owns hypergraph construction, incidence algebra

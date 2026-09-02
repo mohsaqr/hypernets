@@ -151,9 +151,10 @@ version 0.6.4). Document-level hypergraphs (unique words as vertices,
 sentences as hyperedges), dual attention mirroring the official code
 (kaize0409): forward parity 2.4e-7 with fixed weights; independent
 plain-R layer-math oracle in the tests; word-order invariance;
-mutation-checked. Sentence-hyperedge variant (official default; LDA
-hyperedges not implemented -> comparator is the paper's "w/o semantic"
-ablation); no WordNet lemmatizer (documented). Benchmarks (official
+mutation-checked. Sentence-hyperedge and full LDA semantic-hyperedge paths
+are implemented; the original benchmark rows remain sentence-only and their
+comparator is the paper's "w/o semantic" ablation. No WordNet lemmatizer
+(documented). Benchmarks (official
 corpus files, official protocol, 3 seeds): **R8 0.9665 +/- 0.003** (1.3
 pts from full published HyperGAT, at published TextGCN level), **R52
 0.9433 +/- 0.002 — above published transductive TextGCN (0.9356)**;

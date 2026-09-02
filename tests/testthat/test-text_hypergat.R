@@ -15,6 +15,52 @@ hypergat_docs <- c(
 hypergat_labels <- c(cooking_1 = "cooking", cooking_2 = "cooking",
                      space_1 = "space", space_2 = "space")
 
+test_that("native online LDA is deterministic and uses training documents only", {
+  corpus <- .thg_hypergat_corpus(
+    hypergat_docs, names(hypergat_docs), stop_words_en(), 1L, TRUE
+  )
+  args <- list(
+    sentences = corpus$sentences, vocab = corpus$vocab,
+    train_idx = match(names(hypergat_labels), corpus$doc_id),
+    n_topics = 2L, top_n = 4L, max_iter = 2L, batch_size = 2L,
+    seed = 0L
+  )
+  a <- do.call(.thg_hypergat_lda, args)
+  b <- do.call(.thg_hypergat_lda, args)
+  expect_equal(a$components, b$components, tolerance = 0)
+  expect_identical(a$keywords, b$keywords)
+  expect_identical(a$n_topics, 2L)
+  expect_identical(a$top_n, 4L)
+  expect_identical(a$training_documents, 4L)
+  expect_true(all(lengths(a$keywords) == 4L))
+  expect_true(all(unlist(a$keywords) %in% corpus$vocab))
+})
+
+test_that("semantic topics append official get_slice-style document edges", {
+  vocab <- c("alpha", "beta", "gamma", "delta")
+  sentences <- list(
+    list(c(2L, 3L), c(3L, 4L)),
+    list(c(3L, 5L))
+  )
+  keywords <- list(topic_1 = c("alpha", "gamma"),
+                   topic_2 = c("beta", "delta"))
+  docs <- .thg_hypergat_semantic_docs(sentences, vocab, keywords)
+  expect_identical(docs[[1]][1:2], sentences[[1]])
+  expect_identical(docs[[1]][[3]], c(2L, 4L))
+  expect_identical(docs[[1]][[4]], 3L)
+  expect_identical(docs[[2]][[2]], integer(0))
+  expect_identical(docs[[2]][[3]], c(3L, 5L))
+  if (requireNamespace("torch", quietly = TRUE)) {
+    packed <- .thg_hypergat_batch(docs)
+    adj <- as.array(packed$adj)
+    expect_equal(adj[1, 1:4, 1:3], rbind(
+      c(1, 1, 0), c(0, 1, 1), c(1, 0, 1), c(0, 1, 0)
+    ))
+    # The empty first semantic topic in document 2 remains an empty edge.
+    expect_equal(adj[2, 2, ], c(0, 0, 0))
+  }
+})
+
 # Plain-R double-precision reference for one dual-attention layer
 # (official math, B = 1): an oracle independent of torch.
 .ref_hypergat_layer <- function(x, adj, w2, w3, a, a2, ctx, w = NULL,
@@ -97,6 +143,32 @@ test_that("hg_hypergat trains, predicts every document, deterministic", {
                        validation = 0, seed = 1)
   expect_identical(fit$predicted, refit$predicted)
   expect_equal(fit$score, refit$score, tolerance = 1e-12)
+})
+
+test_that("hg_hypergat exposes the full LDA semantic-hyperedge path", {
+  skip_if_not_installed("torch")
+  fit <- hg_hypergat(
+    hypergat_docs, labels = hypergat_labels, semantic = "lda",
+    lda_topics = 2, lda_top_n = 3, lda_max_iter = 2,
+    embed_dim = 8, hidden = 4, epochs = 2, validation = 0, seed = 2
+  )
+  info <- attr(fit, "semantic")
+  expect_identical(info$method, "lda")
+  expect_identical(info$n_topics, 2L)
+  expect_identical(info$top_n, 3L)
+  expect_identical(info$training_documents, 4L)
+  expect_length(info$keywords, 2L)
+
+  supplied <- list(food = c("soup", "onions", "salt"),
+                   sky = c("stars", "galaxy", "telescope"))
+  replay <- hg_hypergat(
+    hypergat_docs, labels = hypergat_labels, semantic = "lda",
+    lda_keywords = supplied, embed_dim = 8, hidden = 4, epochs = 1,
+    validation = 0, seed = 2
+  )
+  replay_info <- attr(replay, "semantic")
+  expect_identical(replay_info$method, "precomputed")
+  expect_identical(replay_info$keywords, supplied)
 })
 
 test_that("predictions are invariant to word order within sentences", {

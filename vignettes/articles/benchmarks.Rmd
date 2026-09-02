@@ -156,10 +156,13 @@ as hyperedges), a first attention layer aggregates words into sentence
 representations, a second aggregates sentences back into words, and a
 masked mean pool feeds the classifier. The implementation mirrors the
 official code (verified against its source, with forward-pass parity at
-float32 precision), using sentence hyperedges -- the official default;
-the LDA topic hyperedges behind its `--use_LDA` flag are not
-implemented, so the closest published comparator is the paper's "w/o
-semantic" ablation. One further honest difference: the official
+float32 precision). `semantic = "none"` uses sentence hyperedges alone;
+`semantic = "lda"` adds the paper's online-LDA topic hyperedges, trained on
+labeled documents only, and precomputed official keyword lists can be passed
+to replay the upstream preprocessing boundary exactly. The benchmark table
+below predates that implementation and remains explicitly sentence-only, so
+its closest published comparator is the paper's "w/o semantic" ablation.
+One further honest difference: the official
 preprocessing lemmatizes with WordNet; ours does not. The benchmark runs
 on the official repository's own corpus files (the TextGCN cleaned files
 used above contain no sentence punctuation at all), whose R8 split is

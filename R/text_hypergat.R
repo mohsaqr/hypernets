@@ -9,9 +9,8 @@
 # utils.py, which differ from the paper's equations in two places the
 # code settles): node-level attention scores depend on the node and a
 # GLOBAL trainable context vector (not on the edge), and the default
-# construction uses sentence hyperedges only (LDA topic hyperedges are
-# behind a flag upstream and are not implemented here; the corresponding
-# ablation is "w/o semantic" in the paper's Table 4). Forward parity with
+# construction uses sentence hyperedges and optionally appends LDA topic
+# hyperedges exactly as its `--use_LDA` path does. Forward parity with
 # the official layer is asserted in local_testing_and_equivalence/
 # test-equiv-hypergat-official.R. The attention layer computes
 # [q || y] %*% a as q %*% a_top + y %*% a_bottom, which avoids the
@@ -153,6 +152,105 @@
   list(sentences = sentences[keep], doc_id = doc_id[keep], vocab = vocab)
 }
 
+# Online variational-Bayes LDA (Hoffman et al. 2010), matching the official
+# HyperGAT preprocessing choices: training documents only, online learning,
+# offset 50, random seed 0, topic count = class count, and top 10 words.
+# Returns topic-word components and the selected global keyword sets.
+.thg_hypergat_lda <- function(sentences, vocab, train_idx, n_topics,
+                              top_n = 10L, max_iter = 10L,
+                              batch_size = 128L, offset = 50,
+                              decay = 0.7, seed = 0L,
+                              max_df = 0.98, inner_iter = 100L,
+                              inner_tol = 1e-3) {
+  d <- length(train_idx)
+  v <- length(vocab)
+  X <- matrix(0, nrow = d, ncol = v)
+  for (i in seq_along(train_idx)) {
+    ids <- unlist(sentences[[train_idx[i]]], use.names = FALSE) - 1L
+    tab <- table(ids)
+    X[i, as.integer(names(tab))] <- as.numeric(tab)
+  }
+  keep <- colSums(X > 0) <= max_df * d & colSums(X) > 0
+  if (!any(keep)) {
+    stop(errorCondition(
+      "LDA has no terms after the official max_df = 0.98 filter",
+      class = "honets_empty_corpus", call = NULL
+    ))
+  }
+  X_fit <- X[, keep, drop = FALSE]
+  alpha <- 1 / n_topics
+  eta <- 1 / n_topics
+  had_seed <- exists(".Random.seed", envir = globalenv())
+  old_seed <- if (had_seed) {
+    get(".Random.seed", envir = globalenv())
+  }
+  on.exit(if (had_seed) {
+    assign(".Random.seed", old_seed, envir = globalenv())
+  } else if (exists(".Random.seed", envir = globalenv())) {
+    rm(".Random.seed", envir = globalenv())
+  }, add = TRUE, after = FALSE)
+  set.seed(as.integer(seed))
+  lambda <- matrix(stats::rgamma(n_topics * ncol(X_fit),
+                                  shape = 100, rate = 100),
+                   nrow = n_topics)
+  update <- 0L
+  for (epoch in seq_len(as.integer(max_iter))) {
+    starts <- seq(1L, d, by = as.integer(batch_size))
+    for (start in starts) {
+      batch <- seq.int(start, min(start + batch_size - 1L, d))
+      elog_beta <- digamma(lambda) - digamma(rowSums(lambda))
+      sufficient <- matrix(0, nrow = n_topics, ncol = ncol(X_fit))
+      for (doc in batch) {
+        ids <- which(X_fit[doc, ] > 0)
+        counts <- X_fit[doc, ids]
+        gamma <- rep(alpha + sum(counts) / n_topics, n_topics)
+        for (inner in seq_len(as.integer(inner_iter))) {
+          log_phi <- outer(digamma(gamma), rep(1, length(ids))) +
+            elog_beta[, ids, drop = FALSE]
+          log_phi <- sweep(log_phi, 2L, apply(log_phi, 2L, max), "-")
+          phi <- exp(log_phi)
+          phi <- sweep(phi, 2L, colSums(phi), "/")
+          gamma_new <- alpha + as.vector(phi %*% counts)
+          if (mean(abs(gamma_new - gamma)) < inner_tol) {
+            gamma <- gamma_new
+            break
+          }
+          gamma <- gamma_new
+        }
+        sufficient[, ids] <- sufficient[, ids, drop = FALSE] +
+          sweep(phi, 2L, counts, "*")
+      }
+      update <- update + 1L
+      rho <- (offset + update)^(-decay)
+      lambda_hat <- eta + d / length(batch) * sufficient
+      lambda <- (1 - rho) * lambda + rho * lambda_hat
+    }
+  }
+  fit_vocab <- vocab[keep]
+  top_n <- min(as.integer(top_n), length(fit_vocab))
+  keywords <- lapply(seq_len(n_topics), function(topic) {
+    fit_vocab[order(lambda[topic, ], decreasing = TRUE)[seq_len(top_n)]]
+  })
+  names(keywords) <- paste0("topic_", seq_len(n_topics))
+  list(components = lambda, vocabulary = fit_vocab, keywords = keywords,
+       n_topics = n_topics, top_n = top_n, iterations = as.integer(max_iter),
+       updates = update, training_documents = d, seed = as.integer(seed),
+       offset = offset, decay = decay, max_df = max_df)
+}
+
+# Convert global topic keyword sets into the per-document semantic edges used
+# by official utils.py::Data.get_slice(). Empty topic edges are retained.
+.thg_hypergat_semantic_docs <- function(sentences, vocab, keywords) {
+  topic_ids <- lapply(keywords, function(words) {
+    ids <- match(words, vocab)
+    as.integer(ids[!is.na(ids)] + 1L)
+  })
+  lapply(sentences, function(doc) {
+    nodes <- unique(unlist(doc, use.names = FALSE))
+    unname(c(doc, lapply(topic_ids, function(ids) intersect(ids, nodes))))
+  })
+}
+
 # Pack a set of documents (list of integer-id sentence lists) into the
 # dense batch tensors the layers consume.
 .thg_hypergat_batch <- function(docs) {
@@ -169,8 +267,11 @@
     nodes_i <- node_sets[[i]]
     items[i, seq_along(nodes_i)] <- nodes_i
     mask[i, seq_along(nodes_i)] <- 1
-    hits <- do.call(rbind, lapply(seq_along(docs[[i]]), \(s)
-      cbind(s, match(docs[[i]][[s]], nodes_i))))
+    hits <- do.call(rbind, lapply(seq_along(docs[[i]]), function(s) {
+      cols <- match(docs[[i]][[s]], nodes_i)
+      if (length(cols) == 0L) return(matrix(integer(0), ncol = 2L))
+      cbind(s, cols)
+    }))
     adj[cbind(i, hits[, 1L], hits[, 2L])] <- 1
   }
   list(
@@ -185,12 +286,16 @@
 #' Trains the dual-attention hypergraph network of Ding et al. (2020) --
 #' every document becomes its own hypergraph (its unique words as
 #' vertices, its sentences as hyperedges), two attention layers aggregate
-#' words into sentences and sentences back into words, and a masked mean
+#' words into sentence and optional LDA-topic hyperedges and those hyperedges
+#' back into words, and a masked mean
 #' pool feeds a linear classifier. Inductive: only labeled documents are
 #' trained on, and every document (labeled or not) is scored. Needs the
 #' suggested \pkg{torch} package. Semantics follow the official
-#' implementation with sentence hyperedges (the paper's "w/o semantic"
-#' construction; LDA topic hyperedges are not implemented).
+#' implementation. `semantic = "none"` reproduces its sentence-only
+#' ("w/o semantic") ablation. `semantic = "lda"` adds the full paper path:
+#' online variational-Bayes LDA is fitted to labeled documents only, with the
+#' topic count defaulting to the number of classes, and each document receives
+#' one edge per topic containing the topic's top words present in that document.
 #'
 #' @param x A character vector of documents (names become ids) or a
 #'   data.frame with a text column.
@@ -205,6 +310,23 @@
 #' @param min_count Minimum corpus frequency for a word to become a
 #'   vertex.
 #' @param lowercase Lowercase the text first.
+#' @param semantic `"none"` (default) for sentence hyperedges only, or
+#'   `"lda"` to append the paper's semantic topic hyperedges.
+#' @param lda_keywords Optional precomputed topic keywords: a list of
+#'   character vectors, one per topic. With `semantic = "lda"`, `NULL` fits
+#'   LDA natively; supplying the list bypasses fitting and reproduces a saved
+#'   official preprocessing run.
+#' @param lda_topics Number of LDA topics. `NULL` (default) uses the number of
+#'   classes, as in the paper. Ignored when `lda_keywords` is supplied.
+#' @param lda_top_n Number of highest-probability words per fitted topic
+#'   (paper default 10).
+#' @param lda_max_iter,lda_batch_size Online variational-Bayes passes and
+#'   minibatch size (scikit-learn defaults used by the official code: 10 and
+#'   128).
+#' @param lda_offset,lda_decay Online learning schedule (official values 50
+#'   and 0.7).
+#' @param lda_seed LDA initialization seed (official value 0), separate from
+#'   the neural training `seed`.
 #' @param embed_dim,hidden Embedding and hidden width (official defaults
 #'   300 and 100).
 #' @param epochs,lr,dropout,batch_size,weight_decay Training
@@ -226,6 +348,7 @@
 #'   probability of the winning class), `margin` (winner minus runner-up).
 #'   The training history is attached as attribute `"history"`
 #'   (`epoch`, `loss`, `val_accuracy`).
+#'   Attribute `"semantic"` records the topic keywords and LDA settings.
 #' @references
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
 #' less: Hypergraph attention networks for inductive text classification.
@@ -246,7 +369,12 @@
 #' @export
 hg_hypergat <- function(x, labels, column = NULL, id = NULL,
                         stop_words = stop_words_en(), min_count = 1L,
-                        lowercase = TRUE, embed_dim = 300L, hidden = 100L,
+                        lowercase = TRUE,
+                        semantic = c("none", "lda"), lda_keywords = NULL,
+                        lda_topics = NULL, lda_top_n = 10L,
+                        lda_max_iter = 10L, lda_batch_size = 128L,
+                        lda_offset = 50, lda_decay = 0.7, lda_seed = 0L,
+                        embed_dim = 300L, hidden = 100L,
                         epochs = 10L, lr = 0.001, dropout = 0.3,
                         batch_size = 8L, weight_decay = 1e-6,
                         lr_decay = 0.1, lr_step = 3L, validation = 0.1,
@@ -259,6 +387,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     ))
   }
   class_weights <- match.arg(class_weights)
+  semantic <- match.arg(semantic)
   labels <- .thg_labels_input(labels)
   stopifnot(
     "`x` must be a character vector or a data.frame" =
@@ -280,7 +409,24 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
       is.numeric(validation) && length(validation) == 1L &&
       validation >= 0 && validation < 1,
     "`seed` must be a single integer" =
-      length(seed) == 1L && is.finite(seed)
+      length(seed) == 1L && is.finite(seed),
+    "`lda_top_n`, `lda_max_iter`, and `lda_batch_size` must be positive integers" =
+      all(vapply(list(lda_top_n, lda_max_iter, lda_batch_size), function(z) {
+        is.numeric(z) && length(z) == 1L && is.finite(z) &&
+          z >= 1 && z == round(z)
+      }, logical(1L))),
+    "`lda_offset` must be positive and `lda_decay` must be in (0.5, 1]" =
+      is.numeric(lda_offset) && length(lda_offset) == 1L &&
+        is.finite(lda_offset) && lda_offset > 0 &&
+        is.numeric(lda_decay) && length(lda_decay) == 1L &&
+        is.finite(lda_decay) && lda_decay > 0.5 && lda_decay <= 1,
+    "`lda_seed` must be a single finite integer" =
+      is.numeric(lda_seed) && length(lda_seed) == 1L &&
+        is.finite(lda_seed) && lda_seed == round(lda_seed),
+    "`lda_keywords` must be NULL or a non-empty list of character vectors" =
+      is.null(lda_keywords) ||
+        (is.list(lda_keywords) && length(lda_keywords) > 0L &&
+           all(vapply(lda_keywords, is.character, logical(1L))))
   )
 
   if (is.data.frame(x)) {
@@ -320,11 +466,48 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     ))
   }
 
-  old_seed <- if (exists(".Random.seed", envir = globalenv())) {
+  semantic_info <- list(method = "none", keywords = list(), n_topics = 0L)
+  model_docs <- corpus$sentences
+  if (semantic == "lda") {
+    labeled_docs <- match(names(labels), corpus$doc_id)
+    if (is.null(lda_keywords)) {
+      n_topics <- lda_topics %||% length(classes)
+      stopifnot("`lda_topics` must be a single positive whole number" =
+                  is.numeric(n_topics) && length(n_topics) == 1L &&
+                  is.finite(n_topics) && n_topics >= 1 &&
+                  n_topics == round(n_topics))
+      lda_fit <- .thg_hypergat_lda(
+        corpus$sentences, corpus$vocab, labeled_docs,
+        n_topics = as.integer(n_topics), top_n = as.integer(lda_top_n),
+        max_iter = as.integer(lda_max_iter),
+        batch_size = as.integer(lda_batch_size), offset = lda_offset,
+        decay = lda_decay, seed = as.integer(lda_seed)
+      )
+      lda_keywords <- lda_fit$keywords
+      semantic_info <- lda_fit[setdiff(names(lda_fit), "components")]
+      semantic_info$method <- "lda"
+    } else {
+      lda_keywords <- lapply(lda_keywords, unique)
+      names(lda_keywords) <- names(lda_keywords) %||%
+        paste0("topic_", seq_along(lda_keywords))
+      semantic_info <- list(method = "precomputed", keywords = lda_keywords,
+                            n_topics = length(lda_keywords),
+                            top_n = max(lengths(lda_keywords)),
+                            training_documents = length(labeled_docs))
+    }
+    model_docs <- .thg_hypergat_semantic_docs(
+      corpus$sentences, corpus$vocab, lda_keywords
+    )
+  }
+
+  had_seed <- exists(".Random.seed", envir = globalenv())
+  old_seed <- if (had_seed) {
     get(".Random.seed", envir = globalenv())
   }
-  on.exit(if (!is.null(old_seed)) {
+  on.exit(if (had_seed) {
     assign(".Random.seed", old_seed, envir = globalenv())
+  } else if (exists(".Random.seed", envir = globalenv())) {
+    rm(".Random.seed", envir = globalenv())
   }, add = TRUE, after = FALSE)
   set.seed(seed)
   torch::torch_manual_seed(seed)
@@ -379,7 +562,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     starts <- seq(1L, length(idx), by = 16L)
     probs <- lapply(starts, \(s) {
       chunk <- idx[s:min(s + 15L, length(idx))]
-      batch <- .thg_hypergat_batch(corpus$sentences[chunk])
+      batch <- .thg_hypergat_batch(model_docs[chunk])
       torch::with_no_grad(
         as.matrix(torch::nnf_softmax(
           model(batch$items, batch$adj, batch$mask), dim = 2L
@@ -403,7 +586,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     starts <- seq(1L, length(order_idx), by = batch_size)
     losses <- vapply(starts, \(s) {
       chunk <- order_idx[s:min(s + batch_size - 1L, length(order_idx))]
-      batch <- .thg_hypergat_batch(corpus$sentences[chunk])
+      batch <- .thg_hypergat_batch(model_docs[chunk])
       optimizer$zero_grad()
       out <- model(batch$items, batch$adj, batch$mask)
       y <- torch::torch_tensor(target_all[chunk],
@@ -445,6 +628,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     epoch = seq_len(epochs), loss = history[1L, ],
     val_accuracy = history[2L, ]
   )
+  attr(out, "semantic") <- semantic_info
   out
 }
 

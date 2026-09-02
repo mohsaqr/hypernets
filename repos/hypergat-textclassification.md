@@ -12,7 +12,11 @@
   upstream oracle.
 - **Stack**: PyTorch 1.4, Python 3.6 era; datasets 20NG/R8/R52/Ohsumed/MR.
   Benchmark numbers we quote are from its paper's Table 2 (read 2026-08-25).
-- **Role for us**: the sentence-only dual-attention model is shipped as
-  `hg_hypergat()`/`text_hypergat()` with forward parity. The remaining work
-  is its `--use_LDA` semantic-hyperedge path and the 20NG/MR/Ohsumed runs.
+- **Role for us**: the dual-attention model is shipped as
+  `hg_hypergat()`/`text_hypergat()` with forward parity. Its full `--use_LDA`
+  path is now available through `semantic = "lda"`: native online
+  variational-Bayes fitting on labeled documents or exact replay from the
+  official precomputed topic-keyword dictionary, followed by the same
+  per-document semantic-edge construction as `utils.py::get_slice()`. The
+  remaining work is the 20NG/MR/Ohsumed benchmark runs.
 - **Links**: https://github.com/kaize0409/HyperGAT_TextClassification
