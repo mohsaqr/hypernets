@@ -3,10 +3,10 @@
 - **What**: Python library for higher-order network analysis from the group
   behind the higher-order-networks physics reviews (Battiston et al.):
   measures, community detection, motif analysis, filtering, visualization.
-- **Verified**: NOT independently verified this session — scope stated from
-  background knowledge of the 2023 release paper (JOSS/CNS); check the repo
-  before relying on a specific function.
-- **Role for us**: tertiary reference — candidate extra oracle for community
-  detection and motifs if those ever land; XGI and HyperNetX cover our
-  current needs.
+- **Verified 2026-09-02**: official API documentation and 1.5 conventions
+  inspected: static/directed/temporal/multiplex structures, motifs,
+  generators, random walks and multiple community algorithms.
+- **Role for us**: formula oracle for the shipped Legal Hypergraphs motif,
+  configuration-null and s-centrality fixtures. It is also the best source
+  for future broader motif and generator coverage.
 - **Links**: https://github.com/HGX-Team/hypergraphx · `pip install hypergraphx`

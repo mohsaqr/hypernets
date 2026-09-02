@@ -13,7 +13,7 @@ from the hypergraph packages in this folder):
 - No Python package implements a permutation-based Markov-order test
   (`markov_order_test()` has no upstream equivalent).
 
-**Status for us**: already integrated — honets/Nestimate's local equivalence
+**Status for us**: already integrated — honets' local equivalence
 suite uses pyHON, pyMOGen, and pathpy as oracles via reticulate
 (`helper-python-equiv.R`; MOGen matches pathpy.MultiOrderModel at machine
 precision). Nothing new to adopt; the parity proofs live in

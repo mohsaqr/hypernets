@@ -1509,8 +1509,10 @@ border-radius: 0px;
 single pair of nodes at a single moment. There are two ways to reach
 past it, and three structures that do so. honets implements all three
 under one taxonomy.</p>
-<p>Every exported verb has a vignette below, each one a worked analysis
-on real data rather than a syntax reference.</p>
+<p>The tables below route the main analysis verbs to worked documents.
+The package reference indexes every export; compact <code>hg_*()</code>
+aliases share the same documentation as their long
+<code>hypergraph_*()</code> forms.</p>
 <div id="start-here" class="section level2">
 <h2>Start here</h2>
 <p><strong><a href="overview.html#three_families">Three higher-order
@@ -1667,6 +1669,71 @@ assumption?</td>
 <td><a href="hypergraphs.html#clique_expansion"><code>clique_expansion()</code></a></td>
 <td>How do I project back to a pairwise network, and what does it
 cost?</td>
+</tr>
+<tr class="even">
+<td><a href="../articles/legal-hypergraphs.html"><code>hypergraph_project()</code>
+and <code>hypergraph_line_graph()</code></a></td>
+<td>How do I create association and s-line projections?</td>
+</tr>
+<tr class="odd">
+<td><a href="../articles/legal-hypergraphs.html"><code>temporal_hypergraph()</code>
+and snapshot verbs</a></td>
+<td>How do higher-order relations enter, persist and leave over
+time?</td>
+</tr>
+<tr class="even">
+<td><a href="../articles/legal-hypergraphs.html"><code>hypergraph_edges()</code>
+and <code>hypergraph_edge_centrality()</code></a></td>
+<td>Which hyperedges are large, connected or structurally central?</td>
+</tr>
+<tr class="odd">
+<td><a href="../articles/legal-hypergraphs.html"><code>hypergraph_motifs()</code></a></td>
+<td>Are Y/T/O patterns enriched against a configuration null?</td>
+</tr>
+<tr class="even">
+<td><a href="../articles/legal-hypergraphs.html"><code>hypergraph_communities()</code>
+and <code>hypergraph_community_quality()</code></a></td>
+<td>Which association-graph partition is stable, and how good is
+it?</td>
+</tr>
+<tr class="odd">
+<td><a href="../articles/benchmarks.html"><code>hg_neural()</code> and
+<code>hg_hypergat()</code></a></td>
+<td>How do the native neural models compare with closed-form
+methods?</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="text-hypergraphs" class="section level2">
+<h2>Text hypergraphs</h2>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Vignette</th>
+<th>Answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="../articles/text-hypergraphs.html"><code>text_hypergraph()</code>
+and tidy <code>hg_*()</code> verbs</a></td>
+<td>How do I construct and analyse a corpus hypergraph?</td>
+</tr>
+<tr class="even">
+<td><a href="../articles/text-constructions.html">Window and kNN
+constructions</a></td>
+<td>How do token order and embedding neighbourhoods change the
+representation?</td>
+</tr>
+<tr class="odd">
+<td><a href="../articles/benchmarks.html">Benchmark article</a></td>
+<td>How do transduction, HGNN and HyperGAT perform on the paper
+datasets?</td>
 </tr>
 </tbody>
 </table>

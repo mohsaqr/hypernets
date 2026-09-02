@@ -12,6 +12,12 @@ test_that("growing temporal hypergraphs produce cumulative active snapshots", {
   expect_equal(hypergraph_snapshot(thg, 2)$n_hyperedges, 2)
   expect_equal(length(hypergraph_snapshots(thg)), 3)
   expect_equal(as.data.frame(thg), thg$memberships)
+  sm <- summary(thg)
+  expect_equal(sm$n_nodes, 4)
+  expect_equal(sm$n_hyperedges, 3)
+  expect_equal(sm$n_memberships, 6)
+  expect_equal(sm$mean_edge_size, 2)
+  expect_equal(sm$evolution, "growing")
 })
 
 test_that("interval snapshots use closed intervals and wide member columns", {

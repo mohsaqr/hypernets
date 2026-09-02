@@ -1,6 +1,9 @@
-# Nestimate hypergraph module — ours (R)
+# Nestimate hypergraph module — historical source/oracle
 
-The anchor all comparisons are made against. Five exports (see Nestimate
+This note records the pre-consolidation implementation. honets now owns the
+methods and does not depend on Nestimate. No current honets work should edit
+or call Nestimate; retained local identity tests treat it only as a frozen
+historical oracle. The original five exports were:
 CLAUDE.md and `R/hypergraph*.R`, `R/bipartite_groups.R`,
 `R/clique_expansion.R`):
 
@@ -25,7 +28,6 @@ Base R + BLAS only, zero added dependencies. Equivalence-tested in Nestimate
 igraph, Z/H vs clean-room tensor iteration; TOL 1e-10, cosine 1e-6 for
 sign/rotation-ambiguous eigenvectors).
 
-**Unique vs everything surveyed here**: weighted everywhere, estimation-
-connected (netobject in/out), tensor centralities in R. **Gaps** = the parked
-TODO items (Laplacian/EDVW clustering + transduction, windowed and kNN
-hyperedge construction, random-walk centrality, wasserstein, dual).
+All listed capabilities plus Laplacians, clustering, transduction, window and
+kNN construction, PageRank and duals now live natively in honets. Wasserstein
+distance remains open in honets.

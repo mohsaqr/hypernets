@@ -1,36 +1,45 @@
-# Repo index — oracles vs guiding references
+# Package and repository map
 
-One line per surveyed repo/package (each has a full note in this folder).
-Compiled 2026-08-25. "Verified" = source/docs checked on the stated date;
-unverified rows are background knowledge — re-check before relying on a
-specific function.
+Maintained 2026-09-02. Runtime dependencies are deliberately separated from
+equivalence oracles and research references. Oracles are local-test tools,
+never honets runtime dependencies.
 
-## Ours (anchors)
+## Runtime and peer packages
 
-| Repo | What | Note |
+| Package | Relationship to honets | Note |
 |---|---|---|
-| Nestimate hypergraph module | The anchor all comparisons target: `build_hypergraph`, `bipartite_groups`, `hypergraph_measures`, `hypergraph_centrality` (CEC + tensor Z/H), `clique_expansion`, + the Zhou/Hayashi Laplacian trio (2026-08-25, HyperNetX parity < 1e-12) | `nestimate-hypergraph-module.md` |
-| sbert (R, ../SBERT) | Native Python-free embedding front-end for the kNN-hypergraph pipeline (replaces the `text`/reticulate route); 13 ONNX + 1 static pinned models, SentenceTransformers parity ~1e-7 | — (own repo docs) |
+| cograph | Imported graph/plot engine after a hypergraph is projected; no export collisions | [`cograph.md`](cograph.md) |
+| Dynet | Separate temporal-network peer; never a dependency | [`dynet.md`](dynet.md) |
+| sbert | Suggested native embedding frontend for kNN text hypergraphs | [`sbert.md`](sbert.md) |
+| Nestimate | Historical source and identity oracle only; honets has no runtime dependency | [`nestimate-hypergraph-module.md`](nestimate-hypergraph-module.md) |
 
-## Equivalence oracles (numerical parity targets; reticulate/local-only, never dependencies)
+## Equivalence oracles
 
-| Repo | Lang | Oracle for | Verified |
-|---|---|---|---|
-| HyperNetX (PNNL) | Py | **THE** oracle for the Zhou/Hayashi weighted Laplacian trio (`prob_trans`/`get_pi`/`norm_lap`/`spec_clus` implement Hayashi EDVW exactly, author-adjacent); already used, parity < 1e-12. Homology module = possible extra TDA oracle | 2026-08-25 |
-| XGI | Py | Second independent oracle for shipped `hypergraph_centrality()` (`h_/z_/clique_eigenvector_centrality`, Katz) — cross-check parked in TODO. Also the measure-naming reference | 2026-08-25 |
-| HyperG (CRAN) | R | Unweighted cases: `hypergraph_laplacian_matrix`/`cluster_spectral` (Laplacian item), `knn_hypergraph` (kNN construction), `sample_*` (Saqrlab samplers), `dual_hypergraph` (dual accessor) | 2026-08-24 |
-| SimplicialComplex (CRAN) | R | Parked `wasserstein_distance()`; second oracle for shipped `bottleneck_distance`. Name collisions with Nestimate are benign (last-loaded wins) | 2026-08-24 |
-| gudhi / ripser.py / giotto-tda | Py | Candidate oracles for `wasserstein_distance()` (gudhi = field reference); Nestimate already uses `TDAstats` | background |
-| pathpy / pyHON / HYPA / HONEM | Py | **Already integrated** in honets/Nestimate `local_testing_and_equivalence/` (HON sequence side; MOGen matches pathpy at machine precision). Nothing new to adopt | integrated |
+| Repository/package | Oracle role | Current status |
+|---|---|---|
+| HyperNetX | Zhou/Hayashi Laplacians, EDVW transition/PageRank, s-line graph | Shipped methods have local parity tests; note needs no “parked” interpretation |
+| XGI | Clique/Z/H centralities and measure naming | Independent centrality cross-check still open |
+| HyperG | Unweighted kNN/dual constructions and random generators | kNN/dual parity shipped; generators open |
+| SimplicialComplex | Persistence diagrams, landscapes and diagram distances | Bottleneck shipped; Wasserstein open |
+| GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein oracle work open |
+| pathpy / pyHON / HYPA / HONEM | Memory-network construction, MOGen and anomaly methods | Integrated in `local_testing_and_equivalence/` |
+| HypergraphX | Legal motifs, s-centralities, temporal and community conventions | Legal formula fixtures shipped; broader oracle coverage remains useful |
+| Legal Hypergraphs archive | Published GFCC/ICSID workflow | ICSID motif census exact; full GFCC/temporal reproduction open |
 
-## Guiding / reference repos (design, construction, or baseline — not parity targets)
+## Neural references and baselines
 
-| Repo | Lang | Guides | Verified |
-|---|---|---|---|
-| HyperGAT_TextClassification | Py | Construction reference for windowed sequence hyperedges (`utils.py::get_slice()`: sentence = hyperedge + LDA-topic edges). **Sliding-window variant NOT in the code** — our windowed item has no upstream oracle, invariant-gated instead | 2026-08-24 |
-| BERTopic (Py + CRAN wrapper) | Py/R | The practical baseline any hypergraph-clustering claim must beat or complement (stochastic — multi-seed reporting required) | 2026-08-24 (wrapper) |
-| text (CRAN) | R | Was the assumed embedding step (reticulate → HF); **superseded by sbert** for our pipeline. Remains the only R route to XLNet-class PLMs | 2026-08-24 (presence) |
-| AllSet (official) | Py | Neural tier, reference-only; strongest general hypergraph-NN framework if carm-ml ever grows one; its 10-dataset benchmark harness is a design reference | paper 2026-08-24; repo unaudited |
-| DHG / DeepHypergraph (+ PyG `HypergraphConv`, TopoNetX) | Py | Neural tier, reference-only: the packaged HGNN/HyperGCN/UniGNN zoo to study if a GNN story lands | background |
-| HypergraphX (Battiston) | Py | Tertiary reference; candidate extra oracle for communities/motifs if those ever land — XGI + HyperNetX cover current needs | background |
-| [Legal Hypergraphs](legal-hypergraphs.md) | R/data | Edge measures, association projection, s-line centralities, configuration nulls and temporal analysis; published reproducibility archive is the planned end-to-end oracle | paper + archive 2026-09-02 |
+| Repository/package | Role | Current status |
+|---|---|---|
+| HyperGAT_TextClassification | Official Ding et al. implementation | Sentence-only HyperGAT shipped; LDA semantic edges and three datasets open |
+| DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity shipped; HyperGCN/HNHN remain open |
+| AllSet | Official AllDeepSets/AllSetTransformer implementation | Model implementation open |
+| BERTopic | Practical embedding/topic baseline | Multi-seed benchmark open |
+| text | Historical reticulate/Hugging Face route | Superseded by sbert for the native pipeline |
+
+Detailed notes: [`hypernetx.md`](hypernetx.md), [`xgi.md`](xgi.md),
+[`hyperg-r.md`](hyperg-r.md), [`simplicialcomplex-r.md`](simplicialcomplex-r.md),
+[`tda-python.md`](tda-python.md), [`pathpy-hon-python.md`](pathpy-hon-python.md),
+[`hypergraphx.md`](hypergraphx.md), [`legal-hypergraphs.md`](legal-hypergraphs.md),
+[`hypergat-textclassification.md`](hypergat-textclassification.md),
+[`deephypergraph.md`](deephypergraph.md), [`allset.md`](allset.md),
+[`bertopic.md`](bertopic.md), and [`text-r.md`](text-r.md).

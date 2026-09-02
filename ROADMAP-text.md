@@ -1,25 +1,23 @@
-# texthypergraph — package roadmap
+# honets text and hypergraph roadmap
 
-2026-08-25 (v3 — pivoted from "staging ground" to **the `texthypergraph` R
-package**). This repo becomes the package; the papers/, repos/, and TODO.md
-material stays as its research base (`.Rbuildignore`d).
+This file preserves the release history of the retired `texthypergraph`
+package and records its continuation inside honets. Sections v0.1-v0.6 are
+historical implementation notes; v0.7 and later describe the maintained
+honets package.
 
 **What the package is:** hypergraph text analysis in R — corpus in, weighted
 text hypergraph out, spectral/statistical analysis through tidy verbs. First
 of its kind on CRAN (gap verified 2026-08-24: no hypergraph text
 classification exists in R at all, not even non-neural Zhou 2006).
 
-**Ownership contract (no duplication):**
+**Current ownership contract (no duplication):**
 
-- `texthypergraph` owns: text → hypergraph **constructions**, text-facing
-  analysis verbs, corpora, vignettes.
-- `Nestimate` (Imports, via mohsaqr.r-universe.dev) is a **frozen
-  dependency** (decision 2026-08-25: Nestimate is not being expanded). Its
-  shipped engines are used as-is: `bipartite_groups()`,
-  `hypergraph_measures()`, `hypergraph_centrality()` (CEC + tensor Z/H),
-  the Zhou/Hayashi Laplacian trio, `clique_expansion()`, `wtna()`.
-  **Every NEW method is implemented in texthypergraph**, with its own
-  oracle/invariant gates — nothing new goes into Nestimate.
+- honets owns all higher-order and text-hypergraph construction, analysis,
+  inference and result classes. The retired package is an archive only.
+- Nestimate is neither an Import nor a Suggest. Historical identity checks
+  remain local equivalence tests; no honets runtime path calls Nestimate.
+- cograph is the imported graph and plotting engine at the graph-shaped
+  boundary. Dynet remains a separate temporal-network peer.
 - `sbert` (Suggests) is the native embedding front-end; every verb also
   accepts a precomputed `embeddings` matrix so the package runs offline.
 - Oracles (local-only, never dependencies): HyperNetX (EDVW Laplacian,
@@ -296,8 +294,10 @@ stays in honets; cograph begins at the graph-shaped boundary.
   Python at runtime, oracle-verified against HyperNetX/XGI.
 - BERTopic as the reported baseline (multi-seed, effect sizes + CIs).
 
-## Out of scope
+## Scope boundary
 
-Neural training of any kind (HGNN/AllSet stay literature), PLM wrappers,
-hMETIS/KaHyPar partitioning, retrieval stacks. Duplicating any Nestimate
-engine here.
+Native hypergraph neural models are in scope and already include HGNN and
+HyperGAT. PLM training/wrappers, hMETIS/KaHyPar partitioning and retrieval
+stacks remain outside honets; pretrained embeddings enter through sbert or a
+caller-supplied matrix. Nestimate is retained only as a historical oracle,
+never as a runtime dependency.

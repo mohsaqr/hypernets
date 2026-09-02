@@ -14,9 +14,9 @@
   `spec_clus()` (spectral clustering) — citing the paper in the docstrings.
   Sinan Aksoy is at PNNL, so this is the author-adjacent reference
   implementation.
-- **Role for us**: **THE oracle** for the parked Nestimate item "weighted
-  hypergraph Laplacian + spectral clustering + transduction"
-  (Zhou 2006 / Hayashi 2020) — reticulate, local-only, pyHON/pathpy pattern.
-  The homology module is a possible extra oracle for the TDA side.
+- **Role for us**: primary local oracle for the shipped weighted Laplacian,
+  RDC-Spec clustering and EDVW PageRank paths. Its homology module remains a
+  possible second TDA oracle. The Hayashi SymNMF/JointNMF branches are not
+  supplied by HyperNetX and need paper-equation fixtures.
 - **Links**: https://github.com/pnnl/HyperNetX ·
   https://hypernetx.readthedocs.io · `pip install hypernetx`

@@ -3,14 +3,12 @@
 - **What**: the packaged home of hypergraph neural networks (iMoonLab):
   HGNN, HGNN+, HyperGCN, UniGNN-family and more as ready PyTorch models,
   plus hypergraph data structures and spectral utilities.
-- **Verified**: NOT independently verified this session — model list from
-  background knowledge; confirm the exact zoo in the repo before citing.
+- **Verified 2026-09-02**: official repository and documentation list HGNN,
+  HGNN+, HyperGCN, HNHN and the UniGNN family among the high-order models.
 - **Relatives**: PyTorch Geometric ships a `HypergraphConv` layer;
   TopoNetX / TopoModelX (pyt-team) cover topological deep learning
   (simplicial/cell/hypergraph message passing).
-- **Role for us**: reference-only. The neural tier is out of scope for
-  Nestimate (no neural nets); if a JS/Python hypergraph-GNN story ever
-  happens (carm-ml), DHG is the implementation to study, with the papers in
-  `../papers/` (HGNN, HyperGCN, HNHN, AllSet) as the theory.
+- **Role for us**: HGNN is already checked against DHG's `HGNNConv`; DHG is
+  the next implementation oracle for the open HyperGCN and HNHN layers.
 - **Links**: https://github.com/iMoonLab/DeepHypergraph ·
   https://deephypergraph.readthedocs.io · `pip install dhg`

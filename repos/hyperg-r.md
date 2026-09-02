@@ -11,13 +11,9 @@
   random samplers (gnp, SBM, k-uniform/regular, geometric, epsilon, knn),
   plotting. **Undirected, UNWEIGHTED only** (stated in its own docs); no
   tensor centralities; no sequence/text input.
-- **Role for us**: oracle for the UNWEIGHTED cases of the parked Nestimate
-  items — `hypergraph_laplacian_matrix`/`cluster_spectral` for the Laplacian
-  item, `knn_hypergraph` for the kNN-embedding construction, `sample_*` for
-  the Saqrlab samplers, `dual_hypergraph` for the dual accessor. Local-only
-  use (never a declared dependency).
-- **Comparison**: full coverage comparison in Nestimate
-  `todo/COVERAGE-CATCHUP.md` §2 (2026-08-24) — Nestimate wins on everything
-  weighted, estimation-connected, and tensor-spectral; HyperG wins on
-  combinatorial breadth we don't want.
+- **Role for us**: local oracle for the unweighted Laplacian, kNN and dual
+  cases already shipped in honets, and for the open random-generator work.
+  It is never a declared dependency. Attaching both packages masks
+  `dual_hypergraph()` and `knn_hypergraph()`; oracle scripts must namespace
+  both sides explicitly.
 - **Links**: https://cran.r-project.org/package=HyperG

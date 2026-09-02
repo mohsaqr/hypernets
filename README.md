@@ -154,8 +154,8 @@ research abstracts and their sentence embeddings).
 
 ## Vignettes
 
-The text family ships two package vignettes, `vignette("text-hypergraphs")`
-and `vignette("text-constructions")`, and a benchmark article
+The package ships `vignette("legal-hypergraphs")`,
+`vignette("text-hypergraphs")` and `vignette("text-constructions")`, plus a benchmark article
 (`vignettes/articles/benchmarks.Rmd`, R8/R52/MR/Ohsumed/20NG). The other
 three families have one worked document each in `docs/` — a worked analysis
 on real data, not a syntax reference. Start with **`docs/index.html`** for

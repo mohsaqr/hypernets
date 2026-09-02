@@ -271,6 +271,24 @@ print.net_temporal_hypergraph <- function(x, ...) {
 }
 
 #' @export
+summary.net_temporal_hypergraph <- function(object, ...) {
+  memberships_per_edge <- table(object$memberships$edge)
+  duration <- object$edge_data$end - object$edge_data$start
+  data.frame(
+    n_nodes = length(object$nodes),
+    n_hyperedges = length(object$edges),
+    n_event_times = length(object$times),
+    n_memberships = nrow(object$memberships),
+    mean_edge_size = mean(as.numeric(memberships_per_edge)),
+    median_edge_size = stats::median(as.numeric(memberships_per_edge)),
+    mean_duration = if (all(is.na(duration))) NA_real_ else
+      mean(as.numeric(duration), na.rm = TRUE),
+    evolution = object$evolution,
+    row.names = NULL
+  )
+}
+
+#' @export
 as.data.frame.net_temporal_hypergraph <- function(x, row.names = NULL,
                                                    optional = FALSE, ...) {
   x$memberships

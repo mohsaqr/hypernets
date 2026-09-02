@@ -14,9 +14,8 @@ output:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       comment = "")
-# cograph is a Suggests dependency. Every plot chunk below carries
-# `eval = has_cograph`, so this document still knits (without figures)
-# where cograph is not installed.
+# cograph is an imported dependency and the graph/plotting engine. The guard
+# keeps this source document usable in stripped-down documentation sandboxes.
 has_cograph <- requireNamespace("cograph", quietly = TRUE)
 ```
 
@@ -405,7 +404,7 @@ form their own block — does not depend on the choice of three versus four.
 - **`build_hypergraph()`** — the input is an estimated pairwise network
   and the hyperedges should be its cliques.
 - **`clique_expansion()`** — hands the hypergraph back to pairwise
-  machinery (Nestimate, cograph) when a graph method is needed; the
+  machinery in cograph when a graph method is needed; the
   multi-way distinctions collapse into edge weights at that point, which
   is exactly what this tutorial's construction exists to avoid.
 
@@ -1303,4 +1302,3 @@ codes clearly by size and overlap structure — see
   graphs. *ICML 2006*, 17-24.
 - Tian, Y., & Zafarani, R. (2024). Higher-order network analysis methods.
   *ACM Computing Surveys*.
-

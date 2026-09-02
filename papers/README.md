@@ -30,3 +30,45 @@ hypergraphs”, *Philosophical Transactions of the Royal Society A* 382(2270),
 - honets method mapping: [`../repos/legal-hypergraphs.md`](../repos/legal-hypergraphs.md)
 - License: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
+## Method bibliography without a local PDF
+
+These sources directly define exported honets methods but are indexed by DOI
+or bibliographic record rather than copied into this repository.
+
+### Memory networks
+
+- Xu, Wickramarathne & Chawla (2016), BuildHON,
+  [doi:10.1126/sciadv.1600028](https://doi.org/10.1126/sciadv.1600028).
+- Saebi et al. (2020), HONEM,
+  [doi:10.1089/big.2019.0169](https://doi.org/10.1089/big.2019.0169).
+- LaRock et al. (2020), HYPA,
+  [doi:10.1137/1.9781611976236.52](https://doi.org/10.1137/1.9781611976236.52).
+- Scholtes (2017), multi-order generative models,
+  [doi:10.1145/3097983.3098145](https://doi.org/10.1145/3097983.3098145).
+- Scholtes, Wider & Garas (2016), higher-order centralities,
+  [doi:10.1140/epjb/e2016-60663-0](https://doi.org/10.1140/epjb/e2016-60663-0).
+
+### Simplicial topology
+
+- Zomorodian & Carlsson (2005), persistent homology,
+  [doi:10.1007/s00454-004-1146-y](https://doi.org/10.1007/s00454-004-1146-y).
+- Bubenik (2015), persistence landscapes,
+  [doi:10.1111/cgf.12447](https://doi.org/10.1111/cgf.12447).
+- Atkin (1974), q-analysis, *Mathematical Structure in Human Affairs*.
+- Edelsbrunner & Harer (2010), *Computational Topology: An Introduction*.
+
+### Hypergraphs and statistical decisions
+
+- Battiston et al. (2020), higher-order-network review,
+  [doi:10.1016/j.physrep.2020.05.004](https://doi.org/10.1016/j.physrep.2020.05.004).
+- Benson (2019), three hypergraph eigenvector centralities,
+  [doi:10.1137/18M1203031](https://doi.org/10.1137/18M1203031).
+- Aksoy et al. (2020), high-order hypergraph walks,
+  [doi:10.1140/epjds/s13688-020-00231-0](https://doi.org/10.1140/epjds/s13688-020-00231-0).
+- Chodrow (2020), configuration models,
+  [doi:10.1093/comnet/cnaa018](https://doi.org/10.1093/comnet/cnaa018).
+- Zhu, Ghahramani & Lafferty (2003), class-mass-normalized label spreading.
+- Hubert & Arabie (1985), adjusted Rand index.
+- Vinh, Epps & Bailey (2010), adjusted mutual information.
+- Gotelli (2000) and Phipson & Smyth (2010), null-model and permutation
+  inference conventions.

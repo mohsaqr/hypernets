@@ -8,10 +8,11 @@
   hyperedge (word-row, sentence-column), LDA topic hyperedges appended as
   extra incidence columns when enabled (`generate_lda.py` precomputes
   keywords). **The paper's sliding-window alternative is NOT implemented** —
-  the windowed construction parked for Nestimate is our extension with no
+  the honets sliding-window construction is our extension with no
   upstream oracle.
 - **Stack**: PyTorch 1.4, Python 3.6 era; datasets 20NG/R8/R52/Ohsumed/MR.
   Benchmark numbers we quote are from its paper's Table 2 (read 2026-08-25).
-- **Role for us**: construction reference for the "windowed sequence
-  hyperedges" Nestimate item; the model itself is out of scope.
+- **Role for us**: the sentence-only dual-attention model is shipped as
+  `hg_hypergat()`/`text_hypergat()` with forward parity. The remaining work
+  is its `--use_LDA` semantic-hyperedge path and the 20NG/MR/Ohsumed runs.
 - **Links**: https://github.com/kaize0409/HyperGAT_TextClassification

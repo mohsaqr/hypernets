@@ -10,11 +10,11 @@
   `z_eigenvector_centrality`, `uniform_h_eigenvector_centrality`,
   `clique_eigenvector_centrality`, `katz_centrality`,
   `line_vector_centrality`.
-- **Relevance**: the centrality set overlaps Nestimate's SHIPPED
+- **Relevance**: the centrality set overlaps honets' shipped
   `hypergraph_centrality()` (CEC / Z / H) exactly.
 - **Role for us**: **second independent oracle** for the shipped centralities —
-  add a reticulate cross-check to Nestimate's
-  `local_testing_and_equivalence/test-equiv-hypergraph.R` (parked in TODO.md).
+  add a reticulate cross-check to honets'
+  `local_testing_and_equivalence/` suite.
   Also the reference for measure naming when new measures are considered.
 - **Not verified this session**: its generator and stats submodules' exact
   surface.
