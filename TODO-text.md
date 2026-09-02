@@ -25,12 +25,14 @@ on Nestimate and no work in this list requires modifying it.
   k-uniform and k-regular, with `hg_*` and `hypergraph_*` names.
 - [x] Add an independent XGI oracle runner for clique, Z and H centralities;
   XGI remains a local-validation dependency, never a runtime dependency.
-- [ ] Run the promised multi-seed BERTopic benchmark with effect sizes and
-  confidence intervals.
-- [ ] Add conductance to hypergraph community-quality output.
-- [ ] Decide whether a dedicated `hypergraph_embed()` wrapper improves the
-  API over `hypergraph_cluster(..., what = "embedding")`; do not document a
-  nonexistent `hg_embed()` in the meantime.
+- [x] Run a ten-seed UMAP/HDBSCAN baseline on R8, including a matched
+  eight-cluster control, paired effects, and bootstrap confidence intervals.
+- [ ] Run the promised benchmark through the actual Python `BERTopic` class;
+  do not label the modular UMAP/HDBSCAN baseline as BERTopic.
+- [x] Add worst-community weighted conductance to hypergraph
+  community-quality output.
+- [x] Ship one dedicated embedding wrapper under both `hg_embed()` and
+  `hypergraph_embed()`, delegating to the existing spectral/NMF engine.
 
 ## Legal Hypergraphs reproduction
 

@@ -6,6 +6,7 @@ test_that("long and short hypergraph API names are direct aliases", {
     hypergraph_community_quality = hg_community_quality,
     hypergraph_edge_centrality = hg_edge_centrality,
     hypergraph_edges = hg_edges,
+    hypergraph_embed = hg_embed,
     hypergraph_keywords = hg_keywords,
     hypergraph_line_graph = hg_line_graph,
     hypergraph_motifs = hg_motifs,
@@ -24,7 +25,7 @@ test_that("long and short hypergraph API names are direct aliases", {
   )
   short <- list(
     hg_agreement, hg_classify, hg_communities, hg_community_quality,
-    hg_edge_centrality, hg_edges, hg_keywords, hg_line_graph, hg_motifs,
+    hg_edge_centrality, hg_edges, hg_embed, hg_keywords, hg_line_graph, hg_motifs,
     hg_neural, hg_hypergcn, hg_hnhn, hg_allset, hg_null_test, hg_pagerank, hg_project, hg_snapshot, hg_snapshots, hg_seeds,
     hg_stability, hg_hypergat
   )

@@ -23,6 +23,21 @@ R52 0.9433, ABOVE published transductive TextGCN (0.9356). `hg_neural()`
 configuration tested. HGNN configs reported: paper defaults (lr 0.001,
 200 ep) and validation-selected package defaults (lr 0.01, 600 ep).
 
+## UMAP/HDBSCAN assignment baseline (R8, 10 paired seeds)
+
+`run_umap_hdbscan_benchmark.R` compares unsupervised honets spectral
+clustering with fixed TF-IDF/SVD embeddings followed by UMAP and either
+HDBSCAN or a fixed-k k-means control. This is an embedding-clustering
+baseline, **not a run of the BERTopic package**.
+
+Default HDBSCAN selected 142--170 topics and 17.5--23.0% outliers. Honets,
+given R8's known eight-class count, led by 0.394 ARI, 0.210 AMI, and 0.193 NMI
+(all paired bootstrap CIs exclude zero). The fairer fixed-eight-topic control
+is mixed: honets led ARI by **0.0372** (95% CI **0.0270--0.0478**,
+paired dz 2.05), while the UMAP+k-means path led AMI by
+**0.0219** (0.0088--0.0350) and NMI by **0.0219** (0.0087--0.0341).
+All six effect estimates are committed under `benchmarks/results/`.
+
 ## Grids (generated)
 
 | Dataset | Method | Accuracy [95% CI] | Macro-F1 | Unscored | Build (s) | Fit (s) |

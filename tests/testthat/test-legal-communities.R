@@ -39,4 +39,26 @@ test_that("paper partition quality is exact on disconnected cliques", {
   expect_equal(q$weighted_coverage, 1)
   expect_equal(q$performance, 1)
   expect_equal(q$modularity, 0.5)
+  expect_equal(q$conductance, 0)
+})
+
+test_that("community conductance is exact on a path cut", {
+  h <- group_hypergraph(
+    data.frame(member = c("a", "b", "b", "c", "c", "d"),
+               event = rep(c("ab", "bc", "cd"), each = 2)),
+    "member", "event"
+  )
+  labels <- c(a = "left", b = "left", c = "right", d = "right")
+  q <- hg_community_quality(h, labels)
+  # One crossing edge; each side has weighted volume 3.
+  expect_equal(q$conductance, 1 / 3)
+})
+
+test_that("one-community conductance is undefined", {
+  h <- group_hypergraph(
+    data.frame(member = c("a", "b", "b", "c"),
+               event = rep(c("ab", "bc"), each = 2)),
+    "member", "event"
+  )
+  expect_true(is.na(hg_community_quality(h, c(a = 1, b = 1, c = 1))$conductance))
 })

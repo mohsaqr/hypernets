@@ -30,7 +30,7 @@
 #'     [hg_sample_gnp()], [hg_sample_sbm()], [hg_sample_uniform()]; measures [hypergraph_measures()],
 #'     [hypergraph_centrality()]; spectral methods [hypergraph_laplacian()],
 #'     [hypergraph_cluster()], [hypergraph_transduction()]; PageRank
-#'     [hypergraph_pagerank()]; projections [clique_expansion()],
+#'     [hypergraph_pagerank()]; embeddings [hypergraph_embed()]; projections [clique_expansion()],
 #'     [hypergraph_project()], [hypergraph_line_graph()],
 #'     [dual_hypergraph()]; temporal views [hypergraph_snapshot()],
 #'     [hypergraph_snapshots()]; hyperedge tables [hypergraph_edges()] and

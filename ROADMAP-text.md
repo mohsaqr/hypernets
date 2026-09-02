@@ -271,10 +271,10 @@ stays in honets; cograph begins at the graph-shaped boundary.
   cumulative and aggregate views, with optional multi-edge collapse. This is
   native honets code and introduces no Dynet dependency. *Oracle*: the paper's
   temporal GFCC/ICSID construction.
-- [ ] Carried forward: conductance cluster quality, larger bundled corpora.
-  **`hg_embed()` is claimed as shipped in v0.1 and as future work here, and
-  exists in neither `R/` nor NAMESPACE (checked 2026-09-01). Build it or
-  drop the claim — it must not stay listed in both places.**
+- [x] **DONE 2026-09-02:** worst-community weighted conductance added to
+  `hg_community_quality()`. Larger bundled corpora remain carried forward.
+  **Resolved 2026-09-02:** `hg_embed()` and `hypergraph_embed()` now expose
+  the same documented wrapper over the shipped spectral/NMF coordinates.
 - [x] **DONE 2026-09-02 paper-oracle validation** — reconstructed the authors'
   ICSID aggregate (441 nodes, 742 cases) from Zenodo 8081507 and reproduced
   the published observed motif counts exactly: Y = 478, T = 7, O = 0.

@@ -33,7 +33,7 @@ never honets runtime dependencies.
 | HyperGAT_TextClassification | Official Ding et al. implementation | Sentence and LDA semantic paths shipped; 20NG/MR/Ohsumed runs open |
 | DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity plus native HyperGCN/HNHN shipped |
 | AllSet | Official AllDeepSets/AllSetTransformer implementation | Both native models shipped with multiset-invariance tests |
-| BERTopic | Practical embedding/topic baseline | Multi-seed benchmark open |
+| BERTopic | Practical embedding/topic baseline | Actual-package multi-seed benchmark remains open; UMAP/HDBSCAN baseline is reported separately |
 | text | Historical reticulate/Hugging Face route | Superseded by sbert for the native pipeline |
 
 Detailed notes: [`hypernetx.md`](hypernetx.md), [`xgi.md`](xgi.md),

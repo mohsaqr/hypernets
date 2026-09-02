@@ -199,8 +199,10 @@ plot.hg_communities <- function(x, ...) {
 
 #' Quality of a projected-hypergraph partition
 #'
-#' Reports the four graph-partition diagnostics used in the paper: unweighted
-#' coverage, weighted coverage, performance, and weighted modularity.
+#' Reports graph-partition diagnostics on the association projection:
+#' unweighted coverage, weighted coverage, performance, weighted modularity,
+#' and conductance. Conductance is the maximum (worst) community conductance
+#' \eqn{cut(S, \bar S) / min(vol(S), vol(\bar S))}; lower is better.
 #'
 #' @param hg A static `net_hypergraph`.
 #' @param partition An [hg_communities()] result, a tidy node/label table, or a
@@ -232,11 +234,26 @@ hg_community_quality <- function(hg, partition,
   weighted_quality <- cograph::cluster_quality(
     projection, labels, weighted = TRUE, directed = FALSE
   )
+  # An undirected self-loop contributes twice to weighted degree. It never
+  # crosses a cut, but it does increase the volume on its side.
+  strength <- rowSums(projection) + diag(projection)
+  total_volume <- sum(strength)
+  community_conductance <- vapply(unique(labels), function(group) {
+    inside <- labels == group
+    volume <- sum(strength[inside])
+    denominator <- min(volume, total_volume - volume)
+    if (denominator <= 0) return(NA_real_)
+    cut <- sum(projection[inside, !inside, drop = FALSE])
+    cut / denominator
+  }, numeric(1))
+  conductance <- if (all(is.na(community_conductance))) NA_real_ else
+    max(community_conductance, na.rm = TRUE)
   data.frame(
     coverage = if (m > 0) internal / m else NA_real_,
     weighted_coverage = if (total_weight > 0) internal_weight / total_weight else NA_real_,
     performance = if (possible > 0) (internal + inter_nonedges) / possible else NA_real_,
     modularity = weighted_quality$global$modularity,
+    conductance = conductance,
     n_communities = length(unique(labels)), row.names = NULL
   )
 }

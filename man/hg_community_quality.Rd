@@ -35,6 +35,8 @@ binary/multi-hypergraph and self-association representations.}
 A one-row data frame.
 }
 \description{
-Reports the four graph-partition diagnostics used in the paper: unweighted
-coverage, weighted coverage, performance, and weighted modularity.
+Reports graph-partition diagnostics on the association projection:
+unweighted coverage, weighted coverage, performance, weighted modularity,
+and conductance. Conductance is the maximum (worst) community conductance
+\eqn{cut(S, \bar S) / min(vol(S), vol(\bar S))}; lower is better.
 }

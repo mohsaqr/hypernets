@@ -63,7 +63,8 @@ embeddings `sbert`, both optional.
 | `temporal_hypergraph()`, `hypergraph_snapshot()`, `hypergraph_snapshots()` | Growing and interval hypergraphs; active, cumulative, and aggregate snapshots | Coupette, Hartung & Katz (2024) |
 | `hypergraph_edges()`, `hypergraph_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
 | `hypergraph_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
-| `hypergraph_communities()`, `hypergraph_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity | Coupette, Hartung & Katz (2024) |
+| `hypergraph_communities()`, `hypergraph_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance | Coupette, Hartung & Katz (2024) |
+| `hg_embed()`, `hypergraph_embed()` | Spectral or symmetric-NMF node coordinates | Zhou et al. (2006); Hayashi et al. (2020) |
 | `hypergraph_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
 | `hypergraph_neural()`, `text_hypergat()`, `heterogeneous_hgat()`, `hypergraph_hypergcn()`, `hypergraph_hnhn()`, `hypergraph_allset()` | HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch | Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022) |
 

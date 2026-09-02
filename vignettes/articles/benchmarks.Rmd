@@ -185,6 +185,31 @@ centroid). Wall-clock: under four minutes per training run on a laptop
 CPU. The architecture, not more optimization of the corpus-level
 design, was what the skewed news corpora needed.
 
+## Unsupervised UMAP/HDBSCAN baseline
+
+Classification accuracy is not a valid comparator for unsupervised
+clustering, so a separate R8 experiment compares `hg_cluster()` with fixed
+TF-IDF/SVD embeddings followed by UMAP and either HDBSCAN or a matched
+eight-cluster k-means control. This is explicitly **not** an execution of the
+BERTopic package; that benchmark remains open.
+
+```{r}
+unsupervised_effects <- read.csv("benchmark-umap-hdbscan-effects.csv")
+knitr::kable(
+  subset(unsupervised_effects,
+         select = c(comparator, metric, honets_mean, baseline_mean,
+                    mean_difference, difference_ci_low,
+                    difference_ci_high, paired_dz)),
+  digits = 4
+)
+```
+
+Default HDBSCAN over-splits R8 (142--170 clusters and 17.5--23.0% outliers),
+so honets leads all three external metrics. At matched cluster count, honets
+leads ARI by 0.0372 (95% paired bootstrap CI 0.0270--0.0478), while the
+UMAP+k-means baseline leads AMI and NMI by about 0.0219. Both sides of the
+result are reported.
+
 ## When to use which
 
 Use `hg_classify(normalization = "class_mass")` when classes are roughly
