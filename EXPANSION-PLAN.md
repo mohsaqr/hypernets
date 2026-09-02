@@ -92,7 +92,8 @@ All Track B work now lands in honets under the `hypergraph_*.R` files. The
 Small carried-over items: `dual_hypergraph()` (honets, when a use-case
 appears), XGI second oracle for shipped centralities (honets equiv suite),
 `wasserstein_distance()` (**done 2026-09-02** in honets' simplicial family),
-random hypergraph samplers (Saqrlab, per
+random hypergraph samplers (**done 2026-09-02** with HyperG parity; honets owns
+simulation as part of its hypergraph family), per
 the simulation/computation split).
 
 Suggested order: B0 → B1 → B2 (all done) → B3 → B4.

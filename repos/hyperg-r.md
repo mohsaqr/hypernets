@@ -11,8 +11,11 @@
   random samplers (gnp, SBM, k-uniform/regular, geometric, epsilon, knn),
   plotting. **Undirected, UNWEIGHTED only** (stated in its own docs); no
   tensor centralities; no sequence/text input.
-- **Role for us**: local oracle for the unweighted Laplacian, kNN and dual
-  cases already shipped in honets, and for the open random-generator work.
+- **Role for us**: local oracle for the unweighted Laplacian, kNN, dual and
+  random-generator work shipped in honets. G(n,p), k-uniform and k-regular
+  generators have exact seeded incidence parity; the native SBM follows the
+  same graph-augmentation definition and is checked by planted-block and
+  edge-size invariants.
   It is never a declared dependency. Attaching both packages masks
   `dual_hypergraph()` and `knn_hypergraph()`; oracle scripts must namespace
   both sides explicitly.

@@ -26,7 +26,8 @@
 #'   \item{**Hypergraphs**}{A relation is an arbitrary set of nodes bound as
 #'     a unit, with no requirement that its subsets also be relations.
 #'     Constructors [build_hypergraph()], [window_hypergraph()],
-#'     [group_hypergraph()], [temporal_hypergraph()]; measures [hypergraph_measures()],
+#'     [group_hypergraph()], [temporal_hypergraph()]; random models
+#'     [hg_sample_gnp()], [hg_sample_sbm()], [hg_sample_uniform()]; measures [hypergraph_measures()],
 #'     [hypergraph_centrality()]; spectral methods [hypergraph_laplacian()],
 #'     [hypergraph_cluster()], [hypergraph_transduction()]; PageRank
 #'     [hypergraph_pagerank()]; projections [clique_expansion()],

@@ -21,7 +21,8 @@ on Nestimate and no work in this list requires modifying it.
 - [x] Add `wasserstein_distance()` for persistence diagrams, using the
   SimplicialComplex/GUDHI finite-order and ground-metric conventions and an
   exact native assignment solver.
-- [ ] Add random hypergraph generators: G(n,p), SBM, k-uniform and regular.
+- [x] Add random hypergraph generators: Bernoulli-incidence G(n,p), SBM,
+  k-uniform and k-regular, with `hg_*` and `hypergraph_*` names.
 - [ ] Add an independent XGI oracle for clique, Z and H centralities.
 - [ ] Run the promised multi-seed BERTopic benchmark with effect sizes and
   confidence intervals.

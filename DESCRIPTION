@@ -32,7 +32,8 @@ Description: Build and analyze higher-order networks, in which a relation
     Laplacian of Zhou, Huang, and Scholkopf (2006) with spectral,
     symmetric-NMF, and joint-NMF clustering Hayashi et al. (2020)
     <doi:10.1145/3340531.3412034> and transductive label spreading;
-    projections to weighted graphs and s-line graphs; temporal snapshots;
+    projections to weighted graphs and s-line graphs; Bernoulli-incidence,
+    stochastic-block, uniform and regular random generators; temporal snapshots;
     hyperedge betweenness and closeness; Infomap ensembles with adjusted-
     mutual-information medoid selection; Y/T/O motif profiles and null models
     by degree-preserving swaps and the configuration model; and hypergraph neural

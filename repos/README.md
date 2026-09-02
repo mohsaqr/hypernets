@@ -19,7 +19,7 @@ never honets runtime dependencies.
 |---|---|---|
 | HyperNetX | Zhou/Hayashi Laplacians, EDVW transition/PageRank, s-line graph | Shipped methods have local parity tests; note needs no “parked” interpretation |
 | XGI | Clique/Z/H centralities and measure naming | Independent centrality cross-check still open |
-| HyperG | Unweighted kNN/dual constructions and random generators | kNN/dual parity shipped; generators open |
+| HyperG | Unweighted kNN/dual constructions and random generators | kNN/dual plus G(n,p), SBM, uniform and regular models shipped; three samplers have exact seeded parity |
 | SimplicialComplex | Persistence diagrams, landscapes and diagram distances | Bottleneck and Wasserstein shipped |
 | GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein conventions implemented; SciPy assignment oracle shipped |
 | pathpy / pyHON / HYPA / HONEM | Memory-network construction, MOGen and anomaly methods | Integrated in `local_testing_and_equivalence/` |

@@ -254,6 +254,8 @@ print.net_hypergraph <- function(x, ...) {
   } else if (identical(x$params$source, "group_hypergraph")) {
     cat(sprintf("Source: group membership (member = %s, group = %s)\n",
                 x$params$member, x$params$group))
+  } else if (startsWith(x$params$source %||% "", "hg_sample_")) {
+    cat(sprintf("Source: random %s model\n", x$params$model))
   } else {
     cat(sprintf(
       "Source: network %ss (p = %.2f, include_pairwise = %s, max_size = %d)\n",

@@ -33,7 +33,8 @@ topology \code{\link[=persistent_homology]{persistent_homology()}}, \code{\link[
 \item{\strong{Hypergraphs}}{A relation is an arbitrary set of nodes bound as
 a unit, with no requirement that its subsets also be relations.
 Constructors \code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},
-\code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}; measures \code{\link[=hypergraph_measures]{hypergraph_measures()}},
+\code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}; random models
+\code{\link[=hg_sample_gnp]{hg_sample_gnp()}}, \code{\link[=hg_sample_sbm]{hg_sample_sbm()}}, \code{\link[=hg_sample_uniform]{hg_sample_uniform()}}; measures \code{\link[=hypergraph_measures]{hypergraph_measures()}},
 \code{\link[=hypergraph_centrality]{hypergraph_centrality()}}; spectral methods \code{\link[=hypergraph_laplacian]{hypergraph_laplacian()}},
 \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}, \code{\link[=hypergraph_transduction]{hypergraph_transduction()}}; PageRank
 \code{\link[=hypergraph_pagerank]{hypergraph_pagerank()}}; projections \code{\link[=clique_expansion]{clique_expansion()}},
