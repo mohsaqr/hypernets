@@ -22,7 +22,7 @@
 #'     Constructor [build_simplicial()]; measures [betti_numbers()],
 #'     [euler_characteristic()], [simplicial_degree()], [q_analysis()];
 #'     topology [persistent_homology()], [persistence_landscape()],
-#'     [bottleneck_distance()].}
+#'     [bottleneck_distance()], [wasserstein_distance()].}
 #'   \item{**Hypergraphs**}{A relation is an arbitrary set of nodes bound as
 #'     a unit, with no requirement that its subsets also be relations.
 #'     Constructors [build_hypergraph()], [window_hypergraph()],

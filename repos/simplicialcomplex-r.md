@@ -10,8 +10,8 @@
   essential death = Inf), `persistence_landscape`, matching visualization.
   Inputs are Euclidean point clouds only — no graphs, no weighted networks,
   no sequences, no q-analysis.
-- **Role for us**: oracle for the open honets `wasserstein_distance()`
-  (and a second oracle for the shipped `bottleneck_distance`). NOT a
+- **Role for us**: independent oracle for the shipped honets
+  `wasserstein_distance()` and `bottleneck_distance()`. NOT a
   delegation target (third-party, 0.1.x, different conventions).
 - **Collision caution**: its expanding TDA surface overlaps honets names;
   oracle scripts must use explicit namespaces rather than attach both.

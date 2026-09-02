@@ -21,7 +21,8 @@ Description: Build and analyze higher-order networks, in which a relation
     permutation-based Markov order test, a path-dependence diagnostic, and
     bootstrap and permutation inference for extracted rules. Simplicial
     complexes: clique, Vietoris-Rips and pathway complexes, Betti numbers,
-    persistent homology, persistence landscapes and bottleneck distances,
+    persistent homology, persistence landscapes, bottleneck and Wasserstein
+    distances,
     and q-analysis. Hypergraphs: construction from network cliques, sliding
     windows over sequences, bipartite group membership, or embedding
     nearest neighbours; structural measures; tensor eigenvector

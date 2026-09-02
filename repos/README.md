@@ -20,8 +20,8 @@ never honets runtime dependencies.
 | HyperNetX | Zhou/Hayashi Laplacians, EDVW transition/PageRank, s-line graph | Shipped methods have local parity tests; note needs no “parked” interpretation |
 | XGI | Clique/Z/H centralities and measure naming | Independent centrality cross-check still open |
 | HyperG | Unweighted kNN/dual constructions and random generators | kNN/dual parity shipped; generators open |
-| SimplicialComplex | Persistence diagrams, landscapes and diagram distances | Bottleneck shipped; Wasserstein open |
-| GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein oracle work open |
+| SimplicialComplex | Persistence diagrams, landscapes and diagram distances | Bottleneck and Wasserstein shipped |
+| GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein conventions implemented; SciPy assignment oracle shipped |
 | pathpy / pyHON / HYPA / HONEM | Memory-network construction, MOGen and anomaly methods | Integrated in `local_testing_and_equivalence/` |
 | HypergraphX | Legal motifs, s-centralities, temporal and community conventions | Legal formula fixtures shipped; broader oracle coverage remains useful |
 | Legal Hypergraphs archive | Published GFCC/ICSID workflow | ICSID motif census exact; full GFCC/temporal reproduction open |

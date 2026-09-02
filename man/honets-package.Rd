@@ -29,7 +29,7 @@ gives the object a geometry and hence a topology.
 Constructor \code{\link[=build_simplicial]{build_simplicial()}}; measures \code{\link[=betti_numbers]{betti_numbers()}},
 \code{\link[=euler_characteristic]{euler_characteristic()}}, \code{\link[=simplicial_degree]{simplicial_degree()}}, \code{\link[=q_analysis]{q_analysis()}};
 topology \code{\link[=persistent_homology]{persistent_homology()}}, \code{\link[=persistence_landscape]{persistence_landscape()}},
-\code{\link[=bottleneck_distance]{bottleneck_distance()}}.}
+\code{\link[=bottleneck_distance]{bottleneck_distance()}}, \code{\link[=wasserstein_distance]{wasserstein_distance()}}.}
 \item{\strong{Hypergraphs}}{A relation is an arbitrary set of nodes bound as
 a unit, with no requirement that its subsets also be relations.
 Constructors \code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},

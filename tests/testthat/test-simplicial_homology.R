@@ -144,6 +144,60 @@ test_that("bottleneck returns Inf when essential counts differ", {
   expect_true(is.infinite(d["dim_0"]))
 })
 
+# Wasserstein distance properties ----------------------------------------
+
+test_that("Wasserstein distance matches hand-computed diagram costs", {
+  one <- data.frame(dimension = 0L, birth = 0, death = 2)
+  empty <- data.frame(dimension = integer(), birth = numeric(),
+                      death = numeric())
+  shifted <- data.frame(dimension = 0L, birth = 1, death = 3)
+
+  expect_equal(unname(wasserstein_distance(one, empty, dimension = 0L)), 1)
+  expect_equal(unname(wasserstein_distance(one, shifted)), 1)
+  expect_equal(
+    unname(wasserstein_distance(one, empty, dimension = 0L,
+                                internal_p = 2)),
+    sqrt(2)
+  )
+})
+
+test_that("Wasserstein distance has metric properties", {
+  d1 <- data.frame(dimension = c(0L, 0L), birth = c(0, 3),
+                   death = c(2, 5))
+  d2 <- data.frame(dimension = c(0L, 0L), birth = c(0.5, 4),
+                   death = c(2.5, 6))
+  d3 <- data.frame(dimension = 0L, birth = 1, death = 4)
+
+  expect_equal(wasserstein_distance(d1, d1, order = 2), dim_0 = 0)
+  expect_equal(wasserstein_distance(d1, d2, order = 2),
+               wasserstein_distance(d2, d1, order = 2))
+  expect_lte(
+    unname(wasserstein_distance(d1, d3, order = 2)),
+    unname(wasserstein_distance(d1, d2, order = 2)) +
+      unname(wasserstein_distance(d2, d3, order = 2)) + 1e-12
+  )
+})
+
+test_that("Wasserstein handles dimensions and essential classes", {
+  d1 <- data.frame(dimension = c(0L, 1L), birth = c(0, 2),
+                   death = c(Inf, 5))
+  d2 <- data.frame(dimension = c(0L, 1L), birth = c(1, 2.5),
+                   death = c(Inf, 5.5))
+  out <- wasserstein_distance(d1, d2)
+  expect_equal(out["dim_0"], 1)
+  expect_equal(out["dim_1"], 0.5)
+
+  mismatch <- rbind(d2, data.frame(dimension = 0L, birth = 3, death = Inf))
+  expect_true(is.infinite(wasserstein_distance(d1, mismatch)["dim_0"]))
+})
+
+test_that("Wasserstein validates metric orders", {
+  d <- data.frame(dimension = 0L, birth = 0, death = 1)
+  expect_error(wasserstein_distance(d, d, order = Inf), "finite")
+  expect_error(wasserstein_distance(d, d, order = 0), ">= 1")
+  expect_error(wasserstein_distance(d, d, internal_p = 0), ">= 1")
+})
+
 # Vietoris-Rips on a circle ---------------------------------------------
 
 test_that("VR filtration on a circle recovers H_1 = 1 essential", {

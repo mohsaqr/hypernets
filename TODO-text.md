@@ -18,8 +18,9 @@ on Nestimate and no work in this list requires modifying it.
 
 ## Statistical and ecosystem completions
 
-- [ ] Add `wasserstein_distance()` for persistence diagrams, checked against
-  SimplicialComplex and GUDHI conventions.
+- [x] Add `wasserstein_distance()` for persistence diagrams, using the
+  SimplicialComplex/GUDHI finite-order and ground-metric conventions and an
+  exact native assignment solver.
 - [ ] Add random hypergraph generators: G(n,p), SBM, k-uniform and regular.
 - [ ] Add an independent XGI oracle for clique, Z and H centralities.
 - [ ] Run the promised multi-seed BERTopic benchmark with effect sizes and

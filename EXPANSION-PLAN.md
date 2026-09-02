@@ -91,8 +91,8 @@ All Track B work now lands in honets under the `hypergraph_*.R` files. The
 
 Small carried-over items: `dual_hypergraph()` (honets, when a use-case
 appears), XGI second oracle for shipped centralities (honets equiv suite),
-`wasserstein_distance()` (Nestimate TDA surface — decide at T2 whether it
-follows the simplicial family here), random hypergraph samplers (Saqrlab, per
+`wasserstein_distance()` (**done 2026-09-02** in honets' simplicial family),
+random hypergraph samplers (Saqrlab, per
 the simulation/computation split).
 
 Suggested order: B0 → B1 → B2 (all done) → B3 → B4.
@@ -105,7 +105,7 @@ identity-tested. Carried-over items from `Nestimate/TODO.md`:
 | # | Feature | Notes |
 |---|---|---|
 | C1 | A genuine metric Vietoris-Rips construction for `build_hypergraph(type = "vr")` | currently raises rather than silently aliasing `"clique"` |
-| C2 | `wasserstein_distance()` for persistence diagrams | complements the shipped `bottleneck_distance()`; still in Nestimate |
+| C2 | **DONE 2026-09-02.** `wasserstein_distance()` for persistence diagrams | finite Wasserstein order and configurable ground metric; native exact Hungarian assignment |
 | C3 | Convert the inherited bare-name `aes()` plot code to the `.data` pronoun | the family is the only remaining user of `globalVariables()` here |
 
 ## Delegation tiers
