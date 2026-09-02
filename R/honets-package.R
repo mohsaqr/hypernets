@@ -26,13 +26,18 @@
 #'   \item{**Hypergraphs**}{A relation is an arbitrary set of nodes bound as
 #'     a unit, with no requirement that its subsets also be relations.
 #'     Constructors [build_hypergraph()], [window_hypergraph()],
-#'     [group_hypergraph()]; measures [hypergraph_measures()],
+#'     [group_hypergraph()], [temporal_hypergraph()]; measures [hypergraph_measures()],
 #'     [hypergraph_centrality()]; spectral methods [hypergraph_laplacian()],
 #'     [hypergraph_cluster()], [hypergraph_transduction()]; PageRank
-#'     [hg_pagerank()]; projections [clique_expansion()], [hg_project()],
-#'     [hg_line_graph()], [dual_hypergraph()]; hyperedge tables [hg_edges()];
-#'     null models [hg_null_test()]; neural networks [hg_neural()],
-#'     [hg_hypergat()]; embedding constructor [knn_hypergraph()].}
+#'     [hypergraph_pagerank()]; projections [clique_expansion()],
+#'     [hypergraph_project()], [hypergraph_line_graph()],
+#'     [dual_hypergraph()]; temporal views [hypergraph_snapshot()],
+#'     [hypergraph_snapshots()]; hyperedge tables [hypergraph_edges()] and
+#'     s-centrality [hypergraph_edge_centrality()]; communities
+#'     [hypergraph_communities()] and [hypergraph_community_quality()]; motifs
+#'     [hypergraph_motifs()]; null models [hypergraph_null_test()]; neural networks
+#'     [hypergraph_neural()], [text_hypergat()]; embedding constructor
+#'     [knn_hypergraph()].}
 #'   \item{**Text hypergraphs**}{A corpus is a bipartite document-word
 #'     structure, which is a hypergraph in either orientation: documents as
 #'     nodes bound by shared words, or words as nodes bound by shared
@@ -42,6 +47,11 @@
 #'     [hg_classify()], [hg_stability()], [hg_agreement()], [hg_seeds()].
 #'     Every verb also accepts any `net_hypergraph`.}
 #' }
+#'
+#' Long-form hypergraph verbs also have direct compact `hg_*` aliases; for
+#' example, [hypergraph_edges()] and [hg_edges()] are the same function.
+#' Existing engine names ([hypergraph_measures()], [hypergraph_centrality()],
+#' [hypergraph_cluster()]) remain distinct from their tidy `hg_*` views.
 #'
 #' @section Verb grammar:
 #'
@@ -82,6 +92,7 @@
 #' Bianconi, G. (2021). *Higher-Order Networks*. Cambridge University Press.
 #'
 #' @keywords internal
+#' @importFrom cograph plot_simplicial splot
 #' @importFrom stats setNames
 #' @importFrom utils head
 #' @importFrom ggplot2 .data

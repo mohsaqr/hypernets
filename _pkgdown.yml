@@ -47,12 +47,17 @@ reference:
   - group_hypergraph
   - knn_hypergraph
   - dual_hypergraph
+  - temporal_hypergraph
+  - hypergraph_snapshot
+  - hypergraph_snapshots
 - subtitle: Measures and centralities
   contents:
   - hypergraph_measures
   - hypergraph_centrality
   - hg_pagerank
   - hg_edges
+  - hg_edge_centrality
+  - hg_motifs
 - subtitle: Spectral methods
   contents:
   - hypergraph_laplacian
@@ -63,6 +68,10 @@ reference:
   - clique_expansion
   - hg_project
   - hg_line_graph
+- subtitle: Communities
+  contents:
+  - hg_communities
+  - hg_community_quality
 - subtitle: Null models and neural networks
   contents:
   - hg_null_test
@@ -100,6 +109,7 @@ articles:
 - title: Text hypergraphs
   navbar: ~
   contents:
+  - legal-hypergraphs
   - text-hypergraphs
   - text-constructions
 - title: Benchmarks

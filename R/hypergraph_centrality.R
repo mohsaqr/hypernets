@@ -19,7 +19,7 @@
 #' @param hg A `net_hypergraph` (from [build_hypergraph()],
 #'   [group_hypergraph()], or [window_hypergraph()]).
 #' @param type Character vector, any subset of
-#'   `c("clique", "Z", "H", "pagerank")`. The default computes the three
+#'   `c("clique", "Z", "H", "pagerank", "subhypergraph")`. The default computes the three
 #'   eigenvector variants; request `"pagerank"` explicitly.
 #' @param max_iter Maximum number of power-iteration steps. Default
 #'   `1000`.
@@ -28,7 +28,8 @@
 #' @param normalize Logical. If `TRUE` (default), each returned
 #'   centrality vector is L2-normalized to unit norm (compatible with
 #'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
-#'   apply to `"pagerank"`, which always sums to 1.
+#'   apply to `"pagerank"`, which always sums to 1, or
+#'   `"subhypergraph"`, which is returned on its natural log scale.
 #' @param damping Single numeric in (0, 1). PageRank damping factor
 #'   (probability of following the walk rather than teleporting).
 #'   Default `0.85`. Only used by `type = "pagerank"`.
@@ -89,6 +90,13 @@
 #' undamped stationary distribution of the same walk is the `pi` column
 #' reported by [hypergraph_cluster()].
 #'
+#' **Subhypergraph centrality** (`"subhypergraph"`): the logarithm of the
+#' diagonal of the matrix exponential of the clique adjacency derived from
+#' binary incidence (so entries count shared hyperedges),
+#' \eqn{\log[\exp(W)]_{ii}}. It counts closed walks based at each node with a
+#' factorial penalty for length and matches the implementation used by
+#' HypergraphX 1.5 in the legal-hypergraphs analysis.
+#'
 #' @seealso [build_hypergraph()], [clique_expansion()],
 #'   [hypergraph_measures()].
 #'
@@ -121,6 +129,9 @@
 #' random walks, Laplacians, and clustering. \emph{Proceedings of CIKM
 #' 2020}, 495-504. \doi{10.1145/3340531.3412034}
 #'
+#' Estrada, E., & Rodriguez-Velazquez, J. A. (2005). Complex networks as
+#' hypergraphs. *arXiv preprint physics/0505137*.
+#'
 #' @note The `"clique"` (CEC) variant is validated against
 #'   `igraph::eigen_centrality` (cosine ~ 1), and `"pagerank"` against
 #'   `igraph::page_rank` on the collapsed graph of the edge-independent
@@ -149,7 +160,8 @@ hypergraph_centrality <- function(hg,
       is.numeric(damping) && length(damping) == 1L && is.finite(damping) &&
       damping > 0 && damping < 1
   )
-  type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank"),
+  type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank",
+                                      "subhypergraph"),
                     several.ok = TRUE)
 
   n     <- hg$n_nodes
@@ -251,6 +263,18 @@ hypergraph_centrality <- function(hg,
       ))
     }
     out$pagerank <- stats::setNames(x, nodes)
+  }
+
+  # ---- Log subhypergraph centrality (Estrada & Rodriguez-Velazquez) ----
+  if ("subhypergraph" %in% type) {
+    b <- (hg$incidence != 0) * 1
+    adjacency <- as.matrix(tcrossprod(b))
+    diag(adjacency) <- 0
+    eig <- eigen(adjacency, symmetric = TRUE)
+    shift <- max(eig$values)
+    terms <- sweep(eig$vectors^2, 2L, exp(eig$values - shift), `*`)
+    value <- shift + log(rowSums(terms))
+    out$subhypergraph <- stats::setNames(value, nodes)
   }
 
   # One row per node, one column per requested type, in the order the user

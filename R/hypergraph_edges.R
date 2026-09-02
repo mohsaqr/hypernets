@@ -17,6 +17,9 @@
 #'   hyperedges.
 #' @param measure Which column `what = "distribution"` summarises: `"size"`
 #'   (default), `"weight"`, `"n_incident_edges"` or `"n_neighbors"`.
+#' @param s Minimum number of shared vertices for another hyperedge to count
+#'   as incident. The default `1` is ordinary incidence; larger values match
+#'   the thresholds used by [hg_edge_centrality()].
 #' @return With `what = "edges"`, a base data.frame with one row per
 #'   hyperedge and columns `edge` (name), `size` (integer, vertices it
 #'   contains), `weight` (numeric, its incidence weights summed),
@@ -40,17 +43,22 @@
 #' @export
 hg_edges <- function(hg, what = c("edges", "distribution"),
                      measure = c("size", "weight", "n_incident_edges",
-                                 "n_neighbors")) {
+                                 "n_neighbors"), s = 1L) {
   .thg_check_hg(hg)
   what <- match.arg(what)
   measure <- match.arg(measure)
+  if (length(s) != 1L || !is.numeric(s) || !is.finite(s) || s < 1 ||
+      abs(s - round(s)) > sqrt(.Machine$double.eps)) {
+    .thg_bad_input("`s` must be one positive whole number")
+  }
+  s <- as.integer(s)
   incidence <- hg$incidence
   b <- .thg_binary(incidence)
   size <- as.integer(Matrix::colSums(b))
 
   overlap <- crossprod(b)
   diag(overlap) <- 0
-  n_incident <- as.integer(Matrix::colSums(overlap > 0))
+  n_incident <- as.integer(Matrix::colSums(overlap >= s))
 
   # A vertex is a neighbour of hyperedge e when it shares some other
   # hyperedge with a member of e without being a member itself. Members of a
@@ -72,6 +80,10 @@ hg_edges <- function(hg, what = c("edges", "distribution"),
   if (identical(what, "edges")) return(edges)
   .thg_distribution(edges[[measure]])
 }
+
+#' @rdname hg_edges
+#' @export
+hypergraph_edges <- hg_edges
 
 # Empirical distribution of a numeric vector: one row per distinct value,
 # ascending, with the complementary cumulative P(X >= value).

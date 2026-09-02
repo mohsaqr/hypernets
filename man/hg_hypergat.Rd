@@ -2,9 +2,34 @@
 % Please edit documentation in R/text_hypergat.R
 \name{hg_hypergat}
 \alias{hg_hypergat}
+\alias{text_hypergat}
 \title{HyperGAT document classifier}
 \usage{
 hg_hypergat(
+  x,
+  labels,
+  column = NULL,
+  id = NULL,
+  stop_words = stop_words_en(),
+  min_count = 1L,
+  lowercase = TRUE,
+  embed_dim = 300L,
+  hidden = 100L,
+  epochs = 10L,
+  lr = 0.001,
+  dropout = 0.3,
+  batch_size = 8L,
+  weight_decay = 1e-06,
+  lr_decay = 0.1,
+  lr_step = 3L,
+  validation = 0.1,
+  class_weights = c("balanced", "none"),
+  embeddings = NULL,
+  seed = 1L,
+  verbose = FALSE
+)
+
+text_hypergat(
   x,
   labels,
   column = NULL,

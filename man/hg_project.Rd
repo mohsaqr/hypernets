@@ -2,13 +2,27 @@
 % Please edit documentation in R/hypergraph_project.R
 \name{hg_project}
 \alias{hg_project}
+\alias{hypergraph_project}
 \title{Project a hypergraph onto a weighted graph}
 \usage{
 hg_project(
   hg,
   method = c("clique", "association"),
   weighted = TRUE,
-  what = c("edges", "matrix")
+  what = c("edges", "matrix"),
+  duplicate_edges = c("count", "collapse"),
+  self_association = FALSE,
+  edge_source = NULL
+)
+
+hypergraph_project(
+  hg,
+  method = c("clique", "association"),
+  weighted = TRUE,
+  what = c("edges", "matrix"),
+  duplicate_edges = c("count", "collapse"),
+  self_association = FALSE,
+  edge_source = NULL
 )
 }
 \arguments{
@@ -26,6 +40,21 @@ weights.}
 
 \item{what}{\code{"edges"} (default) for the tidy edge list, or \code{"matrix"} for
 the symmetric weight matrix to hand to a graph engine.}
+
+\item{duplicate_edges}{For \code{method = "association"}, \code{"count"} (default)
+lets repeated hyperedges contribute repeatedly (the paper's
+multi-hypergraph representation); \code{"collapse"} lets each distinct member
+set contribute once (its binary-hypergraph representation).}
+
+\item{self_association}{Add the paper's source-to-member association term?
+Requires one source vertex per hyperedge through \code{edge_source} or
+\code{hg$edge_data$source}. For source \code{u}, every membership occurrence of
+target \code{v} contributes \verb{1 / sum_e |e|} over hyperedges sourced by \code{u}, so
+the added incident weight from all of \code{u}'s citations sums to one.}
+
+\item{edge_source}{Optional source identifiers: a vector of length
+\code{n_hyperedges}, a named vector keyed by hyperedge, or a two-column data
+frame named \code{edge} and \code{source}. Used only with \code{self_association = TRUE}.}
 }
 \value{
 With \code{what = "edges"}, a base data.frame with one row per

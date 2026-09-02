@@ -197,3 +197,7 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
   }
   out
 }
+
+#' @rdname hg_pagerank
+#' @export
+hypergraph_pagerank <- hg_pagerank

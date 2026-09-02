@@ -447,3 +447,9 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   )
   out
 }
+
+# The model consumes raw text rather than a pre-built hypergraph, so its
+# descriptive alias belongs to the text family.
+#' @rdname hg_hypergat
+#' @export
+text_hypergat <- hg_hypergat

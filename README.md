@@ -57,12 +57,15 @@ embeddings `sbert`, both optional.
 | `hypergraph_centrality()` | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
 | `hypergraph_measures()` | Structural measures (hyperdegree, overlap, density) | — |
 | `hypergraph_laplacian()`, `hypergraph_cluster()`, `hypergraph_transduction()` | Weighted normalised Laplacian, spectral / random-walk clustering, label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| `hg_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
+| `hypergraph_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
-| `clique_expansion()`, `hg_project()`, `hg_line_graph()` | Projections: weighted pairwise network, association-weighted graph, s-line graph | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
-| `hg_edges()` | Tidy hyperedge table and size distribution | — |
-| `hg_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
-| `hg_neural()`, `hg_hypergat()` | Hypergraph neural networks in native torch | Feng et al. (2019); Ding et al. (2020) |
+| `clique_expansion()`, `hypergraph_project()`, `hypergraph_line_graph()` | Projections: weighted pairwise network, association-weighted graph, s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
+| `temporal_hypergraph()`, `hypergraph_snapshot()`, `hypergraph_snapshots()` | Growing and interval hypergraphs; active, cumulative, and aggregate snapshots | Coupette, Hartung & Katz (2024) |
+| `hypergraph_edges()`, `hypergraph_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
+| `hypergraph_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
+| `hypergraph_communities()`, `hypergraph_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity | Coupette, Hartung & Katz (2024) |
+| `hypergraph_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
+| `hypergraph_neural()`, `text_hypergat()` | Hypergraph neural networks in native torch | Feng et al. (2019); Ding et al. (2020) |
 
 ### Text hypergraphs
 
@@ -70,13 +73,24 @@ embeddings `sbert`, both optional.
 |---|---|---|
 | `text_hypergraph()` | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
 | `hg_measures()`, `hg_centrality()` | Structural measures and tensor centralities as tidy tables | Benson (2019) |
-| `hg_cluster()`, `hg_keywords()` | Spectral topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
-| `hg_stability()`, `hg_agreement()`, `hg_seeds()` | Seed stability, partition agreement (ARI), seed selection | Hubert & Arabie (1985) |
-| `hg_classify()` | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
+| `hg_cluster()`, `hypergraph_keywords()` | Spectral topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hypergraph_stability()`, `hypergraph_agreement()`, `hypergraph_seeds()` | Seed stability, partition agreement (ARI/AMI/NMI), seed selection | Hubert & Arabie (1985); Vinh et al. (2010) |
+| `hypergraph_classify()` | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
 
 A `text_hypergraph` *is* a `net_hypergraph`, so every hypergraph verb takes
-it, and every `hg_*()` verb takes any `net_hypergraph` in return. Bundled
-data: `covid_abstracts` (165 abstracts) and `covid_embeddings`.
+it. Long-form verbs have direct compact aliases (`hypergraph_edges()` and
+`hg_edges()`, for example): both names are the same function, not wrappers.
+The three existing engine names `hypergraph_measures()`,
+`hypergraph_centrality()` and `hypergraph_cluster()` remain distinct from
+their tidy `hg_*()` views. Bundled data: `covid_abstracts` (165 abstracts)
+and `covid_embeddings`.
+
+### Research sources
+
+The source repository includes an indexed [research paper library](papers/)
+and [method/repository reference notes](repos/). For the projection tier, see
+the local [*Legal hypergraphs* paper](papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf)
+and its [method mapping and reproducibility links](repos/legal-hypergraphs.md).
 
 ## The taxonomy
 

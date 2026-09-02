@@ -336,3 +336,13 @@ hg_classify <- function(hg, labels, xi = 0.99,
   rownames(out) <- NULL
   out
 }
+
+# Long-form aliases for text-facing verbs whose hypergraph names are not
+# already occupied by lower-level engines.
+#' @rdname hg_keywords
+#' @export
+hypergraph_keywords <- hg_keywords
+
+#' @rdname hg_classify
+#' @export
+hypergraph_classify <- hg_classify

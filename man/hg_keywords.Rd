@@ -2,9 +2,12 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_keywords}
 \alias{hg_keywords}
+\alias{hypergraph_keywords}
 \title{Characteristic hyperedges (keywords) per cluster}
 \usage{
 hg_keywords(hg, clusters, n = 10L, collapse = FALSE)
+
+hypergraph_keywords(hg, clusters, n = 10L, collapse = FALSE)
 }
 \arguments{
 \item{hg}{The hypergraph the clustering was computed on.}

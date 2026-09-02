@@ -240,3 +240,7 @@ hg_null_test <- function(hg,
   rownames(out) <- NULL
   out
 }
+
+#' @rdname hg_null_test
+#' @export
+hypergraph_null_test <- hg_null_test

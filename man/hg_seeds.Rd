@@ -2,9 +2,12 @@
 % Please edit documentation in R/agreement.R
 \name{hg_seeds}
 \alias{hg_seeds}
+\alias{hypergraph_seeds}
 \title{Seed labels from a clustering, for spreading or training}
 \usage{
 hg_seeds(embedding, n = 5L)
+
+hypergraph_seeds(embedding, n = 5L)
 }
 \arguments{
 \item{embedding}{The data.frame from

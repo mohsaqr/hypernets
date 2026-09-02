@@ -1,5 +1,26 @@
 # honets 0.3.0
 
+* **cograph is the shared graph and plotting engine.** It is promoted from
+  Suggests to Imports: honets owns hypergraph construction, incidence algebra
+  and hypergraph-specific transformations, then uses cograph for ordinary
+  graph algorithms and rendering. Dynet remains a separate peer and is not a
+  dependency.
+* **Dual hypergraph verb names.** Descriptive names such as
+  `hypergraph_edges()`, `hypergraph_project()`, `hypergraph_pagerank()` and
+  `hypergraph_classify()` are exported as direct bindings to their compact
+  `hg_*()` forms; no implementation is duplicated. The raw-text attention
+  model is also available as `text_hypergat()`. Existing engine names
+  `hypergraph_measures()`, `hypergraph_centrality()` and
+  `hypergraph_cluster()` keep their established meanings.
+* **The full *Legal hypergraphs* method layer is implemented.** New temporal
+  hypergraphs and snapshots; binary/multi and self-association projections;
+  s-betweenness and s-closeness of hyperedges; log-subhypergraph centrality;
+  induced Y/T/O motif censuses with the HypergraphX configuration MCMC;
+  repeated Infomap with AMI-medoid selection; ARI/AMI/NMI agreement; and
+  coverage, weighted coverage, performance and modularity. The authors'
+  released ICSID data reproduce the published aggregate motif counts exactly:
+  Y = 478, T = 7, O = 0.
+
 ## The text family: texthypergraph folds into honets
 
 The `texthypergraph` package is retired and its whole surface now lives here,
@@ -31,8 +52,8 @@ texthypergraph had built under its frozen-Nestimate contract.
   construction and measures to Nestimate; those engines already lived here,
   and `group_hypergraph()` is `identical()` to `Nestimate::bipartite_groups()`
   up to the `member`/`player` argument name (tested). The package now
-  imports only ggplot2, graphics, grid, Matrix, methods, parallel, RSpectra,
-  stats and utils.
+  imports only cograph, ggplot2, graphics, grid, Matrix, methods, parallel,
+  RSpectra, stats and utils.
 * **Collisions resolved without a value change.** texthypergraph carried a
   verbatim copy of the spectral trio; honets' copies were kept (they carry
   the plot methods, `top =`, and scalar `edge_weights`), and only the

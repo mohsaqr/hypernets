@@ -2,9 +2,19 @@
 % Please edit documentation in R/hypergraph_null.R
 \name{hg_null_test}
 \alias{hg_null_test}
+\alias{hypergraph_null_test}
 \title{Degree-preserving null-model test of hypergraph structure}
 \usage{
 hg_null_test(
+  hg,
+  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard"),
+  method = c("swap", "configuration"),
+  n = 199L,
+  seed = NULL,
+  alternative = c("two_sided", "greater", "less")
+)
+
+hypergraph_null_test(
   hg,
   statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard"),
   method = c("swap", "configuration"),

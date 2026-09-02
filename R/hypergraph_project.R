@@ -1,6 +1,8 @@
 # The projection tier: hypergraph -> weighted graph, and hypergraph ->
-# s-line graph. Both are pure incidence algebra; the resulting graphs are
-# what a graph engine such as cograph consumes for paths, betweenness/closeness and community detection.
+# s-line graph. Both are pure incidence algebra. Results expose graph-shaped
+# matrices and edge lists at the cograph boundary: honets owns these
+# hypergraph transformations; cograph owns downstream graph analysis and
+# plotting.
 
 # Membership pattern of an incidence matrix, sparse or dense, weights dropped.
 .thg_binary <- function(x) (x != 0) * 1
@@ -70,6 +72,18 @@
 #'   with `method = "association"` is an error, because the association
 #'   weighting is defined on hyperedge cardinality and never on the incidence
 #'   weights.
+#' @param duplicate_edges For `method = "association"`, `"count"` (default)
+#'   lets repeated hyperedges contribute repeatedly (the paper's
+#'   multi-hypergraph representation); `"collapse"` lets each distinct member
+#'   set contribute once (its binary-hypergraph representation).
+#' @param self_association Add the paper's source-to-member association term?
+#'   Requires one source vertex per hyperedge through `edge_source` or
+#'   `hg$edge_data$source`. For source `u`, every membership occurrence of
+#'   target `v` contributes `1 / sum_e |e|` over hyperedges sourced by `u`, so
+#'   the added incident weight from all of `u`'s citations sums to one.
+#' @param edge_source Optional source identifiers: a vector of length
+#'   `n_hyperedges`, a named vector keyed by hyperedge, or a two-column data
+#'   frame named `edge` and `source`. Used only with `self_association = TRUE`.
 #' @param what `"edges"` (default) for the tidy edge list, or `"matrix"` for
 #'   the symmetric weight matrix to hand to a graph engine.
 #' @return With `what = "edges"`, a base data.frame with one row per
@@ -94,34 +108,128 @@
 #' hg_project(hg, method = "association")
 #' @export
 hg_project <- function(hg, method = c("clique", "association"),
-                       weighted = TRUE, what = c("edges", "matrix")) {
+                       weighted = TRUE, what = c("edges", "matrix"),
+                       duplicate_edges = c("count", "collapse"),
+                       self_association = FALSE, edge_source = NULL) {
   .thg_check_hg(hg)
   method <- match.arg(method)
   what <- match.arg(what)
+  duplicate_edges <- match.arg(duplicate_edges)
   stopifnot("`weighted` must be TRUE or FALSE" =
               length(weighted) == 1L && is.logical(weighted) &&
-              !is.na(weighted))
+              !is.na(weighted),
+            "`self_association` must be TRUE or FALSE" =
+              length(self_association) == 1L && is.logical(self_association) &&
+              !is.na(self_association))
   if (identical(method, "association") && !missing(weighted)) {
     stop(errorCondition(
       "`weighted` applies to `method = \"clique\"` only; the association weighting is defined on hyperedge cardinality, not on incidence weights",
       class = "honets_bad_input", call = NULL
     ))
   }
+  if (identical(method, "clique") && !identical(duplicate_edges, "count")) {
+    .thg_bad_input("`duplicate_edges` applies to `method = \"association\"` only")
+  }
+  if (identical(method, "clique") && self_association) {
+    .thg_bad_input("`self_association` requires `method = \"association\"`")
+  }
   incidence <- hg$incidence
   w <- if (identical(method, "clique")) {
     tcrossprod(if (weighted) incidence else .thg_binary(incidence))
   } else {
     b <- .thg_binary(incidence)
-    cardinality <- Matrix::colSums(b)
+    b_projection <- b
+    if (identical(duplicate_edges, "collapse") && ncol(b) > 1L) {
+      signatures <- vapply(seq_len(ncol(b)), function(j) {
+        paste(rownames(b)[which(b[, j] != 0)], collapse = "\r")
+      }, character(1L))
+      b_projection <- b[, !duplicated(signatures), drop = FALSE]
+    }
+    cardinality <- Matrix::colSums(b_projection)
     # A singleton hyperedge has no pairs: contribute 0 rather than divide by 0.
     coef <- ifelse(cardinality > 1, 1 / (cardinality - 1), 0)
-    tcrossprod(.thg_scale_cols(b, coef), b)
+    tcrossprod(.thg_scale_cols(b_projection, coef), b_projection)
   }
   diag(w) <- 0
   nodes <- rownames(incidence)
   dimnames(w) <- list(nodes, nodes)
+
+  if (self_association) {
+    sources <- .thg_resolve_edge_source(hg, edge_source)
+    all_nodes <- union(nodes, unique(sources))
+    node_index <- match(nodes, all_nodes)
+    source_index <- match(sources, all_nodes)
+    b_original <- .thg_binary(incidence)
+    nz <- which(b_original != 0, arr.ind = TRUE)
+    from <- source_index[nz[, "col"]]
+    to <- match(nodes[nz[, "row"]], all_nodes)
+    keep <- from != to
+    from <- from[keep]
+    to <- to[keep]
+    source_total <- rowsum(rep(1, nrow(nz)), sources[nz[, "col"]],
+                           reorder = FALSE)
+    denom <- stats::setNames(source_total[, 1L], rownames(source_total))
+    contribution <- 1 / unname(denom[sources[nz[, "col"]][keep]])
+
+    sparse_result <- methods::is(w, "sparseMatrix")
+    full <- Matrix::Matrix(0, nrow = length(all_nodes), ncol = length(all_nodes),
+                           sparse = TRUE,
+                           dimnames = list(all_nodes, all_nodes))
+    full[node_index, node_index] <- w
+    if (length(from)) {
+      self_w <- Matrix::sparseMatrix(
+        i = c(from, to), j = c(to, from),
+        x = c(contribution, contribution),
+        dims = c(length(all_nodes), length(all_nodes)),
+        dimnames = list(all_nodes, all_nodes)
+      )
+      full <- full + self_w
+    }
+    w <- if (sparse_result) full else as.matrix(full)
+    nodes <- all_nodes
+  }
+
+  diag(w) <- 0
+  dimnames(w) <- list(nodes, nodes)
   if (identical(what, "matrix")) return(w)
   .thg_tidy_pairs(w, nodes)
+}
+
+.thg_resolve_edge_source <- function(hg, edge_source) {
+  edges <- colnames(hg$incidence) %||% paste0("h", seq_len(hg$n_hyperedges))
+  source <- edge_source
+  if (is.null(source) && !is.null(hg$edge_data) &&
+      all(c("edge", "source") %in% names(hg$edge_data))) {
+    source <- stats::setNames(as.character(hg$edge_data$source),
+                              as.character(hg$edge_data$edge))
+  }
+  if (is.data.frame(source)) {
+    if (!all(c("edge", "source") %in% names(source))) {
+      .thg_bad_input("an `edge_source` data.frame needs `edge` and `source` columns")
+    }
+    source <- stats::setNames(as.character(source$source),
+                              as.character(source$edge))
+  }
+  if (is.null(source)) {
+    .thg_bad_input(paste0("self-association needs one source per hyperedge; ",
+                          "supply `edge_source` or construct a temporal ",
+                          "hypergraph with `source =`"))
+  }
+  if (!is.atomic(source)) .thg_bad_input("`edge_source` must be a vector or data.frame")
+  if (!is.null(names(source))) {
+    missing_edges <- setdiff(edges, names(source))
+    if (length(missing_edges)) {
+      .thg_bad_input("the named `edge_source` vector does not cover every hyperedge")
+    }
+    source <- source[edges]
+  } else if (length(source) != length(edges)) {
+    .thg_bad_input("an unnamed `edge_source` must have one value per hyperedge")
+  }
+  source <- as.character(source)
+  if (anyNA(source) || any(!nzchar(source))) {
+    .thg_bad_input("every hyperedge must have a non-missing source")
+  }
+  unname(source)
 }
 
 #' The s-line graph of a hypergraph
@@ -183,3 +291,11 @@ hg_line_graph <- function(hg, s = 1, what = c("edges", "matrix")) {
   if (identical(what, "matrix")) return(overlap)
   .thg_tidy_pairs(overlap, edges)
 }
+
+#' @rdname hg_project
+#' @export
+hypergraph_project <- hg_project
+
+#' @rdname hg_line_graph
+#' @export
+hypergraph_line_graph <- hg_line_graph

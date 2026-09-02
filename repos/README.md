@@ -33,3 +33,4 @@ specific function.
 | AllSet (official) | Py | Neural tier, reference-only; strongest general hypergraph-NN framework if carm-ml ever grows one; its 10-dataset benchmark harness is a design reference | paper 2026-08-24; repo unaudited |
 | DHG / DeepHypergraph (+ PyG `HypergraphConv`, TopoNetX) | Py | Neural tier, reference-only: the packaged HGNN/HyperGCN/UniGNN zoo to study if a GNN story lands | background |
 | HypergraphX (Battiston) | Py | Tertiary reference; candidate extra oracle for communities/motifs if those ever land — XGI + HyperNetX cover current needs | background |
+| [Legal Hypergraphs](legal-hypergraphs.md) | R/data | Edge measures, association projection, s-line centralities, configuration nulls and temporal analysis; published reproducibility archive is the planned end-to-end oracle | paper + archive 2026-09-02 |

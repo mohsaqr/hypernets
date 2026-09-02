@@ -2,9 +2,18 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_classify}
 \alias{hg_classify}
+\alias{hypergraph_classify}
 \title{Transductive label spreading on a hypergraph, as a tidy table}
 \usage{
 hg_classify(
+  hg,
+  labels,
+  xi = 0.99,
+  type = c("zhou", "random_walk"),
+  normalization = c("none", "class_mass")
+)
+
+hypergraph_classify(
   hg,
   labels,
   xi = 0.99,

@@ -2,12 +2,21 @@
 % Please edit documentation in R/hypergraph_edges.R
 \name{hg_edges}
 \alias{hg_edges}
+\alias{hypergraph_edges}
 \title{Hyperedge-level measures, as a tidy table}
 \usage{
 hg_edges(
   hg,
   what = c("edges", "distribution"),
-  measure = c("size", "weight", "n_incident_edges", "n_neighbors")
+  measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
+  s = 1L
+)
+
+hypergraph_edges(
+  hg,
+  what = c("edges", "distribution"),
+  measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
+  s = 1L
 )
 }
 \arguments{
@@ -20,6 +29,10 @@ hyperedges.}
 
 \item{measure}{Which column \code{what = "distribution"} summarises: \code{"size"}
 (default), \code{"weight"}, \code{"n_incident_edges"} or \code{"n_neighbors"}.}
+
+\item{s}{Minimum number of shared vertices for another hyperedge to count
+as incident. The default \code{1} is ordinary incidence; larger values match
+the thresholds used by \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}.}
 }
 \value{
 With \code{what = "edges"}, a base data.frame with one row per

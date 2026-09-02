@@ -2,9 +2,12 @@
 % Please edit documentation in R/hypergraph_project.R
 \name{hg_line_graph}
 \alias{hg_line_graph}
+\alias{hypergraph_line_graph}
 \title{The s-line graph of a hypergraph}
 \usage{
 hg_line_graph(hg, s = 1, what = c("edges", "matrix"))
+
+hypergraph_line_graph(hg, s = 1, what = c("edges", "matrix"))
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any honets

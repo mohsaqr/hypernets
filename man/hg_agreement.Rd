@@ -2,9 +2,12 @@
 % Please edit documentation in R/agreement.R
 \name{hg_agreement}
 \alias{hg_agreement}
+\alias{hypergraph_agreement}
 \title{Agreement between two labelings of the same nodes}
 \usage{
-hg_agreement(x, y, what = c("summary", "table"))
+hg_agreement(x, y, what = c("summary", "table"), method = "ari")
+
+hypergraph_agreement(x, y, what = c("summary", "table"), method = "ari")
 }
 \arguments{
 \item{x, y}{Tidy labelings: data.frames with a \code{node} column and a
@@ -14,11 +17,14 @@ labeling are dropped.}
 
 \item{what}{\code{"summary"} (default) for the one-row comparison, or
 \code{"table"} for the tidy contingency table of the joined labels.}
+
+\item{method}{One or more label-permutation-invariant measures: \code{"ari"}
+(default), \code{"ami"}, or \code{"nmi"}. Ignored for \code{what = "table"}.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "summary"}: one row with
 columns \code{n} (nodes compared), \code{agreement} (share of equal labels)
-and \code{ari}. For \code{what = "table"}: one row per label pair with
+and the requested measure columns. For \code{what = "table"}: one row per label pair with
 columns \code{label_x}, \code{label_y} and \code{n}.
 }
 \description{
@@ -30,7 +36,9 @@ the same label set, e.g. a classifier scored against the clustering
 that produced its seeds); \code{ari} is the adjusted Rand index (Hubert &
 Arabie 1985), which is label-permutation invariant and the right
 statistic when the two label sets are arbitrary (e.g. two independent
-clusterings).
+clusterings). Adjusted mutual information (\code{ami}) and normalized mutual
+information (\code{nmi}) are also available; the legal-hypergraphs workflow uses
+AMI to select the medoid of repeated Infomap partitions.
 }
 \examples{
 hg <- text_hypergraph(c(
@@ -48,4 +56,8 @@ hg_agreement(fit, topics, what = "table")
 \references{
 Hubert, L., & Arabie, P. (1985). Comparing partitions.
 \emph{Journal of Classification}, 2, 193--218.
+
+Vinh, N. X., Epps, J., & Bailey, J. (2010). Information theoretic
+measures for clusterings comparison. \emph{Journal of Machine Learning
+Research}, 11, 2837--2854.
 }

@@ -2,9 +2,18 @@
 % Please edit documentation in R/agreement.R
 \name{hg_stability}
 \alias{hg_stability}
+\alias{hypergraph_stability}
 \title{Seed stability of a hypergraph clustering across resolutions}
 \usage{
 hg_stability(
+  hg,
+  k,
+  type = c("zhou", "random_walk"),
+  seeds = c(1L, 99L),
+  nstart = 25L
+)
+
+hypergraph_stability(
   hg,
   k,
   type = c("zhou", "random_walk"),

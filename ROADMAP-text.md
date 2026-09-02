@@ -186,10 +186,15 @@ GNNs in R, no Python:
 
 ## v0.7 — Analytics depth: the projection tier
 
-**Status 2026-09-01: PLANNED.** Scope set after reading Coupette, Hartung &
-Katz (2024), "Legal hypergraphs", Phil. Trans. R. Soc. A 382(2270):20230141,
-doi:10.1098/rsta.2023.0141 — whose micro and meso pipeline this package
-cannot currently run at all.
+**Status 2026-09-02: IMPLEMENTED.** Scope set after reading [Coupette, Hartung &
+Katz (2024), "Legal hypergraphs"](https://doi.org/10.1098/rsta.2023.0141),
+Phil. Trans. R. Soc. A 382(2270):20230141. Hyperedge measures, projections,
+s-line graphs, temporal snapshots, centralities, motifs, communities and
+configuration nulls are shipped and tested against the paper's oracle code.
+
+The open-access paper is archived in the source-tree
+[research library](papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf), with
+a [method and reproducibility note](repos/legal-hypergraphs.md).
 
 **The gap this closes.** Every construction shipped through v0.6 derives its
 hyperedges from *within-document word co-occurrence* (`bag` / `window` /
@@ -201,36 +206,27 @@ trajectory — the TextGCN corpora ship as flat (label, text) pairs carrying no
 metadata, so nothing motivated a construction that uses document relations.
 It was not a scoping decision: "Out of scope" below excludes none of it.
 
-**Three-layer contract (settled 2026-09-01).**
+**Package-boundary contract (settled 2026-09-01; clarified 2026-09-02).**
 
 ```
-texthypergraph   corpus -> hypergraph; incidence and spectral algebra;
-                 the PROJECTION verbs (association graph, s-line graphs,
-                 dual) -- hypergraph math, ours by contract
-      |  hands a weighted graph to
-cograph          paths, betweenness/closeness, communities, comparison
-Dynet            temporal networks -- a PEER, not a layer beneath us
+honets           owns the hypergraph layer: construction, incidence and
+                 spectral algebra, projections, hypergraph nulls and motifs,
+                 plus any temporal hypergraph representation
+
+cograph          imported graph and plotting engine; once honets produces a
+                 projection or s-line graph, cograph owns ordinary paths,
+                 centralities, communities, comparisons and rendering
+
+Dynet            separate temporal-network peer; never an honets dependency
+                 or computational layer. Similar start/end/step/window names
+                 are interoperability, not delegation
 ```
 
-Dynet is deliberately **not** a dependency: its graph kernels (`.geodesic`,
-`.betweenness` (Brandes), `.closeness`, `.components`, `.pagerank`) are
-private and unexported in its `R/kernels.R`, and it imports cograph only for
-`splot()` and layer similarity. Depending on it would mean importing a
-temporal API we do not need in order to reach code its NAMESPACE hides.
-
-**Dependency decision.** cograph enters **Suggests**, guarded at every use
-site with `requireNamespace()` — matching how `sbert` and `torch` are already
-handled here, and how cograph itself guards igraph. Imports is rejected
-because cograph Imports ggplot2, which this package otherwise does not need.
-Verified 2026-09-01: CRAN cograph is 2.4.4 (published 2026-07-10) and exports
-every function needed — `shortest_paths`, `k_shortest_paths`,
-`centrality_betweenness`, `centrality_closeness`, `community_infomap`,
-`community_louvain`, `community_leiden`, `compare_communities`,
-`degree_distribution`, `supra_adjacency`, `to_igraph`.
-`centrality_betweenness()` and `centrality_closeness()` are native base R;
-`shortest_paths()`, `community_infomap()`, `compare_communities()` and
-`degree_distribution()` delegate to igraph (cograph Suggests it), so those
-call sites carry a second guard.
+**Dependency decision.** Dynet is absent from both Imports and Suggests.
+`cograph` is an explicit Import: it is already the rendering contract for
+honets objects, so making the graph algorithms optional would add guards
+without delivering meaningful independence. Hypergraph-specific mathematics
+stays in honets; cograph begins at the graph-shaped boundary.
 
 ### Items — each names its equivalence oracle before implementation
 
@@ -251,30 +247,40 @@ call sites carry a second guard.
   degree, node-neighbourhood size, one row per hyperedge, with
   `what = "distribution"` for degree/cardinality CCDFs. Everything the
   package returns today is keyed on vertices. *Oracle*: XGI edge-stat suite.
-- [ ] **Centrality on the projection** — 1-betweenness and 1-closeness via
-  `hg_project()` + `hg_line_graph()` handed to cograph. *Oracle*: cograph's
-  own statnet-verified kernels.
-- [x] **DONE 2026-09-01 `hg_null_test(method = "configuration")`** (motifs still open) — the hypergraph
-  configuration model beside the shipped degree-preserving checkerboard,
-  plus motif counts over edge-intersection patterns (the paper's Y-motif).
+- [x] **DONE 2026-09-02 `hg_edge_centrality()`** — s-betweenness and s-closeness via
+  `hg_line_graph()` handed to cograph's statnet-verified graph kernels. honets
+  owns the s-line transformation; cograph owns the ordinary shortest-path
+  centrality after that boundary.
+- [x] **DONE 2026-09-01 `hg_null_test(method = "configuration")` plus
+  DONE 2026-09-02 `hg_motifs()`** — the hypergraph
+  configuration model beside the shipped degree-preserving checkerboard.
+  configuration null plus induced Y/T/O counts, relative abundance and the
+  normalized motif profile.
   *Oracle*: XGI Chung-Lu / configuration samplers. *Invariant*: expected
   degree sequence preserved.
-- [ ] **`hg_agreement(method = "ami")`** — adjusted mutual information beside
-  the shipped ARI. *Oracle*: `aricode::AMI`.
-- [ ] **`text_hypergraph(by = )` plus relational constructions** — a sequence
-  of hypergraphs over a grouping column (`year` on `covid_abstracts` is the
-  worked case; that metadata is discarded today), and a constructor taking a
-  document-level relation (citations, references, authorship, thread) rather
-  than prose. Slice-to-slice alignment reuses `hg_agreement()` /
-  `hg_stability()`; argument names mirror Dynet's `start`/`end`/`step`/
-  `window` so the two packages read alike without a dependency. *Oracle*:
-  the paper's temporal GFCC/ICSID snapshots.
+- [x] **DONE 2026-09-02 `hg_communities()` and
+  `hg_community_quality()`** — Infomap over
+  `hg_project(method = "association")`, including the paper's optional
+  self-association weights, repeated seeded fits and medoid selection. honets
+  builds the paper-specific association graph; cograph performs the ordinary
+  graph clustering and renders the result.
+- [x] **DONE 2026-09-02 `hg_agreement(method = "ami")`** — adjusted mutual
+  information and NMI beside the shipped ARI. *Oracle*: scikit-learn; exact
+  fixture parity to 1e-12.
+- [x] **DONE 2026-09-02 `temporal_hypergraph()` plus snapshots** — long or
+  wide relational memberships, growing or interval evolution, active,
+  cumulative and aggregate views, with optional multi-edge collapse. This is
+  native honets code and introduces no Dynet dependency. *Oracle*: the paper's
+  temporal GFCC/ICSID construction.
 - [ ] Carried forward: conductance cluster quality, larger bundled corpora.
   **`hg_embed()` is claimed as shipped in v0.1 and as future work here, and
   exists in neither `R/` nor NAMESPACE (checked 2026-09-01). Build it or
   drop the claim — it must not stay listed in both places.**
-- [ ] **End-to-end validation** — reproduce Coupette et al. (2024) in
-  `local_testing_and_equivalence/` (build-ignored) against their Zenodo data.
+- [x] **DONE 2026-09-02 paper-oracle validation** — reconstructed the authors'
+  ICSID aggregate (441 nodes, 742 cases) from Zenodo 8081507 and reproduced
+  the published observed motif counts exactly: Y = 478, T = 7, O = 0.
+  Formula fixtures also cover HypergraphX 1.5 s-centrality, subhypergraph
+  centrality and configuration-MCMC conventions.
   Not a vignette: legal citation networks sit outside the ownership contract.
   It is the equivalence oracle for the entire projection tier, which has none
   today — HyperNetX/XGI/HyperG cover construction and spectral only.

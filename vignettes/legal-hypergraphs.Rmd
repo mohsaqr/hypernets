@@ -1,0 +1,127 @@
+---
+title: "Legal hypergraphs: the paper workflow in honets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Legal hypergraphs: the paper workflow in honets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(honets)
+```
+
+Coupette, Hartung and Katz (2024) model legal relations without reducing a
+tribunal, citation block, or other group event to unrelated dyads. This
+vignette maps the paper's computational workflow onto honets. Hypergraph
+construction and mathematics remain native to honets; once a projection is
+an ordinary graph, cograph supplies graph algorithms. Dynet is not a package
+dependency.
+
+## Temporal tribunals
+
+Wide, fixed-cardinality records can be read directly. An interval snapshot
+contains tribunals active at the requested date; a cumulative snapshot keeps
+every tribunal constituted by then.
+
+```{r temporal}
+tribunals <- data.frame(
+  case = c("A", "B", "C"),
+  president = c("p1", "p2", "p1"),
+  arbitrator_1 = c("a1", "a1", "a4"),
+  arbitrator_2 = c("a2", "a3", "a5"),
+  constituted = c(1, 2, 4), concluded = c(4, 3, 6)
+)
+
+thg <- temporal_hypergraph(
+  tribunals,
+  member = c("president", "arbitrator_1", "arbitrator_2"),
+  edge = "case", start = "constituted", end = "concluded",
+  evolution = "interval"
+)
+
+active <- hypergraph_snapshot(thg, at = 2)
+c(active = active$n_hyperedges,
+  cumulative = hypergraph_snapshot(thg, at = 2,
+                                   mode = "cumulative")$n_hyperedges)
+```
+
+`hypergraph_snapshots()` applies the same contract over all event times, and
+`multiedges = FALSE` collapses repeated member sets while retaining their
+multiplicity.
+
+## Hyperedges, paths, and node centrality
+
+The paper studies both vertices and hyperedges. `hypergraph_edges()` reports
+cardinality, weight, incident hyperedges, and vertex neighbourhoods.
+`hypergraph_edge_centrality()` constructs an unweighted s-line graph and
+computes ordinary shortest-path centralities on its hyperedge-vertices.
+
+```{r centrality}
+hypergraph_edges(active)
+hypergraph_edge_centrality(active, s = c(1, 2))
+hypergraph_centrality(active, type = "subhypergraph")
+```
+
+## Association projections
+
+For a hyperedge of size |e|, the association projection gives every
+member pair weight `1 / (|e| - 1)`. Thus every edge contributes one unit of
+incident weight around each member. Repeated hyperedges may count repeatedly
+or be collapsed, reproducing the paper's multi- and binary-hypergraph
+representations.
+
+```{r projection}
+association <- hypergraph_project(
+  active, method = "association", duplicate_edges = "count",
+  what = "matrix"
+)
+association
+```
+
+For citation-block hypergraphs, `self_association = TRUE` adds the source
+decision to its targets. Sources can be stored by `temporal_hypergraph(source
+= ...)` or supplied through `edge_source =`.
+
+## Communities and their stability
+
+`hypergraph_communities()` runs Infomap 50 times with 100 trials per seed by
+default, builds AMI, ARI, and NMI similarity matrices, and chooses the run
+with maximum summed AMI as the medoid. Small values are used below only to
+keep the vignette quick.
+
+```{r communities}
+if (requireNamespace("igraph", quietly = TRUE)) {
+  fit <- hypergraph_communities(active, n_runs = 3, trials = 3,
+                                seeds = 1:3)
+  as.data.frame(fit)
+  hypergraph_community_quality(active, fit)
+  as.data.frame(fit, what = "ami")
+}
+```
+
+Independent partitions can be compared directly with
+`hypergraph_agreement(method = c("ari", "ami", "nmi"))`.
+
+## Y/T/O motifs and the configuration null
+
+In a simple 3-uniform hypergraph, four vertices can induce two (Y), three
+(T), or all four (O) possible triples. The null uses the same detailed
+pairwise-edge reshuffle as HypergraphX 1.5 and preserves degrees and edge
+cardinalities before duplicate collapse.
+
+```{r motifs}
+motif_data <- data.frame(
+  member = c(1, 2, 3, 1, 2, 4, 1, 3, 4),
+  event = rep(c("e1", "e2", "e3"), each = 3)
+)
+motif_hg <- group_hypergraph(motif_data, "member", "event")
+hypergraph_motifs(motif_hg, what = "counts")
+hypergraph_motifs(motif_hg, n = 19, seed = 1)
+```
+
+The implementation was checked against the authors' Zenodo archive
+(10.5281/zenodo.8081507). Reconstructing their 441-node, 742-case ICSID
+aggregate reproduces its observed motif census exactly: Y = 478, T = 7, and
+O = 0.

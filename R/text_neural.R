@@ -263,3 +263,7 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
   )
   out
 }
+
+#' @rdname hg_neural
+#' @export
+hypergraph_neural <- hg_neural

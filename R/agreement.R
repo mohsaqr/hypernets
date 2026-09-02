@@ -4,6 +4,7 @@
 .thg_ari <- function(a, b) {
   tab <- table(a, b)
   n <- sum(tab)
+  if (n < 2L) return(1)
   sum_ij <- sum(choose(tab, 2))
   sum_a <- sum(choose(rowSums(tab), 2))
   sum_b <- sum(choose(colSums(tab), 2))
@@ -12,6 +13,66 @@
   # both partitions trivial (single cluster): identical by construction
   if (abs(denom) < sqrt(.Machine$double.eps)) return(1)
   (sum_ij - expected) / denom
+}
+
+# Information-theoretic partition agreement. The adjusted variant follows
+# Vinh et al. (2010) and scikit-learn's arithmetic-mean normalization.
+.thg_entropy <- function(margin) {
+  p <- margin[margin > 0] / sum(margin)
+  -sum(p * log(p))
+}
+
+.thg_mutual_information <- function(tab) {
+  n <- sum(tab)
+  rows <- rowSums(tab)
+  cols <- colSums(tab)
+  nz <- which(tab > 0, arr.ind = TRUE)
+  if (!nrow(nz)) return(0)
+  sum(vapply(seq_len(nrow(nz)), function(k) {
+    i <- nz[k, 1L]
+    j <- nz[k, 2L]
+    nij <- tab[i, j]
+    (nij / n) * log((nij * n) / (rows[i] * cols[j]))
+  }, numeric(1L)))
+}
+
+.thg_expected_mi <- function(tab) {
+  n <- sum(tab)
+  if (n < 2L) return(0)
+  rows <- rowSums(tab)
+  cols <- colSums(tab)
+  emi <- 0
+  for (ai in rows) {
+    for (bj in cols) {
+      lo <- max(1, ai + bj - n)
+      hi <- min(ai, bj)
+      if (lo > hi) next
+      nij <- seq.int(lo, hi)
+      probability <- stats::dhyper(nij, ai, n - ai, bj)
+      emi <- emi + sum(probability * (nij / n) *
+                         log((nij * n) / (ai * bj)))
+    }
+  }
+  emi
+}
+
+.thg_ami <- function(a, b) {
+  tab <- table(a, b)
+  mi <- .thg_mutual_information(tab)
+  emi <- .thg_expected_mi(tab)
+  normalizer <- (.thg_entropy(rowSums(tab)) +
+                   .thg_entropy(colSums(tab))) / 2
+  denominator <- normalizer - emi
+  if (abs(denominator) < .Machine$double.eps) return(1)
+  (mi - emi) / denominator
+}
+
+.thg_nmi <- function(a, b) {
+  tab <- table(a, b)
+  normalizer <- (.thg_entropy(rowSums(tab)) +
+                   .thg_entropy(colSums(tab))) / 2
+  if (normalizer < .Machine$double.eps) return(1)
+  .thg_mutual_information(tab) / normalizer
 }
 
 # Extract the label column from a tidy labeling: `predicted`
@@ -63,7 +124,9 @@
 #' that produced its seeds); `ari` is the adjusted Rand index (Hubert &
 #' Arabie 1985), which is label-permutation invariant and the right
 #' statistic when the two label sets are arbitrary (e.g. two independent
-#' clusterings).
+#' clusterings). Adjusted mutual information (`ami`) and normalized mutual
+#' information (`nmi`) are also available; the legal-hypergraphs workflow uses
+#' AMI to select the medoid of repeated Infomap partitions.
 #'
 #' @param x,y Tidy labelings: data.frames with a `node` column and a
 #'   `predicted`, `cluster` or `label` column (first match in that
@@ -71,12 +134,18 @@
 #'   labeling are dropped.
 #' @param what `"summary"` (default) for the one-row comparison, or
 #'   `"table"` for the tidy contingency table of the joined labels.
+#' @param method One or more label-permutation-invariant measures: `"ari"`
+#'   (default), `"ami"`, or `"nmi"`. Ignored for `what = "table"`.
 #' @return A base `data.frame`. For `what = "summary"`: one row with
 #'   columns `n` (nodes compared), `agreement` (share of equal labels)
-#'   and `ari`. For `what = "table"`: one row per label pair with
+#'   and the requested measure columns. For `what = "table"`: one row per label pair with
 #'   columns `label_x`, `label_y` and `n`.
 #' @references Hubert, L., & Arabie, P. (1985). Comparing partitions.
 #'   *Journal of Classification*, 2, 193--218.
+#'
+#'   Vinh, N. X., Epps, J., & Bailey, J. (2010). Information theoretic
+#'   measures for clusterings comparison. *Journal of Machine Learning
+#'   Research*, 11, 2837--2854.
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -90,8 +159,9 @@
 #' hg_agreement(fit, topics)
 #' hg_agreement(fit, topics, what = "table")
 #' @export
-hg_agreement <- function(x, y, what = c("summary", "table")) {
+hg_agreement <- function(x, y, what = c("summary", "table"), method = "ari") {
   what <- match.arg(what)
+  method <- match.arg(method, c("ari", "ami", "nmi"), several.ok = TRUE)
   joined <- merge(.thg_labeling(x, "x"), .thg_labeling(y, "y"),
                   by = "node", suffixes = c("_x", "_y"))
   if (nrow(joined) == 0L) {
@@ -108,11 +178,14 @@ hg_agreement <- function(x, y, what = c("summary", "table")) {
     rownames(ord) <- NULL
     return(ord)
   }
-  data.frame(
+  out <- data.frame(
     n = nrow(joined),
-    agreement = mean(joined$label_x == joined$label_y),
-    ari = .thg_ari(joined$label_x, joined$label_y)
+    agreement = mean(joined$label_x == joined$label_y)
   )
+  if ("ari" %in% method) out$ari <- .thg_ari(joined$label_x, joined$label_y)
+  if ("ami" %in% method) out$ami <- .thg_ami(joined$label_x, joined$label_y)
+  if ("nmi" %in% method) out$nmi <- .thg_nmi(joined$label_x, joined$label_y)
+  out
 }
 
 #' Seed stability of a hypergraph clustering across resolutions
@@ -205,3 +278,17 @@ hg_seeds <- function(embedding, n = 5L) {
     utils::head(g[order(-g$pi, g$node), , drop = FALSE], n)))
   stats::setNames(as.character(chosen$cluster), chosen$node)
 }
+
+# Long-form aliases. Keep these as direct bindings so both public names have
+# identical formals, bodies, and behavior without maintaining wrappers.
+#' @rdname hg_agreement
+#' @export
+hypergraph_agreement <- hg_agreement
+
+#' @rdname hg_stability
+#' @export
+hypergraph_stability <- hg_stability
+
+#' @rdname hg_seeds
+#' @export
+hypergraph_seeds <- hg_seeds

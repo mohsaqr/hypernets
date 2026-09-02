@@ -2,9 +2,21 @@
 % Please edit documentation in R/hypergraph_pagerank.R
 \name{hg_pagerank}
 \alias{hg_pagerank}
+\alias{hypergraph_pagerank}
 \title{Hypergraph PageRank with edge-dependent vertex weights}
 \usage{
 hg_pagerank(
+  hg,
+  damping = 0.85,
+  personalized = NULL,
+  edge_weights = NULL,
+  sort_by = NULL,
+  n = Inf,
+  max_iter = 1000L,
+  tol = 1e-12
+)
+
+hypergraph_pagerank(
   hg,
   damping = 0.85,
   personalized = NULL,

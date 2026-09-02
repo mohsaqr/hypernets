@@ -33,13 +33,18 @@ topology \code{\link[=persistent_homology]{persistent_homology()}}, \code{\link[
 \item{\strong{Hypergraphs}}{A relation is an arbitrary set of nodes bound as
 a unit, with no requirement that its subsets also be relations.
 Constructors \code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=window_hypergraph]{window_hypergraph()}},
-\code{\link[=group_hypergraph]{group_hypergraph()}}; measures \code{\link[=hypergraph_measures]{hypergraph_measures()}},
+\code{\link[=group_hypergraph]{group_hypergraph()}}, \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}; measures \code{\link[=hypergraph_measures]{hypergraph_measures()}},
 \code{\link[=hypergraph_centrality]{hypergraph_centrality()}}; spectral methods \code{\link[=hypergraph_laplacian]{hypergraph_laplacian()}},
 \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}, \code{\link[=hypergraph_transduction]{hypergraph_transduction()}}; PageRank
-\code{\link[=hg_pagerank]{hg_pagerank()}}; projections \code{\link[=clique_expansion]{clique_expansion()}}, \code{\link[=hg_project]{hg_project()}},
-\code{\link[=hg_line_graph]{hg_line_graph()}}, \code{\link[=dual_hypergraph]{dual_hypergraph()}}; hyperedge tables \code{\link[=hg_edges]{hg_edges()}};
-null models \code{\link[=hg_null_test]{hg_null_test()}}; neural networks \code{\link[=hg_neural]{hg_neural()}},
-\code{\link[=hg_hypergat]{hg_hypergat()}}; embedding constructor \code{\link[=knn_hypergraph]{knn_hypergraph()}}.}
+\code{\link[=hypergraph_pagerank]{hypergraph_pagerank()}}; projections \code{\link[=clique_expansion]{clique_expansion()}},
+\code{\link[=hypergraph_project]{hypergraph_project()}}, \code{\link[=hypergraph_line_graph]{hypergraph_line_graph()}},
+\code{\link[=dual_hypergraph]{dual_hypergraph()}}; temporal views \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}},
+\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}}; hyperedge tables \code{\link[=hypergraph_edges]{hypergraph_edges()}} and
+s-centrality \code{\link[=hypergraph_edge_centrality]{hypergraph_edge_centrality()}}; communities
+\code{\link[=hypergraph_communities]{hypergraph_communities()}} and \code{\link[=hypergraph_community_quality]{hypergraph_community_quality()}}; motifs
+\code{\link[=hypergraph_motifs]{hypergraph_motifs()}}; null models \code{\link[=hypergraph_null_test]{hypergraph_null_test()}}; neural networks
+\code{\link[=hypergraph_neural]{hypergraph_neural()}}, \code{\link[=text_hypergat]{text_hypergat()}}; embedding constructor
+\code{\link[=knn_hypergraph]{knn_hypergraph()}}.}
 \item{\strong{Text hypergraphs}}{A corpus is a bipartite document-word
 structure, which is a hypergraph in either orientation: documents as
 nodes bound by shared words, or words as nodes bound by shared
@@ -49,6 +54,11 @@ windows, or embedding nearest neighbours); tidy verbs
 \code{\link[=hg_classify]{hg_classify()}}, \code{\link[=hg_stability]{hg_stability()}}, \code{\link[=hg_agreement]{hg_agreement()}}, \code{\link[=hg_seeds]{hg_seeds()}}.
 Every verb also accepts any \code{net_hypergraph}.}
 }
+
+Long-form hypergraph verbs also have direct compact \verb{hg_*} aliases; for
+example, \code{\link[=hypergraph_edges]{hypergraph_edges()}} and \code{\link[=hg_edges]{hg_edges()}} are the same function.
+Existing engine names (\code{\link[=hypergraph_measures]{hypergraph_measures()}}, \code{\link[=hypergraph_centrality]{hypergraph_centrality()}},
+\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}) remain distinct from their tidy \verb{hg_*} views.
 }
 
 \section{Verb grammar}{

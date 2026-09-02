@@ -21,7 +21,7 @@ hypergraph_centrality(
 \code{\link[=group_hypergraph]{group_hypergraph()}}, or \code{\link[=window_hypergraph]{window_hypergraph()}}).}
 
 \item{type}{Character vector, any subset of
-\code{c("clique", "Z", "H", "pagerank")}. The default computes the three
+\code{c("clique", "Z", "H", "pagerank", "subhypergraph")}. The default computes the three
 eigenvector variants; request \code{"pagerank"} explicitly.}
 
 \item{max_iter}{Maximum number of power-iteration steps. Default
@@ -33,7 +33,8 @@ iterates. Default \code{1e-8}.}
 \item{normalize}{Logical. If \code{TRUE} (default), each returned
 centrality vector is L2-normalized to unit norm (compatible with
 \code{igraph::eigen_centrality()}'s scale for type \code{"clique"}). Does not
-apply to \code{"pagerank"}, which always sums to 1.}
+apply to \code{"pagerank"}, which always sums to 1, or
+\code{"subhypergraph"}, which is returned on its natural log scale.}
 
 \item{damping}{Single numeric in (0, 1). PageRank damping factor
 (probability of following the walk rather than teleporting).
@@ -105,6 +106,13 @@ no hyperedge (possible after \code{min_weight}/\code{min_size} filtering)
 teleport from every step and receive only teleportation mass. The
 undamped stationary distribution of the same walk is the \code{pi} column
 reported by \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.
+
+\strong{Subhypergraph centrality} (\code{"subhypergraph"}): the logarithm of the
+diagonal of the matrix exponential of the clique adjacency derived from
+binary incidence (so entries count shared hyperedges),
+\eqn{\log[\exp(W)]_{ii}}. It counts closed walks based at each node with a
+factorial penalty for length and matches the implementation used by
+HypergraphX 1.5 in the legal-hypergraphs analysis.
 }
 \note{
 The \code{"clique"} (CEC) variant is validated against
@@ -145,6 +153,9 @@ International Conference on Machine Learning}, PMLR 97, 1172-1181.
 Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
 random walks, Laplacians, and clustering. \emph{Proceedings of CIKM
 2020}, 495-504. \doi{10.1145/3340531.3412034}
+
+Estrada, E., & Rodriguez-Velazquez, J. A. (2005). Complex networks as
+hypergraphs. \emph{arXiv preprint physics/0505137}.
 }
 \seealso{
 \code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=clique_expansion]{clique_expansion()}},
