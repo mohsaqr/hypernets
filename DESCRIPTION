@@ -35,7 +35,8 @@ Description: Build and analyze higher-order networks, in which a relation
     hyperedge betweenness and closeness; Infomap ensembles with adjusted-
     mutual-information medoid selection; Y/T/O motif profiles and null models
     by degree-preserving swaps and the configuration model; and hypergraph neural
-    networks (HGNN, HyperGAT) in native 'torch'. Text hypergraphs: a
+    networks (HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN,
+    AllDeepSets and AllSetTransformer) in native 'torch'. Text hypergraphs: a
     corpus becomes a weighted document-word hypergraph in either
     orientation (bag of words with smoothed tf-idf, token windows, or
     embedding nearest neighbours), analysed with tidy verbs for clustering,

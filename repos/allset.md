@@ -8,6 +8,8 @@
   AllDeepSets/AllSetTransformer entry points inspected. The pinned
   PyTorch/PyG environment is old, so parity fixtures should isolate layer
   mathematics rather than depend on reproducing that environment forever.
-- **Role for us**: implementation reference for the open native honets
-  AllDeepSets and AllSetTransformer methods and their multi-dataset harness.
+- **Role for us**: implementation reference for the shipped native
+  `hypergraph_allset()` AllDeepSets and AllSetTransformer methods. Tests pin
+  Eq. 7/Eq. 8 permutation invariance and the two incidence multisets; the
+  multi-dataset benchmark harness remains open.
 - **Links**: https://github.com/jianhao2016/AllSet

@@ -77,6 +77,10 @@ reference:
   - hg_null_test
   - hg_neural
   - hg_hypergat
+  - heterogeneous_hgat
+  - hg_hypergcn
+  - hg_hnhn
+  - hg_allset
 
 - title: Text hypergraphs
   desc: A corpus as a weighted document-word hypergraph, analysed with tidy verbs.

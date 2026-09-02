@@ -8,7 +8,9 @@
 - **Relatives**: PyTorch Geometric ships a `HypergraphConv` layer;
   TopoNetX / TopoModelX (pyt-team) cover topological deep learning
   (simplicial/cell/hypergraph message passing).
-- **Role for us**: HGNN is already checked against DHG's `HGNNConv`; DHG is
-  the next implementation oracle for the open HyperGCN and HNHN layers.
+- **Role for us**: HGNN is checked against DHG's `HGNNConv`. honets now also
+  ships HyperGCN (dynamic, fast and one-edge mediator variants) and HNHN
+  (paper alpha/beta normalization). Direct paper-equation fixtures are the
+  durable oracle; isolated DHG parity fixtures remain useful follow-up work.
 - **Links**: https://github.com/iMoonLab/DeepHypergraph ·
   https://deephypergraph.readthedocs.io · `pip install dhg`

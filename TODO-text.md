@@ -10,11 +10,11 @@ on Nestimate and no work in this list requires modifying it.
   RDC-Spec, with direct paper-equation tests.
 - [x] Ding et al. (2020): official LDA semantic-hyperedge path shipped.
 - [ ] Run full semantic HyperGAT on 20NG, MR and Ohsumed as well as R8/R52.
-- [ ] Linmei et al. (2019): implement heterogeneous word/topic/entity HGAT.
-- [ ] Yadati et al. (2019): implement mediator-based HyperGCN.
-- [ ] Dong et al. (2020): implement HNHN with node/edge normalization
-  exponents.
-- [ ] Chien et al. (2022): implement AllDeepSets and AllSetTransformer.
+- [x] Linmei et al. (2019): heterogeneous multi-feature-space HGAT with
+  type- and node-level attention.
+- [x] Yadati et al. (2019): dynamic, fast and one-edge mediator HyperGCN.
+- [x] Dong et al. (2020): HNHN with node/edge normalization exponents.
+- [x] Chien et al. (2022): AllDeepSets and AllSetTransformer.
 
 ## Statistical and ecosystem completions
 

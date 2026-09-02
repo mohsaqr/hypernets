@@ -65,7 +65,7 @@ embeddings `sbert`, both optional.
 | `hypergraph_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
 | `hypergraph_communities()`, `hypergraph_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity | Coupette, Hartung & Katz (2024) |
 | `hypergraph_null_test()` | Degree-preserving swap and configuration-model nulls | Chodrow (2020) |
-| `hypergraph_neural()`, `text_hypergat()` | Hypergraph neural networks in native torch; HyperGAT sentence and LDA semantic hyperedges | Feng et al. (2019); Ding et al. (2020) |
+| `hypergraph_neural()`, `text_hypergat()`, `heterogeneous_hgat()`, `hypergraph_hypergcn()`, `hypergraph_hnhn()`, `hypergraph_allset()` | HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch | Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022) |
 
 ### Text hypergraphs
 

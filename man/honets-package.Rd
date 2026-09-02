@@ -43,7 +43,8 @@ Constructors \code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=w
 s-centrality \code{\link[=hypergraph_edge_centrality]{hypergraph_edge_centrality()}}; communities
 \code{\link[=hypergraph_communities]{hypergraph_communities()}} and \code{\link[=hypergraph_community_quality]{hypergraph_community_quality()}}; motifs
 \code{\link[=hypergraph_motifs]{hypergraph_motifs()}}; null models \code{\link[=hypergraph_null_test]{hypergraph_null_test()}}; neural networks
-\code{\link[=hypergraph_neural]{hypergraph_neural()}}, \code{\link[=text_hypergat]{text_hypergat()}}; embedding constructor
+\code{\link[=hypergraph_neural]{hypergraph_neural()}}, \code{\link[=text_hypergat]{text_hypergat()}}, \code{\link[=heterogeneous_hgat]{heterogeneous_hgat()}},
+\code{\link[=hypergraph_hypergcn]{hypergraph_hypergcn()}}, \code{\link[=hypergraph_hnhn]{hypergraph_hnhn()}}, \code{\link[=hypergraph_allset]{hypergraph_allset()}}; embedding constructor
 \code{\link[=knn_hypergraph]{knn_hypergraph()}}.}
 \item{\strong{Text hypergraphs}}{A corpus is a bipartite document-word
 structure, which is a hypergraph in either orientation: documents as

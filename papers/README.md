@@ -62,6 +62,21 @@ implementation. Package tests independently check its equations, the exact
 semantic-edge layout, deterministic LDA fitting, training-only input scope,
 and both fitted and precomputed public paths.
 
+## Remaining neural hypergraph models
+
+- Linmei et al. (2019): `heterogeneous_hgat()` keeps independent document,
+  topic and entity feature spaces and implements Eqs. 2--7, including both
+  type-level and node-level attention. It is deliberately distinct from
+  HyperGAT.
+- Yadati et al. (2019): `hypergraph_hypergcn()` implements Algorithms 1--3.
+  Tests pin the farthest-pair choice, mediator edge set, `2|e|-3` weights,
+  self-loops and symmetric normalization.
+- Dong et al. (2020): `hypergraph_hnhn()` implements Algorithm 1 and the
+  Section 2.3 alpha/beta degree normalizers in both propagation directions.
+- Chien et al. (2022): `hypergraph_allset()` implements AllDeepSets (Eq. 7)
+  and AllSetTransformer (Eq. 8), with independent node-to-edge and
+  edge-to-node multiset learners. Descriptive wrappers select either model.
+
 ## Legal hypergraphs
 
 Corinna Coupette, Dirk Hartung and Daniel Martin Katz (2024), “Legal

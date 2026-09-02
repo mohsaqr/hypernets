@@ -36,7 +36,8 @@
 #'     s-centrality [hypergraph_edge_centrality()]; communities
 #'     [hypergraph_communities()] and [hypergraph_community_quality()]; motifs
 #'     [hypergraph_motifs()]; null models [hypergraph_null_test()]; neural networks
-#'     [hypergraph_neural()], [text_hypergat()]; embedding constructor
+#'     [hypergraph_neural()], [text_hypergat()], [heterogeneous_hgat()],
+#'     [hypergraph_hypergcn()], [hypergraph_hnhn()], [hypergraph_allset()]; embedding constructor
 #'     [knn_hypergraph()].}
 #'   \item{**Text hypergraphs**}{A corpus is a bipartite document-word
 #'     structure, which is a hypergraph in either orientation: documents as

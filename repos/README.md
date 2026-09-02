@@ -31,8 +31,8 @@ never honets runtime dependencies.
 | Repository/package | Role | Current status |
 |---|---|---|
 | HyperGAT_TextClassification | Official Ding et al. implementation | Sentence and LDA semantic paths shipped; 20NG/MR/Ohsumed runs open |
-| DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity shipped; HyperGCN/HNHN remain open |
-| AllSet | Official AllDeepSets/AllSetTransformer implementation | Model implementation open |
+| DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity plus native HyperGCN/HNHN shipped |
+| AllSet | Official AllDeepSets/AllSetTransformer implementation | Both native models shipped with multiset-invariance tests |
 | BERTopic | Practical embedding/topic baseline | Multi-seed benchmark open |
 | text | Historical reticulate/Hugging Face route | Superseded by sbert for the native pipeline |
 

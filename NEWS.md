@@ -13,6 +13,13 @@
   per-document topic edges from the top words. Precomputed keyword lists are
   accepted for exact replay of official preprocessing artifacts; the default
   remains the backward-compatible sentence-only ablation.
+* **The neural paper set is complete.** New `hypergraph_hypergcn()` provides
+  dynamic, fast and one-edge HyperGCN; `hypergraph_hnhn()` exposes the HNHN
+  alpha/beta normalization exponents; and `hypergraph_allset()` implements
+  both AllDeepSets and AllSetTransformer. `heterogeneous_hgat()` implements
+  Linmei et al.'s distinct heterogeneous document/topic/entity graph model
+  with node- and type-level attention. Each method has direct equation or
+  construction invariants plus end-to-end torch tests.
 
 * **cograph is the shared graph and plotting engine.** It is promoted from
   Suggests to Imports: honets owns hypergraph construction, incidence algebra
