@@ -10,7 +10,10 @@ hg_cluster(
   type = c("zhou", "random_walk"),
   seed = NULL,
   nstart = 25L,
-  what = c("clusters", "embedding", "eigenvalues")
+  what = c("clusters", "embedding", "eigenvalues"),
+  algorithm = c("spectral", "symnmf"),
+  max_iter = 500L,
+  tol = 1e-06
 )
 }
 \arguments{
@@ -22,10 +25,10 @@ default).}
 \item{type}{\code{"zhou"} or \code{"random_walk"}, as in
 \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.}
 
-\item{seed}{Random seed passed to the engine's k-means step; set it for a
+\item{seed}{Random seed passed to the selected solver; set it for a
 reproducible partition.}
 
-\item{nstart}{Number of k-means starts (default \code{25L}).}
+\item{nstart}{Number of solver starts (default \code{25L}).}
 
 \item{what}{What to return: \code{"clusters"} (default) for the partition,
 \code{"embedding"} for the partition plus the row-normalized spectral
@@ -34,6 +37,13 @@ corpus) and the stationary weight \code{pi}, or \code{"eigenvalues"} for the
 Laplacian spectrum (dense engines return all \code{n} values; the sparse
 engine returns the \code{k + 1} it computed -- raise \code{k} for an eigengap
 scan).}
+
+\item{algorithm}{\code{"spectral"} (RDC-Spec) or \code{"symnmf"} (RDC-Sym), as in
+\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}. SymNMF currently requires a dense incidence
+matrix because its paper objective factorizes a dense node similarity.}
+
+\item{max_iter, tol}{SymNMF convergence controls passed to
+\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "clusters"}: one row per node,

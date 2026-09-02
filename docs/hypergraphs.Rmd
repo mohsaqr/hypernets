@@ -338,8 +338,11 @@ The random-walk Laplacian of Hayashi et al. (2020) uses both weight
 layers this hypergraph carries: the occurrence-count incidence
 (edge-dependent vertex weights) and the window counts, which
 `hypergraph_cluster()` picks up automatically as hyperedge weights.
-Spectral k-means is stochastic, so the run is seeded and repeated under a
-second seed as a stability check.
+Hayashi et al. provide two clustering branches: RDC-Spec uses the smallest
+Laplacian eigenvectors and k-means, while RDC-Sym factorizes the normalized
+similarity as `T ~= U U'` and assigns each node to its largest factor. Both
+are available through `algorithm =`. Spectral k-means is stochastic, so the
+run is seeded and repeated under a second seed as a stability check.
 
 ```{r window-hypergraph-cluster}
 cl <- hypergraph_cluster(hg, k = 2L, type = "random_walk", seed = 1)
@@ -347,6 +350,22 @@ cl_check <- hypergraph_cluster(hg, k = 2L, type = "random_walk", seed = 99)
 identical(as.data.frame(cl), as.data.frame(cl_check))
 as.data.frame(cl)
 ```
+
+```{r window-hypergraph-symnmf}
+cl_sym <- hypergraph_cluster(
+  hg, k = 2L, type = "random_walk", algorithm = "symnmf",
+  nstart = 5L, seed = 1
+)
+cl_sym
+as.data.frame(cl_sym)
+```
+
+RDC-Sym exposes the final Eq. 16 loss, its objective trace, iteration count,
+and convergence flag under `cl_sym$params`. The paper's J-NMF and JS-NMF
+methods are also implemented as `hypergraph_joint_cluster()`, but require a
+separate node-by-node relation matrix (patent citations in the paper). They
+are intentionally not invoked here because this sequence data has no such
+second view.
 
 The partition is identical under both seeds, so it can be reported as
 stable. Cluster 2 is {Correct, Frustrate, Refine}; Cluster 1 is everything

@@ -141,9 +141,14 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #'   default).
 #' @param type `"zhou"` or `"random_walk"`, as in
 #'   [hypergraph_cluster()].
-#' @param seed Random seed passed to the engine's k-means step; set it for a
+#' @param algorithm `"spectral"` (RDC-Spec) or `"symnmf"` (RDC-Sym), as in
+#'   [hypergraph_cluster()]. SymNMF currently requires a dense incidence
+#'   matrix because its paper objective factorizes a dense node similarity.
+#' @param seed Random seed passed to the selected solver; set it for a
 #'   reproducible partition.
-#' @param nstart Number of k-means starts (default `25L`).
+#' @param nstart Number of solver starts (default `25L`).
+#' @param max_iter,tol SymNMF convergence controls passed to
+#'   [hypergraph_cluster()].
 #' @param what What to return: `"clusters"` (default) for the partition,
 #'   `"embedding"` for the partition plus the row-normalized spectral
 #'   embedding used by k-means (`dim1..dimk` -- plot these to map the
@@ -168,18 +173,29 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #' hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 #' hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues")
 #' @export
-hg_cluster <- function(hg, k, type = c("zhou", "random_walk"), seed = NULL,
-                       nstart = 25L,
-                       what = c("clusters", "embedding", "eigenvalues")) {
+hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
+                       seed = NULL, nstart = 25L,
+                       what = c("clusters", "embedding", "eigenvalues"),
+                       algorithm = c("spectral", "symnmf"),
+                       max_iter = 500L, tol = 1e-6) {
   .thg_check_hg(hg)
   type <- match.arg(type)
+  algorithm <- match.arg(algorithm)
   what <- match.arg(what)
+  if (.thg_is_sparse(hg) && algorithm == "symnmf") {
+    stop(errorCondition(
+      paste0("`algorithm = \"symnmf\"` requires a dense incidence matrix; ",
+             "RDC-Sym factorizes a dense n_nodes x n_nodes similarity."),
+      class = "honets_dense_required", call = NULL
+    ))
+  }
   fit <- if (.thg_is_sparse(hg)) {
     .thg_sparse_cluster(hg, k = k, type = type, edge_weights = NULL,
                         nstart = nstart, seed = seed)
   } else {
-    hypergraph_cluster(hg, k = k, type = type, seed = seed,
-                       nstart = nstart)
+    hypergraph_cluster(hg, k = k, type = type, algorithm = algorithm,
+                       seed = seed, nstart = nstart, max_iter = max_iter,
+                       tol = tol)
   }
   if (identical(what, "eigenvalues")) {
     values <- as.numeric(fit$eigenvalues)

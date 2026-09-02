@@ -231,6 +231,7 @@
       embedding = U,
       k = as.integer(k),
       type = type,
+      algorithm = "spectral",
       eigenvalues = lap_values,
       eigengap = if (length(lap_values) > k) {
         lap_values[k + 1L] - lap_values[k]

@@ -2,7 +2,7 @@
 % Please edit documentation in R/hypergraph_laplacian.R
 \name{hypergraph_cluster}
 \alias{hypergraph_cluster}
-\title{Spectral clustering of hypergraph vertices}
+\title{Spectral or symmetric-NMF clustering of hypergraph vertices}
 \usage{
 hypergraph_cluster(
   hg,
@@ -10,7 +10,10 @@ hypergraph_cluster(
   type = c("zhou", "random_walk"),
   edge_weights = NULL,
   nstart = 25L,
-  seed = NULL
+  seed = NULL,
+  algorithm = c("spectral", "symnmf"),
+  max_iter = 500L,
+  tol = 1e-06
 )
 }
 \arguments{
@@ -20,9 +23,17 @@ hypergraph_cluster(
 
 \item{type, edge_weights}{Passed to \code{\link[=hypergraph_laplacian]{hypergraph_laplacian()}}.}
 
-\item{nstart}{Integer. k-means random restarts (default 25).}
+\item{nstart}{Integer. Random restarts (default 25).}
 
-\item{seed}{Optional integer seed for the k-means initialization.}
+\item{seed}{Optional integer seed for initialization.}
+
+\item{algorithm}{Character. \code{"spectral"} (default; RDC-Spec) or
+\code{"symnmf"} (RDC-Sym).}
+
+\item{max_iter}{Maximum multiplicative-update iterations for
+\code{algorithm = "symnmf"}.}
+
+\item{tol}{Relative objective tolerance for \code{algorithm = "symnmf"}.}
 }
 \value{
 An object of class \code{net_hypergraph_cluster}: a list with
@@ -38,19 +49,22 @@ per node with \code{node}, \code{cluster}, the stationary probability \code{pi},
 the embedding coordinates.
 }
 \description{
-Partitions the nodes of a hypergraph into \code{k} clusters with the
-Laplacian-eigenmap + k-means algorithm of Hayashi et al. (2020,
-"RDC-Spec"): the eigenvectors of the \code{k} smallest eigenvalues of the
-normalized hypergraph Laplacian are row-normalized to unit length and
-clustered with k-means. With \code{type = "random_walk"} and a weighted
+Partitions the nodes of a hypergraph into \code{k} clusters with either of
+Hayashi et al.'s (2020) representative-digraph algorithms. \code{algorithm = "spectral"} (RDC-Spec) row-normalizes the \code{k} smallest Laplacian
+eigenvectors and applies k-means. \code{algorithm = "symnmf"} (RDC-Sym)
+computes a rank-\code{k} non-negative factorization \verb{T ~= U U'} of the
+normalized similarity \code{T = I - L}, then assigns each vertex to the
+largest entry in its row of \code{U}, exactly as Algorithm 2 specifies.
+With \code{type = "random_walk"} and a weighted
 incidence (e.g. from \code{\link[=group_hypergraph]{group_hypergraph()}} with \verb{weight =}), the
 edge-dependent vertex weights genuinely change the partition - with
 edge-independent weights the walk collapses to a graph random walk
 (Chitra & Raphael 2019).
 }
 \details{
-k-means is stochastic: \code{nstart} restarts are used and a \code{seed} fixes
-the result. Report stability across seeds for consequential results.
+Both solvers are stochastic: \code{nstart} initializations are used and a
+\code{seed} fixes the result. Report stability across seeds for consequential
+results.
 }
 \examples{
 events <- data.frame(

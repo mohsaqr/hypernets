@@ -56,7 +56,7 @@ embeddings `sbert`, both optional.
 | `group_hypergraph()` | Hyperedges from bipartite group membership | Perc et al. (2013) |
 | `hypergraph_centrality()` | Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank | Benson (2019); Chitra & Raphael (2019) |
 | `hypergraph_measures()` | Structural measures (hyperdegree, overlap, density) | — |
-| `hypergraph_laplacian()`, `hypergraph_cluster()`, `hypergraph_transduction()` | Weighted normalised Laplacian, spectral / random-walk clustering, label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hypergraph_laplacian()`, `hypergraph_cluster()`, `hypergraph_joint_cluster()`, `hypergraph_transduction()` | Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
 | `hypergraph_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
 | `clique_expansion()`, `hypergraph_project()`, `hypergraph_line_graph()` | Projections: weighted pairwise network, association-weighted graph, s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
@@ -73,7 +73,7 @@ embeddings `sbert`, both optional.
 |---|---|---|
 | `text_hypergraph()` | Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN | Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan & Schütze (2008) |
 | `hg_measures()`, `hg_centrality()` | Structural measures and tensor centralities as tidy tables | Benson (2019) |
-| `hg_cluster()`, `hypergraph_keywords()` | Spectral topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
+| `hg_cluster()`, `hypergraph_keywords()` | Spectral or symmetric-NMF topic clustering and per-cluster keywords | Zhou, Huang & Schölkopf (2006); Hayashi et al. (2020) |
 | `hypergraph_stability()`, `hypergraph_agreement()`, `hypergraph_seeds()` | Seed stability, partition agreement (ARI/AMI/NMI), seed selection | Hubert & Arabie (1985); Vinh et al. (2010) |
 | `hypergraph_classify()` | Few-label transductive classification, with class-mass normalization | Zhou et al. (2006); Zhu, Ghahramani & Lafferty (2003) |
 

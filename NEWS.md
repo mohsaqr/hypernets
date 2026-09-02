@@ -1,5 +1,13 @@
 # honets 0.3.0
 
+* **The complete Hayashi clustering family is implemented.**
+  `hypergraph_cluster(algorithm = "symnmf")` adds Algorithm 2, RDC-Sym,
+  alongside the existing RDC-Spec implementation. New
+  `hypergraph_joint_cluster()` implements the patent experiment's J-NMF
+  (Eq. 18) and JS-NMF (Eq. 19) objectives when an auxiliary node-relation
+  matrix is available. All NMF paths expose their objective trace,
+  convergence state, iteration count, chosen restart and fitted factors.
+
 * **cograph is the shared graph and plotting engine.** It is promoted from
   Suggests to Imports: honets owns hypergraph construction, incidence algebra
   and hypergraph-specific transformations, then uses cograph for ordinary

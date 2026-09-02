@@ -28,8 +28,8 @@ Description: Build and analyze higher-order networks, in which a relation
     centralities Benson (2019) <doi:10.1137/18M1203031>; PageRank with
     edge-dependent vertex weights Chitra and Raphael (2019)
     <doi:10.48550/arXiv.1905.08287>; the weighted normalized hypergraph
-    Laplacian of Zhou, Huang, and Scholkopf (2006) with spectral and
-    random-walk clustering Hayashi et al. (2020)
+    Laplacian of Zhou, Huang, and Scholkopf (2006) with spectral,
+    symmetric-NMF, and joint-NMF clustering Hayashi et al. (2020)
     <doi:10.1145/3340531.3412034> and transductive label spreading;
     projections to weighted graphs and s-line graphs; temporal snapshots;
     hyperedge betweenness and closeness; Infomap ensembles with adjusted-

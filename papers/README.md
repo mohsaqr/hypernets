@@ -19,6 +19,28 @@ from the built R package by `.Rbuildignore`.
 | 2022 | Text-classification survey (Li et al.) | [`2022-TIST-TextClassificationSurvey-Li.pdf`](2022-TIST-TextClassificationSurvey-Li.pdf) |
 | 2024 | **Legal hypergraphs** (Coupette, Hartung & Katz) | [`2024-PhilTrans-LegalHypergraphs-Coupette.pdf`](2024-PhilTrans-LegalHypergraphs-Coupette.pdf) |
 
+## Hypergraph random walks, Laplacians, and clustering
+
+Hayashi, Aksoy, Park and Park (2020), CIKM, DOI
+[10.1145/3340531.3412034](https://doi.org/10.1145/3340531.3412034).
+
+- `hypergraph_laplacian(type = "random_walk")`: representative-digraph
+  transition, stationary distribution, and Chung normalized Laplacian.
+- `hypergraph_cluster(algorithm = "spectral")`: RDC-Spec (Algorithm 1).
+- `hypergraph_cluster(algorithm = "symnmf")`: RDC-Sym (Algorithm 2 and
+  Eq. 16).
+- `hypergraph_joint_cluster(method = "joint")`: J-NMF (Eq. 18), requiring
+  an auxiliary vertex relation such as the patent citation matrix.
+- `hypergraph_joint_cluster(method = "joint_symmetric")`: JS-NMF (Eq. 19).
+- `hypergraph_transduction()`: the Zhou et al. semi-supervised method used
+  in the surrounding normalized-hypergraph framework.
+
+The local tests use direct transition/Laplacian formula fixtures,
+non-negative-factor and assignment invariants, monotone RDC-Sym objectives,
+and explicit evaluations of Eqs. 16, 18, and 19. HyperNetX remains the
+author-adjacent external oracle for the shared RDC-Spec pipeline; it does not
+implement the NMF branches.
+
 ## Legal hypergraphs
 
 Corinna Coupette, Dirk Hartung and Daniel Martin Katz (2024), “Legal

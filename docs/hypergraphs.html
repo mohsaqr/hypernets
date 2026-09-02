@@ -1850,8 +1850,12 @@ score.</p>
 layers this hypergraph carries: the occurrence-count incidence
 (edge-dependent vertex weights) and the window counts, which
 <code>hypergraph_cluster()</code> picks up automatically as hyperedge
-weights. Spectral k-means is stochastic, so the run is seeded and
-repeated under a second seed as a stability check.</p>
+weights. Hayashi et al. provide two clustering branches: RDC-Spec uses
+the smallest Laplacian eigenvectors and k-means, while RDC-Sym
+factorizes the normalized similarity as <code>T ~= U U&#39;</code> and
+assigns each node to its largest factor. Both are available through
+<code>algorithm =</code>. Spectral k-means is stochastic, so the run is
+seeded and repeated under a second seed as a stability check.</p>
 <pre class="r"><code>cl &lt;- hypergraph_cluster(hg, k = 2L, type = &quot;random_walk&quot;, seed = 1)
 cl_check &lt;- hypergraph_cluster(hg, k = 2L, type = &quot;random_walk&quot;, seed = 99)
 identical(as.data.frame(cl), as.data.frame(cl_check))</code></pre>
@@ -1867,6 +1871,33 @@ identical(as.data.frame(cl), as.data.frame(cl_check))</code></pre>
 7   Request Cluster 1 0.10781145 -0.9215039  0.38836921
 8   Specify Cluster 1 0.30937849 -0.9979768  0.06357931
 9    Verify Cluster 1 0.02877393 -0.7116741  0.70250975</code></pre>
+<pre class="r"><code>cl_sym &lt;- hypergraph_cluster(
+  hg, k = 2L, type = &quot;random_walk&quot;, algorithm = &quot;symnmf&quot;,
+  nstart = 5L, seed = 1
+)
+cl_sym</code></pre>
+<pre><code>Hypergraph RDC-Sym symmetric-NMF clustering (random_walk Laplacian)
+  Nodes: 9 | Hyperedges: 56 | k: 2
+  Cluster sizes: Cluster 1 = 6, Cluster 2 = 3
+  Objective: 0.622578 | Iterations: 211 | Converged: yes</code></pre>
+<pre class="r"><code>as.data.frame(cl_sym)</code></pre>
+<pre><code>       node   cluster         pi         dim1         dim2
+1   Command Cluster 1 0.18476075 0.0586181214 0.4910185864
+2   Correct Cluster 2 0.07342118 0.3411781418 0.0836285574
+3 Frustrate Cluster 2 0.08513619 0.4597582005 0.0213844409
+4   Inquire Cluster 1 0.07212750 0.0563903976 0.2919055986
+5 Interrupt Cluster 1 0.07125103 0.0002297498 0.3365210202
+6    Refine Cluster 2 0.06733948 0.4391712963 0.0005270576
+7   Request Cluster 1 0.10781145 0.1196526339 0.3196329488
+8   Specify Cluster 1 0.30937849 0.3127446858 0.4602087829
+9    Verify Cluster 1 0.02877393 0.0146147793 0.2005628865</code></pre>
+<p>RDC-Sym exposes the final Eq. 16 loss, its objective trace, iteration
+count, and convergence flag under <code>cl_sym$params</code>. The
+paper’s J-NMF and JS-NMF methods are also implemented as
+<code>hypergraph_joint_cluster()</code>, but require a separate
+node-by-node relation matrix (patent citations in the paper). They are
+intentionally not invoked here because this sequence data has no such
+second view.</p>
 <p>The partition is identical under both seeds, so it can be reported as
 stable. Cluster 2 is {Correct, Frustrate, Refine}; Cluster 1 is
 everything else, with Specify holding the largest stationary probability
@@ -2649,7 +2680,7 @@ damped version of the same walk:</p>
 <h3>Clustering</h3>
 <pre class="r"><code>cl &lt;- hypergraph_cluster(hg, k = 3, seed = 1)
 cl</code></pre>
-<pre><code>Hypergraph spectral clustering (zhou Laplacian)
+<pre><code>Hypergraph RDC-Spec spectral clustering (zhou Laplacian)
   Nodes: 9 | Hyperedges: 56 | k: 3
   Cluster sizes: Cluster 1 = 3, Cluster 2 = 3, Cluster 3 = 3
   Eigengap after k: 0.0380</code></pre>

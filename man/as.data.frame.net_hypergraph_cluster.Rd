@@ -18,7 +18,7 @@ applied after any filter and after \code{sort_by}, so \code{sort_by} and
 \value{
 The tidy assignment table: one row per node, columns \code{node},
 \code{cluster}, \code{pi} (stationary probability of the node under the
-Laplacian's random walk) and the spectral-embedding coordinates
+Laplacian's random walk) and the spectral-embedding or NMF-factor coordinates
 \code{dim1..dimk}.
 }
 \description{

@@ -89,26 +89,35 @@ hypergraph_laplacian <- function(hg,
   L
 }
 
-#' Spectral clustering of hypergraph vertices
+#' Spectral or symmetric-NMF clustering of hypergraph vertices
 #'
-#' Partitions the nodes of a hypergraph into `k` clusters with the
-#' Laplacian-eigenmap + k-means algorithm of Hayashi et al. (2020,
-#' "RDC-Spec"): the eigenvectors of the `k` smallest eigenvalues of the
-#' normalized hypergraph Laplacian are row-normalized to unit length and
-#' clustered with k-means. With `type = "random_walk"` and a weighted
+#' Partitions the nodes of a hypergraph into `k` clusters with either of
+#' Hayashi et al.'s (2020) representative-digraph algorithms. `algorithm =
+#' "spectral"` (RDC-Spec) row-normalizes the `k` smallest Laplacian
+#' eigenvectors and applies k-means. `algorithm = "symnmf"` (RDC-Sym)
+#' computes a rank-`k` non-negative factorization `T ~= U U'` of the
+#' normalized similarity `T = I - L`, then assigns each vertex to the
+#' largest entry in its row of `U`, exactly as Algorithm 2 specifies.
+#' With `type = "random_walk"` and a weighted
 #' incidence (e.g. from [group_hypergraph()] with `weight =`), the
 #' edge-dependent vertex weights genuinely change the partition - with
 #' edge-independent weights the walk collapses to a graph random walk
 #' (Chitra & Raphael 2019).
 #'
-#' k-means is stochastic: `nstart` restarts are used and a `seed` fixes
-#' the result. Report stability across seeds for consequential results.
+#' Both solvers are stochastic: `nstart` initializations are used and a
+#' `seed` fixes the result. Report stability across seeds for consequential
+#' results.
 #'
 #' @param hg A connected `net_hypergraph`.
 #' @param k Integer number of clusters, `2 <= k <= n_nodes - 1`.
 #' @param type,edge_weights Passed to [hypergraph_laplacian()].
-#' @param nstart Integer. k-means random restarts (default 25).
-#' @param seed Optional integer seed for the k-means initialization.
+#' @param algorithm Character. `"spectral"` (default; RDC-Spec) or
+#'   `"symnmf"` (RDC-Sym).
+#' @param nstart Integer. Random restarts (default 25).
+#' @param seed Optional integer seed for initialization.
+#' @param max_iter Maximum multiplicative-update iterations for
+#'   `algorithm = "symnmf"`.
+#' @param tol Relative objective tolerance for `algorithm = "symnmf"`.
 #'
 #' @return An object of class `net_hypergraph_cluster`: a list with
 #'   `$clusters` (data.frame, one row per node: `node`, `cluster` - labels
@@ -147,14 +156,24 @@ hypergraph_cluster <- function(hg, k,
                                type = c("zhou", "random_walk"),
                                edge_weights = NULL,
                                nstart = 25L,
-                               seed = NULL) {
+                               seed = NULL,
+                               algorithm = c("spectral", "symnmf"),
+                               max_iter = 500L,
+                               tol = 1e-6) {
   type <- match.arg(type)
+  algorithm <- match.arg(algorithm)
   .hl_validate_hg(hg)
   stopifnot(
     "`k` must be a single whole number" =
       is.numeric(k) && length(k) == 1L && is.finite(k) && k == round(k),
     "`nstart` must be a single positive whole number" =
-      is.numeric(nstart) && length(nstart) == 1L && nstart >= 1
+      is.numeric(nstart) && length(nstart) == 1L && nstart >= 1 &&
+        nstart == round(nstart),
+    "`max_iter` must be a single positive whole number" =
+      is.numeric(max_iter) && length(max_iter) == 1L && max_iter >= 1 &&
+        max_iter == round(max_iter),
+    "`tol` must be a single positive finite number" =
+      is.numeric(tol) && length(tol) == 1L && is.finite(tol) && tol > 0
   )
   k <- as.integer(k)
   n <- hg$n_nodes
@@ -169,18 +188,34 @@ hypergraph_cluster <- function(hg, k,
   # eigen() returns decreasing order; take the k SMALLEST, increasing
   ord <- rev(seq_len(n))
   values <- eig$values[ord]
-  U <- eig$vectors[, ord[seq_len(k)], drop = FALSE]
-
-  # Row-normalize the spectral embedding to unit length (zero rows kept)
-  row_norm <- sqrt(rowSums(U^2))
-  nz <- row_norm > 0
-  U[nz, ] <- U[nz, , drop = FALSE] / row_norm[nz]
-
-  km <- stats::kmeans(U, centers = k, nstart = as.integer(nstart),
-                      iter.max = 100L)
+  if (algorithm == "spectral") {
+    U <- eig$vectors[, ord[seq_len(k)], drop = FALSE]
+    # Row-normalize the spectral embedding to unit length (zero rows kept)
+    row_norm <- sqrt(rowSums(U^2))
+    nz <- row_norm > 0
+    U[nz, ] <- U[nz, , drop = FALSE] / row_norm[nz]
+    km <- stats::kmeans(U, centers = k, nstart = as.integer(nstart),
+                        iter.max = 100L)
+    assignment <- km$cluster
+    diagnostics <- list(tot_withinss = km$tot.withinss)
+  } else {
+    T <- diag(n) - parts$L
+    # T is non-negative analytically; remove only floating-point undershoot.
+    if (min(T) < -1e-10) {
+      stop("`I - L` has negative entries and cannot be factorized by SymNMF.",
+           call. = FALSE)
+    }
+    T <- pmax((T + t(T)) / 2, 0)
+    fit <- .hl_symnmf(T, k = k, nstart = as.integer(nstart), seed = seed,
+                      max_iter = as.integer(max_iter), tol = tol)
+    U <- fit$factor
+    assignment <- max.col(U, ties.method = "first")
+    diagnostics <- fit[c("objective", "objective_history", "iterations",
+                         "converged", "restart")]
+  }
 
   # Deterministic labels: "Cluster 1" = first node's cluster, etc.
-  relabel <- match(km$cluster, unique(km$cluster))
+  relabel <- match(assignment, unique(assignment))
   cluster_lab <- paste("Cluster", relabel)
   clusters <- data.frame(node = hg$nodes, cluster = cluster_lab,
                          stringsAsFactors = FALSE)
@@ -197,14 +232,16 @@ hypergraph_cluster <- function(hg, k,
       embedding   = U,
       k           = k,
       type        = type,
+      algorithm   = algorithm,
       eigenvalues = values,
       eigengap    = if (k < n) values[k + 1L] - values[k] else NA_real_,
       sizes       = sizes,
       pi          = parts$pi,
       n_nodes     = n,
       n_hyperedges = hg$n_hyperedges,
-      params = list(edge_weights = parts$w, nstart = as.integer(nstart),
-                    seed = seed, tot_withinss = km$tot.withinss)
+      params = c(list(edge_weights = parts$w, nstart = as.integer(nstart),
+                      seed = seed, max_iter = as.integer(max_iter), tol = tol),
+                 diagnostics)
     ),
     class = "net_hypergraph_cluster"
   )
@@ -516,13 +553,23 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
 #' @return The input object, invisibly.
 #' @export
 print.net_hypergraph_cluster <- function(x, ...) {
-  cat("Hypergraph spectral clustering (", x$type, " Laplacian)\n", sep = "")
+  algorithm <- x$algorithm %||% "spectral"
+  label <- switch(algorithm, spectral = "RDC-Spec spectral",
+                  symnmf = "RDC-Sym symmetric-NMF", algorithm)
+  cat("Hypergraph ", label, " clustering (", x$type, " Laplacian)\n",
+      sep = "")
   cat(sprintf("  Nodes: %d | Hyperedges: %d | k: %d\n",
               x$n_nodes, x$n_hyperedges, x$k))
   cat(sprintf("  Cluster sizes: %s\n",
               paste(sprintf("%s = %d", x$sizes$cluster, x$sizes$size),
                     collapse = ", ")))
-  cat(sprintf("  Eigengap after k: %.4f\n", x$eigengap))
+  if (!identical(algorithm, "spectral")) {
+    cat(sprintf("  Objective: %.6g | Iterations: %d | Converged: %s\n",
+                x$params$objective, x$params$iterations,
+                if (isTRUE(x$params$converged)) "yes" else "no"))
+  } else {
+    cat(sprintf("  Eigengap after k: %.4f\n", x$eigengap))
+  }
   invisible(x)
 }
 
@@ -549,7 +596,7 @@ summary.net_hypergraph_cluster <- function(object, ...) {
 #'   `top` compose. Default `NULL` returns every row.
 #' @return The tidy assignment table: one row per node, columns `node`,
 #'   `cluster`, `pi` (stationary probability of the node under the
-#'   Laplacian's random walk) and the spectral-embedding coordinates
+#'   Laplacian's random walk) and the spectral-embedding or NMF-factor coordinates
 #'   `dim1..dimk`.
 #' @export
 as.data.frame.net_hypergraph_cluster <- function(x, ..., top = NULL) {
@@ -584,6 +631,12 @@ plot.net_hypergraph_cluster <- function(x,
                                                  "embedding"),
                                         n_values = NULL, ...) {
   what <- match.arg(what)
+  has_spectrum <- any(is.finite(x$eigenvalues))
+  if (!has_spectrum && what == "spectrum") {
+    stop("This clustering objective has no Laplacian spectrum; use `what = \"embedding\"`.",
+         call. = FALSE)
+  }
+  if (!has_spectrum && what == "both") what <- "embedding"
   okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
              "#D55E00", "#CC79A7", "#999999", "#000000")
 
@@ -634,7 +687,13 @@ plot.net_hypergraph_cluster <- function(x,
       y = range(df_e$dim2) + c(-0.1, 0.25) * diff(range(df_e$dim2))
     ) +
     ggplot2::labs(
-      title = "Spectral embedding (first two dimensions)",
+      title = switch(x$algorithm %||% "spectral",
+                     spectral = "Spectral embedding (first two dimensions)",
+                     symnmf = "SymNMF factors (first two dimensions)",
+                     joint = "Joint-NMF vertex factors (first two dimensions)",
+                     joint_symmetric = paste0(
+                       "Joint-Symmetric-NMF vertex factors ",
+                       "(first two dimensions)")),
       subtitle = "Point size = stationary probability of the node",
       x = "dim1", y = "dim2", color = NULL, shape = NULL
     ) +

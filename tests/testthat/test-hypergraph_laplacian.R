@@ -134,6 +134,109 @@ test_that("clustering is stable across seeds on separated structure", {
   expect_identical(parts[[1]], parts[[3]])
 })
 
+test_that("RDC-SymNMF follows Algorithm 2 and decreases Eq. 16", {
+  hg <- .hl_planted()
+  cl <- hypergraph_cluster(hg, k = 2, type = "random_walk",
+                           algorithm = "symnmf", nstart = 3, seed = 7,
+                           max_iter = 1000, tol = 1e-8)
+  expect_s3_class(cl, "net_hypergraph_cluster")
+  expect_identical(cl$algorithm, "symnmf")
+  expect_true(all(cl$embedding >= 0))
+  expect_equal(dim(cl$embedding), c(6L, 2L))
+  expect_true(all(diff(cl$params$objective_history) <= 1e-8))
+  expect_equal(cl$params$objective,
+               sum((diag(hg$n_nodes) -
+                      unclass(hypergraph_laplacian(hg, "random_walk")) -
+                      tcrossprod(cl$embedding))^2),
+               tolerance = 1e-8)
+  assignment <- max.col(cl$embedding, ties.method = "first")
+  expect_identical(cl$clusters$cluster,
+                   paste("Cluster", match(assignment, unique(assignment))))
+  expect_length(unique(cl$clusters$cluster[1:3]), 1L)
+  expect_length(unique(cl$clusters$cluster[4:6]), 1L)
+  expect_false(cl$clusters$cluster[1] == cl$clusters$cluster[4])
+})
+
+test_that("RDC-SymNMF is deterministic for a fixed seed", {
+  args <- list(hg = .hl_planted(), k = 2, algorithm = "symnmf",
+               nstart = 2, seed = 11, max_iter = 100)
+  a <- do.call(hypergraph_cluster, args)
+  b <- do.call(hypergraph_cluster, args)
+  expect_identical(a$clusters, b$clusters)
+  expect_equal(a$embedding, b$embedding)
+  expect_equal(a$params$objective_history, b$params$objective_history)
+})
+
+test_that("J-NMF and JS-NMF implement Eqs. 18 and 19", {
+  hg <- .hl_planted()
+  S <- matrix(0, hg$n_nodes, hg$n_nodes,
+              dimnames = list(hg$nodes, hg$nodes))
+  S[1:3, 1:3] <- 1
+  S[4:6, 4:6] <- 1
+  diag(S) <- 0
+  for (method in c("joint", "joint_symmetric")) {
+    fit <- hypergraph_joint_cluster(
+      hg, S, k = 2, method = method, nstart = 2, seed = 3,
+      max_iter = 1000, tol = 1e-8
+    )
+    expect_s3_class(fit, "net_hypergraph_cluster")
+    expect_identical(fit$algorithm, method)
+    expect_true(all(fit$embedding >= 0))
+    expect_true(tail(fit$params$objective_history, 1) <=
+                  fit$params$objective_history[1])
+    M <- fit$params$M
+    Mt <- fit$params$Mtilde
+    if (method == "joint") {
+      X <- t(hg$incidence * 1.0)
+      expected_objective <- sum((X - fit$params$Z %*% t(M))^2) +
+        sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
+      expect_error(plot(fit, what = "spectrum"), "no Laplacian spectrum")
+    } else {
+      C <- diag(hg$n_nodes) -
+        unclass(hypergraph_laplacian(hg, type = "random_walk"))
+      expected_objective <- sum((C - M %*% t(fit$params$Mhat))^2) +
+        sum((M - fit$params$Mhat)^2) +
+        sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
+    }
+    expect_equal(fit$params$objective, expected_objective,
+                 tolerance = 1e-8)
+    expect_length(unique(fit$clusters$cluster[1:3]), 1L)
+    expect_length(unique(fit$clusters$cluster[4:6]), 1L)
+    expect_false(fit$clusters$cluster[1] == fit$clusters$cluster[4])
+  }
+})
+
+test_that("J-NMF Eq. 18 reduces exactly to its ordinary-NMF objective", {
+  hg <- .hl_planted()
+  S <- matrix(0, hg$n_nodes, hg$n_nodes)
+  joint <- .hl_joint_nmf_fit(hg, S, k = 2, method = "joint",
+                             alpha = 0, beta = 0, gamma = 0,
+                             type = "random_walk", edge_weights = NULL,
+                             seed = 17, max_iter = 25, tol = 1e-20)
+  X <- t(hg$incidence * 1.0)
+  expect_equal(joint$objective, sum((X - joint$Z %*% t(joint$M))^2),
+               tolerance = 1e-12)
+  # Mtilde is absent from the reduced objective, as stated after Eq. 18.
+  shifted <- joint$Mtilde + 100
+  expect_equal(joint$objective,
+               sum((X - joint$Z %*% t(joint$M))^2) +
+                 0 * sum((S - joint$M %*% t(shifted))^2) +
+                 0 * sum((joint$M - shifted)^2),
+               tolerance = 1e-12)
+})
+
+test_that("joint clustering aligns named relations and validates inputs", {
+  hg <- .hl_planted()
+  S <- diag(hg$n_nodes)
+  dimnames(S) <- list(rev(hg$nodes), rev(hg$nodes))
+  expect_s3_class(hypergraph_joint_cluster(
+    hg, S, 2, nstart = 1, seed = 1, max_iter = 2
+  ), "net_hypergraph_cluster")
+  expect_error(hypergraph_joint_cluster(hg, matrix(-1, 6, 6), 2),
+               "non-negative")
+  expect_error(hypergraph_joint_cluster(hg, diag(5), 2), "n_nodes")
+})
+
 test_that("summary.net_hypergraph_cluster returns tidy shares", {
   cl <- hypergraph_cluster(.hl_planted(), k = 2, seed = 1)
   s <- summary(cl)
