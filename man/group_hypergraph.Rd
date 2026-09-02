@@ -4,7 +4,14 @@
 \alias{group_hypergraph}
 \title{Hypergraph from bipartite group / event data}
 \usage{
-group_hypergraph(data, member, group, weight = NULL)
+group_hypergraph(
+  data,
+  member,
+  group,
+  weight = NULL,
+  nodes = NULL,
+  sparse = FALSE
+)
 }
 \arguments{
 \item{data}{Data frame in long format. Must contain \code{member} and \code{group}
@@ -19,6 +26,14 @@ hypergraph's hyperedges (groups, sessions, teams).}
 \item{weight}{Character or \code{NULL}. If supplied, the column is summed per
 \verb{(member, group)} pair to produce a weighted incidence matrix. Default
 \code{NULL} produces a 0/1 binary incidence matrix.}
+
+\item{nodes}{Optional vector giving the complete node universe. This keeps
+nodes with no observed group memberships as zero-incidence rows, which is
+needed for representations such as citation hypergraphs where every
+decision is a node but some decisions are never cited.}
+
+\item{sparse}{Logical. Store incidence as a sparse \code{Matrix}? Use this for
+large, sparse event data such as the full GFCC citation-block corpus.}
 }
 \value{
 A \code{net_hypergraph} object with the same structure produced by
@@ -54,11 +69,10 @@ Rows with \code{NA} in either the \code{member} or \code{group} column (or, when
 supplied, the \code{weight} column) are dropped silently.
 }
 \note{
-(experimental) Validated against a hand-computed \code{table()} incidence
-reference only; no independent R package exposes the
-long-format-to-binary-incidence primitive, because the operation is
-definitionally \code{table()}. The code path is a direct one-to-one
-restatement of its definition.
+Dense and sparse paths are tested for exact equality. The sparse
+path is additionally exercised by the full GFCC reproduction from the
+Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
+77,187 nonzero incidences).
 }
 \examples{
 df <- data.frame(

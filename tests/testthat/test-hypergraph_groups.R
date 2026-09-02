@@ -126,6 +126,33 @@ test_that("singleton groups become size-1 hyperedges", {
   expect_true(all(vapply(hg$hyperedges, length, integer(1)) == 1L))
 })
 
+test_that("an explicit node universe preserves isolates", {
+  d <- data.frame(member = c("A", "B"), grp = c("g1", "g1"))
+  hg <- group_hypergraph(d, "member", "grp", nodes = c("A", "B", "C"))
+  expect_equal(hg$nodes, c("A", "B", "C"))
+  expect_equal(unname(rowSums(hg$incidence)), c(1, 1, 0))
+  expect_equal(hg$n_nodes, 3L)
+  expect_error(group_hypergraph(d, "member", "grp", nodes = c("A", "C")),
+               "Every observed member")
+  expect_error(group_hypergraph(d, "member", "grp", nodes = c("A", "B", "B")),
+               "unique")
+})
+
+test_that("sparse group incidence is identical to dense incidence", {
+  d <- rbind(.bg_sample_data(), .bg_sample_data()[1, , drop = FALSE])
+  dense <- group_hypergraph(d, "member", "session")
+  sparse <- group_hypergraph(d, "member", "session", sparse = TRUE)
+  expect_s4_class(sparse$incidence, "sparseMatrix")
+  expect_equal(as.matrix(sparse$incidence), dense$incidence)
+  expect_equal(sparse$hyperedges, dense$hyperedges)
+
+  weighted <- transform(d, n = seq_len(nrow(d)))
+  dense_w <- group_hypergraph(weighted, "member", "session", "n")
+  sparse_w <- group_hypergraph(weighted, "member", "session", "n",
+                               sparse = TRUE)
+  expect_equal(as.matrix(sparse_w$incidence), dense_w$incidence)
+})
+
 # Validation ---------------------------------------------------------------
 
 test_that("missing member column raises error", {

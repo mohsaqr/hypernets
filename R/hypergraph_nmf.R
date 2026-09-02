@@ -42,7 +42,7 @@
         break
       }
     }
-    fit <- list(factor = F, objective = tail(history, 1L),
+    fit <- list(factor = F, objective = utils::tail(history, 1L),
                 objective_history = history, iterations = iteration,
                 converged = converged, restart = restart)
     if (is.null(best) || fit$objective < best$objective) best <- fit
@@ -71,7 +71,7 @@
       break
     }
   }
-  list(Z = Z, M = M, objective = tail(history, 1L),
+  list(Z = Z, M = M, objective = utils::tail(history, 1L),
        objective_history = history, iterations = iteration,
        converged = converged)
 }
@@ -241,7 +241,7 @@ hypergraph_joint_cluster <- function(
       break
     }
   }
-  out <- list(M = M, Mtilde = Mtilde, objective = tail(history, 1L),
+  out <- list(M = M, Mtilde = Mtilde, objective = utils::tail(history, 1L),
               objective_history = history, iterations = iteration,
               converged = converged)
   if (method == "joint") out$Z <- Z else out$Mhat <- Mhat

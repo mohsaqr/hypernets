@@ -168,7 +168,7 @@ test_that("Wasserstein distance has metric properties", {
                    death = c(2.5, 6))
   d3 <- data.frame(dimension = 0L, birth = 1, death = 4)
 
-  expect_equal(wasserstein_distance(d1, d1, order = 2), dim_0 = 0)
+  expect_equal(wasserstein_distance(d1, d1, order = 2), c(dim_0 = 0))
   expect_equal(wasserstein_distance(d1, d2, order = 2),
                wasserstein_distance(d2, d1, order = 2))
   expect_lte(
@@ -184,8 +184,8 @@ test_that("Wasserstein handles dimensions and essential classes", {
   d2 <- data.frame(dimension = c(0L, 1L), birth = c(1, 2.5),
                    death = c(Inf, 5.5))
   out <- wasserstein_distance(d1, d2)
-  expect_equal(out["dim_0"], 1)
-  expect_equal(out["dim_1"], 0.5)
+  expect_equal(out["dim_0"], c(dim_0 = 1))
+  expect_equal(out["dim_1"], c(dim_1 = 0.5))
 
   mismatch <- rbind(d2, data.frame(dimension = 0L, birth = 3, death = Inf))
   expect_true(is.infinite(wasserstein_distance(d1, mismatch)["dim_0"]))

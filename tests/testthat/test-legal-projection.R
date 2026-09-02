@@ -26,6 +26,20 @@ test_that("self-association contributes one unit per source", {
   expect_equal(sum(w["s", ]), 1)
 })
 
+test_that("self-association supports sparse incidence", {
+  h <- group_hypergraph(
+    data.frame(member = c("a", "b", "b", "c"),
+               event = rep(c("e1", "e2"), each = 2)),
+    "member", "event", sparse = TRUE
+  )
+  w <- hg_project(h, method = "association", what = "matrix",
+                  self_association = TRUE,
+                  edge_source = c(e1 = "s", e2 = "s"))
+  expect_s4_class(w, "sparseMatrix")
+  expect_equal(unname(as.matrix(w)["s", c("a", "b", "c")]),
+               c(0.25, 0.5, 0.25))
+})
+
 test_that("hyperedge incidence threshold is configurable", {
   h <- group_hypergraph(
     data.frame(member = c("a", "b", "c", "b", "c", "d", "c", "e"),

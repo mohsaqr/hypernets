@@ -25,9 +25,19 @@
   `hypergraph_community_quality()`.
 - **Verified 2026-09-02**: bibliographic metadata, open-access license, the
   19-page paper, and the complete Zenodo source were inspected. Formula-level
-  tests match HypergraphX 1.5 and scikit-learn conventions. Rebuilding the
-  441-node, 742-case ICSID aggregate from the authors' released CSV reproduces
-  their observed motif census exactly: **Y = 478, T = 7, O = 0**.
+  tests match HypergraphX 1.5, NetworkX and scikit-learn conventions.
+  Rebuilding the 441-node, 742-case ICSID aggregate reproduces the observed
+  motif census exactly: **Y = 478, T = 7, O = 0**.
+- **Full-data reproduction**: [`run_legal_hypergraphs_reproduction.R`](../benchmarks/run_legal_hypergraphs_reproduction.R)
+  rebuilds the 3,618-node, 46,165-edge GFCC citation-block hypergraph. Its
+  four association projections exactly match the authors' construction in
+  node count, edge count, total weight and isolates. It re-reads all eight
+  archived AMI medoids, reproduces Figure 8 cluster sizes and AMI/ARI/NMI,
+  and matches the archived coverage, weighted coverage, performance and
+  modularity to numerical tolerance. On ICSID it reproduces the active and
+  aggregate Figure 6 hyperedge rankings and centrality values; for example,
+  active betweenness is led by ARB/17/21 at **0.0265401292268786**, while
+  aggregate closeness is led by ARB/15/5 at **0.548057026441839**.
 - **Links**: [publisher / DOI](https://doi.org/10.1098/rsta.2023.0141) ·
   [PubMed Central](https://pmc.ncbi.nlm.nih.gov/articles/PMC10894694/) ·
   [reproducibility archive (Zenodo 8081507)](https://doi.org/10.5281/zenodo.8081507)

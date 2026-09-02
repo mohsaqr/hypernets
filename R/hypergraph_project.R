@@ -160,7 +160,11 @@ hg_project <- function(hg, method = c("clique", "association"),
     node_index <- match(nodes, all_nodes)
     source_index <- match(sources, all_nodes)
     b_original <- .thg_binary(incidence)
-    nz <- which(b_original != 0, arr.ind = TRUE)
+    if (methods::is(b_original, "sparseMatrix")) {
+      nz <- Matrix::which(b_original != 0, arr.ind = TRUE)
+    } else {
+      nz <- which(b_original != 0, arr.ind = TRUE)
+    }
     from <- source_index[nz[, "col"]]
     to <- match(nodes[nz[, "row"]], all_nodes)
     keep <- from != to

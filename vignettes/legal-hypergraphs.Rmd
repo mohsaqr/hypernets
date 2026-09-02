@@ -125,3 +125,32 @@ The implementation was checked against the authors' Zenodo archive
 (10.5281/zenodo.8081507). Reconstructing their 441-node, 742-case ICSID
 aggregate reproduces its observed motif census exactly: Y = 478, T = 7, and
 O = 0.
+
+## Full archive reproduction
+
+The full-data runner rebuilds the GFCC association graphs and the ICSID
+centrality snapshots from the released CSV files, then checks the numerical
+inputs to Figures 6 and 8 against the archived author results:
+
+```{r, eval=FALSE}
+system2(
+  "Rscript",
+  c("benchmarks/run_legal_hypergraphs_reproduction.R",
+    "/path/to/legalhypergraphs-8081507")
+)
+```
+
+GFCC is built sparsely with an explicit 3,618-decision node universe, so
+uncited decisions remain genuine isolates. The four hypergraph association
+representations have 25,114 edges without self-association and 51,494 with
+self-association. Their total weights are 16,978 (`bh`), 20,205 (`bhs`),
+23,196 (`mh`), and 26,423 (`mhs`), exactly matching the archive's Python
+construction. The runner also reproduces the eight AMI medoids and their
+pairwise AMI/ARI/NMI values.
+
+For ICSID Figure 6, `hypergraph_edge_centrality(normalized = TRUE)` follows
+the NetworkX/HypergraphX normalization, including the disconnected-graph
+correction for closeness. The released active 2023-06-15 snapshot has 205
+distinct tribunal hyperedges; its leading 1-betweenness case is ARB/17/21 at
+0.02654013. The static aggregate has 722 distinct tribunal hyperedges; its
+leading 1-closeness case is ARB/15/5 at 0.54805703.

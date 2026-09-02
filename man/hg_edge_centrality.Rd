@@ -34,8 +34,9 @@ hypergraph_edge_centrality(
 
 \item{measure}{Any of \code{"betweenness"} and \code{"closeness"}.}
 
-\item{normalized}{Normalize the graph centralities where the cograph
-measure supports normalization.}
+\item{normalized}{Use NetworkX/HypergraphX normalization: undirected
+betweenness is scaled by \code{2 / ((n - 1) * (n - 2))}, and closeness uses
+the Wasserman--Faust correction for disconnected line graphs.}
 
 \item{top}{Optional number of highest-scoring hyperedges to retain per
 \verb{(time, s, measure)} group.}

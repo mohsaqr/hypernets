@@ -20,6 +20,12 @@
 #' @param weight Character or `NULL`. If supplied, the column is summed per
 #'   `(member, group)` pair to produce a weighted incidence matrix. Default
 #'   `NULL` produces a 0/1 binary incidence matrix.
+#' @param nodes Optional vector giving the complete node universe. This keeps
+#'   nodes with no observed group memberships as zero-incidence rows, which is
+#'   needed for representations such as citation hypergraphs where every
+#'   decision is a node but some decisions are never cited.
+#' @param sparse Logical. Store incidence as a sparse `Matrix`? Use this for
+#'   large, sparse event data such as the full GFCC citation-block corpus.
 #'
 #' @return A `net_hypergraph` object with the same structure produced by
 #'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
@@ -65,14 +71,14 @@
 #' populations: a review. \emph{Journal of the Royal Society Interface}
 #' 10(80), 20120997. \doi{10.1098/rsif.2012.0997}
 #'
-#' @note (experimental) Validated against a hand-computed `table()` incidence
-#'   reference only; no independent R package exposes the
-#'   long-format-to-binary-incidence primitive, because the operation is
-#'   definitionally `table()`. The code path is a direct one-to-one
-#'   restatement of its definition.
+#' @note Dense and sparse paths are tested for exact equality. The sparse
+#'   path is additionally exercised by the full GFCC reproduction from the
+#'   Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
+#'   77,187 nonzero incidences).
 #'
 #' @export
-group_hypergraph <- function(data, member, group, weight = NULL) {
+group_hypergraph <- function(data, member, group, weight = NULL, nodes = NULL,
+                             sparse = FALSE) {
   stopifnot(
     is.data.frame(data),
     is.character(member), length(member) == 1L,
@@ -80,7 +86,9 @@ group_hypergraph <- function(data, member, group, weight = NULL) {
     member %in% names(data),
     group  %in% names(data),
     is.null(weight) ||
-      (is.character(weight) && length(weight) == 1L && weight %in% names(data))
+      (is.character(weight) && length(weight) == 1L && weight %in% names(data)),
+    is.null(nodes) || is.atomic(nodes),
+    is.logical(sparse), length(sparse) == 1L, !is.na(sparse)
   )
 
   cols <- c(member, group, weight)
@@ -93,7 +101,17 @@ group_hypergraph <- function(data, member, group, weight = NULL) {
   d[[member]] <- as.character(d[[member]])
   d[[group]]  <- as.character(d[[group]])
 
-  member_levels <- sort(unique(d[[member]]))
+  if (!is.null(nodes)) {
+    nodes <- as.character(nodes)
+    if (anyNA(nodes) || any(!nzchar(nodes)) || anyDuplicated(nodes)) {
+      stop("`nodes` must contain unique, non-missing node names.", call. = FALSE)
+    }
+    missing_members <- setdiff(unique(d[[member]]), nodes)
+    if (length(missing_members)) {
+      stop("Every observed member must occur in `nodes`.", call. = FALSE)
+    }
+  }
+  member_levels <- sort(if (is.null(nodes)) unique(d[[member]]) else nodes)
   group_levels  <- sort(unique(d[[group]]))
   n_members <- length(member_levels)
   n_groups  <- length(group_levels)
@@ -104,20 +122,32 @@ group_hypergraph <- function(data, member, group, weight = NULL) {
   # write, not the total.
   mi <- match(d[[member]], member_levels)
   gj <- match(d[[group]],  group_levels)
-  cell <- (gj - 1L) * n_members + mi
-  if (is.null(weight)) {
-    counts <- tabulate(cell, nbins = n_members * n_groups)
-    incidence <- matrix(as.integer(counts > 0L), n_members, n_groups,
-                        dimnames = list(member_levels, group_levels))
+  if (sparse) {
+    incidence <- Matrix::sparseMatrix(
+      i = mi, j = gj,
+      x = if (is.null(weight)) rep.int(1, length(mi)) else as.numeric(d[[weight]]),
+      dims = c(n_members, n_groups),
+      dimnames = list(member_levels, group_levels)
+    )
+    if (is.null(weight) && length(incidence@x)) incidence@x[] <- 1
+    incidence <- Matrix::drop0(incidence)
   } else {
-    incidence <- matrix(0, n_members, n_groups,
-                        dimnames = list(member_levels, group_levels))
-    acc <- rowsum(as.numeric(d[[weight]]), cell, reorder = FALSE)
-    incidence[as.integer(rownames(acc))] <- acc[, 1L]
+    cell <- (gj - 1L) * n_members + mi
+    if (is.null(weight)) {
+      counts <- tabulate(cell, nbins = n_members * n_groups)
+      incidence <- matrix(as.integer(counts > 0L), n_members, n_groups,
+                          dimnames = list(member_levels, group_levels))
+    } else {
+      incidence <- matrix(0, n_members, n_groups,
+                          dimnames = list(member_levels, group_levels))
+      acc <- rowsum(as.numeric(d[[weight]]), cell, reorder = FALSE)
+      incidence[as.integer(rownames(acc))] <- acc[, 1L]
+    }
   }
 
   # Drop hyperedges that ended up empty (e.g. all-zero weight)
-  he_sizes_pre <- colSums(incidence > 0)
+  he_sizes_pre <- if (sparse) Matrix::colSums(incidence > 0) else
+    colSums(incidence > 0)
   keep <- he_sizes_pre > 0
   incidence <- incidence[, keep, drop = FALSE]
   group_levels <- group_levels[keep]
@@ -150,6 +180,8 @@ group_hypergraph <- function(data, member, group, weight = NULL) {
         member         = member,
         group          = group,
         weight         = weight,
+        nodes          = nodes,
+        sparse         = sparse,
         n_observations = nrow(d)
       )
     ),

@@ -40,8 +40,10 @@ on Nestimate and no work in this list requires modifying it.
   s-centralities, subhypergraph centrality, association projections, Y/T/O
   motifs, configuration nulls, Infomap ensembles and partition quality.
 - [x] Reproduce the ICSID aggregate motif census: Y = 478, T = 7, O = 0.
-- [ ] Reproduce the full GFCC association/community analysis and the
-  paper's temporal centrality figures from the Zenodo archives.
+- [x] Reproduce the full GFCC association/community analysis and the
+  paper's temporal centrality figures from Zenodo 8081507. The runner checks
+  all four association graphs, all eight archived AMI medoids, Figure 8
+  similarities and quality scores, and the Figure 6 ICSID rankings/values.
 
 ## Documentation and release
 

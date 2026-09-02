@@ -11,8 +11,9 @@
 #' @param hg A static `net_hypergraph` or a [temporal_hypergraph()].
 #' @param s One or more positive integer intersection thresholds.
 #' @param measure Any of `"betweenness"` and `"closeness"`.
-#' @param normalized Normalize the graph centralities where the cograph
-#'   measure supports normalization.
+#' @param normalized Use NetworkX/HypergraphX normalization: undirected
+#'   betweenness is scaled by `2 / ((n - 1) * (n - 2))`, and closeness uses
+#'   the Wasserman--Faust correction for disconnected line graphs.
 #' @param top Optional number of highest-scoring hyperedges to retain per
 #'   `(time, s, measure)` group.
 #' @param at,snapshot_mode,multiedges Temporal snapshot arguments passed to
@@ -73,15 +74,37 @@ hg_edge_centrality <- function(hg, s = 1L,
   for (ss in as.integer(s)) {
     line <- hg_line_graph(hg, s = ss, what = "matrix")
     line <- (line != 0) * 1
+    n_line <- nrow(line)
+    # HypergraphX delegates these measures to NetworkX.  In particular,
+    # NetworkX normalizes undirected betweenness by 2 / ((n - 1)(n - 2))
+    # and applies the Wasserman--Faust disconnected-graph correction to
+    # closeness.  cograph deliberately uses a general max-normalization for
+    # most measures, so request raw graph scores here and apply the paper's
+    # conventions explicitly.
+    graph <- NULL
+    component_size <- NULL
+    if (normalized && "closeness" %in% measure && n_line > 0L) {
+      graph <- cograph::to_igraph(line, directed = FALSE)
+      membership <- igraph::components(graph, mode = "weak")$membership
+      component_size <- unname(table(membership)[as.character(membership)])
+      names(component_size) <- rownames(line)
+    }
     for (metric in measure) {
       value <- switch(metric,
         betweenness = cograph::centrality_betweenness(
-          line, weighted = FALSE, directed = FALSE, normalized = normalized
+          line, weighted = FALSE, directed = FALSE, normalized = FALSE
         ),
         closeness = cograph::centrality_closeness(
           line, weighted = FALSE, directed = FALSE, normalized = normalized
         )
       )
+      if (normalized && identical(metric, "betweenness")) {
+        scale <- if (n_line > 2L) 2 / ((n_line - 1) * (n_line - 2)) else 1
+        value <- value * scale
+      }
+      if (normalized && identical(metric, "closeness") && n_line > 1L) {
+        value <- value * (component_size[names(value)] - 1) / (n_line - 1)
+      }
       value[!is.finite(value)] <- 0
       tab <- data.frame(
         edge = colnames(line), s = ss, measure = metric,

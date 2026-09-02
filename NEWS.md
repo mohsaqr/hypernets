@@ -41,6 +41,13 @@
   coverage, weighted coverage, performance and modularity. The authors'
   released ICSID data reproduce the published aggregate motif counts exactly:
   Y = 478, T = 7, O = 0.
+* **The full Legal Hypergraphs archive reproduction now passes.** A standalone
+  runner rebuilds the sparse 3,618-node GFCC citation-block hypergraph,
+  verifies all four association projections and all eight archived Figure 8
+  medoids, and reproduces the active/aggregate ICSID Figure 6 centrality
+  rankings and values. `group_hypergraph()` now accepts an explicit node
+  universe and sparse incidence, and normalized hyperedge centrality follows
+  the exact NetworkX/HypergraphX convention on disconnected line graphs.
 
 ## The text family: texthypergraph folds into honets
 

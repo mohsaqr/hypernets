@@ -24,7 +24,7 @@ never honets runtime dependencies.
 | GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein conventions implemented; SciPy assignment oracle shipped |
 | pathpy / pyHON / HYPA / HONEM | Memory-network construction, MOGen and anomaly methods | Integrated in `local_testing_and_equivalence/` |
 | HypergraphX | Legal motifs, s-centralities, temporal and community conventions | Legal formula fixtures shipped; broader oracle coverage remains useful |
-| Legal Hypergraphs archive | Published GFCC/ICSID workflow | ICSID motif census exact; full GFCC/temporal reproduction open |
+| Legal Hypergraphs archive | Published GFCC/ICSID workflow | Full GFCC Figure 8 and ICSID Figures 6--7 reproduction passes against Zenodo 8081507 |
 
 ## Neural references and baselines
 

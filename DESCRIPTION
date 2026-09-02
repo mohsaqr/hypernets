@@ -66,6 +66,7 @@ Imports:
 Suggests:
     gridExtra,
     igraph,
+    jsonlite,
     knitr,
     rmarkdown,
     sbert,
