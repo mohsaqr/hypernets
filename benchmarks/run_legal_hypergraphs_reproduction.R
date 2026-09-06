@@ -204,11 +204,15 @@ icsid$date_of_constitution_of_tribunal <-
 icsid$date_concluded <- as.Date(icsid$date_concluded)
 cutoff <- as.Date("2023-06-15")
 icsid$date_concluded[is.na(icsid$date_concluded)] <- cutoff
+seats <- reshape(
+  icsid, direction = "long",
+  varying = c("president_name", "arbitrator_1_name", "arbitrator_2_name"),
+  v.names = "arbitrator", timevar = "seat",
+  times = c("president", "arbitrator_1", "arbitrator_2"), idvar = "caseno"
+)
 icsid_temporal <- temporal_hypergraph(
-  icsid,
-  member = c("president_name", "arbitrator_1_name", "arbitrator_2_name"),
-  edge = "caseno", start = "date_of_constitution_of_tribunal",
-  end = "date_concluded", evolution = "interval"
+  seats, actor = "arbitrator", cooccur_by = "caseno",
+  start = "date_of_constitution_of_tribunal", end = "date_concluded"
 )
 
 centrality_rows <- list()

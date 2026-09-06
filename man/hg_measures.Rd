@@ -4,20 +4,33 @@
 \alias{hg_measures}
 \title{Structural measures of a hypergraph, as tidy tables}
 \usage{
-hg_measures(hg, what = c("nodes", "edges", "overlap", "summary"))
+hg_measures(
+  hg,
+  what = c("nodes", "edges", "overlap", "summary", "distribution", "components"),
+  measure = c("hyperdegree", "strength", "n_neighbors", "size")
+)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}).}
 
 \item{what}{Which table: \code{"nodes"} (default; one row per node with
-\code{hyperdegree}, \code{strength}, \code{max_edge_size}), \code{"edges"} (one row per
+\code{hyperdegree}, \code{strength}, \code{max_edge_size} and \code{n_neighbors}, the
+distinct nodes it shares a hyperedge with), \code{"edges"} (one row per
 hyperedge with its \code{size}), \code{"overlap"} (one row per hyperedge pair with
-\code{overlap}, \code{overlap_coefficient}, \code{jaccard}), or \code{"summary"} (one row per
-scalar measure).}
+\code{overlap}, \code{overlap_coefficient}, \code{jaccard}), \code{"summary"} (one row per
+scalar measure), \code{"distribution"} (the empirical distribution of
+\code{measure}, as a \code{honets_distribution} table whose \code{plot()} draws the
+CCDF), or \code{"components"} (one row per connected component through shared
+hyperedges, with its \code{n_nodes}, \code{n_edges}, \code{share} of nodes and
+\code{diameter}).}
+
+\item{measure}{For \code{what = "distribution"}: \code{"hyperdegree"} (default),
+\code{"strength"}, \code{"n_neighbors"} (node measures) or \code{"size"} (hyperedge
+cardinality).}
 }
 \value{
-A base \code{data.frame}, one row per node, edge, edge pair, or measure
-according to \code{what}.
+A base \code{data.frame}, one row per node, edge, edge pair, measure,
+distinct value, or component according to \code{what}.
 }
 \description{
 Delegates to \code{\link[=hypergraph_measures]{hypergraph_measures()}} and returns the requested
@@ -31,4 +44,5 @@ hg <- text_hypergraph(c(
 ))
 hg_measures(hg)
 hg_measures(hg, what = "summary")
+hg_measures(hg, what = "components")
 }

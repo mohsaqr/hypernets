@@ -3,22 +3,23 @@
 # becomes a net_hypergraph where each group is a hyperedge spanning all
 # members that appeared in it.
 
-#' Hypergraph from bipartite group / event data
+#' Hypergraph from co-occurrence data or an edge list
 #'
-#' Constructs a [net_hypergraph][build_hypergraph] from long-format event
-#' data in which each row records a `member` participating in a `group`
-#' (a session, team, project, transaction, or any group context). Each
-#' unique group becomes one hyperedge spanning the members that appeared in
-#' it. Optional `weight` column produces a weighted incidence matrix.
+#' Constructs a [net_hypergraph][build_hypergraph] the way a network is
+#' defined from data. **Co-occurrence data** name an `actor` and the column
+#' it co-occurs `by`: every actor sharing one value of `cooccur_by` (a
+#' session, a team, a citation block) belongs to one hyperedge. An **edge
+#' list** names `from` and `to`, and every row is a hyperedge of size two.
+#' An optional `weight` column produces a weighted incidence matrix.
 #'
-#' @param data Data frame in long format. Must contain `member` and `group`
-#'   columns; optionally a `weight` column.
-#' @param member Character. Name of the column whose values become the
+#' @param data Data frame in long format, one row per actor-in-group or per
+#'   edge.
+#' @param actor Character. Name of the column whose values become the
 #'   hypergraph's nodes (members, participants, actors).
-#' @param group Character. Name of the column whose values become the
-#'   hypergraph's hyperedges (groups, sessions, teams).
+#' @param cooccur_by Character. Name of the column whose shared values bind
+#'   actors into one hyperedge (groups, sessions, teams).
 #' @param weight Character or `NULL`. If supplied, the column is summed per
-#'   `(member, group)` pair to produce a weighted incidence matrix. Default
+#'   `(actor, hyperedge)` pair to produce a weighted incidence matrix. Default
 #'   `NULL` produces a 0/1 binary incidence matrix.
 #' @param nodes Optional vector giving the complete node universe. This keeps
 #'   nodes with no observed group memberships as zero-incidence rows, which is
@@ -26,6 +27,10 @@
 #'   decision is a node but some decisions are never cited.
 #' @param sparse Logical. Store incidence as a sparse `Matrix`? Use this for
 #'   large, sparse event data such as the full GFCC citation-block corpus.
+#' @param from,to Column names of a pairwise edge list, as an alternative to
+#'   `actor` and `cooccur_by`.
+#' @param member,group Former names of `actor` and `cooccur_by`; still
+#'   accepted.
 #'
 #' @return A `net_hypergraph` object with the same structure produced by
 #'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
@@ -49,10 +54,11 @@
 #'     observed and triadic structure must be inferred from triangles.
 #' }
 #'
-#' Rows with `NA` in either the `member` or `group` column (or, when
-#' supplied, the `weight` column) are dropped silently.
+#' Rows with `NA` in the actor, hyperedge or weight column are dropped
+#' silently.
 #'
-#' @seealso [build_hypergraph()] for the clique-based constructor.
+#' @seealso [build_hypergraph()] for the clique-based constructor,
+#'   [temporal_hypergraph()] for the same inputs with a clock.
 #'
 #' @examples
 #' df <- data.frame(
@@ -61,9 +67,12 @@
 #'   session = c("S1", "S1", "S1", "S2", "S2",
 #'               "S3", "S3", "S3", "S3")
 #' )
-#' hg <- group_hypergraph(df, member = "person", group = "session")
+#' hg <- group_hypergraph(df, actor = "person", cooccur_by = "session")
 #' print(hg)
 #' summary(hg)
+#'
+#' contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
+#' group_hypergraph(contacts, from = "from", to = "to")
 #'
 #' @references
 #' Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.
@@ -77,14 +86,42 @@
 #'   77,187 nonzero incidences).
 #'
 #' @export
-group_hypergraph <- function(data, member, group, weight = NULL, nodes = NULL,
-                             sparse = FALSE) {
+group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NULL,
+                             nodes = NULL, sparse = FALSE, from = NULL, to = NULL,
+                             member = NULL, group = NULL) {
+  stopifnot(is.data.frame(data))
+  # `member` / `group` are the former names of `actor` / `cooccur_by`.
+  member <- actor %||% member
+  group <- cooccur_by %||% group
+  if (!is.null(from) || !is.null(to)) {
+    stopifnot(
+      "name either `from` and `to` or `actor` and `cooccur_by`, not both" =
+        is.null(member) && is.null(group),
+      "`from` and `to` must both name columns of `data`" =
+        is.character(from) && length(from) == 1L && from %in% names(data) &&
+        is.character(to) && length(to) == 1L && to %in% names(data)
+    )
+    edge_id <- paste0("e", seq_len(nrow(data)))
+    long <- data.frame(
+      actor = c(as.character(data[[from]]), as.character(data[[to]])),
+      edge = c(edge_id, edge_id), stringsAsFactors = FALSE
+    )
+    if (!is.null(weight)) {
+      stopifnot(is.character(weight), length(weight) == 1L, weight %in% names(data))
+      long$weight <- c(data[[weight]], data[[weight]])
+      weight <- "weight"
+    }
+    data <- long
+    member <- "actor"
+    group <- "edge"
+  }
   stopifnot(
-    is.data.frame(data),
-    is.character(member), length(member) == 1L,
-    is.character(group),  length(group)  == 1L,
-    member %in% names(data),
-    group  %in% names(data),
+    "`actor` (or `member`) must name one column of `data`" =
+      is.character(member) && length(member) == 1L && member %in% names(data),
+    "`cooccur_by` (or `group`) must name one column of `data`" =
+      is.character(group) && length(group) == 1L && group %in% names(data)
+  )
+  stopifnot(
     is.null(weight) ||
       (is.character(weight) && length(weight) == 1L && weight %in% names(data)),
     is.null(nodes) || is.atomic(nodes),
@@ -153,9 +190,10 @@ group_hypergraph <- function(data, member, group, weight = NULL, nodes = NULL,
   group_levels <- group_levels[keep]
   n_groups <- length(group_levels)
 
-  hyperedges <- lapply(seq_len(n_groups), function(j) {
-    sort(which(incidence[, j] > 0))
-  })
+  # Member indices of every column from the non-zero cells at once; reading
+  # a sparse matrix one column at a time is slow with tens of thousands of
+  # hyperedges.
+  hyperedges <- .thg_edge_members(incidence)
 
   he_sizes <- vapply(hyperedges, length, integer(1L))
   size_dist <- if (length(he_sizes)) {

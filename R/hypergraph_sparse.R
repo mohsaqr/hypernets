@@ -308,12 +308,15 @@
   if (identical(what, "nodes")) {
     triplet <- methods::as(membership, "TsparseMatrix")
     max_size <- tapply(sizes[triplet@j + 1L], triplet@i + 1L, max)
+    co <- Matrix::tcrossprod(membership)
+    Matrix::diag(co) <- 0
     # engine definition: strength(v) = sum of the SIZES of v's edges
     return(data.frame(
       node = hg$nodes,
       hyperdegree = as.integer(Matrix::rowSums(membership)),
       strength = as.numeric(membership %*% sizes),
       max_edge_size = as.integer(max_size[as.character(seq_len(hg$n_nodes))]),
+      n_neighbors = as.integer(Matrix::rowSums(co > 0)),
       row.names = NULL
     ))
   }

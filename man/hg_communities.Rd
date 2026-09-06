@@ -13,9 +13,11 @@ hg_communities(
   n_runs = 50L,
   trials = 100L,
   seeds = NULL,
+  method = c("association", "citation"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
-  edge_source = NULL
+  edge_source = NULL,
+  directed = FALSE
 )
 
 \method{print}{hg_communities}(x, ...)
@@ -35,9 +37,11 @@ hypergraph_communities(
   n_runs = 50L,
   trials = 100L,
   seeds = NULL,
+  method = c("association", "citation"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
-  edge_source = NULL
+  edge_source = NULL,
+  directed = FALSE
 )
 }
 \arguments{
@@ -49,9 +53,18 @@ hypergraph_communities(
 
 \item{seeds}{Integer seeds. \code{NULL} uses \code{seq_len(n_runs)}.}
 
-\item{duplicate_edges, self_association, edge_source}{Association-projection
-controls passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
-binary/multi-hypergraph and self-association representations.}
+\item{method}{Which graph Infomap runs on: the \code{"association"} projection
+(default; the paper's hypergraph-derived representations \code{bh}, \code{bhs},
+\code{mh}, \code{mhs}) or the \code{"citation"} projection (its classic graph
+representations \code{bg}, \code{mg}, and with \code{directed = FALSE} their undirected
+variants \code{bgu}, \code{mgu}). See \code{\link[=hg_project]{hg_project()}}.}
+
+\item{duplicate_edges, self_association, edge_source}{Projection controls
+passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
+binary/multi and self-association representations.}
+
+\item{directed}{For \code{method = "citation"}: run Infomap with directed flow
+on the source-to-member graph? Default \code{FALSE}.}
 
 \item{x}{An \code{hg_communities} object.}
 
@@ -65,7 +78,7 @@ binary/multi-hypergraph and self-association representations.}
 \value{
 An \code{hg_communities} object containing \code{medoid} (a tidy node/community
 table), all \code{partitions}, AMI/ARI/NMI similarity matrices, run metadata,
-community sizes, and the association \code{projection}.
+community sizes, and the graph \code{projection} Infomap ran on.
 }
 \description{
 Builds the normalized association graph of Coupette et al. (2024), runs

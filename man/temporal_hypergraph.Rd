@@ -2,66 +2,90 @@
 % Please edit documentation in R/hypergraph_temporal.R
 \name{temporal_hypergraph}
 \alias{temporal_hypergraph}
-\title{Construct a temporal hypergraph from membership spells}
+\title{Temporal hypergraph from an edge list or co-occurrence data}
 \usage{
 temporal_hypergraph(
   data,
-  member,
-  edge,
+  from = NULL,
+  to = NULL,
+  actor = NULL,
+  cooccur_by = NULL,
+  time = NULL,
   start = NULL,
   end = NULL,
-  time = NULL,
-  source = NULL,
   weight = NULL,
-  evolution = c("growing", "interval")
+  nodes = NULL,
+  sparse = FALSE
 )
 }
 \arguments{
-\item{data}{A data frame containing memberships and times.}
+\item{data}{A data frame with one row per relation.}
 
-\item{member}{One or more column names containing hyperedge members.}
+\item{from, to}{Column names of a pairwise edge list.}
 
-\item{edge}{Column identifying the hyperedge or event.}
+\item{actor, cooccur_by}{Column names of co-occurrence data: the node, and
+the grouping whose shared values bind nodes into one hyperedge.}
 
-\item{start, time}{Column containing the edge start or point time. \code{time} is
-an alias for \code{start}; supply exactly one of them.}
+\item{time}{Column with the time a hyperedge appears (growing evolution).}
 
-\item{end}{End-time column for \code{evolution = "interval"}. Missing end values
-mean that the edge remains active through the end of observation.}
-
-\item{source}{Optional column identifying the source/colour of each
-hyperedge, such as the decision containing a citation block. It is used
-by \code{\link[=hypergraph_project]{hypergraph_project()}} when \code{self_association = TRUE}.}
+\item{start, end}{Columns with the interval on which a hyperedge is active
+(interval evolution). \code{start} alone is the same as \code{time}.}
 
 \item{weight}{Optional membership-weight column.}
 
-\item{evolution}{\code{"growing"} for point-aggregation or \code{"interval"} for
-interval events.}
+\item{nodes}{Optional node universe: a character vector of node names, or
+a data frame whose first column holds the names and whose \code{start},
+\code{time} or \code{date} column, if present, gives the time each node enters. Nodes that
+never appear in a hyperedge are then kept as zero-degree nodes of every
+snapshot, and \code{\link[=hg_growth]{hg_growth()}} counts a node from its own start. Every
+observed node must be in the universe.}
+
+\item{sparse}{Store every snapshot's incidence as a sparse \code{Matrix}?
+Default \code{FALSE}.}
 }
 \value{
-A \code{net_temporal_hypergraph} retaining a tidy membership-spell table,
-edge metadata, the node universe and the event-time sequence.
+A \code{net_temporal_hypergraph} holding the membership table (\code{node},
+\code{edge}, \code{start}, \code{end}, \code{weight}), the edge metadata (\code{edge}, \code{start},
+\code{end} and the hyperedge attributes), the node universe with entry
+times, the sorted event times, and \code{evolution} (\code{"growing"} or
+\code{"interval"}).
 }
 \description{
-Preserves group interactions as temporal hyperedges. Each input row gives
-one member of one hyperedge; \code{member} may instead name several columns for
-wide, fixed-cardinality data such as three-person tribunals. Two evolution
-contracts cover the paper's examples: \code{"growing"} edges enter at \code{start}
-and remain present, while \code{"interval"} edges are active on their closed
-\verb{[start, end]} interval.
+Builds a temporal hypergraph the way a network is defined from data: one
+row per relation, with the columns that name its ends and its time. Two
+input shapes are accepted. An \strong{edge list} names \code{from} and \code{to}, and
+every row is a hyperedge of size two, so an ordinary temporal network is
+the same object. \strong{Co-occurrence data} name an \code{actor} and the column it
+co-occurs \code{by}: every actor sharing one value of \code{cooccur_by} (a case, a
+citation block, a session) belongs to one hyperedge. The clock is either
+a single \code{time}, after which a hyperedge stays present (a growing
+hypergraph, the point-aggregation model of Coupette et al. 2024), or a
+\code{start} and an \code{end}, between which it is active (the interval-event
+model). A missing \code{end} means the hyperedge stays active through the end
+of observation.
+}
+\details{
+Every other column that is constant within a hyperedge is kept as a
+hyperedge attribute in the edge metadata, where \code{plot()} can colour by it
+and where a \code{source} column names the decision a citation block belongs
+to, as \code{\link[=hg_project]{hg_project()}} needs for self-association. Columns that vary
+within a hyperedge, such as the seat an arbitrator held, are not
+attributes of the hyperedge and are left out.
 }
 \examples{
-tribunals <- data.frame(
-  case = c("A", "B"), president = c("p1", "p2"),
-  arbitrator_1 = c("a1", "a1"), arbitrator_2 = c("a2", "a3"),
-  constituted = c(1, 2), concluded = c(4, 5)
+seats <- data.frame(
+  case = c("A", "A", "A", "B", "B", "B"),
+  arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+  constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
+  sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 )
-thg <- temporal_hypergraph(
-  tribunals, member = c("president", "arbitrator_1", "arbitrator_2"),
-  edge = "case", start = "constituted", end = "concluded",
-  evolution = "interval"
-)
+thg <- temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+                           start = "constituted", end = "concluded")
 hypergraph_snapshot(thg, at = 3)
+
+contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
+                       time = 1:3)
+temporal_hypergraph(contacts, from = "from", to = "to", time = "time")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

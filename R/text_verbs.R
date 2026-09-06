@@ -19,12 +19,20 @@
 #'
 #' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
 #' @param what Which table: `"nodes"` (default; one row per node with
-#'   `hyperdegree`, `strength`, `max_edge_size`), `"edges"` (one row per
+#'   `hyperdegree`, `strength`, `max_edge_size` and `n_neighbors`, the
+#'   distinct nodes it shares a hyperedge with), `"edges"` (one row per
 #'   hyperedge with its `size`), `"overlap"` (one row per hyperedge pair with
-#'   `overlap`, `overlap_coefficient`, `jaccard`), or `"summary"` (one row per
-#'   scalar measure).
-#' @return A base `data.frame`, one row per node, edge, edge pair, or measure
-#'   according to `what`.
+#'   `overlap`, `overlap_coefficient`, `jaccard`), `"summary"` (one row per
+#'   scalar measure), `"distribution"` (the empirical distribution of
+#'   `measure`, as a `honets_distribution` table whose `plot()` draws the
+#'   CCDF), or `"components"` (one row per connected component through shared
+#'   hyperedges, with its `n_nodes`, `n_edges`, `share` of nodes and
+#'   `diameter`).
+#' @param measure For `what = "distribution"`: `"hyperdegree"` (default),
+#'   `"strength"`, `"n_neighbors"` (node measures) or `"size"` (hyperedge
+#'   cardinality).
+#' @return A base `data.frame`, one row per node, edge, edge pair, measure,
+#'   distinct value, or component according to `what`.
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   a = "salt and soup and onions",
@@ -33,10 +41,27 @@
 #' ))
 #' hg_measures(hg)
 #' hg_measures(hg, what = "summary")
+#' hg_measures(hg, what = "components")
 #' @export
-hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary")) {
+hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
+                                     "distribution", "components"),
+                        measure = c("hyperdegree", "strength", "n_neighbors",
+                                    "size")) {
   .thg_check_hg(hg)
   what <- match.arg(what)
+  measure <- match.arg(measure)
+  if (identical(what, "distribution")) {
+    values <- if (identical(measure, "size")) {
+      hg_measures(hg, what = "edges")$size
+    } else {
+      hg_measures(hg, what = "nodes")[[measure]]
+    }
+    out <- .thg_distribution(values)
+    class(out) <- c("honets_distribution", "data.frame")
+    attr(out, "measure") <- measure
+    return(out)
+  }
+  if (identical(what, "components")) return(.thg_component_table(hg))
   if (.thg_is_sparse(hg)) {
     return(.thg_sparse_measures(hg, what))
   }
@@ -48,6 +73,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary")) {
       hyperdegree = as.integer(m$hyperdegree),
       strength = as.numeric(m$node_strength),
       max_edge_size = as.integer(m$max_edge_size),
+      n_neighbors = as.integer(rowSums(m$co_degree > 0)),
       row.names = NULL
     ),
     edges = data.frame(

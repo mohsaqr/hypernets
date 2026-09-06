@@ -45,6 +45,41 @@
   out
 }
 
+# The degree-ordered assignment of Coupette et al. (2024, footnote 7): nodes
+# in decreasing degree each choose their hyperedges uniformly, without
+# replacement, among the hyperedges that still have a free slot, so a node
+# never repeats within a hyperedge and both margins hold exactly. A draw
+# that strands a node without enough open hyperedges is redrawn.
+.thg_assignment_draw <- function(m, max_attempts = 100L) {
+  degree <- rowSums(m)
+  capacity_all <- colSums(m)
+  order_nodes <- order(-degree, seq_along(degree))
+  for (attempt in seq_len(max_attempts)) {
+    out <- matrix(0L, nrow(m), ncol(m), dimnames = dimnames(m))
+    capacity <- capacity_all
+    ok <- TRUE
+    # sequential by construction: each node's choice depends on the slots
+    # the previous nodes left open
+    for (i in order_nodes) {
+      k <- degree[i]
+      if (k == 0) next
+      open <- which(capacity > 0)
+      if (length(open) < k) {
+        ok <- FALSE
+        break
+      }
+      chosen <- if (length(open) == 1L) open else sample(open, k)
+      out[i, chosen] <- 1L
+      capacity[chosen] <- capacity[chosen] - 1
+    }
+    if (ok) return(out)
+  }
+  stop(errorCondition(
+    "the degree-ordered assignment stranded a node in every attempt",
+    class = "honets_no_converge", call = NULL
+  ))
+}
+
 # Statistics on the binary membership, computed directly from sparse
 # cross-products. The delegated path (rebuild the hypergraph, take
 # hg_measures(what = "overlap")) materializes a table quadratic in the
@@ -61,6 +96,19 @@
     switch(s,
       density = sum(sizes) / (n_nodes * n_edges),
       avg_edge_size = mean(sizes),
+      # Hyperedges whose member set already occurred: m minus distinct sets.
+      repeated_edges = {
+        members <- .thg_edge_members(m_sparse)
+        n_edges - length(unique(vapply(members, paste, collapse = "\r",
+                                       character(1L))))
+      },
+      # Member pairs counted with multiplicity minus distinct co-occurring
+      # pairs: how many collaborations repeat an earlier one.
+      repeated_pairs = {
+        co <- methods::as(Matrix::tcrossprod(m_sparse), "TsparseMatrix")
+        distinct <- sum(co@i < co@j & co@x != 0)
+        sum(choose(sizes, 2)) - distinct
+      },
       pairwise_participation = {
         co <- methods::as(Matrix::tcrossprod(m_sparse), "TsparseMatrix")
         sharing <- sum(co@i < co@j & co@x > 0)
@@ -100,14 +148,23 @@
 #'   `net_hypergraph`.
 #' @param statistic Statistics to test; any of `"pairwise_participation"`,
 #'   `"density"`, `"avg_edge_size"`, `"avg_jaccard"` (mean pairwise edge
-#'   Jaccard). Several allowed.
+#'   Jaccard), `"repeated_edges"` (hyperedges whose member set already
+#'   occurred: the paper's repeated collaboration trios) and
+#'   `"repeated_pairs"` (member pairs counted with multiplicity minus the
+#'   distinct co-occurring pairs: its repeated collaboration pairs). Several
+#'   allowed.
 #' @param method Which null. `"swap"` (default) is the checkerboard swap
 #'   chain above: both margins are preserved *exactly*, and no vertex may
 #'   repeat within a hyperedge. `"configuration"` draws independent
 #'   stub-matchings (Chodrow 2020), the standard higher-order configuration
 #'   model: vertex stubs are matched uniformly at random to hyperedge slots,
 #'   so margins hold only up to collapse (a vertex whose stubs land twice in
-#'   one hyperedge loses a degree). `"swap"` is the stricter null; use
+#'   one hyperedge loses a degree). `"assignment"` is the degree-ordered
+#'   assignment Coupette et al. (2024) use for their repeated-collaboration
+#'   test: vertices in decreasing degree each choose their hyperedges without
+#'   replacement among those with a free slot, so both margins hold exactly
+#'   and no vertex repeats within a hyperedge, at the price of a draw that is
+#'   not uniform over configurations. `"swap"` is the stricter null; use
 #'   `"configuration"` to compare against the higher-order network
 #'   literature, which reports it.
 #' @param n Number of null samples (default `199L`).
@@ -143,8 +200,9 @@
 #' @export
 hg_null_test <- function(hg,
                          statistic = c("pairwise_participation", "density",
-                                       "avg_edge_size", "avg_jaccard"),
-                         method = c("swap", "configuration"),
+                                       "avg_edge_size", "avg_jaccard",
+                                       "repeated_edges", "repeated_pairs"),
+                         method = c("swap", "configuration", "assignment"),
                          n = 199L, seed = NULL,
                          alternative = c("two_sided", "greater", "less")) {
   .thg_check_hg(hg)
@@ -187,6 +245,10 @@ hg_null_test <- function(hg,
     vapply(seq_len(n), \(i) {
       state <<- .thg_swap_chain(state, attempts = nnz)
       .thg_null_statistics(state, statistic)
+    }, numeric(length(statistic)))
+  } else if (identical(method, "assignment")) {
+    vapply(seq_len(n), \(i) {
+      .thg_null_statistics(.thg_assignment_draw(membership), statistic)
     }, numeric(length(statistic)))
   } else {
     retained <- numeric(n)

@@ -3,6 +3,8 @@
 \name{hg_motifs}
 \alias{hg_motifs}
 \alias{hypergraph_motifs}
+\alias{as.data.frame.honets_motifs}
+\alias{plot.honets_motifs}
 \title{Y, T and O motif census with a hypergraph configuration null}
 \usage{
 hg_motifs(
@@ -26,6 +28,16 @@ hypergraph_motifs(
   snapshot_mode = c("active", "cumulative", "all"),
   multiedges = TRUE
 )
+
+\method{as.data.frame}{honets_motifs}(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  what = c("test", "draws"),
+  ...
+)
+
+\method{plot}{honets_motifs}(x, motif = c("Y", "T", "O"), ...)
 }
 \arguments{
 \item{hg}{A 3-uniform \code{net_hypergraph} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
@@ -42,11 +54,28 @@ counts only, or \code{"draws"} for every null count.}
 
 \item{at, snapshot_mode, multiedges}{Temporal snapshot arguments passed to
 \code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+
+\item{x}{A \code{honets_motifs} test table.}
+
+\item{row.names, optional}{Unused; present for the base S3 contract.}
+
+\item{...}{Unused; for S3 consistency.}
+
+\item{motif}{Which motif's null distribution to draw: \code{"Y"} (default),
+\code{"T"} or \code{"O"}.}
 }
 \value{
 A tidy data frame. Test output includes observed count, null mean
 and standard deviation, z-score, empirical p-value, relative abundance
 \code{delta}, and the normalized motif profile used by HypergraphX.
+
+For \code{as.data.frame}, the test table (\code{what = "test"}) or every null
+count (\code{what = "draws"}, columns \code{run}, \code{motif}, \code{count}) as a plain
+data.frame.
+
+For \code{plot}, a ggplot object: the null distribution of the motif
+count as a histogram with the observed count as a vertical line and the
+z-score annotated (the paper's Figure 7).
 }
 \description{
 Counts the three possible induced four-node motifs in a simple 3-uniform

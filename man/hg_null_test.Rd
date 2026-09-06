@@ -7,8 +7,9 @@
 \usage{
 hg_null_test(
   hg,
-  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard"),
-  method = c("swap", "configuration"),
+  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard",
+    "repeated_edges", "repeated_pairs"),
+  method = c("swap", "configuration", "assignment"),
   n = 199L,
   seed = NULL,
   alternative = c("two_sided", "greater", "less")
@@ -16,8 +17,9 @@ hg_null_test(
 
 hypergraph_null_test(
   hg,
-  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard"),
-  method = c("swap", "configuration"),
+  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard",
+    "repeated_edges", "repeated_pairs"),
+  method = c("swap", "configuration", "assignment"),
   n = 199L,
   seed = NULL,
   alternative = c("two_sided", "greater", "less")
@@ -29,7 +31,11 @@ hypergraph_null_test(
 
 \item{statistic}{Statistics to test; any of \code{"pairwise_participation"},
 \code{"density"}, \code{"avg_edge_size"}, \code{"avg_jaccard"} (mean pairwise edge
-Jaccard). Several allowed.}
+Jaccard), \code{"repeated_edges"} (hyperedges whose member set already
+occurred: the paper's repeated collaboration trios) and
+\code{"repeated_pairs"} (member pairs counted with multiplicity minus the
+distinct co-occurring pairs: its repeated collaboration pairs). Several
+allowed.}
 
 \item{method}{Which null. \code{"swap"} (default) is the checkerboard swap
 chain above: both margins are preserved \emph{exactly}, and no vertex may
@@ -37,7 +43,12 @@ repeat within a hyperedge. \code{"configuration"} draws independent
 stub-matchings (Chodrow 2020), the standard higher-order configuration
 model: vertex stubs are matched uniformly at random to hyperedge slots,
 so margins hold only up to collapse (a vertex whose stubs land twice in
-one hyperedge loses a degree). \code{"swap"} is the stricter null; use
+one hyperedge loses a degree). \code{"assignment"} is the degree-ordered
+assignment Coupette et al. (2024) use for their repeated-collaboration
+test: vertices in decreasing degree each choose their hyperedges without
+replacement among those with a free slot, so both margins hold exactly
+and no vertex repeats within a hyperedge, at the price of a draw that is
+not uniform over configurations. \code{"swap"} is the stricter null; use
 \code{"configuration"} to compare against the higher-order network
 literature, which reports it.}
 

@@ -8,6 +8,7 @@
 hg_community_quality(
   hg,
   partition,
+  method = c("association", "citation"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
   edge_source = NULL
@@ -16,6 +17,7 @@ hg_community_quality(
 hypergraph_community_quality(
   hg,
   partition,
+  method = c("association", "citation"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
   edge_source = NULL
@@ -27,9 +29,12 @@ hypergraph_community_quality(
 \item{partition}{An \code{\link[=hg_communities]{hg_communities()}} result, a tidy node/label table, or a
 named label vector.}
 
-\item{duplicate_edges, self_association, edge_source}{Association-projection
-controls passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
-binary/multi-hypergraph and self-association representations.}
+\item{method}{The projection the partition is scored on: the
+\code{"association"} graph (default) or the undirected \code{"citation"} graph.}
+
+\item{duplicate_edges, self_association, edge_source}{Projection controls
+passed to \code{\link[=hg_project]{hg_project()}}. Together these reproduce the paper's
+binary/multi and self-association representations.}
 }
 \value{
 A one-row data frame.

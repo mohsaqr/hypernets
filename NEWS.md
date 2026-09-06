@@ -1,3 +1,68 @@
+# honets 0.3.2
+
+The Legal Hypergraphs workflow (Coupette, Hartung & Katz 2024) is now
+reproduced figure by figure on the authors' released data, and the verbs
+that were missing for it are in the hypergraph family.
+
+* **`plot()` for `net_hypergraph`**: nodes on a spring (or circle) layout of
+  the clique projection, every hyperedge as a smooth translucent blob around
+  its members, drawn by `cograph::plot_simplicial()`; honets maps
+  `color_by` and `linetype_by` (`"size"`, a column of the edge metadata, or
+  a value per hyperedge) to blob colours and line types and adds the legend;
+  `labels` renames nodes; a `layout` table can be reused across panels.
+* **`hg_subset()`**: sub-hypergraph by hyperedge names, by a node set (the
+  induced sub-hypergraph) or by hyperedge `source` (the hypergraph of one
+  citing decision), keeping edge metadata and multiplicities, sparse or dense.
+* **`hg_growth()`**: node, hyperedge, distinct-set and membership counts at
+  every event time of a temporal hypergraph, with cumulative columns for
+  interval data and `components = TRUE` for the number of components, the
+  share of the largest and its diameter; returns a `honets_series` table
+  with a `plot()` method.
+* **`hg_representations()`**: the paper's Table 2, the same data as binary
+  graph, multi-graph, binary hypergraph and multi-hypergraph with edge counts
+  and degree statistics, for the clique or the citation graph.
+* **`hg_compare_communities()`**: several `hg_communities()` fits side by
+  side, with summaries, pairwise AMI/ARI/NMI, cluster-size distributions
+  and, given the hypergraph, each medoid's quality on its own projection;
+  `plot()` draws Figure 8b and, through `cograph::plot_heatmap()`, the
+  AMI/ARI matrix of Figure 8c (`as.data.frame(what = "matrix")`).
+* **`temporal_hypergraph()` is defined like a network.** It takes an edge
+  list (`from`, `to`) or co-occurrence data (`actor`, `cooccur_by`), a
+  clock (`time`, or `start` and `end`; the evolution follows), a node
+  universe (`nodes`: names, or a table whose first column is the node and
+  whose `start` column its entry time) and `sparse = TRUE`. Every other
+  column constant within a hyperedge is kept as a hyperedge attribute (a
+  `source` column feeds self-association). The former wide `member = c(...)`,
+  `edge`, `source`, `attributes` and `evolution` arguments are gone.
+  `group_hypergraph()` takes the same `actor`, `cooccur_by`, `from` and `to`
+  names (`member` and `group` still accepted). An empty snapshot keeps the
+  universe; `summary()` reports the observation window.
+* `hg_edges()` evaluates temporal hypergraphs snapshot by snapshot (`at`,
+  `snapshot_mode`, `multiedges`), takes several `s` thresholds, and adds
+  `what = "summary"`; distribution tables are `honets_distribution` objects
+  whose `plot()` draws the CCDF, one curve per date or threshold.
+* `hg_measures()` adds `n_neighbors` to the node table and
+  `what = "distribution"` and `what = "components"`.
+* `hg_project()` adds `method = "citation"` (source-to-member graph,
+  directed or not); `hg_communities()` and `hg_community_quality()` take
+  `method = "citation"`, and Infomap can run with directed flow.
+* `hg_null_test()` adds the statistics `repeated_edges` and
+  `repeated_pairs` and the paper's degree-ordered `method = "assignment"`.
+* `hg_motifs()` returns a `honets_motifs` table that keeps its null draws
+  (`as.data.frame(what = "draws")`) and plots the null distribution with the
+  observed count; the motif census is vectorised (about seven times faster
+  per null draw, identical counts).
+* `group_hypergraph()` reads sparse incidence in one pass, so the GFCC
+  aggregate builds in under a second instead of twenty.
+* **Datasets** `icsid_tribunals` (2,226 tribunal seats of 742 ICSID cases),
+  `gfcc_decisions` (3,618 decisions) and `gfcc_citations` (77,284 citations
+  in 46,257 blocks), rebuilt from the authors' Zenodo archive by
+  `data-raw/legal_hypergraphs.R` (CC BY-NC 4.0, attribution in the help
+  pages). `hg_subset(where =)` selects hyperedges by any attribute, and
+  `edge_source` may name an attribute column (`"citing"`).
+* The `legal-hypergraphs` vignette is rewritten on those datasets: Tables 1
+  and 2, Figures 3 to 8 and the repeated-collaboration test.
+
 # honets 0.3.1
 
 * **Topic summaries with plots**: `hg_topic_sizes()` (document and

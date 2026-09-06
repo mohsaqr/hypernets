@@ -7,22 +7,24 @@
 \usage{
 hg_project(
   hg,
-  method = c("clique", "association"),
+  method = c("clique", "association", "citation"),
   weighted = TRUE,
   what = c("edges", "matrix"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
-  edge_source = NULL
+  edge_source = NULL,
+  directed = FALSE
 )
 
 hypergraph_project(
   hg,
-  method = c("clique", "association"),
+  method = c("clique", "association", "citation"),
   weighted = TRUE,
   what = c("edges", "matrix"),
   duplicate_edges = c("count", "collapse"),
   self_association = FALSE,
-  edge_source = NULL
+  edge_source = NULL,
+  directed = FALSE
 )
 }
 \arguments{
@@ -30,7 +32,8 @@ hypergraph_project(
 \code{net_hypergraph}.}
 
 \item{method}{Weighting. \code{"clique"} (default) sums incidence products;
-\code{"association"} applies the \eqn{1/(|e|-1)} normalisation above.}
+\code{"association"} applies the \eqn{1/(|e|-1)} normalisation above;
+\code{"citation"} joins each hyperedge's source to its members.}
 
 \item{weighted}{\code{method = "clique"} only. \code{TRUE} (default) uses the
 incidence weights, \code{FALSE} their membership pattern. Setting it together
@@ -52,9 +55,15 @@ Requires one source vertex per hyperedge through \code{edge_source} or
 target \code{v} contributes \verb{1 / sum_e |e|} over hyperedges sourced by \code{u}, so
 the added incident weight from all of \code{u}'s citations sums to one.}
 
-\item{edge_source}{Optional source identifiers: a vector of length
-\code{n_hyperedges}, a named vector keyed by hyperedge, or a two-column data
-frame named \code{edge} and \code{source}. Used only with \code{self_association = TRUE}.}
+\item{edge_source}{Which node each hyperedge comes from: the name of a
+column of the hyperedge attributes (\code{hg$edge_data}, e.g. \code{"citing"}), a
+vector of length \code{n_hyperedges}, a named vector keyed by hyperedge, or
+a two-column data frame named \code{edge} and \code{source}. \code{NULL} uses an
+attribute column named \code{source}. Used with \code{self_association = TRUE}
+and \code{method = "citation"}.}
+
+\item{directed}{For \code{method = "citation"}: return the directed
+source-to-member matrix (rows cite columns)? Default \code{FALSE}.}
 }
 \value{
 With \code{what = "edges"}, a base data.frame with one row per
@@ -88,6 +97,14 @@ skipped rather than dividing by zero. Such hyperedges are common in text:
 a word used in exactly one document is a singleton hyperedge in the
 document orientation, which is why the degree identity above counts only
 hyperedges of size at least two.
+
+A third projection, \code{"citation"}, is the classic graph a hypergraph with
+sources reduces to: one edge from the source of every hyperedge to each of
+its members, so a citation-block hypergraph becomes the ordinary citation
+graph of the paper's Table 2. \code{duplicate_edges = "count"} weights an edge
+by how many blocks repeat it (the multi-graph, \code{mg}); \code{"collapse"} keeps
+the binary graph (\code{bg}). \code{directed = TRUE} keeps the source-to-member
+orientation; the default symmetrises.
 }
 \examples{
 hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",

@@ -17,144 +17,222 @@
   selector
 }
 
-#' Construct a temporal hypergraph from membership spells
+#' Temporal hypergraph from an edge list or co-occurrence data
 #'
-#' Preserves group interactions as temporal hyperedges. Each input row gives
-#' one member of one hyperedge; `member` may instead name several columns for
-#' wide, fixed-cardinality data such as three-person tribunals. Two evolution
-#' contracts cover the paper's examples: `"growing"` edges enter at `start`
-#' and remain present, while `"interval"` edges are active on their closed
-#' `[start, end]` interval.
+#' Builds a temporal hypergraph the way a network is defined from data: one
+#' row per relation, with the columns that name its ends and its time. Two
+#' input shapes are accepted. An **edge list** names `from` and `to`, and
+#' every row is a hyperedge of size two, so an ordinary temporal network is
+#' the same object. **Co-occurrence data** name an `actor` and the column it
+#' co-occurs `by`: every actor sharing one value of `cooccur_by` (a case, a
+#' citation block, a session) belongs to one hyperedge. The clock is either
+#' a single `time`, after which a hyperedge stays present (a growing
+#' hypergraph, the point-aggregation model of Coupette et al. 2024), or a
+#' `start` and an `end`, between which it is active (the interval-event
+#' model). A missing `end` means the hyperedge stays active through the end
+#' of observation.
 #'
-#' @param data A data frame containing memberships and times.
-#' @param member One or more column names containing hyperedge members.
-#' @param edge Column identifying the hyperedge or event.
-#' @param start,time Column containing the edge start or point time. `time` is
-#'   an alias for `start`; supply exactly one of them.
-#' @param end End-time column for `evolution = "interval"`. Missing end values
-#'   mean that the edge remains active through the end of observation.
-#' @param source Optional column identifying the source/colour of each
-#'   hyperedge, such as the decision containing a citation block. It is used
-#'   by [hypergraph_project()] when `self_association = TRUE`.
+#' Every other column that is constant within a hyperedge is kept as a
+#' hyperedge attribute in the edge metadata, where `plot()` can colour by it
+#' and where a `source` column names the decision a citation block belongs
+#' to, as [hg_project()] needs for self-association. Columns that vary
+#' within a hyperedge, such as the seat an arbitrator held, are not
+#' attributes of the hyperedge and are left out.
+#'
+#' @param data A data frame with one row per relation.
+#' @param from,to Column names of a pairwise edge list.
+#' @param actor,cooccur_by Column names of co-occurrence data: the node, and
+#'   the grouping whose shared values bind nodes into one hyperedge.
+#' @param time Column with the time a hyperedge appears (growing evolution).
+#' @param start,end Columns with the interval on which a hyperedge is active
+#'   (interval evolution). `start` alone is the same as `time`.
 #' @param weight Optional membership-weight column.
-#' @param evolution `"growing"` for point-aggregation or `"interval"` for
-#'   interval events.
-#' @return A `net_temporal_hypergraph` retaining a tidy membership-spell table,
-#'   edge metadata, the node universe and the event-time sequence.
+#' @param nodes Optional node universe: a character vector of node names, or
+#'   a data frame whose first column holds the names and whose `start`,
+#'   `time` or `date` column, if present, gives the time each node enters. Nodes that
+#'   never appear in a hyperedge are then kept as zero-degree nodes of every
+#'   snapshot, and [hg_growth()] counts a node from its own start. Every
+#'   observed node must be in the universe.
+#' @param sparse Store every snapshot's incidence as a sparse `Matrix`?
+#'   Default `FALSE`.
+#' @return A `net_temporal_hypergraph` holding the membership table (`node`,
+#'   `edge`, `start`, `end`, `weight`), the edge metadata (`edge`, `start`,
+#'   `end` and the hyperedge attributes), the node universe with entry
+#'   times, the sorted event times, and `evolution` (`"growing"` or
+#'   `"interval"`).
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
 #' @examples
-#' tribunals <- data.frame(
-#'   case = c("A", "B"), president = c("p1", "p2"),
-#'   arbitrator_1 = c("a1", "a1"), arbitrator_2 = c("a2", "a3"),
-#'   constituted = c(1, 2), concluded = c(4, 5)
+#' seats <- data.frame(
+#'   case = c("A", "A", "A", "B", "B", "B"),
+#'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3"),
+#'   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
+#'   sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 #' )
-#' thg <- temporal_hypergraph(
-#'   tribunals, member = c("president", "arbitrator_1", "arbitrator_2"),
-#'   edge = "case", start = "constituted", end = "concluded",
-#'   evolution = "interval"
-#' )
+#' thg <- temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+#'                            start = "constituted", end = "concluded")
 #' hypergraph_snapshot(thg, at = 3)
+#'
+#' contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
+#'                        time = 1:3)
+#' temporal_hypergraph(contacts, from = "from", to = "to", time = "time")
 #' @export
-temporal_hypergraph <- function(data, member, edge, start = NULL, end = NULL,
-                                time = NULL, source = NULL, weight = NULL,
-                                evolution = c("growing", "interval")) {
+temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
+                                cooccur_by = NULL, time = NULL, start = NULL,
+                                end = NULL, weight = NULL, nodes = NULL,
+                                sparse = FALSE) {
   if (!is.data.frame(data) || nrow(data) == 0L) {
     .thg_bad_input("`data` must be a non-empty data.frame")
   }
-  evolution <- match.arg(evolution)
-  if (!is.character(member) || length(member) < 1L ||
-      any(!member %in% names(data))) {
-    .thg_bad_input("`member` must contain one or more column names in `data`")
+  if (!is.logical(sparse) || length(sparse) != 1L || is.na(sparse)) {
+    .thg_bad_input("`sparse` must be TRUE or FALSE")
   }
-  edge <- .thg_selector(data, edge, "edge", required = TRUE)
+  edge_list <- !is.null(from) || !is.null(to)
+  if (edge_list) {
+    if (!is.null(actor) || !is.null(cooccur_by)) {
+      .thg_bad_input("name either `from` and `to` or `actor` and `cooccur_by`, not both")
+    }
+    from <- .thg_selector(data, from, "from", required = TRUE)
+    to <- .thg_selector(data, to, "to", required = TRUE)
+  } else {
+    actor <- .thg_selector(data, actor, "actor", required = TRUE)
+    cooccur_by <- .thg_selector(data, cooccur_by, "cooccur_by", required = TRUE)
+  }
   if (!is.null(start) && !is.null(time)) {
     .thg_bad_input("supply only one of `start` and `time`")
   }
-  start <- .thg_selector(data, start %||% time, "start", required = TRUE)
+  clock <- .thg_selector(data, start %||% time, "time", required = TRUE)
   end <- .thg_selector(data, end, "end")
-  source <- .thg_selector(data, source, "source")
   weight <- .thg_selector(data, weight, "weight")
-  if (identical(evolution, "interval") && is.null(end)) {
-    .thg_bad_input("`end` is required for `evolution = \"interval\"`")
-  }
+  evolution <- if (is.null(end)) "growing" else "interval"
 
-  # Pivot wide member columns with base R. Repeating the edge metadata here
-  # is intentional: the normalized representation is one membership per row.
-  normalized <- lapply(member, function(member_col) {
-    data.frame(
-      member = as.character(data[[member_col]]),
-      edge = as.character(data[[edge]]),
-      start = data[[start]],
-      end = if (is.null(end)) rep(NA, nrow(data)) else data[[end]],
-      source = if (is.null(source)) rep(NA_character_, nrow(data)) else
-        as.character(data[[source]]),
-      weight = if (is.null(weight)) rep(1, nrow(data)) else
-        as.numeric(data[[weight]]),
+  # One row per membership. An edge list is unpivoted to its two ends; the
+  # remaining columns ride along as candidate hyperedge attributes.
+  used <- c(from, to, actor, cooccur_by, clock, end, weight)
+  candidates <- setdiff(names(data), used)
+  if (edge_list) {
+    edge_id <- paste0("e", seq_len(nrow(data)))
+    memberships <- data.frame(
+      member = c(as.character(data[[from]]), as.character(data[[to]])),
+      edge = c(edge_id, edge_id),
       stringsAsFactors = FALSE
     )
-  })
-  memberships <- do.call(rbind, normalized)
-  memberships <- memberships[
-    !is.na(memberships$member) & nzchar(memberships$member) &
-      !is.na(memberships$edge) & nzchar(memberships$edge) &
-      !is.na(memberships$start) & !is.na(memberships$weight), , drop = FALSE
-  ]
+    rows <- c(seq_len(nrow(data)), seq_len(nrow(data)))
+  } else {
+    memberships <- data.frame(
+      member = as.character(data[[actor]]),
+      edge = as.character(data[[cooccur_by]]),
+      stringsAsFactors = FALSE
+    )
+    rows <- seq_len(nrow(data))
+  }
+  memberships$start <- data[[clock]][rows]
+  memberships$end <- if (is.null(end)) rep(NA, length(rows)) else data[[end]][rows]
+  memberships$weight <- if (is.null(weight)) rep(1, length(rows)) else
+    as.numeric(data[[weight]][rows])
+  for (column in candidates) memberships[[column]] <- data[[column]][rows]
+
+  keep <- !is.na(memberships$member) & nzchar(memberships$member) &
+    !is.na(memberships$edge) & nzchar(memberships$edge) &
+    !is.na(memberships$start) & !is.na(memberships$weight)
+  memberships <- memberships[keep, , drop = FALSE]
   rownames(memberships) <- NULL
   if (nrow(memberships) == 0L) {
-    .thg_bad_input("no complete temporal memberships remain after dropping missing rows")
+    .thg_bad_input("no complete memberships remain after dropping missing rows")
   }
   if (any(!is.finite(memberships$weight)) || any(memberships$weight < 0)) {
     .thg_bad_input("membership weights must be finite and non-negative")
   }
 
-  # Edge-level time and source metadata must not depend on which membership
-  # row happened to carry it.
-  consistency <- function(column, allow_na = FALSE) {
+  # Times must not depend on which membership row carried them; attribute
+  # columns that vary within a hyperedge are not hyperedge attributes.
+  constant_within_edge <- function(column, allow_na = FALSE) {
     by_edge <- split(memberships[[column]], memberships$edge)
-    bad <- vapply(by_edge, function(x) {
+    !any(vapply(by_edge, function(x) {
       x <- if (allow_na) x[!is.na(x)] else x
       length(unique(x)) > 1L
-    }, logical(1L))
-    if (any(bad)) {
-      .thg_bad_input(sprintf("`%s` must be constant within each hyperedge", column))
-    }
+    }, logical(1L)))
   }
-  consistency("start")
-  if (!is.null(end)) consistency("end", allow_na = TRUE)
-  if (!is.null(source)) consistency("source", allow_na = TRUE)
+  if (!constant_within_edge("start")) .thg_bad_input("`start`/`time` must be constant within each hyperedge")
+  if (!is.null(end) && !constant_within_edge("end", allow_na = TRUE)) {
+    .thg_bad_input("`end` must be constant within each hyperedge")
+  }
+  attributes <- Filter(function(column) constant_within_edge(column, allow_na = TRUE),
+                       candidates)
 
   edge_names <- sort(unique(memberships$edge))
   first <- match(edge_names, memberships$edge)
-  edge_data <- memberships[first, c("edge", "start", "end", "source"),
-                           drop = FALSE]
+  edge_data <- memberships[first, c("edge", "start", "end", attributes), drop = FALSE]
   rownames(edge_data) <- NULL
   if (identical(evolution, "interval")) {
     bad_interval <- !is.na(edge_data$end) & edge_data$end < edge_data$start
     if (any(bad_interval)) .thg_bad_input("every interval must satisfy `end >= start`")
   }
+  memberships <- memberships[, c("member", "edge", "start", "end", "weight"), drop = FALSE]
+
+  observed_nodes <- sort(unique(memberships$member))
+  node_data <- .thg_node_universe(nodes, observed_nodes)
 
   times <- sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)])))
   structure(
     list(
       memberships = memberships,
       edge_data = edge_data,
-      nodes = sort(unique(memberships$member)),
+      node_data = node_data,
+      nodes = node_data$node,
       edges = edge_names,
       times = times,
       evolution = evolution,
-      params = list(member = member, edge = edge, start = start, end = end,
-                    source = source, weight = weight)
+      params = list(from = from, to = to, actor = actor, cooccur_by = cooccur_by,
+                    time = clock, end = end, weight = weight,
+                    attributes = attributes, sparse = sparse,
+                    nodes_given = !is.null(nodes))
     ),
     class = "net_temporal_hypergraph"
   )
 }
 
-.thg_empty_hypergraph <- function() {
+# The node universe as a sorted `node` / `start` table. `start` is NA when the
+# caller gave no entry times.
+.thg_node_universe <- function(nodes, observed_nodes) {
+  if (is.null(nodes)) {
+    return(data.frame(node = observed_nodes, start = rep(NA, length(observed_nodes)),
+                      stringsAsFactors = FALSE))
+  }
+  if (is.data.frame(nodes)) {
+    if (ncol(nodes) == 0L) .thg_bad_input("a `nodes` data.frame needs a column of node names")
+    node <- as.character(nodes[[1L]])
+    clock <- intersect(c("start", "time", "date"), names(nodes))
+    start <- if (length(clock)) nodes[[clock[[1L]]]] else rep(NA, length(node))
+  } else if (is.atomic(nodes)) {
+    node <- as.character(nodes)
+    start <- rep(NA, length(node))
+  } else {
+    .thg_bad_input("`nodes` must be a character vector or a data.frame")
+  }
+  if (anyNA(node) || any(!nzchar(node)) || anyDuplicated(node)) {
+    .thg_bad_input("`nodes` must contain unique, non-missing node names")
+  }
+  missing_members <- setdiff(observed_nodes, node)
+  if (length(missing_members)) {
+    .thg_bad_input(sprintf("%d observed node(s) are not in `nodes`",
+                           length(missing_members)))
+  }
+  ord <- order(node)
+  data.frame(node = node[ord], start = start[ord], stringsAsFactors = FALSE)
+}
+
+.thg_empty_hypergraph <- function(nodes = character(), sparse = FALSE) {
+  n <- length(nodes)
+  incidence <- if (sparse) {
+    Matrix::Matrix(0, n, 0L, sparse = TRUE, dimnames = list(nodes, NULL))
+  } else {
+    matrix(0, n, 0L, dimnames = list(nodes, NULL))
+  }
   structure(list(
-    hyperedges = list(), incidence = matrix(0, 0, 0), nodes = character(),
-    n_nodes = 0L, n_hyperedges = 0L, size_distribution = integer(),
+    hyperedges = list(), incidence = incidence, nodes = nodes,
+    n_nodes = n, n_hyperedges = 0L, size_distribution = integer(),
     params = list(source = "group_hypergraph", member = "member",
                   group = "edge", weight = NULL)
   ), class = "net_hypergraph")
@@ -165,24 +243,15 @@ temporal_hypergraph <- function(data, member, edge, start = NULL, end = NULL,
     hg$edge_multiplicity <- rep.int(1L, hg$n_hyperedges)
     return(hg)
   }
-  b <- hg$incidence != 0
-  signatures <- vapply(seq_len(ncol(b)), function(j) {
-    paste(rownames(b)[which(b[, j])], collapse = "\r")
-  }, character(1L))
+  members <- .thg_edge_members(hg$incidence)
+  signatures <- vapply(members, paste, collapse = "\r", character(1L))
   unique_sig <- unique(signatures)
   first <- match(unique_sig, signatures)
   multiplicity <- tabulate(match(signatures, unique_sig), length(unique_sig))
-  incidence <- b[, first, drop = FALSE] * 1
-  colnames(incidence) <- colnames(hg$incidence)[first]
-  hg$incidence <- incidence
-  hg$hyperedges <- lapply(seq_len(ncol(incidence)), function(j) which(incidence[, j] != 0))
-  hg$n_hyperedges <- ncol(incidence)
-  sizes <- lengths(hg$hyperedges)
-  size_tab <- table(sizes)
-  hg$size_distribution <- stats::setNames(as.integer(size_tab),
-                                           paste0("size_", names(size_tab)))
+  incidence <- .thg_binary(hg$incidence[, first, drop = FALSE])
+  keep <- seq_len(hg$n_hyperedges) %in% first
+  hg <- .thg_rebuild(hg, incidence, keep)
   hg$edge_multiplicity <- as.integer(multiplicity)
-  if (!is.null(hg$edge_data)) hg$edge_data <- hg$edge_data[first, , drop = FALSE]
   hg
 }
 
@@ -223,14 +292,32 @@ hypergraph_snapshot <- function(x, at = NULL,
   )
   active_edges <- ed$edge[keep]
   d <- x$memberships[x$memberships$edge %in% active_edges, , drop = FALSE]
-  if (nrow(d) == 0L) return(.thg_empty_hypergraph())
-  hg <- group_hypergraph(d, member = "member", group = "edge", weight = "weight")
+  sparse <- isTRUE(x$params$sparse)
+  universe <- .thg_snapshot_nodes(x, at, mode, d$member)
+  if (nrow(d) == 0L) return(.thg_empty_hypergraph(universe, sparse))
+  hg <- group_hypergraph(d, member = "member", group = "edge", weight = "weight",
+                         nodes = universe, sparse = sparse)
   hg$edge_data <- ed[match(colnames(hg$incidence), ed$edge), , drop = FALSE]
+  rownames(hg$edge_data) <- NULL
   hg$params$temporal_mode <- mode
   hg$params$at <- at
   hg$params$evolution <- x$evolution
   if (!multiedges) hg <- .thg_collapse_duplicate_edges(hg)
   hg
+}
+
+# Node universe of a snapshot. Without a universe, the nodes are the members
+# of the active hyperedges (as before). With one, every node is kept; when
+# nodes carry entry times and the snapshot is time-bound, only nodes entered
+# by `at` plus any active member are kept.
+.thg_snapshot_nodes <- function(x, at, mode, active_members) {
+  if (!isTRUE(x$params$nodes_given)) return(NULL)
+  node_data <- x$node_data
+  if (identical(mode, "all") || all(is.na(node_data$start))) {
+    return(node_data$node)
+  }
+  entered <- !is.na(node_data$start) & node_data$start <= at
+  sort(union(node_data$node[entered], unique(active_members)))
 }
 
 #' Extract a sequence of temporal-hypergraph snapshots
@@ -273,11 +360,14 @@ print.net_temporal_hypergraph <- function(x, ...) {
 #' @export
 summary.net_temporal_hypergraph <- function(object, ...) {
   memberships_per_edge <- table(object$memberships$edge)
-  duration <- object$edge_data$end - object$edge_data$start
+  duration <- if (all(is.na(object$edge_data$end))) NA_real_ else
+    as.numeric(object$edge_data$end - object$edge_data$start)
   data.frame(
     n_nodes = length(object$nodes),
     n_hyperedges = length(object$edges),
     n_event_times = length(object$times),
+    first_time = min(object$times),
+    last_time = max(object$times),
     n_memberships = nrow(object$memberships),
     mean_edge_size = mean(as.numeric(memberships_per_edge)),
     median_edge_size = stats::median(as.numeric(memberships_per_edge)),

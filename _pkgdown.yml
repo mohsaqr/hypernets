@@ -51,6 +51,7 @@ reference:
   - temporal_hypergraph
   - hypergraph_snapshot
   - hypergraph_snapshots
+  - hg_subset
   - hg_sample_gnp
   - hg_sample_sbm
   - hg_sample_uniform
@@ -61,6 +62,8 @@ reference:
   - hg_pagerank
   - hg_edges
   - hg_edge_centrality
+  - hg_growth
+  - hg_representations
   - hg_motifs
 - subtitle: Spectral methods
   contents:
@@ -78,6 +81,7 @@ reference:
   contents:
   - hg_communities
   - hg_community_quality
+  - hg_compare_communities
 - subtitle: Null models and neural networks
   contents:
   - hg_null_test
@@ -119,6 +123,9 @@ reference:
   - long-data
   - covid_abstracts
   - covid_embeddings
+  - icsid_tribunals
+  - gfcc_decisions
+  - gfcc_citations
 
 articles:
 - title: Text hypergraphs

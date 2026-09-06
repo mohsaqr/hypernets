@@ -63,10 +63,21 @@
 #' document orientation, which is why the degree identity above counts only
 #' hyperedges of size at least two.
 #'
+#' A third projection, `"citation"`, is the classic graph a hypergraph with
+#' sources reduces to: one edge from the source of every hyperedge to each of
+#' its members, so a citation-block hypergraph becomes the ordinary citation
+#' graph of the paper's Table 2. `duplicate_edges = "count"` weights an edge
+#' by how many blocks repeat it (the multi-graph, `mg`); `"collapse"` keeps
+#' the binary graph (`bg`). `directed = TRUE` keeps the source-to-member
+#' orientation; the default symmetrises.
+#'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
 #'   `net_hypergraph`.
 #' @param method Weighting. `"clique"` (default) sums incidence products;
-#'   `"association"` applies the \eqn{1/(|e|-1)} normalisation above.
+#'   `"association"` applies the \eqn{1/(|e|-1)} normalisation above;
+#'   `"citation"` joins each hyperedge's source to its members.
+#' @param directed For `method = "citation"`: return the directed
+#'   source-to-member matrix (rows cite columns)? Default `FALSE`.
 #' @param weighted `method = "clique"` only. `TRUE` (default) uses the
 #'   incidence weights, `FALSE` their membership pattern. Setting it together
 #'   with `method = "association"` is an error, because the association
@@ -81,9 +92,12 @@
 #'   `hg$edge_data$source`. For source `u`, every membership occurrence of
 #'   target `v` contributes `1 / sum_e |e|` over hyperedges sourced by `u`, so
 #'   the added incident weight from all of `u`'s citations sums to one.
-#' @param edge_source Optional source identifiers: a vector of length
-#'   `n_hyperedges`, a named vector keyed by hyperedge, or a two-column data
-#'   frame named `edge` and `source`. Used only with `self_association = TRUE`.
+#' @param edge_source Which node each hyperedge comes from: the name of a
+#'   column of the hyperedge attributes (`hg$edge_data`, e.g. `"citing"`), a
+#'   vector of length `n_hyperedges`, a named vector keyed by hyperedge, or
+#'   a two-column data frame named `edge` and `source`. `NULL` uses an
+#'   attribute column named `source`. Used with `self_association = TRUE`
+#'   and `method = "citation"`.
 #' @param what `"edges"` (default) for the tidy edge list, or `"matrix"` for
 #'   the symmetric weight matrix to hand to a graph engine.
 #' @return With `what = "edges"`, a base data.frame with one row per
@@ -107,10 +121,11 @@
 #' hg_project(hg)
 #' hg_project(hg, method = "association")
 #' @export
-hg_project <- function(hg, method = c("clique", "association"),
+hg_project <- function(hg, method = c("clique", "association", "citation"),
                        weighted = TRUE, what = c("edges", "matrix"),
                        duplicate_edges = c("count", "collapse"),
-                       self_association = FALSE, edge_source = NULL) {
+                       self_association = FALSE, edge_source = NULL,
+                       directed = FALSE) {
   .thg_check_hg(hg)
   method <- match.arg(method)
   what <- match.arg(what)
@@ -120,18 +135,27 @@ hg_project <- function(hg, method = c("clique", "association"),
               !is.na(weighted),
             "`self_association` must be TRUE or FALSE" =
               length(self_association) == 1L && is.logical(self_association) &&
-              !is.na(self_association))
-  if (identical(method, "association") && !missing(weighted)) {
+              !is.na(self_association),
+            "`directed` must be TRUE or FALSE" =
+              length(directed) == 1L && is.logical(directed) && !is.na(directed))
+  if (!identical(method, "clique") && !missing(weighted)) {
     stop(errorCondition(
-      "`weighted` applies to `method = \"clique\"` only; the association weighting is defined on hyperedge cardinality, not on incidence weights",
+      "`weighted` applies to `method = \"clique\"` only; the association and citation weightings are defined on membership, not on incidence weights",
       class = "honets_bad_input", call = NULL
     ))
   }
   if (identical(method, "clique") && !identical(duplicate_edges, "count")) {
-    .thg_bad_input("`duplicate_edges` applies to `method = \"association\"` only")
+    .thg_bad_input("`duplicate_edges` applies to `method = \"association\"` or `\"citation\"` only")
   }
-  if (identical(method, "clique") && self_association) {
+  if (!identical(method, "association") && self_association) {
     .thg_bad_input("`self_association` requires `method = \"association\"`")
+  }
+  if (!identical(method, "citation") && directed) {
+    .thg_bad_input("`directed` applies to `method = \"citation\"` only")
+  }
+  if (identical(method, "citation")) {
+    return(.thg_citation_projection(hg, edge_source, duplicate_edges,
+                                    directed, what))
   }
   incidence <- hg$incidence
   w <- if (identical(method, "clique")) {
@@ -199,9 +223,58 @@ hg_project <- function(hg, method = c("clique", "association"),
   .thg_tidy_pairs(w, nodes)
 }
 
+# Source-to-member graph of a hypergraph with sources. Rows cite columns in
+# the directed matrix; the undirected matrix is its symmetrisation, so a
+# pair cited in both directions sums.
+.thg_citation_projection <- function(hg, edge_source, duplicate_edges,
+                                     directed, what) {
+  sources <- .thg_resolve_edge_source(hg, edge_source)
+  nodes <- rownames(hg$incidence)
+  all_nodes <- sort(union(nodes, unique(sources)))
+  b <- .thg_binary(hg$incidence)
+  if (methods::is(b, "sparseMatrix")) {
+    triplet <- methods::as(methods::as(b, "generalMatrix"), "TsparseMatrix")
+    nz <- triplet@x != 0
+    row <- triplet@i[nz] + 1L
+    col <- triplet@j[nz] + 1L
+  } else {
+    idx <- which(b != 0, arr.ind = TRUE)
+    row <- idx[, 1L]
+    col <- idx[, 2L]
+  }
+  from <- match(sources[col], all_nodes)
+  to <- match(nodes[row], all_nodes)
+  keep <- from != to
+  from <- from[keep]
+  to <- to[keep]
+  n <- length(all_nodes)
+  w <- Matrix::sparseMatrix(i = from, j = to, x = rep(1, length(from)),
+                            dims = c(n, n), dimnames = list(all_nodes, all_nodes))
+  if (identical(duplicate_edges, "collapse")) w <- (w != 0) * 1
+  if (!directed) w <- w + Matrix::t(w)
+  w <- Matrix::drop0(w)
+  if (!methods::is(hg$incidence, "sparseMatrix")) w <- as.matrix(w)
+  if (identical(what, "matrix")) return(w)
+  if (directed) {
+    triplet <- methods::as(methods::as(w, "sparseMatrix"), "TsparseMatrix")
+    out <- data.frame(from = all_nodes[triplet@i + 1L], to = all_nodes[triplet@j + 1L],
+                      weight = as.numeric(triplet@x), stringsAsFactors = FALSE)
+    out <- out[order(out$from, out$to), , drop = FALSE]
+    rownames(out) <- NULL
+    return(out)
+  }
+  .thg_tidy_pairs(w, all_nodes)
+}
+
 .thg_resolve_edge_source <- function(hg, edge_source) {
   edges <- colnames(hg$incidence) %||% paste0("h", seq_len(hg$n_hyperedges))
   source <- edge_source
+  # A single string names an attribute column of the hyperedges.
+  if (is.character(source) && length(source) == 1L && is.null(names(source)) &&
+      !is.null(hg$edge_data) && source %in% names(hg$edge_data)) {
+    source <- stats::setNames(as.character(hg$edge_data[[source]]),
+                              as.character(hg$edge_data$edge))
+  }
   if (is.null(source) && !is.null(hg$edge_data) &&
       all(c("edge", "source") %in% names(hg$edge_data))) {
     source <- stats::setNames(as.character(hg$edge_data$source),

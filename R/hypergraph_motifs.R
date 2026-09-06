@@ -10,17 +10,24 @@
 
 .thg_yto_counts <- function(edges) {
   if (length(edges) < 2L) return(c(Y = 0L, T = 0L, O = 0L))
-  four_sets <- character()
-  for (i in seq_len(length(edges) - 1L)) {
-    for (j in (i + 1L):length(edges)) {
-      if (length(intersect(edges[[i]], edges[[j]])) == 2L) {
-        union_nodes <- sort(union(edges[[i]], edges[[j]]))
-        if (length(union_nodes) == 4L) {
-          four_sets <- c(four_sets, paste(union_nodes, collapse = ","))
-        }
-      }
-    }
-  }
+  # Pairs of 3-edges sharing exactly two nodes, found from the overlap
+  # matrix of the incidence rather than by comparing every pair in R.
+  node_ids <- sort(unique(unlist(edges, use.names = FALSE)))
+  incidence <- Matrix::sparseMatrix(
+    i = match(unlist(edges, use.names = FALSE), node_ids),
+    j = rep.int(seq_along(edges), lengths(edges)),
+    x = 1, dims = c(length(node_ids), length(edges))
+  )
+  overlap <- methods::as(Matrix::crossprod(incidence), "TsparseMatrix")
+  keep <- overlap@i < overlap@j & overlap@x == 2
+  if (!any(keep)) return(c(Y = 0L, T = 0L, O = 0L))
+  first <- overlap@i[keep] + 1L
+  second <- overlap@j[keep] + 1L
+  four_sets <- vapply(seq_along(first), function(k) {
+    union_nodes <- sort(union(edges[[first[k]]], edges[[second[k]]]))
+    if (length(union_nodes) == 4L) paste(union_nodes, collapse = ",") else NA_character_
+  }, character(1L))
+  four_sets <- four_sets[!is.na(four_sets)]
   if (!length(four_sets)) return(c(Y = 0L, T = 0L, O = 0L))
   pair_count <- as.integer(table(four_sets))
   # A four-node set containing k distinct 3-edges generates choose(k, 2)
@@ -183,15 +190,64 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
   delta <- (observed - null_mean) / (observed + null_mean + 4)
   delta_norm <- sqrt(sum(delta^2))
   normalized_delta <- if (delta_norm > 0) delta / delta_norm else rep(0, 3L)
-  data.frame(
+  out <- data.frame(
     motif = names(observed), observed = as.integer(observed),
     null_mean = as.numeric(null_mean), null_sd = as.numeric(null_sd),
     z = as.numeric(z), p_value = (1 + extreme) / (n + 1),
     delta = as.numeric(delta), normalized_delta = as.numeric(normalized_delta),
     n = n, method = "configuration_mcmc", row.names = NULL
   )
+  attr(out, "draws") <- data.frame(
+    run = rep(seq_len(n), each = 3L), motif = rep(names(observed), n),
+    count = as.numeric(null), row.names = NULL
+  )
+  class(out) <- c("honets_motifs", "data.frame")
+  out
 }
 
 #' @rdname hg_motifs
 #' @export
 hypergraph_motifs <- hg_motifs
+
+#' @rdname hg_motifs
+#' @param x A `honets_motifs` test table.
+#' @param row.names,optional Unused; present for the base S3 contract.
+#' @param ... Unused; for S3 consistency.
+#' @return For `as.data.frame`, the test table (`what = "test"`) or every null
+#'   count (`what = "draws"`, columns `run`, `motif`, `count`) as a plain
+#'   data.frame.
+#' @export
+as.data.frame.honets_motifs <- function(x, row.names = NULL, optional = FALSE,
+                                        what = c("test", "draws"), ...) {
+  what <- match.arg(what)
+  if (identical(what, "draws")) return(attr(x, "draws"))
+  attr(x, "draws") <- NULL
+  class(x) <- "data.frame"
+  x
+}
+
+#' @rdname hg_motifs
+#' @param motif Which motif's null distribution to draw: `"Y"` (default),
+#'   `"T"` or `"O"`.
+#' @return For `plot`, a ggplot object: the null distribution of the motif
+#'   count as a histogram with the observed count as a vertical line and the
+#'   z-score annotated (the paper's Figure 7).
+#' @export
+plot.honets_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
+  motif <- match.arg(motif)
+  draws <- as.data.frame(x, what = "draws")
+  test <- as.data.frame(x)
+  null <- draws[draws$motif == motif, , drop = FALSE]
+  row <- test[test$motif == motif, , drop = FALSE]
+  label <- sprintf("observed = %d\nz = %.2f", row$observed, row$z)
+  ggplot2::ggplot(null, ggplot2::aes(x = .data$count)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(.data$count) / nrow(null)),
+                            bins = 30, fill = "#999999", colour = "white") +
+    ggplot2::geom_vline(xintercept = row$observed, colour = .thg_okabe_ito[[5L]],
+                        linewidth = 1) +
+    ggplot2::annotate("text", x = row$observed, y = Inf, label = label,
+                      hjust = 1.1, vjust = 1.5, size = 3.5) +
+    ggplot2::labs(x = sprintf("count of motif %s", motif),
+                  y = "probability under the null") +
+    ggplot2::theme_minimal(base_size = 12)
+}

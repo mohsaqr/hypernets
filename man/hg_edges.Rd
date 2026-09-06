@@ -7,43 +7,60 @@
 \usage{
 hg_edges(
   hg,
-  what = c("edges", "distribution"),
+  what = c("edges", "distribution", "summary"),
   measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
-  s = 1L
+  s = 1L,
+  at = NULL,
+  snapshot_mode = c("active", "cumulative", "all"),
+  multiedges = TRUE
 )
 
 hypergraph_edges(
   hg,
-  what = c("edges", "distribution"),
+  what = c("edges", "distribution", "summary"),
   measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
-  s = 1L
+  s = 1L,
+  at = NULL,
+  snapshot_mode = c("active", "cumulative", "all"),
+  multiedges = TRUE
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any honets
-\code{net_hypergraph}.}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, any honets
+\code{net_hypergraph}, or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{what}{\code{"edges"} (default) for one row per hyperedge, or
+\item{what}{\code{"edges"} (default) for one row per hyperedge,
 \code{"distribution"} for the empirical distribution of \code{measure} across
-hyperedges.}
+hyperedges, or \code{"summary"} for its mean, standard deviation and
+quartiles.}
 
-\item{measure}{Which column \code{what = "distribution"} summarises: \code{"size"}
-(default), \code{"weight"}, \code{"n_incident_edges"} or \code{"n_neighbors"}.}
+\item{measure}{Which column \code{what = "distribution"} and
+\code{what = "summary"} describe: \code{"size"} (default), \code{"weight"},
+\code{"n_incident_edges"} or \code{"n_neighbors"}.}
 
 \item{s}{Minimum number of shared vertices for another hyperedge to count
 as incident. The default \code{1} is ordinary incidence; larger values match
-the thresholds used by \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}.}
+the thresholds used by \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}. Several values give one
+block of rows each, with an \code{s} column.}
+
+\item{at, snapshot_mode, multiedges}{Temporal snapshot arguments passed to
+\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
 }
 \value{
 With \code{what = "edges"}, a base data.frame with one row per
 hyperedge and columns \code{edge} (name), \code{size} (integer, vertices it
 contains), \code{weight} (numeric, its incidence weights summed),
-\code{n_incident_edges} (integer, other hyperedges sharing at least one
-vertex) and \code{n_neighbors} (integer, vertices adjacent to a member
-without being one). With \code{what = "distribution"}, one row per distinct
-observed value of \code{measure}, ascending, with columns \code{value}, \code{n},
-\code{proportion} and \code{ccdf} — the complementary cumulative distribution
-\eqn{P(X \ge value)}, so the first row's \code{ccdf} is always 1.
+\code{n_incident_edges} (integer, other hyperedges sharing at least \code{s}
+vertices) and \code{n_neighbors} (integer, vertices adjacent to a member
+without being one). With \code{what = "distribution"}, a \code{honets_distribution}
+table with one row per distinct observed value of \code{measure}, ascending,
+with columns \code{value}, \code{n}, \code{proportion} and \code{ccdf} — the complementary
+cumulative distribution \eqn{P(X \ge value)}, so the first row's \code{ccdf}
+is always 1; its \code{plot()} draws the CCDF. With \code{what = "summary"}, one
+row with \code{n_edges}, \code{mean}, \code{sd}, \code{min}, \code{q25}, \code{median}, \code{q75} and
+\code{max}. Several \code{s} values add an \code{s} column; temporal input adds a
+leading \code{time} column, and the summary is then a \code{honets_series} whose
+\code{plot()} draws each statistic against time.
 }
 \description{
 One row per hyperedge. \code{hg_measures(what = "edges")} reports cardinality
@@ -51,13 +68,17 @@ alone; this adds the incident weight, how many other hyperedges a
 hyperedge meets, and how large its vertex neighbourhood is — the
 hyperedge-side counterparts of degree and neighbourhood size, and the
 descriptive layer used to characterise higher-order structure (Coupette
-et al. 2024).
+et al. 2024). A temporal hypergraph is evaluated snapshot by snapshot,
+with a leading \code{time} column, so the distribution of hyperedge sizes at
+several dates (the paper's Figure 4b) or the neighbourhood size of a
+tribunal over time (Figure 5c) come from one call.
 }
 \examples{
 hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars",
                         c = "stars and salt"))
 hg_edges(hg)
 hg_edges(hg, what = "distribution")
+hg_edges(hg, what = "summary", measure = "n_neighbors")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.

@@ -8,27 +8,40 @@
 #' hyperedge meets, and how large its vertex neighbourhood is — the
 #' hyperedge-side counterparts of degree and neighbourhood size, and the
 #' descriptive layer used to characterise higher-order structure (Coupette
-#' et al. 2024).
+#' et al. 2024). A temporal hypergraph is evaluated snapshot by snapshot,
+#' with a leading `time` column, so the distribution of hyperedge sizes at
+#' several dates (the paper's Figure 4b) or the neighbourhood size of a
+#' tribunal over time (Figure 5c) come from one call.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
-#'   `net_hypergraph`.
-#' @param what `"edges"` (default) for one row per hyperedge, or
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], any honets
+#'   `net_hypergraph`, or a [temporal_hypergraph()].
+#' @param what `"edges"` (default) for one row per hyperedge,
 #'   `"distribution"` for the empirical distribution of `measure` across
-#'   hyperedges.
-#' @param measure Which column `what = "distribution"` summarises: `"size"`
-#'   (default), `"weight"`, `"n_incident_edges"` or `"n_neighbors"`.
+#'   hyperedges, or `"summary"` for its mean, standard deviation and
+#'   quartiles.
+#' @param measure Which column `what = "distribution"` and
+#'   `what = "summary"` describe: `"size"` (default), `"weight"`,
+#'   `"n_incident_edges"` or `"n_neighbors"`.
 #' @param s Minimum number of shared vertices for another hyperedge to count
 #'   as incident. The default `1` is ordinary incidence; larger values match
-#'   the thresholds used by [hg_edge_centrality()].
+#'   the thresholds used by [hg_edge_centrality()]. Several values give one
+#'   block of rows each, with an `s` column.
+#' @param at,snapshot_mode,multiedges Temporal snapshot arguments passed to
+#'   [hypergraph_snapshots()] when `hg` is temporal.
 #' @return With `what = "edges"`, a base data.frame with one row per
 #'   hyperedge and columns `edge` (name), `size` (integer, vertices it
 #'   contains), `weight` (numeric, its incidence weights summed),
-#'   `n_incident_edges` (integer, other hyperedges sharing at least one
-#'   vertex) and `n_neighbors` (integer, vertices adjacent to a member
-#'   without being one). With `what = "distribution"`, one row per distinct
-#'   observed value of `measure`, ascending, with columns `value`, `n`,
-#'   `proportion` and `ccdf` — the complementary cumulative distribution
-#'   \eqn{P(X \ge value)}, so the first row's `ccdf` is always 1.
+#'   `n_incident_edges` (integer, other hyperedges sharing at least `s`
+#'   vertices) and `n_neighbors` (integer, vertices adjacent to a member
+#'   without being one). With `what = "distribution"`, a `honets_distribution`
+#'   table with one row per distinct observed value of `measure`, ascending,
+#'   with columns `value`, `n`, `proportion` and `ccdf` — the complementary
+#'   cumulative distribution \eqn{P(X \ge value)}, so the first row's `ccdf`
+#'   is always 1; its `plot()` draws the CCDF. With `what = "summary"`, one
+#'   row with `n_edges`, `mean`, `sd`, `min`, `q25`, `median`, `q75` and
+#'   `max`. Several `s` values add an `s` column; temporal input adds a
+#'   leading `time` column, and the summary is then a `honets_series` whose
+#'   `plot()` draws each statistic against time.
 #' @references
 #' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
 #' *Philosophical Transactions of the Royal Society A*, 382(2270), 20230141.
@@ -40,22 +53,69 @@
 #'                         c = "stars and salt"))
 #' hg_edges(hg)
 #' hg_edges(hg, what = "distribution")
+#' hg_edges(hg, what = "summary", measure = "n_neighbors")
 #' @export
-hg_edges <- function(hg, what = c("edges", "distribution"),
+hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
                      measure = c("size", "weight", "n_incident_edges",
-                                 "n_neighbors"), s = 1L) {
-  .thg_check_hg(hg)
+                                 "n_neighbors"), s = 1L, at = NULL,
+                     snapshot_mode = c("active", "cumulative", "all"),
+                     multiedges = TRUE) {
   what <- match.arg(what)
   measure <- match.arg(measure)
-  if (length(s) != 1L || !is.numeric(s) || !is.finite(s) || s < 1 ||
-      abs(s - round(s)) > sqrt(.Machine$double.eps)) {
-    .thg_bad_input("`s` must be one positive whole number")
+  snapshot_mode <- match.arg(snapshot_mode)
+  if (!is.numeric(s) || length(s) < 1L || any(!is.finite(s)) || any(s < 1) ||
+      any(abs(s - round(s)) > sqrt(.Machine$double.eps))) {
+    .thg_bad_input("`s` must contain positive whole numbers")
   }
-  s <- as.integer(s)
+  s <- as.integer(round(s))
+
+  if (inherits(hg, "net_temporal_hypergraph")) {
+    snaps <- hypergraph_snapshots(hg, at = at, mode = snapshot_mode,
+                                  multiedges = multiedges)
+    rows <- lapply(seq_along(snaps), function(i) {
+      ans <- hg_edges(snaps[[i]], what = what, measure = measure, s = s)
+      if (nrow(ans) == 0L) return(NULL)
+      time <- snaps[[i]]$params$at %||% names(snaps)[i]
+      data.frame(time = rep(time, nrow(ans)), as.data.frame(ans),
+                 row.names = NULL, stringsAsFactors = FALSE)
+    })
+    out <- do.call(rbind, rows)
+    rownames(out) <- NULL
+    return(.thg_edges_class(out, what, measure))
+  }
+
+  .thg_check_hg(hg)
+  blocks <- lapply(s, function(ss) .thg_edge_table(hg, ss))
+  if (length(s) > 1L) {
+    blocks <- lapply(seq_along(s), function(i) {
+      data.frame(s = rep(s[i], nrow(blocks[[i]])), blocks[[i]],
+                 stringsAsFactors = FALSE)
+    })
+  }
+  edges <- do.call(rbind, blocks)
+  rownames(edges) <- NULL
+  if (identical(what, "edges")) return(edges)
+  groups <- if (length(s) > 1L) split(edges, edges$s) else list(edges)
+  out <- do.call(rbind, lapply(seq_along(groups), function(i) {
+    values <- groups[[i]][[measure]]
+    tab <- if (identical(what, "distribution")) .thg_distribution(values) else
+      .thg_summary_row(values)
+    if (length(s) > 1L) tab <- data.frame(s = rep(s[i], nrow(tab)), tab)
+    tab
+  }))
+  rownames(out) <- NULL
+  .thg_edges_class(out, what, measure)
+}
+
+#' @rdname hg_edges
+#' @export
+hypergraph_edges <- hg_edges
+
+# One row per hyperedge for one intersection threshold `s`.
+.thg_edge_table <- function(hg, s) {
   incidence <- hg$incidence
   b <- .thg_binary(incidence)
   size <- as.integer(Matrix::colSums(b))
-
   overlap <- crossprod(b)
   diag(overlap) <- 0
   n_incident <- as.integer(Matrix::colSums(overlap >= s))
@@ -69,7 +129,7 @@ hg_edges <- function(hg, what = c("edges", "distribution"),
   reach <- as.integer(Matrix::colSums((adjacency %*% b) > 0))
   n_neighbors <- reach - ifelse(size >= 2L, size, 0L)
 
-  edges <- data.frame(
+  data.frame(
     edge = colnames(incidence),
     size = size,
     weight = as.numeric(Matrix::colSums(incidence)),
@@ -77,13 +137,17 @@ hg_edges <- function(hg, what = c("edges", "distribution"),
     n_neighbors = as.integer(n_neighbors),
     row.names = NULL
   )
-  if (identical(what, "edges")) return(edges)
-  .thg_distribution(edges[[measure]])
 }
 
-#' @rdname hg_edges
-#' @export
-hypergraph_edges <- hg_edges
+.thg_edges_class <- function(out, what, measure) {
+  if (identical(what, "distribution")) {
+    class(out) <- c("honets_distribution", "data.frame")
+    attr(out, "measure") <- measure
+  } else if (identical(what, "summary") && "time" %in% names(out)) {
+    class(out) <- c("honets_series", "data.frame")
+  }
+  out
+}
 
 # Empirical distribution of a numeric vector: one row per distinct value,
 # ascending, with the complementary cumulative P(X >= value).
@@ -96,6 +160,16 @@ hypergraph_edges <- hg_edges
     n = n,
     proportion = n / length(x),
     ccdf = rev(cumsum(rev(n))) / length(x),
+    row.names = NULL
+  )
+}
+
+# Mean, spread and quartiles of a numeric vector as one row.
+.thg_summary_row <- function(x) {
+  q <- stats::quantile(x, c(0.25, 0.5, 0.75), names = FALSE)
+  data.frame(
+    n_edges = length(x), mean = mean(x), sd = stats::sd(x),
+    min = min(x), q25 = q[1L], median = q[2L], q75 = q[3L], max = max(x),
     row.names = NULL
   )
 }

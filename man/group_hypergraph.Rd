@@ -2,29 +2,33 @@
 % Please edit documentation in R/hypergraph_groups.R
 \name{group_hypergraph}
 \alias{group_hypergraph}
-\title{Hypergraph from bipartite group / event data}
+\title{Hypergraph from co-occurrence data or an edge list}
 \usage{
 group_hypergraph(
   data,
-  member,
-  group,
+  actor = NULL,
+  cooccur_by = NULL,
   weight = NULL,
   nodes = NULL,
-  sparse = FALSE
+  sparse = FALSE,
+  from = NULL,
+  to = NULL,
+  member = NULL,
+  group = NULL
 )
 }
 \arguments{
-\item{data}{Data frame in long format. Must contain \code{member} and \code{group}
-columns; optionally a \code{weight} column.}
+\item{data}{Data frame in long format, one row per actor-in-group or per
+edge.}
 
-\item{member}{Character. Name of the column whose values become the
+\item{actor}{Character. Name of the column whose values become the
 hypergraph's nodes (members, participants, actors).}
 
-\item{group}{Character. Name of the column whose values become the
-hypergraph's hyperedges (groups, sessions, teams).}
+\item{cooccur_by}{Character. Name of the column whose shared values bind
+actors into one hyperedge (groups, sessions, teams).}
 
 \item{weight}{Character or \code{NULL}. If supplied, the column is summed per
-\verb{(member, group)} pair to produce a weighted incidence matrix. Default
+\verb{(actor, hyperedge)} pair to produce a weighted incidence matrix. Default
 \code{NULL} produces a 0/1 binary incidence matrix.}
 
 \item{nodes}{Optional vector giving the complete node universe. This keeps
@@ -34,6 +38,12 @@ decision is a node but some decisions are never cited.}
 
 \item{sparse}{Logical. Store incidence as a sparse \code{Matrix}? Use this for
 large, sparse event data such as the full GFCC citation-block corpus.}
+
+\item{from, to}{Column names of a pairwise edge list, as an alternative to
+\code{actor} and \code{cooccur_by}.}
+
+\item{member, group}{Former names of \code{actor} and \code{cooccur_by}; still
+accepted.}
 }
 \value{
 A \code{net_hypergraph} object with the same structure produced by
@@ -42,11 +52,12 @@ A \code{net_hypergraph} object with the same structure produced by
 records \code{source = "group_hypergraph"} and the original column names.
 }
 \description{
-Constructs a \link[=build_hypergraph]{net_hypergraph} from long-format event
-data in which each row records a \code{member} participating in a \code{group}
-(a session, team, project, transaction, or any group context). Each
-unique group becomes one hyperedge spanning the members that appeared in
-it. Optional \code{weight} column produces a weighted incidence matrix.
+Constructs a \link[=build_hypergraph]{net_hypergraph} the way a network is
+defined from data. \strong{Co-occurrence data} name an \code{actor} and the column
+it co-occurs \code{by}: every actor sharing one value of \code{cooccur_by} (a
+session, a team, a citation block) belongs to one hyperedge. An \strong{edge
+list} names \code{from} and \code{to}, and every row is a hyperedge of size two.
+An optional \code{weight} column produces a weighted incidence matrix.
 }
 \details{
 The bipartite representation preserves the full group structure without
@@ -65,8 +76,8 @@ directly. The two functions are complementary:
 observed and triadic structure must be inferred from triangles.
 }
 
-Rows with \code{NA} in either the \code{member} or \code{group} column (or, when
-supplied, the \code{weight} column) are dropped silently.
+Rows with \code{NA} in the actor, hyperedge or weight column are dropped
+silently.
 }
 \note{
 Dense and sparse paths are tested for exact equality. The sparse
@@ -81,9 +92,12 @@ df <- data.frame(
   session = c("S1", "S1", "S1", "S2", "S2",
               "S3", "S3", "S3", "S3")
 )
-hg <- group_hypergraph(df, member = "person", group = "session")
+hg <- group_hypergraph(df, actor = "person", cooccur_by = "session")
 print(hg)
 summary(hg)
+
+contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
+group_hypergraph(contacts, from = "from", to = "to")
 
 }
 \references{
@@ -93,5 +107,6 @@ populations: a review. \emph{Journal of the Royal Society Interface}
 10(80), 20120997. \doi{10.1098/rsif.2012.0997}
 }
 \seealso{
-\code{\link[=build_hypergraph]{build_hypergraph()}} for the clique-based constructor.
+\code{\link[=build_hypergraph]{build_hypergraph()}} for the clique-based constructor,
+\code{\link[=temporal_hypergraph]{temporal_hypergraph()}} for the same inputs with a clock.
 }
