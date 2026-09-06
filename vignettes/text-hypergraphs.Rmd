@@ -116,7 +116,7 @@ question:
 
 ```{r sensitivity}
 clusters_3 <- hg_cluster(hg, k = 3, type = "random_walk", seed = 1)
-table(k4 = clusters$cluster, k3 = clusters_3$cluster)
+hg_agreement(clusters, clusters_3, what = "table")
 ```
 
 The two compact themes survive the change almost intact (15 of 16, and all
@@ -147,10 +147,9 @@ aggregate(year ~ predicted, data = predicted_years, FUN = mean)
 ```
 
 ```{r classify-check}
-table(
-  predicted = predicted_years$predicted,
-  actually_2020 = predicted_years$year == 2020
-)
+hg_agreement(predictions, covid_abstracts,
+             node = c("node", "doc"), label = c("predicted", "year"),
+             what = "table")
 ```
 
 The classifier is conservative and correct where it commits: every abstract
@@ -225,13 +224,13 @@ the same engines directly:
 # document, term, count (verified against quanteda 4.x / tidytext 0.4.x)
 group_hypergraph(
   tidytext::tidy(my_dfm),
-  member = "term", group = "document", weight = "count"
+  actor = "term", group = "document", weight = "count"
 )
 
 # tidytext: word counts are already long (document, word, n)
 group_hypergraph(
   my_word_counts,
-  member = "word", group = "document", weight = "n"
+  actor = "word", group = "document", weight = "n"
 )
 ```
 

@@ -135,7 +135,7 @@ bag <- text_hypergraph(
   min_count = 3L
 )
 bag_clusters <- hg_cluster(bag, k = 4, type = "random_walk", seed = 1)
-table(knn = knn_clusters$cluster, bag = bag_clusters$cluster)
+hg_agreement(knn_clusters, bag_clusters, what = "table")
 ```
 
 Two themes are found by both constructions (32 and 37 documents stay
@@ -147,26 +147,21 @@ grouping stable across both is worth trusting.
 check:
 
 ```{r knn-sensitivity}
-knn_5 <- hg_cluster(
-  text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
-                  construction = "knn", k = 5,
-                  embeddings = covid_embeddings),
-  k = 4, type = "random_walk", seed = 1
-)
-knn_15 <- hg_cluster(
-  text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
-                  construction = "knn", k = 15,
-                  embeddings = covid_embeddings),
-  k = 4, type = "random_walk", seed = 1
-)
-tab_15 <- table(k10 = knn_clusters$cluster, k15 = knn_15$cluster)
-tab_5 <- table(k10 = knn_clusters$cluster, k5 = knn_5$cluster)
-sum(apply(tab_15, 1, max))
-sum(apply(tab_5, 1, max))
+knn_5_hg <- text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
+                            construction = "knn", k = 5,
+                            embeddings = covid_embeddings)
+knn_5 <- hg_cluster(knn_5_hg, k = 4, type = "random_walk", seed = 1)
+knn_15_hg <- text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
+                             construction = "knn", k = 15,
+                             embeddings = covid_embeddings)
+knn_15 <- hg_cluster(knn_15_hg, k = 4, type = "random_walk", seed = 1)
+hg_agreement(knn_clusters, knn_15)
+hg_agreement(knn_clusters, knn_5)
 ```
 
-Against `k = 15`, 143 of 165 documents keep their cluster's majority
-alignment; against `k = 5`, 125 do. The partition is robust upward and
+The `aligned` column counts the documents that stay with the majority of
+their cluster. Against `k = 15`, 143 of 165 documents keep their cluster's
+majority alignment; against `k = 5`, 125 do. The partition is robust upward and
 softer downward — small neighborhoods fragment one of the four groups.
 Report conclusions at the k where they are stable, and say so.
 
