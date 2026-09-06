@@ -1580,9 +1580,11 @@ complex itself.</p>
 in any simple way.</p>
 <pre class="r"><code>do.call(rbind, lapply(c(0.3, 0.4, 0.5, 0.6, 0.7), function(t) {
   s &lt;- build_simplicial(m, type = &quot;clique&quot;, threshold = t)
+  fv &lt;- as.data.frame(s, what = &quot;f_vector&quot;)
   b &lt;- betti_numbers(s)
-  data.frame(threshold = t, simplices = s$n_simplices, dimension = s$dimension,
-             euler = euler_characteristic(s),
+  e &lt;- euler_characteristic(s)
+  data.frame(threshold = t, simplices = sum(fv$count), dimension = max(fv$dim),
+             euler = e,
              b0 = b[[&quot;b0&quot;]], b1 = b[[&quot;b1&quot;]])
 }))</code></pre>
 <pre><code>  threshold simplices dimension euler b0 b1
@@ -1622,13 +1624,14 @@ sv</code></pre>
 <pre class="r"><code>do.call(rbind, lapply(c(2L, 3L, 4L), function(md) {
   t0 &lt;- proc.time()[[&quot;elapsed&quot;]]
   s &lt;- build_simplicial(d, type = &quot;vr&quot;, threshold = 1.5, max_dim = md)
-  data.frame(max_dim = md, simplices = s$n_simplices,
+  fv &lt;- as.data.frame(s, what = &quot;f_vector&quot;)
+  data.frame(max_dim = md, simplices = sum(fv$count),
              seconds = round(proc.time()[[&quot;elapsed&quot;]] - t0, 2))
 }))</code></pre>
 <pre><code>  max_dim simplices seconds
-1       2      1350    0.04
-2       3      6195    0.21
-3       4     21699    0.81</code></pre>
+1       2      1350    0.07
+2       3      6195    0.20
+3       4     21699    0.88</code></pre>
 <p>Roughly a 3-4× increase per dimension. At the <strong>default
 <code>max_dim = 10L</code></strong> this same 20-point cloud produces
 <strong>784,625 simplices</strong> and takes minutes — so for VR
@@ -1770,10 +1773,12 @@ identity is worth asserting in any pipeline that computes homology.</p>
 <p>This is the caveat that matters most.</p>
 <pre class="r"><code>do.call(rbind, lapply(seq(0.3, 0.75, by = 0.05), function(t) {
   s &lt;- build_simplicial(m, type = &quot;clique&quot;, threshold = t)
+  fv &lt;- as.data.frame(s, what = &quot;f_vector&quot;)
   b &lt;- betti_numbers(s)
-  data.frame(threshold = t, simplices = s$n_simplices,
+  e &lt;- euler_characteristic(s)
+  data.frame(threshold = t, simplices = sum(fv$count),
              b0 = b[[&quot;b0&quot;]], b1 = b[[&quot;b1&quot;]],
-             euler = euler_characteristic(s))
+             euler = e)
 }))</code></pre>
 <pre><code>   threshold simplices b0 b1 euler
 1       0.30       299  1  0     1
@@ -1806,7 +1811,8 @@ one that appears at a single threshold is noise.</li>
 threshold-dependent invariant: it shows the whole range rather than the
 one threshold that happened to be chosen.</p>
 <pre class="r"><code>long &lt;- do.call(rbind, lapply(seq(0.3, 0.75, by = 0.05), function(t) {
-  b &lt;- betti_numbers(build_simplicial(m, type = &quot;clique&quot;, threshold = t))
+  s &lt;- build_simplicial(m, type = &quot;clique&quot;, threshold = t)
+  b &lt;- betti_numbers(s)
   data.frame(threshold = t, dimension = c(&quot;b0&quot;, &quot;b1&quot;),
              betti = c(b[[&quot;b0&quot;]], b[[&quot;b1&quot;]]))
 }))
@@ -2095,7 +2101,9 @@ bottleneck_distance(ph, ph)</code></pre>
 <pre><code>dim_0 dim_1 dim_2 
     0     0     0 </code></pre>
 <pre class="r"><code># symmetry: d(x, y) = d(y, x)
-identical(bottleneck_distance(ph, ph2), bottleneck_distance(ph2, ph))</code></pre>
+d_12 &lt;- bottleneck_distance(ph, ph2)
+d_21 &lt;- bottleneck_distance(ph2, ph)
+identical(d_12, d_21)</code></pre>
 <pre><code>[1] TRUE</code></pre>
 <p>Both hold exactly. The bottleneck distance is the smallest ε such
 that the two diagrams can be matched within ε, allowing unmatched points
@@ -2131,7 +2139,8 @@ one — consistent with <code>b1 = 2</code> from <a href="simplicial-complexes.h
 1 1 0.4918348 0.0000000000
 2 1 0.4928316 0.0009968344
 3 1 0.4938284 0.0019936688</code></pre>
-<pre class="r"><code>nrow(as.data.frame(pl, k = 1))</code></pre>
+<pre class="r"><code>pl_1 &lt;- as.data.frame(pl, k = 1)
+nrow(pl_1)</code></pre>
 <pre><code>[1] 200</code></pre>
 <p>200 grid points per level, which is <code>t_grid</code>’s default
 resolution.</p>
@@ -2145,8 +2154,10 @@ resolution.</p>
 <h3>Why a landscape rather than a diagram</h3>
 <p>Because it lives in a vector space, a landscape supports operations a
 diagram does not:</p>
-<pre class="r"><code>l1 &lt;- as.data.frame(persistence_landscape(ph,  k_max = 2, dimension = 1), k = 1)
-l2 &lt;- as.data.frame(persistence_landscape(ph2, k_max = 2, dimension = 1), k = 1)
+<pre class="r"><code>land_1 &lt;- persistence_landscape(ph,  k_max = 2, dimension = 1)
+land_2 &lt;- persistence_landscape(ph2, k_max = 2, dimension = 1)
+l1 &lt;- as.data.frame(land_1, k = 1)
+l2 &lt;- as.data.frame(land_2, k = 1)
 
 # the two landscapes are evaluated on different grids by default
 range(l1$t)</code></pre>
@@ -2157,8 +2168,10 @@ range(l1$t)</code></pre>
 diagram’s range. <strong>To average or subtract landscapes, put them on
 a common grid</strong> with <code>t_grid</code>:</p>
 <pre class="r"><code>g &lt;- seq(0.45, 0.75, length.out = 100)
-a &lt;- as.data.frame(persistence_landscape(ph,  k_max = 2, dimension = 1, t_grid = g), k = 1)
-b &lt;- as.data.frame(persistence_landscape(ph2, k_max = 2, dimension = 1, t_grid = g), k = 1)
+land_a &lt;- persistence_landscape(ph,  k_max = 2, dimension = 1, t_grid = g)
+land_b &lt;- persistence_landscape(ph2, k_max = 2, dimension = 1, t_grid = g)
+a &lt;- as.data.frame(land_a, k = 1)
+b &lt;- as.data.frame(land_b, k = 1)
 
 mean_landscape &lt;- data.frame(t = g, value = (a$value + b$value) / 2)
 
@@ -2359,9 +2372,10 @@ use the raw counts when describing one.</p>
 <div id="on-real-data-1" class="section level3">
 <h3>On real data</h3>
 <pre class="r"><code>seqs &lt;- split(human_long$code, human_long$session_id)
-sc_hon &lt;- build_simplicial(build_hon(seqs, max_order = 3, min_freq = 5),
-                           type = &quot;pathway&quot;)
-as.data.frame(q_analysis(sc_hon))</code></pre>
+hon_3 &lt;- build_hon(seqs, max_order = 3, min_freq = 5)
+sc_hon &lt;- build_simplicial(hon_3, type = &quot;pathway&quot;)
+q_hon &lt;- q_analysis(sc_hon)
+as.data.frame(q_hon)</code></pre>
 <pre><code>  q components
 1 3         52
 2 2         20

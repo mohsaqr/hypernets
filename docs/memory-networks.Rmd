@@ -121,7 +121,9 @@ structure goes on top of it as *pathways*.
 ```{r build-hon-net1, eval = has_cograph}
 net1 <- build_hon(human_long, action = "code", actor = "session_id",
                   time = "timestamp", max_order = 1, min_freq = 5)
-c(nodes = net1$n_nodes, edges = net1$n_edges)
+nodes_1 <- as.data.frame(net1, what = "nodes")
+rules_1 <- as.data.frame(net1)
+c(nodes = nrow(nodes_1), edges = nrow(rules_1))
 ```
 
 `net_hon` is dual-classed `cograph_network`, so cograph draws it with no
@@ -140,9 +142,9 @@ collapsing onto one. Pass the rules through `pathways =` — this is the same
 table `as.data.frame()` returns, read as shape rather than as rows.
 
 ```{r build-hon-simplicial, eval = has_cograph, fig.width = 11, fig.height = 11, fig.alt = "Six strongest higher-order rules drawn as simplicial blobs"}
+top_rules <- as.data.frame(hon, order_min = 2, sort_by = "count", top = 6)
 plot_simplicial(net1,
-                pathways = as.data.frame(hon, order_min = 2,
-                                         sort_by = "count", top = 6),
+                pathways = top_rules,
                 max_pathways = 6,
                 title = "Six strongest extracted rules")
 ```
@@ -150,7 +152,8 @@ plot_simplicial(net1,
 ### How much of the network is higher-order?
 
 ```{r build-hon-orders}
-table(as.data.frame(hon)$from_order)
+rules <- as.data.frame(hon)
+table(rules$from_order)
 ```
 
 81 first-order rules — the full 9×9 transition structure, since on data this
@@ -167,8 +170,10 @@ evidence you require before believing a memory effect.
 sizes <- do.call(rbind, lapply(c(5, 20, 50, 100), function(mf) {
   h <- build_hon(human_long, action = "code", actor = "session_id",
                  time = "timestamp", max_order = 3, min_freq = mf)
-  data.frame(min_freq = mf, nodes = h$n_nodes, edges = h$n_edges,
-             max_order_observed = h$max_order_observed)
+  h_nodes <- as.data.frame(h, what = "nodes")
+  h_rules <- as.data.frame(h)
+  data.frame(min_freq = mf, nodes = nrow(h_nodes), edges = nrow(h_rules),
+             max_order_observed = max(h_rules$from_order))
 }))
 sizes
 ```
@@ -591,7 +596,7 @@ It depends on what the model is for.
 
 ```{r build-mogen-bic}
 mo_bic <- build_mogen(seqs, max_order = 4, criterion = "bic")
-mo_bic$optimal_order
+as.data.frame(mo_bic)
 ```
 
 Switching the criterion changes the selected order, and it should be reported
@@ -627,7 +632,8 @@ rows already sorted by count, `top = N` picks the N heaviest.
 
 ```{r build-mogen-mogensimp, eval = has_cograph, fig.width = 11, fig.height = 11, fig.alt = "Six heaviest fitted second-order pathways as simplicial blobs"}
 net1 <- build_hon(seqs, max_order = 1)
-plot_simplicial(net1, pathways = mogen_transitions(mo, order = 2, top = 6),
+top_paths <- mogen_transitions(mo, order = 2, top = 6)
+plot_simplicial(net1, pathways = top_paths,
                 max_pathways = 6,
                 title = "Six heaviest second-order pathways")
 ```
@@ -635,7 +641,8 @@ plot_simplicial(net1, pathways = mogen_transitions(mo, order = 2, top = 6),
 A single pathway, isolated:
 
 ```{r build-mogen-mogenone, eval = has_cograph, fig.width = 9, fig.height = 9, fig.alt = "The single heaviest fitted pathway"}
-plot_simplicial(net1, pathways = mogen_transitions(mo, order = 2, top = 1),
+top_path <- mogen_transitions(mo, order = 2, top = 1)
+plot_simplicial(net1, pathways = top_path,
                 max_pathways = 1)
 ```
 
@@ -661,7 +668,8 @@ individual sequences.
 do.call(rbind, lapply(2:4, function(k) {
   m <- build_mogen(seqs, max_order = k)
   d <- as.data.frame(m)
-  data.frame(max_order = k, selected_aic = m$optimal_order,
+  selected <- subset(d, optimal)
+  data.frame(max_order = k, selected_aic = selected$order,
              top_layer_dof = max(d$layer_dof))
 }))
 ```
@@ -825,8 +833,11 @@ that survive are the ones worth naming in a result.
 ```{r build-hypa-params}
 do.call(rbind, lapply(c(5, 20), function(mc) {
   h <- build_hypa(seqs, order = 2, min_count = mc)
-  data.frame(min_count = mc, scored = nrow(as.data.frame(h)),
-             over = h$n_over, under = h$n_under)
+  scores <- as.data.frame(h)
+  over <- as.data.frame(h, what = "over")
+  under <- as.data.frame(h, what = "under")
+  data.frame(min_count = mc, scored = nrow(scores),
+             over = nrow(over), under = nrow(under))
 }))
 ```
 
@@ -922,7 +933,8 @@ retaining genuinely distributed structure rather than noise.
 ```{r build-honem-scree}
 em20 <- build_honem(hon, dim = 20)
 as.data.frame(em20, what = "variance", top = 6)
-cumulative <- cumsum(as.data.frame(em20, what = "variance")$proportion)
+var_20 <- as.data.frame(em20, what = "variance")
+cumulative <- cumsum(var_20$proportion)
 data.frame(dims = c(2, 5, 10, 20), cumulative = round(cumulative[c(2, 5, 10, 20)], 3))
 ```
 

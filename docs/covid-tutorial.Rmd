@@ -63,8 +63,8 @@ alphabetic strings, so numbers do not enter the vocabulary. Documents
 without any remaining token are dropped with a warning.
 
 ```{r build}
-hg <- text_hypergraph(abstracts, column = "Abstract",
-                      stop_words = c(stop_words_en(), "covid", "pandemic"),
+stops <- c(stop_words_en(), "covid", "pandemic")
+hg <- text_hypergraph(abstracts, column = "Abstract", stop_words = stops,
                       min_count = 5L)
 hg
 ```

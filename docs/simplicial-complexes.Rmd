@@ -86,9 +86,11 @@ simple way.
 ```{r build-simplicial-sweep}
 do.call(rbind, lapply(c(0.3, 0.4, 0.5, 0.6, 0.7), function(t) {
   s <- build_simplicial(m, type = "clique", threshold = t)
+  fv <- as.data.frame(s, what = "f_vector")
   b <- betti_numbers(s)
-  data.frame(threshold = t, simplices = s$n_simplices, dimension = s$dimension,
-             euler = euler_characteristic(s),
+  e <- euler_characteristic(s)
+  data.frame(threshold = t, simplices = sum(fv$count), dimension = max(fv$dim),
+             euler = e,
              b0 = b[["b0"]], b1 = b[["b1"]])
 }))
 ```
@@ -124,7 +126,8 @@ A VR complex grows combinatorially. On this 20-point cloud:
 do.call(rbind, lapply(c(2L, 3L, 4L), function(md) {
   t0 <- proc.time()[["elapsed"]]
   s <- build_simplicial(d, type = "vr", threshold = 1.5, max_dim = md)
-  data.frame(max_dim = md, simplices = s$n_simplices,
+  fv <- as.data.frame(s, what = "f_vector")
+  data.frame(max_dim = md, simplices = sum(fv$count),
              seconds = round(proc.time()[["elapsed"]] - t0, 2))
 }))
 ```
@@ -264,10 +267,12 @@ This is the caveat that matters most.
 ```{r betti-numbers-sweep}
 do.call(rbind, lapply(seq(0.3, 0.75, by = 0.05), function(t) {
   s <- build_simplicial(m, type = "clique", threshold = t)
+  fv <- as.data.frame(s, what = "f_vector")
   b <- betti_numbers(s)
-  data.frame(threshold = t, simplices = s$n_simplices,
+  e <- euler_characteristic(s)
+  data.frame(threshold = t, simplices = sum(fv$count),
              b0 = b[["b0"]], b1 = b[["b1"]],
-             euler = euler_characteristic(s))
+             euler = e)
 }))
 ```
 
@@ -291,7 +296,8 @@ threshold that happened to be chosen.
 
 ```{r betti-numbers-sweepplot, fig.width = 8, fig.height = 5, fig.alt = "Betti numbers b0 and b1 across the threshold sweep"}
 long <- do.call(rbind, lapply(seq(0.3, 0.75, by = 0.05), function(t) {
-  b <- betti_numbers(build_simplicial(m, type = "clique", threshold = t))
+  s <- build_simplicial(m, type = "clique", threshold = t)
+  b <- betti_numbers(s)
   data.frame(threshold = t, dimension = c("b0", "b1"),
              betti = c(b[["b0"]], b[["b1"]]))
 }))
@@ -550,7 +556,9 @@ bottleneck_distance(ph, ph2, dimension = 1)
 bottleneck_distance(ph, ph)
 
 # symmetry: d(x, y) = d(y, x)
-identical(bottleneck_distance(ph, ph2), bottleneck_distance(ph2, ph))
+d_12 <- bottleneck_distance(ph, ph2)
+d_21 <- bottleneck_distance(ph2, ph)
+identical(d_12, d_21)
 ```
 
 Both hold exactly. The bottleneck distance is the smallest ε such that the
@@ -582,7 +590,8 @@ One row per (level, grid point). Restrict to one level with `k =`:
 
 ```{r persistence-landscape-k1}
 as.data.frame(pl, k = 1, top = 3)
-nrow(as.data.frame(pl, k = 1))
+pl_1 <- as.data.frame(pl, k = 1)
+nrow(pl_1)
 ```
 
 200 grid points per level, which is `t_grid`'s default resolution.
@@ -599,8 +608,10 @@ Because it lives in a vector space, a landscape supports operations a diagram
 does not:
 
 ```{r persistence-landscape-average}
-l1 <- as.data.frame(persistence_landscape(ph,  k_max = 2, dimension = 1), k = 1)
-l2 <- as.data.frame(persistence_landscape(ph2, k_max = 2, dimension = 1), k = 1)
+land_1 <- persistence_landscape(ph,  k_max = 2, dimension = 1)
+land_2 <- persistence_landscape(ph2, k_max = 2, dimension = 1)
+l1 <- as.data.frame(land_1, k = 1)
+l2 <- as.data.frame(land_2, k = 1)
 
 # the two landscapes are evaluated on different grids by default
 range(l1$t)
@@ -613,8 +624,10 @@ range. **To average or subtract landscapes, put them on a common grid** with
 
 ```{r persistence-landscape-commongrid}
 g <- seq(0.45, 0.75, length.out = 100)
-a <- as.data.frame(persistence_landscape(ph,  k_max = 2, dimension = 1, t_grid = g), k = 1)
-b <- as.data.frame(persistence_landscape(ph2, k_max = 2, dimension = 1, t_grid = g), k = 1)
+land_a <- persistence_landscape(ph,  k_max = 2, dimension = 1, t_grid = g)
+land_b <- persistence_landscape(ph2, k_max = 2, dimension = 1, t_grid = g)
+a <- as.data.frame(land_a, k = 1)
+b <- as.data.frame(land_b, k = 1)
 
 mean_landscape <- data.frame(t = g, value = (a$value + b$value) / 2)
 
@@ -786,9 +799,10 @@ describing one.
 
 ```{r q-analysis-real}
 seqs <- split(human_long$code, human_long$session_id)
-sc_hon <- build_simplicial(build_hon(seqs, max_order = 3, min_freq = 5),
-                           type = "pathway")
-as.data.frame(q_analysis(sc_hon))
+hon_3 <- build_hon(seqs, max_order = 3, min_freq = 5)
+sc_hon <- build_simplicial(hon_3, type = "pathway")
+q_hon <- q_analysis(sc_hon)
+as.data.frame(q_hon)
 simplicial_degree(sc_hon)
 ```
 

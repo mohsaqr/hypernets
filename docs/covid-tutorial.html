@@ -1545,8 +1545,8 @@ hyperedge that contains every document using the word. With the default
 is the count of the word in the document. Tokens are lower-cased
 alphabetic strings, so numbers do not enter the vocabulary. Documents
 without any remaining token are dropped with a warning.</p>
-<pre class="r"><code>hg &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;,
-                      stop_words = c(stop_words_en(), &quot;covid&quot;, &quot;pandemic&quot;),
+<pre class="r"><code>stops &lt;- c(stop_words_en(), &quot;covid&quot;, &quot;pandemic&quot;)
+hg &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, stop_words = stops,
                       min_count = 5L)
 hg</code></pre>
 <pre><code>Text hypergraph: 3666 documents, 6247 words (documents as nodes, weight = n)

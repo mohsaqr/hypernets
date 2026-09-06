@@ -125,9 +125,9 @@ splot(fo, minimum = 0.05, title = "Reading 1 - the nine states")
 ```
 
 ```{r three-families-mempath, eval = has_cograph, fig.width = 11, fig.height = 11, fig.alt = "Six strongest memory contexts as simplicial blobs"}
+contexts_top <- as.data.frame(hon, order_min = 2, sort_by = "count", top = 6)
 plot_simplicial(fo,
-                pathways = as.data.frame(hon, order_min = 2,
-                                         sort_by = "count", top = 6),
+                pathways = contexts_top,
                 max_pathways = 6,
                 title = "Reading 1 - memory, as pathways")
 ```
@@ -193,9 +193,10 @@ membership exactly. Each session is one hyperedge over the codes it
 contains.
 
 ```{r three-families-hypergraph}
-hg <- group_hypergraph(human_long, member = "code", group = "session_id")
+hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
 hg
-as.data.frame(hypergraph_measures(hg), what = "global")
+measures <- hypergraph_measures(hg)
+as.data.frame(measures, what = "global")
 ```
 
 429 hyperedges — one per session — averaging 6.6 actions each. The
@@ -214,7 +215,8 @@ so it goes through `clique_expansion()` — and the caption has to say so,
 because the projection is a lossy one.
 
 ```{r three-families-hgplot, eval = has_cograph, fig.width = 9, fig.height = 9, fig.alt = "Session co-membership hypergraph, projected to a pairwise network"}
-splot(clique_expansion(hg), minimum = 0.05,
+net <- clique_expansion(hg)
+splot(net, minimum = 0.05,
       title = "Reading 3 - hypergraph, projected")
 ```
 
@@ -225,22 +227,22 @@ the data changed — only the question.
 
 ### Do the three agree?
 
-Three tidy tables, one join. Nothing here reaches into a result object.
+Three tidy tables, joined in two steps. Nothing here reaches into a result
+object.
 
 ```{r three-families-compare}
-cmp <- merge(
-  merge(hon_centrality(hon, type = "pagerank"),
-        simplicial_degree(sc), by.x = "state", by.y = "node"),
-  hypergraph_centrality(hg, type = "pagerank"),
-  by.x = "state", by.y = "node",
-  suffixes = c("_memory", "_hypergraph")
-)
+pr_memory <- hon_centrality(hon, type = "pagerank")
+deg_simplicial <- simplicial_degree(sc)
+pr_hypergraph <- hypergraph_centrality(hg, type = "pagerank")
+cmp <- merge(pr_memory, deg_simplicial, by.x = "state", by.y = "node")
+cmp <- merge(cmp, pr_hypergraph, by.x = "state", by.y = "node",
+             suffixes = c("_memory", "_hypergraph"))
 cmp
 ```
 
 ```{r three-families-spearman}
-cor(subset(cmp, select = c(pagerank_memory, total, pagerank_hypergraph)),
-    method = "spearman")
+cmp_ranks <- subset(cmp, select = c(pagerank_memory, total, pagerank_hypergraph))
+cor(cmp_ranks, method = "spearman")
 ```
 
 The memory and simplicial readings agree strongly (Spearman 0.87) — both
@@ -274,8 +276,7 @@ back to an ordinary pairwise network, which any first-order tool accepts:
 
 ```{r three-families-expand}
 net <- clique_expansion(hg)
-net$n_nodes
-net$n_edges
+summary(net)
 ```
 
 Nine nodes, 36 edges — the complete undirected graph, weighted by how
@@ -456,9 +457,9 @@ MOGen every fitted path.
 
 ```{r pathways-pwplot, eval = has_cograph, fig.width = 11, fig.height = 11, fig.alt = "Pathways from the HON, drawn as simplicial blobs"}
 net1 <- build_hon(seqs, max_order = 1)
+contexts_top <- as.data.frame(hon, order_min = 2, sort_by = "count", top = 6)
 plot_simplicial(net1,
-                pathways = as.data.frame(hon, order_min = 2,
-                                         sort_by = "count", top = 6),
+                pathways = contexts_top,
                 max_pathways = 6, title = "Pathways from build_hon()")
 ```
 
@@ -476,9 +477,12 @@ complexes:
 do.call(rbind, lapply(
   list(HON = hon, HYPA = hp, MOGen = mo),
   function(m) {
+    p <- pathways(m)
     s <- build_simplicial(m, type = "pathway")
-    data.frame(paths = length(pathways(m)), simplices = s$n_simplices,
-               dimension = s$dimension, b0 = betti_numbers(s)[1])
+    f_vector <- as.data.frame(s, what = "f_vector")
+    betti <- betti_numbers(s)
+    data.frame(paths = length(p), simplices = sum(f_vector$count),
+               dimension = max(f_vector$dim), b0 = betti[["b0"]])
   }))
 ```
 

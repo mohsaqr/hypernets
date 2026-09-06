@@ -1562,13 +1562,12 @@ boilerplate &lt;- c(&quot;covid&quot;, &quot;coronavirus&quot;, &quot;sars&quot;
                  &quot;disease&quot;, &quot;study&quot;, &quot;studies&quot;, &quot;result&quot;, &quot;results&quot;,
                  &quot;conclusion&quot;, &quot;conclusions&quot;, &quot;background&quot;, &quot;method&quot;,
                  &quot;methods&quot;, &quot;objective&quot;, &quot;aim&quot;)
+stops &lt;- c(stop_words_en(), boilerplate)
 tfidf &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, id = &quot;doc&quot;,
-                         weight = &quot;tfidf&quot;,
-                         stop_words = c(stop_words_en(), boilerplate),
+                         weight = &quot;tfidf&quot;, stop_words = stops,
                          min_count = 5L, sparse = TRUE)
 counts &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, id = &quot;doc&quot;,
-                          weight = &quot;n&quot;,
-                          stop_words = c(stop_words_en(), boilerplate),
+                          weight = &quot;n&quot;, stop_words = stops,
                           min_count = 5L, sparse = TRUE)
 cuts &lt;- list(
   zhou = hg_cluster(tfidf, k = 16, seed = 1),
@@ -1577,8 +1576,9 @@ cuts &lt;- list(
   walk_tfidf = hg_cluster(tfidf, k = 16, seed = 1, type = &quot;random_walk&quot;)
 )</code></pre>
 <p>That the default cut ignores the cells is checked, not asserted:</p>
-<pre class="r"><code>max(abs(hg_cluster(tfidf, k = 8, seed = 1, what = &quot;eigenvalues&quot;)$value -
-        hg_cluster(counts, k = 8, seed = 1, what = &quot;eigenvalues&quot;)$value))</code></pre>
+<pre class="r"><code>eigen_tfidf &lt;- hg_cluster(tfidf, k = 8, seed = 1, what = &quot;eigenvalues&quot;)
+eigen_counts &lt;- hg_cluster(counts, k = 8, seed = 1, what = &quot;eigenvalues&quot;)
+max(abs(eigen_tfidf$value - eigen_counts$value))</code></pre>
 <pre><code>[1] 0</code></pre>
 </div>
 <div id="how-much-they-agree" class="section level1">
@@ -1586,7 +1586,8 @@ cuts &lt;- list(
 <p>Adjusted Rand index between every pair of partitions. One means the
 same sixteen topics, zero means no more agreement than chance.</p>
 <pre class="r"><code>ari &lt;- outer(names(cuts), names(cuts), Vectorize(\(a, b) {
-  hg_agreement(cuts[[a]], cuts[[b]])$ari
+  agreement &lt;- hg_agreement(cuts[[a]], cuts[[b]])
+  agreement$ari
 }))
 dimnames(ari) &lt;- list(names(cuts), names(cuts))
 knitr::kable(round(ari, 2), caption = &quot;Adjusted Rand index between cuts&quot;)</code></pre>
@@ -1643,7 +1644,8 @@ says whether every topic has a vocabulary of its own.</p>
 <pre class="r"><code>balance &lt;- function(partition) {
   owned &lt;- hg_keywords(tfidf, partition, n = 6, type = &quot;frequency&quot;,
                        sort_by = &quot;share&quot;, min_docs = 15)
-  sizes &lt;- hg_keywords(tfidf, partition, n = 1, collapse = TRUE)$size
+  topic_sizes &lt;- hg_topic_sizes(tfidf, partition)
+  sizes &lt;- topic_sizes$n
   by_topic &lt;- tapply(owned$share, owned$cluster, mean)
   data.frame(smallest = min(sizes), largest = max(sizes),
              `size CV` = round(stats::sd(sizes) / mean(sizes), 2),
@@ -1651,7 +1653,8 @@ says whether every topic has a vocabulary of its own.</p>
              `weakest topic` = round(min(by_topic), 3),
              check.names = FALSE)
 }
-knitr::kable(do.call(rbind, lapply(cuts, balance)))</code></pre>
+balances &lt;- do.call(rbind, lapply(cuts, balance))
+knitr::kable(balances)</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -1798,9 +1801,11 @@ mapping &lt;- merge(mapping, subset(words_zhou, select = c(cluster, words)),
 mapping &lt;- merge(mapping, subset(words_idf, select = c(cluster, words)),
                  by.x = &quot;label_y&quot;, by.y = &quot;cluster&quot;, sort = FALSE,
                  suffixes = c(&quot;_zhou&quot;, &quot;_idf&quot;))
+mapping_shown &lt;- subset(mapping,
+                        select = c(label_x, words_zhou, label_y, words_idf,
+                                   share))
 knitr::kable(
-  subset(mapping, select = c(label_x, words_zhou, label_y, words_idf, share)),
-  digits = 2, row.names = FALSE,
+  mapping_shown, digits = 2, row.names = FALSE,
   col.names = c(&quot;zhou topic&quot;, &quot;its words&quot;, &quot;goes mostly to&quot;, &quot;those words&quot;,
                 &quot;share kept&quot;)
 )</code></pre>
@@ -1943,14 +1948,16 @@ knitr::kable(
 supports. The idf weighting does not change that answer: two, then four,
 then nothing.</p>
 <pre class="r"><code>gaps &lt;- function(hg, ...) {
-  round(head(hg_cluster(hg, k = 8, seed = 1, what = &quot;eigenvalues&quot;, ...)$gap, 6), 3)
+  eigen &lt;- hg_cluster(hg, k = 8, seed = 1, what = &quot;eigenvalues&quot;, ...)
+  round(head(eigen$gap, 6), 3)
 }
-knitr::kable(rbind(
+spectra &lt;- rbind(
   zhou = gaps(tfidf),
   zhou_idf = gaps(tfidf, edge_weights = &quot;idf&quot;),
   walk_counts = gaps(counts, type = &quot;random_walk&quot;),
   walk_tfidf = gaps(tfidf, type = &quot;random_walk&quot;)
-), col.names = paste(&quot;gap after&quot;, 1:6))</code></pre>
+)
+knitr::kable(spectra, col.names = paste(&quot;gap after&quot;, 1:6))</code></pre>
 <table style="width:100%;">
 <colgroup>
 <col width="14%" />
@@ -2040,20 +2047,22 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] honets_0.3.0
+[1] honets_0.3.3
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-4       gtable_0.3.6       jsonlite_2.0.0     dplyr_1.2.0       
- [5] compiler_4.5.2     tidyselect_1.2.1   Rcpp_1.1.1         jquerylib_0.1.4   
- [9] scales_1.4.0       yaml_2.3.12        fastmap_1.2.0      lattice_0.22-7    
-[13] ggplot2_4.0.3      R6_2.6.1           generics_0.1.4     cograph_2.4.5     
-[17] igraph_2.3.3       sbert_0.5.2        knitr_1.51         tibble_3.3.1      
-[21] bslib_0.10.0       pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.2.0       
-[25] cachem_1.1.0       xfun_0.60          sass_0.4.10        S7_0.2.1          
-[29] otel_0.2.0         cli_3.6.6          magrittr_2.0.4     digest_0.6.39     
-[33] grid_4.5.2         lifecycle_1.0.5    vctrs_0.7.3        RSpectra_0.16-2   
-[37] evaluate_1.0.5     glue_1.8.0         farver_2.1.2       rmarkdown_2.30    
-[41] tools_4.5.2        pkgconfig_2.0.3    htmltools_0.5.9   </code></pre>
+ [1] Matrix_1.7-4       bit_4.6.0          gtable_0.3.6       jsonlite_2.0.0    
+ [5] dplyr_1.2.0        compiler_4.5.2     tidyselect_1.2.1   Rcpp_1.1.1        
+ [9] callr_3.7.6        jquerylib_0.1.4    scales_1.4.0       yaml_2.3.12       
+[13] fastmap_1.2.0      lattice_0.22-7     ggplot2_4.0.3      R6_2.6.1          
+[17] labeling_0.4.3     generics_0.1.4     sbert_0.5.2        cograph_2.4.5     
+[21] igraph_2.3.3       knitr_1.51         tibble_3.3.1       bslib_0.10.0      
+[25] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.2.0        cachem_1.1.0      
+[29] xfun_0.60          sass_0.4.10        S7_0.2.1           bit64_4.6.0-1     
+[33] otel_0.2.0         cli_3.6.6          withr_3.0.2        magrittr_2.0.4    
+[37] ps_1.9.1           processx_3.8.6     digest_0.6.39      grid_4.5.2        
+[41] torch_0.17.0       lifecycle_1.0.5    coro_1.1.0         vctrs_0.7.3       
+[45] RSpectra_0.16-2    evaluate_1.0.5     glue_1.8.0         farver_2.1.2      
+[49] rmarkdown_2.30     tools_4.5.2        pkgconfig_2.0.3    htmltools_0.5.9   </code></pre>
 </div>
 
 

@@ -46,13 +46,12 @@ boilerplate <- c("covid", "coronavirus", "sars", "cov", "pandemic",
                  "disease", "study", "studies", "result", "results",
                  "conclusion", "conclusions", "background", "method",
                  "methods", "objective", "aim")
+stops <- c(stop_words_en(), boilerplate)
 tfidf <- text_hypergraph(abstracts, column = "Abstract", id = "doc",
-                         weight = "tfidf",
-                         stop_words = c(stop_words_en(), boilerplate),
+                         weight = "tfidf", stop_words = stops,
                          min_count = 5L, sparse = TRUE)
 counts <- text_hypergraph(abstracts, column = "Abstract", id = "doc",
-                          weight = "n",
-                          stop_words = c(stop_words_en(), boilerplate),
+                          weight = "n", stop_words = stops,
                           min_count = 5L, sparse = TRUE)
 cuts <- list(
   zhou = hg_cluster(tfidf, k = 16, seed = 1),
@@ -65,8 +64,9 @@ cuts <- list(
 That the default cut ignores the cells is checked, not asserted:
 
 ```{r same}
-max(abs(hg_cluster(tfidf, k = 8, seed = 1, what = "eigenvalues")$value -
-        hg_cluster(counts, k = 8, seed = 1, what = "eigenvalues")$value))
+eigen_tfidf <- hg_cluster(tfidf, k = 8, seed = 1, what = "eigenvalues")
+eigen_counts <- hg_cluster(counts, k = 8, seed = 1, what = "eigenvalues")
+max(abs(eigen_tfidf$value - eigen_counts$value))
 ```
 
 # How much they agree
@@ -76,7 +76,8 @@ sixteen topics, zero means no more agreement than chance.
 
 ```{r agreement}
 ari <- outer(names(cuts), names(cuts), Vectorize(\(a, b) {
-  hg_agreement(cuts[[a]], cuts[[b]])$ari
+  agreement <- hg_agreement(cuts[[a]], cuts[[b]])
+  agreement$ari
 }))
 dimnames(ari) <- list(names(cuts), names(cuts))
 knitr::kable(round(ari, 2), caption = "Adjusted Rand index between cuts")
@@ -94,7 +95,8 @@ topic has a vocabulary of its own.
 balance <- function(partition) {
   owned <- hg_keywords(tfidf, partition, n = 6, type = "frequency",
                        sort_by = "share", min_docs = 15)
-  sizes <- hg_keywords(tfidf, partition, n = 1, collapse = TRUE)$size
+  topic_sizes <- hg_topic_sizes(tfidf, partition)
+  sizes <- topic_sizes$n
   by_topic <- tapply(owned$share, owned$cluster, mean)
   data.frame(smallest = min(sizes), largest = max(sizes),
              `size CV` = round(stats::sd(sizes) / mean(sizes), 2),
@@ -102,7 +104,8 @@ balance <- function(partition) {
              `weakest topic` = round(min(by_topic), 3),
              check.names = FALSE)
 }
-knitr::kable(do.call(rbind, lapply(cuts, balance)))
+balances <- do.call(rbind, lapply(cuts, balance))
+knitr::kable(balances)
 ```
 
 # The sixteen topics under each cut
@@ -150,9 +153,11 @@ mapping <- merge(mapping, subset(words_zhou, select = c(cluster, words)),
 mapping <- merge(mapping, subset(words_idf, select = c(cluster, words)),
                  by.x = "label_y", by.y = "cluster", sort = FALSE,
                  suffixes = c("_zhou", "_idf"))
+mapping_shown <- subset(mapping,
+                        select = c(label_x, words_zhou, label_y, words_idf,
+                                   share))
 knitr::kable(
-  subset(mapping, select = c(label_x, words_zhou, label_y, words_idf, share)),
-  digits = 2, row.names = FALSE,
+  mapping_shown, digits = 2, row.names = FALSE,
   col.names = c("zhou topic", "its words", "goes mostly to", "those words",
                 "share kept")
 )
@@ -166,14 +171,16 @@ nothing.
 
 ```{r spectra}
 gaps <- function(hg, ...) {
-  round(head(hg_cluster(hg, k = 8, seed = 1, what = "eigenvalues", ...)$gap, 6), 3)
+  eigen <- hg_cluster(hg, k = 8, seed = 1, what = "eigenvalues", ...)
+  round(head(eigen$gap, 6), 3)
 }
-knitr::kable(rbind(
+spectra <- rbind(
   zhou = gaps(tfidf),
   zhou_idf = gaps(tfidf, edge_weights = "idf"),
   walk_counts = gaps(counts, type = "random_walk"),
   walk_tfidf = gaps(tfidf, type = "random_walk")
-), col.names = paste("gap after", 1:6))
+)
+knitr::kable(spectra, col.names = paste("gap after", 1:6))
 ```
 
 # Reading it

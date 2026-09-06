@@ -1535,7 +1535,8 @@ table(abstracts$Year)</code></pre>
 <pre class="r"><code>boilerplate &lt;- c(&quot;covid&quot;, &quot;coronavirus&quot;, &quot;sars&quot;, &quot;cov&quot;, &quot;pandemic&quot;,
                  &quot;disease&quot;, &quot;study&quot;, &quot;studies&quot;, &quot;result&quot;, &quot;results&quot;,
                  &quot;conclusion&quot;, &quot;conclusions&quot;, &quot;background&quot;, &quot;method&quot;,
-                 &quot;methods&quot;, &quot;objective&quot;, &quot;aim&quot;)</code></pre>
+                 &quot;methods&quot;, &quot;objective&quot;, &quot;aim&quot;)
+stops &lt;- c(stop_words_en(), boilerplate)</code></pre>
 </div>
 <div id="the-hypergraph" class="section level1">
 <h1>The hypergraph</h1>
@@ -1543,8 +1544,7 @@ table(abstracts$Year)</code></pre>
 in at least five abstracts is a hyperedge binding the abstracts that use
 it, with tf-idf incidence weights, stored sparse.</p>
 <pre class="r"><code>hg &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, id = &quot;doc&quot;,
-                      weight = &quot;tfidf&quot;,
-                      stop_words = c(stop_words_en(), boilerplate),
+                      weight = &quot;tfidf&quot;, stop_words = stops,
                       min_count = 5L, sparse = TRUE)
 hg</code></pre>
 <pre><code>Text hypergraph: 3666 documents, 6232 words (documents as nodes, weight = tfidf)
@@ -1645,11 +1645,10 @@ handful of abstracts from reaching the top. This is where the sixteen
 topics separate.</p>
 <pre class="r"><code>distinctive &lt;- hg_keywords(hg, topics, n = 8, type = &quot;frequency&quot;,
                            sort_by = &quot;share&quot;, min_docs = 15)
-knitr::kable(
-  hg_keywords(hg, topics, n = 8, type = &quot;frequency&quot;,
-              sort_by = &quot;share&quot;, min_docs = 15, collapse = TRUE),
-  row.names = FALSE
-)</code></pre>
+distinctive_table &lt;- hg_keywords(hg, topics, n = 8, type = &quot;frequency&quot;,
+                                 sort_by = &quot;share&quot;, min_docs = 15,
+                                 collapse = TRUE)
+knitr::kable(distinctive_table, row.names = FALSE)</code></pre>
 <table>
 <colgroup>
 <col width="8%" />
@@ -2011,8 +2010,7 @@ same partition, it ranks each topic’s words by their centrality among
 the topic’s sentences rather than its abstracts. The comparison uses the
 same sixteen topics as the rest of the document.</p>
 <pre class="r"><code>sh &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, id = &quot;doc&quot;,
-                      construction = &quot;sentence&quot;,
-                      stop_words = c(stop_words_en(), boilerplate),
+                      construction = &quot;sentence&quot;, stop_words = stops,
                       min_count = 5L, sparse = TRUE)
 sh</code></pre>
 <pre><code>Text hypergraph: 3666 documents, 6232 words (sentence hyperedges: 30637 sentences)
@@ -2086,12 +2084,12 @@ hundred words each; cutting the sentence-scoped one gives two large
 communities and fourteen small ones, the usual spectral behaviour on a
 sparse relation.</p>
 <pre class="r"><code>word_bag &lt;- text_hypergraph(abstracts, column = &quot;Abstract&quot;, id = &quot;doc&quot;,
-                            nodes = &quot;word&quot;,
-                            stop_words = c(stop_words_en(), boilerplate),
+                            nodes = &quot;word&quot;, stop_words = stops,
                             min_count = 5L, sparse = TRUE)
 communities &lt;- lapply(list(document = word_bag, sentence = sh), \(h) {
   parts &lt;- hg_cluster(h, k = 16, seed = 1)
-  degree &lt;- Matrix::rowSums(h$incidence)
+  weights &lt;- as.data.frame(h, what = &quot;weights&quot;)
+  degree &lt;- tapply(weights$weight, weights$word, sum)
   sizes &lt;- sort(table(parts$cluster), decreasing = TRUE)
   data.frame(
     community = names(sizes),
@@ -2358,7 +2356,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] honets_0.3.0
+[1] honets_0.3.3
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.7-4       bit_4.6.0          gtable_0.3.6       jsonlite_2.0.0    

@@ -66,8 +66,9 @@ that the keyword scores need. Any partition whose names are these documents
 can be described with it.
 
 ```{r bag}
-hg_bag <- text_hypergraph(sample$text, weight = "tfidf",
-                          stop_words = stop_words_en(), min_count = 2L)
+stops <- stop_words_en()
+hg_bag <- text_hypergraph(sample$text, weight = "tfidf", stop_words = stops,
+                          min_count = 2L)
 hg_bag
 ```
 
