@@ -8,12 +8,12 @@
 
 test_that("induced Y, T and O motifs are counted exactly", {
   triples <- list(c(1, 2, 3), c(1, 2, 4), c(1, 3, 4), c(2, 3, 4))
-  expect_equal(hg_motifs(.legal_motif_hg(triples[1:2]), what = "counts")$count,
-               c(1L, 0L, 0L))
-  expect_equal(hg_motifs(.legal_motif_hg(triples[1:3]), what = "counts")$count,
-               c(0L, 1L, 0L))
-  expect_equal(hg_motifs(.legal_motif_hg(triples), what = "counts")$count,
-               c(0L, 0L, 1L))
+  counts_y <- hg_motifs(.legal_motif_hg(triples[1:2]), what = "counts")
+  expect_equal(counts_y$count, c(1L, 0L, 0L))
+  counts_t <- hg_motifs(.legal_motif_hg(triples[1:3]), what = "counts")
+  expect_equal(counts_t$count, c(0L, 1L, 0L))
+  counts_o <- hg_motifs(.legal_motif_hg(triples), what = "counts")
+  expect_equal(counts_o$count, c(0L, 0L, 1L))
 })
 
 test_that("configuration MCMC preserves degree and cardinality before collapse", {
@@ -42,8 +42,8 @@ test_that("motif census applies to temporal snapshots", {
     member = c(1, 2, 3, 1, 2, 4),
     event = rep(c("e1", "e2"), each = 3), time = rep(1:2, each = 3)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event", time = "time")
-  out <- hg_motifs(thg, what = "counts")
+  thg <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
+  out <- hg_motifs(thg, what = "counts", snapshot_mode = "cumulative")
   expect_equal(out$count[out$time == "1"], c(0L, 0L, 0L))
   expect_equal(out$count[out$time == "2"], c(1L, 0L, 0L))
 })

@@ -91,7 +91,8 @@ seqs <- t(replicate(60, {
   }
   s
 }))
-pd <- path_dependence(as.data.frame(seqs), order = 2, min_count = 3)
+seqs <- as.data.frame(seqs)
+pd <- path_dependence(seqs, order = 2, min_count = 3)
 print(pd)
 summary(pd)
 plot(pd)

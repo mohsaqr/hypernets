@@ -83,12 +83,12 @@
 #' @examples
 #' dat <- data.frame(
 #'   member = c("a", "b", "c", "b", "c", "d", "d", "e"),
-#'   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3")
+#'   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
+#'   kind = c("x", "x", "x", "x", "x", "x", "y", "y")
 #' )
-#' hg <- group_hypergraph(dat, "member", "event")
+#' hg <- group_hypergraph(dat, actor = "member", group = "event")
 #' hg_subset(hg, edges = c("e1", "e2"))
 #' hg_subset(hg, nodes = c("b", "c", "d", "e"))
-#' hg$edge_data <- data.frame(edge = c("e1", "e2", "e3"), kind = c("x", "x", "y"))
 #' hg_subset(hg, where = c(kind = "y"))
 #' @export
 hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,

@@ -7,36 +7,70 @@
 \usage{
 hypergraph_snapshots(
   x,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
+  mode = c("active", "cumulative"),
   at = NULL,
-  mode = c("active", "cumulative", "all"),
   multiedges = TRUE
 )
 
 hg_snapshots(
   x,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
+  mode = c("active", "cumulative"),
   at = NULL,
-  mode = c("active", "cumulative", "all"),
   multiedges = TRUE
 )
 }
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{at}{Time values. \code{NULL} uses every event time stored by the temporal
-hypergraph.}
+\item{start, end}{Bounds of the measured period, as numbers on the
+hypergraph's clock or dates for a calendar hypergraph. Default: the
+observation window.}
 
-\item{mode}{\code{"active"} applies the object's growing or interval contract;
-\code{"cumulative"} retains every edge begun by \code{at}; \code{"all"} ignores time
-and returns the static aggregate.}
+\item{step}{How often to measure, in the hypergraph's time unit. \code{NULL}
+(default) measures at every event time.}
+
+\item{window}{How much time each measurement covers. Defaults to \code{step}
+when a step is given (a partition of the period) and to \code{0} otherwise
+(a point sample); larger than \code{step} gives a rolling window; \code{"all"}
+measures the whole period as one window.}
+
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
+former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
+
+\item{at}{Instants to measure instead of a grid; may be a vector.}
 
 \item{multiedges}{Keep distinct edge identities with identical member sets?
 \code{TRUE} matches a multi-hypergraph; \code{FALSE} collapses them to one edge and
-records their counts in \verb{$edge_multiplicity}.}
+records their counts in \code{edge_multiplicity}.}
 }
 \value{
 A named list of \code{net_hypergraph} objects with class
-\code{net_hypergraph_snapshots}.
+\code{net_hypergraph_snapshots}, named by the window starts on the
+hypergraph's clock.
 }
 \description{
-Extract a sequence of temporal-hypergraph snapshots
+Snapshots on a measurement grid with Dynet's meaning: \code{start} and \code{end}
+bound the measured period (default: the observation window), \code{step} is
+how often to look, \code{window} how much time each look covers, and \code{at}
+names instants directly. Without \code{step} and \code{at}, the grid is the event
+times of the hypergraph, each looked at as a point.
+}
+\examples{
+seats <- data.frame(
+  case = rep(c("A", "B", "C"), each = 3),
+  arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
+  constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
+)
+thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
+                           start = "constituted", end = "concluded")
+yearly <- hypergraph_snapshots(thg, step = 2)
+names(yearly)
 }

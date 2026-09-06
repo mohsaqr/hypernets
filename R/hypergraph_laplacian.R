@@ -70,7 +70,7 @@
 #'               "m4", "m4"),
 #'   hours = c(2, 1, 1, 3, 2, 1, 2, 2, 4, 1, 1)
 #' )
-#' hg <- group_hypergraph(events, member = "person", group = "meeting",
+#' hg <- group_hypergraph(events, actor = "person", group = "meeting",
 #'                        weight = "hours")
 #' L <- hypergraph_laplacian(hg, type = "random_walk")
 #' range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
@@ -146,7 +146,7 @@ hypergraph_laplacian <- function(hg,
 #'   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
 #'               "m4", "m4", "m4", "m5", "m5")
 #' )
-#' hg <- group_hypergraph(events, member = "person", group = "meeting")
+#' hg <- group_hypergraph(events, actor = "person", group = "meeting")
 #' cl <- hypergraph_cluster(hg, k = 2, seed = 1)
 #' cl
 #' as.data.frame(cl)
@@ -297,7 +297,7 @@ hypergraph_cluster <- function(hg, k,
 #'   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
 #'               "m4", "m4", "m4", "m5", "m5")
 #' )
-#' hg <- group_hypergraph(events, member = "person", group = "meeting")
+#' hg <- group_hypergraph(events, actor = "person", group = "meeting")
 #' tr <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"))
 #' tr
 #' as.data.frame(tr)

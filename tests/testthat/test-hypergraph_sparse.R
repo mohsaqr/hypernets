@@ -26,7 +26,9 @@ test_that("sparse construction reproduces the dense incidence exactly", {
       expect_identical(hg$sparse$nodes, hg$dense$nodes)
       expect_identical(hg$sparse$size_distribution,
                        hg$dense$size_distribution)
-      expect_identical(as.data.frame(hg$sparse), as.data.frame(hg$dense))
+      sparse_table <- as.data.frame(hg$sparse)
+      dense_table <- as.data.frame(hg$dense)
+      expect_identical(sparse_table, dense_table)
     }
   }
 })
@@ -34,26 +36,24 @@ test_that("sparse construction reproduces the dense incidence exactly", {
 test_that("sparse measures match the dense engine", {
   hg <- both(weight = "tfidf")
   for (what in c("nodes", "edges", "summary", "overlap")) {
-    expect_equal(hg_measures(hg$sparse, what = what),
-                 hg_measures(hg$dense, what = what),
-                 tolerance = 1e-12)
+    sparse_measures <- hg_measures(hg$sparse, what = what)
+    dense_measures <- hg_measures(hg$dense, what = what)
+    expect_equal(sparse_measures, dense_measures, tolerance = 1e-12)
   }
 })
 
 test_that("sparse pagerank matches dense to machine precision", {
   hg <- both(weight = "tfidf")
   for (d in c(0.85, 1)) {
-    expect_equal(
-      hg_pagerank(hg$sparse, damping = d, tol = 1e-14, max_iter = 20000L),
-      hg_pagerank(hg$dense, damping = d, tol = 1e-14, max_iter = 20000L),
-      tolerance = 1e-10
-    )
+    sparse_pr <- hg_pagerank(hg$sparse, damping = d, tol = 1e-14,
+                             max_iter = 20000L)
+    dense_pr <- hg_pagerank(hg$dense, damping = d, tol = 1e-14,
+                            max_iter = 20000L)
+    expect_equal(sparse_pr, dense_pr, tolerance = 1e-10)
   }
-  expect_equal(
-    hg_pagerank(hg$sparse, personalized = c(cooking_1 = 1)),
-    hg_pagerank(hg$dense, personalized = c(cooking_1 = 1)),
-    tolerance = 1e-10
-  )
+  sparse_personalized <- hg_pagerank(hg$sparse, personalized = c(cooking_1 = 1))
+  dense_personalized <- hg_pagerank(hg$dense, personalized = c(cooking_1 = 1))
+  expect_equal(sparse_personalized, dense_personalized, tolerance = 1e-10)
 })
 
 test_that("sparse transduction (CG) matches the dense closed form", {
@@ -88,10 +88,10 @@ test_that("sparse clustering recovers the same planted partition", {
                 "m4", "m4", "m4", "m5", "m5"),
     w = 1
   )
-  dense_hg <- group_hypergraph(events, member = "person",
+  dense_hg <- group_hypergraph(events, actor = "person",
                                           group = "meeting", weight = "w")
   sparse_hg <- honets:::.thg_sparse_bipartite(
-    events, member = "person", group = "meeting", weight = "w"
+    events, actor = "person", group = "meeting", weight = "w"
   )
   dense_cl <- hg_cluster(dense_hg, k = 2, seed = 1)
   sparse_cl <- hg_cluster(sparse_hg, k = 2, seed = 1)
@@ -127,7 +127,7 @@ test_that("unsupported sparse paths refuse with classed errors", {
   big_long <- data.frame(v = rep(c("x", "y"), each = 2100),
                          e = paste0("e", c(seq_len(2100), seq_len(2100))),
                          w = 1)
-  big <- honets:::.thg_sparse_bipartite(big_long, member = "v",
+  big <- honets:::.thg_sparse_bipartite(big_long, actor = "v",
                                                 group = "e", weight = "w")
   expect_error(hg_measures(big, what = "overlap"),
                class = "honets_sparse_too_large")

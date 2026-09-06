@@ -10,7 +10,8 @@
 
 # Sparse bipartite constructor mirroring group_hypergraph():
 # sorted vertex/edge names, summed weights, same top-level fields.
-.thg_sparse_bipartite <- function(long, member, group, weight) {
+.thg_sparse_bipartite <- function(long, actor, group, weight) {
+  member <- actor
   vertices <- sort(unique(long[[member]]))
   edges <- sort(unique(long[[group]]))
   incidence <- Matrix::sparseMatrix(

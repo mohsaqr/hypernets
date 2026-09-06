@@ -7,14 +7,14 @@
 group_hypergraph(
   data,
   actor = NULL,
-  cooccur_by = NULL,
+  group = NULL,
   weight = NULL,
   nodes = NULL,
   sparse = FALSE,
   from = NULL,
   to = NULL,
   member = NULL,
-  group = NULL
+  cooccur_by = NULL
 )
 }
 \arguments{
@@ -24,8 +24,12 @@ edge.}
 \item{actor}{Character. Name of the column whose values become the
 hypergraph's nodes (members, participants, actors).}
 
-\item{cooccur_by}{Character. Name of the column whose shared values bind
-actors into one hyperedge (groups, sessions, teams).}
+\item{group}{Character. Name of the column whose shared values bind
+actors into one hyperedge (groups, sessions, teams) -- Dynet's
+co-presence vocabulary. When neither pair of columns is named, \code{from}
+and \code{to} are detected case-insensitively from the alias table
+\code{\link[=temporal_hypergraph]{temporal_hypergraph()}} uses (\code{source}/\code{target}, \code{sender}/\code{receiver},
+...), and failing that \code{actor} and \code{group}.}
 
 \item{weight}{Character or \code{NULL}. If supplied, the column is summed per
 \verb{(actor, hyperedge)} pair to produce a weighted incidence matrix. Default
@@ -42,20 +46,21 @@ large, sparse event data such as the full GFCC citation-block corpus.}
 \item{from, to}{Column names of a pairwise edge list, as an alternative to
 \code{actor} and \code{cooccur_by}.}
 
-\item{member, group}{Former names of \code{actor} and \code{cooccur_by}; still
-accepted.}
+\item{member, cooccur_by}{Deprecated names of \code{actor} and \code{group}; using
+them warns with a \code{honets_deprecated} condition.}
 }
 \value{
 A \code{net_hypergraph} object with the same structure produced by
 \code{\link[=build_hypergraph]{build_hypergraph()}} (\code{hyperedges}, \code{incidence}, \code{nodes}, \code{n_nodes},
-\code{n_hyperedges}, \code{size_distribution}, \code{params}). The \code{params} list
+\code{n_hyperedges}, \code{size_distribution}, \code{params}), plus \code{edge_data} when
+\code{data} carries hyperedge attributes (see Details). The \code{params} list
 records \code{source = "group_hypergraph"} and the original column names.
 }
 \description{
 Constructs a \link[=build_hypergraph]{net_hypergraph} the way a network is
-defined from data. \strong{Co-occurrence data} name an \code{actor} and the column
-it co-occurs \code{by}: every actor sharing one value of \code{cooccur_by} (a
-session, a team, a citation block) belongs to one hyperedge. An \strong{edge
+defined from data. \strong{Co-presence data} name an \code{actor} and a \code{group}:
+every actor sharing one value of \code{group} (a session, a team, a citation
+block) belongs to one hyperedge. An \strong{edge
 list} names \code{from} and \code{to}, and every row is a hyperedge of size two.
 An optional \code{weight} column produces a weighted incidence matrix.
 }
@@ -78,6 +83,13 @@ observed and triadic structure must be inferred from triangles.
 
 Rows with \code{NA} in the actor, hyperedge or weight column are dropped
 silently.
+
+Every other column of \code{data} that is constant within a hyperedge (a
+session's date, a team's department) is kept as a hyperedge attribute in
+the result's \code{edge_data} table, one row per hyperedge, where
+\code{\link[=hg_subset]{hg_subset()}}'s \code{where} argument and \code{\link[=hg_project]{hg_project()}}'s \code{edge_source} can
+use it. Columns that vary within a hyperedge describe memberships, not
+hyperedges, and are left out.
 }
 \note{
 Dense and sparse paths are tested for exact equality. The sparse
@@ -92,7 +104,7 @@ df <- data.frame(
   session = c("S1", "S1", "S1", "S2", "S2",
               "S3", "S3", "S3", "S3")
 )
-hg <- group_hypergraph(df, actor = "person", cooccur_by = "session")
+hg <- group_hypergraph(df, actor = "person", group = "session")
 print(hg)
 summary(hg)
 

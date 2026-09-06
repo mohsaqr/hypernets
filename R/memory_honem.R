@@ -124,7 +124,8 @@
 #'
 #' @examples
 #' seqs <- list(c("A","B","C","D"), c("A","B","C","A"), c("B","C","D","A"))
-#' hem <- build_honem(build_hon(seqs, max_order = 2), dim = 2)
+#' hon_2 <- build_hon(seqs, max_order = 2)
+#' hem <- build_honem(hon_2, dim = 2)
 #'
 #' \donttest{
 #' trajs <- list(c("A","B","C","D"), c("A","B","D","C"),
@@ -196,7 +197,8 @@ build_honem <- function(hon, dim = 32L, max_power = 10L) {
 #'
 #' @examples
 #' seqs <- list(c("A","B","C","D"), c("A","B","C","A"), c("B","C","D","A"))
-#' hem <- build_honem(build_hon(seqs, max_order = 2), dim = 2)
+#' hon_2 <- build_hon(seqs, max_order = 2)
+#' hem <- build_honem(hon_2, dim = 2)
 #' print(hem)
 #'
 #' \donttest{
@@ -234,7 +236,8 @@ print.net_honem <- function(x, ...) {
 #'   else; assign the result to keep the table.
 #' @examples
 #' seqs <- list(c("A","B","C","D"), c("A","B","C","A"), c("B","C","D","A"))
-#' hem <- build_honem(build_hon(seqs, max_order = 2), dim = 2)
+#' hon_2 <- build_hon(seqs, max_order = 2)
+#' hem <- build_honem(hon_2, dim = 2)
 #' summary(hem)
 #'
 #' \donttest{
@@ -275,7 +278,8 @@ summary.net_honem <- function(object, ...) {
 #'
 #' @examples
 #' seqs <- list(c("A","B","C","D"), c("A","B","C","A"), c("B","C","D","A"))
-#' hem <- build_honem(build_hon(seqs, max_order = 2), dim = 2)
+#' hon_2 <- build_hon(seqs, max_order = 2)
+#' hem <- build_honem(hon_2, dim = 2)
 #' plot(hem)
 #'
 #' \donttest{

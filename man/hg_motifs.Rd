@@ -13,8 +13,12 @@ hg_motifs(
   seed = NULL,
   what = c("test", "counts", "draws"),
   alternative = c("two_sided", "greater", "less"),
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 
@@ -24,8 +28,12 @@ hypergraph_motifs(
   seed = NULL,
   what = c("test", "counts", "draws"),
   alternative = c("two_sided", "greater", "less"),
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 
@@ -52,7 +60,11 @@ counts only, or \code{"draws"} for every null count.}
 
 \item{alternative}{Empirical permutation-test direction.}
 
-\item{at, snapshot_mode, multiedges}{Temporal snapshot arguments passed to
+\item{start, end, step, window, at}{Measurement grid passed to
+\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+
+\item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
+\code{"cumulative"}) and multi-edge handling passed to
 \code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
 
 \item{x}{A \code{honets_motifs} test table.}

@@ -8,33 +8,45 @@
 hypergraph_snapshot(
   x,
   at = NULL,
-  mode = c("active", "cumulative", "all"),
+  window = 0,
+  mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 
 hg_snapshot(
   x,
   at = NULL,
-  mode = c("active", "cumulative", "all"),
+  window = 0,
+  mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 }
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{at}{One time value. Not used for \code{mode = "all"}.}
+\item{at}{One time value, as a number on the hypergraph's clock or a date
+for a calendar hypergraph. \code{NULL} (default) is the end of observation.}
 
-\item{mode}{\code{"active"} applies the object's growing or interval contract;
-\code{"cumulative"} retains every edge begun by \code{at}; \code{"all"} ignores time
-and returns the static aggregate.}
+\item{window}{How much time the snapshot covers, in the hypergraph's time
+unit: \code{0} (default) evaluates the instant \code{at}; a positive width covers
+\verb{[at, at + window)}; \code{"all"} covers the whole observation period.}
+
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
+former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
 
 \item{multiedges}{Keep distinct edge identities with identical member sets?
 \code{TRUE} matches a multi-hypergraph; \code{FALSE} collapses them to one edge and
-records their counts in \verb{$edge_multiplicity}.}
+records their counts in \code{edge_multiplicity}.}
 }
 \value{
-A static \code{net_hypergraph} usable by every honets hypergraph verb.
+A static \code{net_hypergraph} usable by every honets hypergraph verb;
+its \code{params} record \code{at}, \code{window}, \code{temporal_mode} and the clock.
 }
 \description{
-Extract one snapshot from a temporal hypergraph
+A snapshot is a static \code{net_hypergraph} holding the hyperedges a window
+measures. \code{mode = "active"} follows the format: an interval hyperedge is
+active on its closed interval, a contact hyperedge at its instant.
+\code{mode = "cumulative"} keeps every hyperedge begun by the end of the
+window, the growing view of a contact log; with \code{at} unset it is the
+static aggregate of everything observed.
 }

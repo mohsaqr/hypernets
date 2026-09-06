@@ -7,7 +7,7 @@
 \method{plot}{net_temporal_hypergraph}(
   x,
   at = NULL,
-  mode = c("active", "cumulative", "all"),
+  mode = c("active", "cumulative"),
   method = c("association", "clique"),
   ...
 )
@@ -15,11 +15,11 @@
 \arguments{
 \item{x}{A \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
-\item{at}{Snapshot time; defaults to the latest event time.}
+\item{at}{Snapshot time; defaults to the end of observation.}
 
 \item{mode}{Snapshot mode passed to \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}}.}
 
-\item{method}{Projection weighting passed to \code{\link[=hypergraph_project]{hypergraph_project()}}.}
+\item{method}{Projection weighting passed to \code{\link[=hg_project]{hg_project()}}.}
 
 \item{...}{Additional arguments passed to \code{\link[cograph:splot]{cograph::splot()}}.}
 }

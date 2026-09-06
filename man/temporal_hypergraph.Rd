@@ -9,68 +9,118 @@ temporal_hypergraph(
   from = NULL,
   to = NULL,
   actor = NULL,
-  cooccur_by = NULL,
+  group = NULL,
   time = NULL,
   start = NULL,
   end = NULL,
   weight = NULL,
   nodes = NULL,
-  sparse = FALSE
+  time_unit = "auto",
+  observation_start = NULL,
+  observation_end = NULL,
+  sparse = FALSE,
+  cooccur_by = NULL
 )
 }
 \arguments{
 \item{data}{A data frame with one row per relation.}
 
-\item{from, to}{Column names of a pairwise edge list.}
+\item{from, to}{Column names of a pairwise edge list. Detected from the
+alias table when neither is given and \code{actor}/\code{group} are not named.}
 
-\item{actor, cooccur_by}{Column names of co-occurrence data: the node, and
-the grouping whose shared values bind nodes into one hyperedge.}
+\item{actor, group}{Column names of co-presence data: the node, and the
+grouping whose shared values bind nodes into one hyperedge. Naming
+either selects the co-presence format; the other is then detected by
+alias if not given.}
 
-\item{time}{Column with the time a hyperedge appears (growing evolution).}
+\item{time}{Column with the instant of a contact hyperedge.}
 
-\item{start, end}{Columns with the interval on which a hyperedge is active
-(interval evolution). \code{start} alone is the same as \code{time}.}
+\item{start, end}{Columns with the interval on which a hyperedge is active.
+\code{start} without an \code{end} column is read as a contact clock.}
 
 \item{weight}{Optional membership-weight column.}
 
 \item{nodes}{Optional node universe: a character vector of node names, or
 a data frame whose first column holds the names and whose \code{start},
-\code{time} or \code{date} column, if present, gives the time each node enters. Nodes that
-never appear in a hyperedge are then kept as zero-degree nodes of every
-snapshot, and \code{\link[=hg_growth]{hg_growth()}} counts a node from its own start. Every
-observed node must be in the universe.}
+\code{time} or \code{date} column, if present, gives the time each node enters (on
+the same clock as \code{data}). Nodes that never appear in a hyperedge are
+then kept as zero-degree nodes of every snapshot, and \code{\link[=hg_growth]{hg_growth()}}
+counts a node from its own start. Every observed node must be in the
+universe.}
+
+\item{time_unit}{Unit for calendar times: \code{"auto"} (default),
+\code{"seconds"}, \code{"minutes"}, \code{"hours"}, \code{"days"} or \code{"weeks"}. Numeric
+times are left alone and reported as \code{"step"}.}
+
+\item{observation_start, observation_end}{Optional bounds of the
+observation window, as numbers on the stored clock or as dates for a
+calendar hypergraph. Either may be omitted; the corresponding limit of
+the data is then used.}
 
 \item{sparse}{Store every snapshot's incidence as a sparse \code{Matrix}?
 Default \code{FALSE}.}
+
+\item{cooccur_by}{Deprecated name of \code{group}; using it warns with a
+\code{honets_deprecated} condition.}
 }
 \value{
 A \code{net_temporal_hypergraph} holding the membership table (\code{node},
 \code{edge}, \code{start}, \code{end}, \code{weight}), the edge metadata (\code{edge}, \code{start},
 \code{end} and the hyperedge attributes), the node universe with entry
-times, the sorted event times, and \code{evolution} (\code{"growing"} or
-\code{"interval"}).
+times, the sorted event times, \code{format} (\code{"interval"} or \code{"contact"}),
+\code{time_unit}, \code{origin} and the \code{observation} bounds. \code{as.data.frame(x, what = "memberships" | "edges" | "nodes")} returns the three tables;
+\code{summary()} the one-row description.
 }
 \description{
-Builds a temporal hypergraph the way a network is defined from data: one
-row per relation, with the columns that name its ends and its time. Two
-input shapes are accepted. An \strong{edge list} names \code{from} and \code{to}, and
-every row is a hyperedge of size two, so an ordinary temporal network is
-the same object. \strong{Co-occurrence data} name an \code{actor} and the column it
-co-occurs \code{by}: every actor sharing one value of \code{cooccur_by} (a case, a
-citation block, a session) belongs to one hyperedge. The clock is either
-a single \code{time}, after which a hyperedge stays present (a growing
-hypergraph, the point-aggregation model of Coupette et al. 2024), or a
-\code{start} and an \code{end}, between which it is active (the interval-event
-model). A missing \code{end} means the hyperedge stays active through the end
-of observation.
+Builds a temporal hypergraph the way a temporal network is defined from
+data in this ecosystem (Dynet's \code{dynet()}): one row per relation, with the
+columns that name its ends and its clock. Two input shapes are accepted.
+An \strong{edge list} names \code{from} and \code{to}, and every row is a hyperedge of
+size two, so an ordinary temporal network is the same object.
+\strong{Co-presence data} name an \code{actor} and a \code{group}: every actor sharing one
+value of \code{group} (a case, a citation block, a seminar) belongs to one
+hyperedge. Two clocks are understood, and the one you name selects the
+format:
 }
 \details{
+\describe{
+\item{interval}{\code{start} and \code{end}: the hyperedge is active on the closed
+interval between them. A missing \code{end} means it stays active through
+the end of observation.}
+\item{contact}{\code{time}: the hyperedge is an instantaneous event, as in a
+contact log -- a citation, a message, a meeting on one day. It is
+present at that instant only. The cumulative view in which every
+hyperedge stays once it has appeared (the point-aggregation model of
+Coupette et al. 2024) is a snapshot \code{mode}, not a property of the
+data: ask for it with \code{mode = "cumulative"} in \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}},
+\code{\link[=hg_growth]{hg_growth()}} and \code{\link[=hg_edges]{hg_edges()}}.}
+}
+
+Column names are resolved case-insensitively from the same alias table
+Dynet uses, so \code{Sender}/\code{Receiver}, \code{source}/\code{target}, \code{onset}/\code{terminus}
+and \code{timestamp} are understood without being spelled out; a name you give
+explicitly must exist as written. Times may be numeric, \code{Date}, \code{POSIXct}
+or character date-time strings. Numeric times are kept as they are and
+reported in \code{"step"} units; calendar input is converted to elapsed time
+since the earliest time in the data, in a unit chosen for the span
+(\code{"days"} beyond three days) or given as \code{time_unit}, and the unit and
+origin are stored in the object and shown by \code{print()}. Every time you
+pass later -- \code{at}, \code{start}, \code{end}, the observation bounds -- may be a
+date for a calendar hypergraph or a number on that clock, and every
+\code{time} column in a result is on that clock.
+
+\code{observation_start} and \code{observation_end} declare the study window when it
+is known independently of the log, with Dynet's meaning: they bound the
+snapshot times and the measurement grid, and an open-ended hyperedge is
+active through \code{observation_end}, but the stored memberships are never
+rewritten and \code{as.data.frame()} returns the original spells. Without them
+the window is the span of the data.
+
 Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where \code{plot()} can colour by it
-and where a \code{source} column names the decision a citation block belongs
-to, as \code{\link[=hg_project]{hg_project()}} needs for self-association. Columns that vary
-within a hyperedge, such as the seat an arbitrator held, are not
-attributes of the hyperedge and are left out.
+and where \code{\link[=hg_project]{hg_project()}} finds the source a citation block belongs to.
+Columns that vary within a hyperedge, such as the seat an arbitrator held,
+are not attributes of the hyperedge and are left out.
 }
 \examples{
 seats <- data.frame(
@@ -79,13 +129,18 @@ seats <- data.frame(
   constituted = c(1, 1, 1, 2, 2, 2), concluded = c(4, 4, 4, 5, 5, 5),
   sector = c("oil", "oil", "oil", "gas", "gas", "gas")
 )
-thg <- temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                            start = "constituted", end = "concluded")
+thg
 hypergraph_snapshot(thg, at = 3)
 
+# a contact log on a calendar: instants at each date, cumulative on request
 contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
-                       time = 1:3)
-temporal_hypergraph(contacts, from = "from", to = "to", time = "time")
+                       date = as.Date(c("2024-01-01", "2024-01-05", "2024-01-09")))
+calls <- temporal_hypergraph(contacts, from = "from", to = "to", time = "date")
+calls
+hypergraph_snapshot(calls, at = as.Date("2024-01-05"))
+hypergraph_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

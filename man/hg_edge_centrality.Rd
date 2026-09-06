@@ -11,8 +11,12 @@ hg_edge_centrality(
   measure = c("betweenness", "closeness"),
   normalized = TRUE,
   top = NULL,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 
@@ -22,8 +26,12 @@ hypergraph_edge_centrality(
   measure = c("betweenness", "closeness"),
   normalized = TRUE,
   top = NULL,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 }
@@ -41,7 +49,11 @@ the Wasserman--Faust correction for disconnected line graphs.}
 \item{top}{Optional number of highest-scoring hyperedges to retain per
 \verb{(time, s, measure)} group.}
 
-\item{at, snapshot_mode, multiedges}{Temporal snapshot arguments passed to
+\item{start, end, step, window, at}{Measurement grid passed to
+\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+
+\item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
+\code{"cumulative"}) and multi-edge handling passed to
 \code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
 }
 \value{

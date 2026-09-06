@@ -5,35 +5,37 @@
 
 #' Growth of a temporal hypergraph over time
 #'
-#' Counts, at every event time, the nodes and hyperedges present in the
+#' Counts, on a measurement grid, the nodes and hyperedges present in the
 #' temporal hypergraph: the descriptive time series of Coupette et al.
 #' (2024, Figures 4a and 5b). Hyperedges are counted twice, as they are
 #' (`n_edges`, the multi-hypergraph) and as distinct member sets
 #' (`n_edges_distinct`, the binary hypergraph), so the two representations of
 #' the paper's Table 2 can be read against each other over time.
 #'
-#' For `evolution = "growing"` every count is cumulative. Nodes enter at
-#' their own start time when the constructor received a node table with a
-#' `start` column, and otherwise at the start of the first hyperedge that
-#' contains them. For `evolution = "interval"` the counts describe the
-#' hyperedges active at each time, and the `_cumulative` columns the
-#' hyperedges begun by then, the static aggregate that a point-aggregation
-#' model would report.
+#' `mode = "active"` counts what each window measures -- an interval
+#' hyperedge active in it, a contact hyperedge occurring in it -- and adds
+#' the `_cumulative` columns, the hyperedges begun by the end of the window,
+#' the static aggregate that a point-aggregation model would report.
+#' `mode = "cumulative"` reports only that growing view, and then counts a
+#' node from its own entry time when the constructor received a node table
+#' with a `start` column, otherwise from the first hyperedge that contains
+#' it.
 #'
+#' @inheritParams hypergraph_snapshots
 #' @param x A [temporal_hypergraph()].
-#' @param at Time values to evaluate. `NULL` (default) uses every event time
-#'   of the temporal hypergraph.
-#' @param components Also report the connectivity of the active hypergraph at
-#'   each time: the number of connected components, the share of active nodes
+#' @param components Also report the connectivity of the measured hypergraph
+#'   at each time: the number of connected components, the share of its nodes
 #'   in the largest, and its diameter (longest shortest path between two
 #'   nodes sharing a chain of hyperedges)? Default `FALSE`; the computation
 #'   is a breadth-first search per node and time.
-#' @return A base data.frame of class `honets_series`, one row per time, with
-#'   `time`, `n_nodes`, `n_edges`, `n_edges_distinct`, `n_memberships`, and
-#'   for interval evolution also `n_nodes_cumulative`, `n_edges_cumulative`
-#'   and `n_edges_distinct_cumulative`. With `components = TRUE`, further
+#' @return A base data.frame of class `honets_series`, one row per window,
+#'   with `time` (the window start on the hypergraph's clock), `n_nodes`,
+#'   `n_edges`, `n_edges_distinct`, `n_memberships`, and for
+#'   `mode = "active"` also `n_nodes_cumulative`, `n_edges_cumulative` and
+#'   `n_edges_distinct_cumulative`. With `components = TRUE`, further
 #'   `n_components`, `largest_component` (share of active nodes) and
-#'   `diameter`. `plot()` draws each count against time.
+#'   `diameter`. `plot()` draws each count against time, on the calendar
+#'   when the hypergraph has one.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -43,23 +45,25 @@
 #'   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
 #'   constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
 #' )
-#' thg <- temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+#' thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
 #'                            start = "constituted", end = "concluded")
 #' growth <- hg_growth(thg)
 #' growth
 #' plot(growth)
+#' # a regular grid: every two steps, each window two steps wide
+#' hg_growth(thg, step = 2)
 #' @export
-hg_growth <- function(x, at = NULL, components = FALSE) {
-  if (!inherits(x, "net_temporal_hypergraph")) {
-    .thg_bad_input("`x` must come from temporal_hypergraph()")
-  }
+hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
+                      at = NULL, mode = c("active", "cumulative"),
+                      components = FALSE) {
+  .thg_check_temporal(x)
+  mode <- .thg_check_mode(mode, "hg_growth")
   stopifnot(
     "`components` must be TRUE or FALSE" =
       is.logical(components) && length(components) == 1L && !is.na(components)
   )
-  at <- at %||% x$times
-  if (length(at) == 0L || anyNA(at)) .thg_bad_input("`at` contains no valid times")
-  at <- sort(unique(at))
+  grid <- .thg_grid(x, start, end, step, window, at)
+  at <- grid$times
   ed <- x$edge_data
   mem <- x$memberships
   edge_index <- match(mem$edge, ed$edge)
@@ -75,27 +79,34 @@ hg_growth <- function(x, at = NULL, components = FALSE) {
     given <- !is.na(x$node_data$start)
     node_start[given] <- x$node_data$start[given]
   }
+  count <- function(keep) {
+    c(n_nodes = length(unique(mem$member[keep[edge_index]])),
+      n_edges = sum(keep),
+      n_edges_distinct = length(unique(signature[keep])),
+      n_memberships = sum(size[keep]))
+  }
+  window_end <- function(t) t + grid$window
 
-  if (identical(x$evolution, "growing")) {
+  if (identical(mode, "cumulative")) {
     start_first_signature <- tapply(ed$start, signature, min)
+    begun <- t(vapply(at, function(t) {
+      count(.thg_edges_in_window(x, t, grid$window, "cumulative", grid$closed))
+    }, numeric(4L)))
     counts <- data.frame(
       time = at,
-      n_nodes = vapply(at, function(t) sum(node_start <= t, na.rm = TRUE), numeric(1L)),
-      n_edges = vapply(at, function(t) sum(ed$start <= t), numeric(1L)),
-      n_edges_distinct = vapply(at, function(t) sum(start_first_signature <= t), numeric(1L)),
-      n_memberships = vapply(at, function(t) sum(size[ed$start <= t]), numeric(1L))
+      n_nodes = vapply(at, function(t) sum(node_start <= window_end(t), na.rm = TRUE),
+                       numeric(1L)),
+      n_edges = begun[, "n_edges"],
+      n_edges_distinct = begun[, "n_edges_distinct"],
+      n_memberships = begun[, "n_memberships"]
     )
   } else {
-    active_at <- function(t) ed$start <= t & (is.na(ed$end) | ed$end >= t)
-    begun_at <- function(t) ed$start <= t
-    count <- function(keep) {
-      c(n_nodes = length(unique(mem$member[keep[edge_index]])),
-        n_edges = sum(keep),
-        n_edges_distinct = length(unique(signature[keep])),
-        n_memberships = sum(size[keep]))
-    }
-    active <- t(vapply(at, function(t) count(active_at(t)), numeric(4L)))
-    begun <- t(vapply(at, function(t) count(begun_at(t)), numeric(4L)))
+    active <- t(vapply(at, function(t) {
+      count(.thg_edges_in_window(x, t, grid$window, "active", grid$closed))
+    }, numeric(4L)))
+    begun <- t(vapply(at, function(t) {
+      count(.thg_edges_in_window(x, t, grid$window, "cumulative", grid$closed))
+    }, numeric(4L)))
     counts <- data.frame(
       time = at,
       n_nodes = active[, "n_nodes"], n_edges = active[, "n_edges"],
@@ -111,7 +122,7 @@ hg_growth <- function(x, at = NULL, components = FALSE) {
 
   if (components) {
     connectivity <- t(vapply(at, function(t) {
-      snap <- hypergraph_snapshot(x, at = t, mode = "active")
+      snap <- .thg_snapshot_at(x, t, grid$window, mode, TRUE, grid$closed)
       .thg_connectivity(snap)
     }, numeric(3L)))
     counts$n_components <- as.integer(connectivity[, 1L])
@@ -119,8 +130,16 @@ hg_growth <- function(x, at = NULL, components = FALSE) {
     counts$diameter <- as.integer(connectivity[, 3L])
   }
   rownames(counts) <- NULL
-  class(counts) <- c("honets_series", "data.frame")
-  counts
+  .thg_series(counts, x)
+}
+
+# A series or distribution table remembers the clock it was measured on, so
+# its plot can label the axis with dates.
+.thg_series <- function(out, x, class = "honets_series") {
+  class(out) <- c(class, "data.frame")
+  attr(out, "time_unit") <- x$time_unit
+  attr(out, "origin") <- x$origin
+  out
 }
 
 #' @rdname hg_growth
@@ -239,8 +258,15 @@ plot.honets_series <- function(x, columns = NULL, facets = TRUE, ...) {
     .thg_bad_input(sprintf("unknown series column(s): %s",
                            paste(unknown, collapse = ", ")))
   }
+  origin <- attr(x, "origin")
+  time_unit <- attr(x, "time_unit")
+  axis_time <- if (!is.null(origin) && inherits(origin, "POSIXt")) {
+    .thg_calendar(d$time, origin, time_unit)
+  } else {
+    d$time
+  }
   long <- do.call(rbind, lapply(columns, function(column) {
-    data.frame(time = d$time, measure = column, value = as.numeric(d[[column]]),
+    data.frame(time = axis_time, measure = column, value = as.numeric(d[[column]]),
                stringsAsFactors = FALSE)
   }))
   long$measure <- factor(long$measure, levels = columns)
@@ -255,7 +281,10 @@ plot.honets_series <- function(x, columns = NULL, facets = TRUE, ...) {
                                                       "twodash"),
                                                     length(columns)),
                                    name = NULL) +
-    ggplot2::labs(x = "time", y = NULL) +
+    ggplot2::labs(x = if (!is.null(origin) && inherits(origin, "POSIXt")) "date" else
+                    if (is.null(time_unit) || identical(time_unit, "step")) "time" else
+                      time_unit,
+                  y = NULL) +
     ggplot2::theme_minimal(base_size = 12)
   if (isTRUE(facets)) {
     p + ggplot2::facet_wrap(~ measure, scales = "free_y") +

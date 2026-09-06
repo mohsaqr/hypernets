@@ -15,7 +15,7 @@
 # Structure ----------------------------------------------------------------
 
 test_that("returns a net_hypergraph with required fields", {
-  hg <- group_hypergraph(.bg_sample_data(), member = "member", group = "session")
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   expect_s3_class(hg, "net_hypergraph")
   expect_named(hg, c("hyperedges", "incidence", "nodes", "n_nodes",
                      "n_hyperedges", "size_distribution", "params"))
@@ -27,7 +27,7 @@ test_that("returns a net_hypergraph with required fields", {
 # Hyperedge content --------------------------------------------------------
 
 test_that("each group becomes a hyperedge spanning its members", {
-  hg <- group_hypergraph(.bg_sample_data(), member = "member", group = "session")
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   # Map back: hyperedges are integer indices into hg$nodes
   members_by_session <- lapply(hg$hyperedges, function(idx) sort(hg$nodes[idx]))
   names(members_by_session) <- colnames(hg$incidence)
@@ -39,7 +39,7 @@ test_that("each group becomes a hyperedge spanning its members", {
 # Incidence matrix ---------------------------------------------------------
 
 test_that("incidence is binary by default with correct dimensions and sums", {
-  hg <- group_hypergraph(.bg_sample_data(), member = "member", group = "session")
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   expect_equal(dim(hg$incidence), c(5L, 3L))
   expect_true(all(hg$incidence %in% c(0L, 1L)))
   # column sums = group sizes
@@ -52,7 +52,7 @@ test_that("incidence is binary by default with correct dimensions and sums", {
 # Size distribution --------------------------------------------------------
 
 test_that("size_distribution counts hyperedges by size", {
-  hg <- group_hypergraph(.bg_sample_data(), member = "member", group = "session")
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   expect_equal(hg$size_distribution[["size_2"]], 1L)
   expect_equal(hg$size_distribution[["size_3"]], 2L)
 })
@@ -66,7 +66,7 @@ test_that("weight column produces weighted incidence (sum per cell)", {
     n      = c(2, 5, 3, 1, 4),
     stringsAsFactors = FALSE
   )
-  hg <- group_hypergraph(d, member = "member", group = "grp", weight = "n")
+  hg <- group_hypergraph(d, actor = "member", group = "grp", weight = "n")
   # A in g1: 2 + 3 = 5; B in g1: 5; A in g2: 1; B in g2: 4
   expect_equal(hg$incidence["A", "g1"], 5)
   expect_equal(hg$incidence["B", "g1"], 5)
@@ -84,7 +84,7 @@ test_that("rows with NA in member or group are dropped silently", {
     grp    = c("g1", "g1", "g1", NA,  "g2"),
     stringsAsFactors = FALSE
   )
-  hg <- group_hypergraph(d, member = "member", group = "grp")
+  hg <- group_hypergraph(d, actor = "member", group = "grp")
   expect_equal(hg$n_nodes, 3L)         # A, B, D (C dropped because group NA)
   expect_setequal(hg$nodes, c("A", "B", "D"))
   expect_equal(hg$n_hyperedges, 2L)    # g1, g2
@@ -157,12 +157,12 @@ test_that("sparse group incidence is identical to dense incidence", {
 
 test_that("missing member column raises error", {
   d <- data.frame(member = c("A"), grp = c("g1"), stringsAsFactors = FALSE)
-  expect_error(group_hypergraph(d, member = "playor", group = "grp"))
+  expect_error(group_hypergraph(d, actor = "playor", group = "grp"))
 })
 
 test_that("missing group column raises error", {
   d <- data.frame(member = c("A"), grp = c("g1"), stringsAsFactors = FALSE)
-  expect_error(group_hypergraph(d, member = "member", group = "guppy"))
+  expect_error(group_hypergraph(d, actor = "member", group = "guppy"))
 })
 
 test_that("non-data.frame input rejected", {
@@ -172,7 +172,7 @@ test_that("non-data.frame input rejected", {
 # print and summary work --------------------------------------------------
 
 test_that("print and summary work via shared net_hypergraph methods", {
-  hg <- group_hypergraph(.bg_sample_data(), member = "member", group = "session")
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   expect_invisible(print(hg))
   # summary now returns a tidy node-degree data.frame (visible)
   s <- summary(hg)
@@ -184,11 +184,56 @@ test_that("print and summary work via shared net_hypergraph methods", {
 
 test_that("works on bundled human_long dataset (long-format event data)", {
   data("human_long", package = "hypernets")
-  hg <- group_hypergraph(human_long, member = "code", group = "session_id")
+  hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
   expect_s3_class(hg, "net_hypergraph")
   expect_gt(hg$n_nodes, 0L)
   expect_gt(hg$n_hyperedges, 0L)
   # Each session is a hyperedge; members = codes appearing in that session
   expect_equal(ncol(hg$incidence), hg$n_hyperedges)
   expect_equal(nrow(hg$incidence), hg$n_nodes)
+})
+
+# Hyperedge attributes -----------------------------------------------------
+
+test_that("columns constant within a group become hyperedge attributes", {
+  dat <- data.frame(
+    member = c("a", "b", "c", "b", "c", "d", "d", "e"),
+    event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
+    kind = c("x", "x", "x", "x", "x", "x", "y", "y"),
+    seat = c("p", "q", "r", "p", "q", "r", "p", "q"),
+    stringsAsFactors = FALSE
+  )
+  hg <- group_hypergraph(dat, actor = "member", group = "event")
+  expect_identical(names(hg$edge_data), c("edge", "kind"))
+  expect_identical(hg$edge_data$edge, c("e1", "e2", "e3"))
+  expect_identical(hg$edge_data$kind, c("x", "x", "y"))
+  kept <- hg_subset(hg, where = c(kind = "y"))
+  expect_identical(kept$nodes, c("d", "e"))
+  # an NA inside a group does not make the attribute vary
+  dat$kind[2L] <- NA
+  with_na <- group_hypergraph(dat, actor = "member", group = "event")
+  expect_identical(with_na$edge_data$kind, c("x", "x", "y"))
+  # sparse and dense agree
+  sparse <- group_hypergraph(dat, actor = "member", group = "event",
+                             sparse = TRUE)
+  expect_identical(sparse$edge_data, with_na$edge_data)
+})
+
+test_that("INVARIANT: a plain member/group table keeps the original layout", {
+  hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
+  expect_false("edge_data" %in% names(hg))
+  weighted <- data.frame(member = c("a", "b"), session = c("s", "s"),
+                         w = c(1, 2))
+  hg_w <- group_hypergraph(weighted, actor = "member", group = "session",
+                           weight = "w")
+  expect_false("edge_data" %in% names(hg_w))
+})
+
+test_that("an edge list carries its attributes onto the size-2 hyperedges", {
+  contacts <- data.frame(from = c("a", "b"), to = c("b", "c"),
+                         kind = c("call", "mail"), stringsAsFactors = FALSE)
+  hg <- group_hypergraph(contacts, from = "from", to = "to")
+  expect_identical(hg$edge_data,
+                   data.frame(edge = c("e1", "e2"), kind = c("call", "mail"),
+                              stringsAsFactors = FALSE))
 })

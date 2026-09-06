@@ -54,7 +54,7 @@ seqs <- lapply(1:30, function(.) {
   s
 })
 res <- markov_order_test(seqs, max_order = 3, n_perm = 300, seed = 1)
-res$optimal_order
+as.data.frame(res)
 summary(res)
 plot(res)
 }

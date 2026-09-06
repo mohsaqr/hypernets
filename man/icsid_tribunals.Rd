@@ -41,7 +41,7 @@ conclusion; see \code{vignette("legal-hypergraphs")}.
 \examples{
 head(icsid_tribunals)
 tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-                                 cooccur_by = "case", start = "constituted",
+                                 group = "case", start = "constituted",
                                  end = "concluded")
 summary(tribunals)
 }

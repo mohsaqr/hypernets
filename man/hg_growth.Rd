@@ -6,20 +6,52 @@
 \alias{plot.honets_series}
 \title{Growth of a temporal hypergraph over time}
 \usage{
-hg_growth(x, at = NULL, components = FALSE)
+hg_growth(
+  x,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
+  at = NULL,
+  mode = c("active", "cumulative"),
+  components = FALSE
+)
 
-hypergraph_growth(x, at = NULL, components = FALSE)
+hypergraph_growth(
+  x,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
+  at = NULL,
+  mode = c("active", "cumulative"),
+  components = FALSE
+)
 
 \method{plot}{honets_series}(x, columns = NULL, facets = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{honets_series} table (for \code{plot}).}
 
-\item{at}{Time values to evaluate. \code{NULL} (default) uses every event time
-of the temporal hypergraph.}
+\item{start, end}{Bounds of the measured period, as numbers on the
+hypergraph's clock or dates for a calendar hypergraph. Default: the
+observation window.}
 
-\item{components}{Also report the connectivity of the active hypergraph at
-each time: the number of connected components, the share of active nodes
+\item{step}{How often to measure, in the hypergraph's time unit. \code{NULL}
+(default) measures at every event time.}
+
+\item{window}{How much time each measurement covers. Defaults to \code{step}
+when a step is given (a partition of the period) and to \code{0} otherwise
+(a point sample); larger than \code{step} gives a rolling window; \code{"all"}
+measures the whole period as one window.}
+
+\item{at}{Instants to measure instead of a grid; may be a vector.}
+
+\item{mode}{\code{"active"} (default) or \code{"cumulative"}, see Description. The
+former \code{"all"} is deprecated: it is \code{"cumulative"} with \code{at} unset.}
+
+\item{components}{Also report the connectivity of the measured hypergraph
+at each time: the number of connected components, the share of its nodes
 in the largest, and its diameter (longest shortest path between two
 nodes sharing a chain of hyperedges)? Default \code{FALSE}; the computation
 is a breadth-first search per node and time.}
@@ -33,17 +65,19 @@ panel with a legend.}
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base data.frame of class \code{honets_series}, one row per time, with
-\code{time}, \code{n_nodes}, \code{n_edges}, \code{n_edges_distinct}, \code{n_memberships}, and
-for interval evolution also \code{n_nodes_cumulative}, \code{n_edges_cumulative}
-and \code{n_edges_distinct_cumulative}. With \code{components = TRUE}, further
+A base data.frame of class \code{honets_series}, one row per window,
+with \code{time} (the window start on the hypergraph's clock), \code{n_nodes},
+\code{n_edges}, \code{n_edges_distinct}, \code{n_memberships}, and for
+\code{mode = "active"} also \code{n_nodes_cumulative}, \code{n_edges_cumulative} and
+\code{n_edges_distinct_cumulative}. With \code{components = TRUE}, further
 \code{n_components}, \code{largest_component} (share of active nodes) and
-\code{diameter}. \code{plot()} draws each count against time.
+\code{diameter}. \code{plot()} draws each count against time, on the calendar
+when the hypergraph has one.
 
 For \code{plot}, a ggplot object.
 }
 \description{
-Counts, at every event time, the nodes and hyperedges present in the
+Counts, on a measurement grid, the nodes and hyperedges present in the
 temporal hypergraph: the descriptive time series of Coupette et al.
 (2024, Figures 4a and 5b). Hyperedges are counted twice, as they are
 (\code{n_edges}, the multi-hypergraph) and as distinct member sets
@@ -51,13 +85,14 @@ temporal hypergraph: the descriptive time series of Coupette et al.
 the paper's Table 2 can be read against each other over time.
 }
 \details{
-For \code{evolution = "growing"} every count is cumulative. Nodes enter at
-their own start time when the constructor received a node table with a
-\code{start} column, and otherwise at the start of the first hyperedge that
-contains them. For \code{evolution = "interval"} the counts describe the
-hyperedges active at each time, and the \verb{_cumulative} columns the
-hyperedges begun by then, the static aggregate that a point-aggregation
-model would report.
+\code{mode = "active"} counts what each window measures -- an interval
+hyperedge active in it, a contact hyperedge occurring in it -- and adds
+the \verb{_cumulative} columns, the hyperedges begun by the end of the window,
+the static aggregate that a point-aggregation model would report.
+\code{mode = "cumulative"} reports only that growing view, and then counts a
+node from its own entry time when the constructor received a node table
+with a \code{start} column, otherwise from the first hyperedge that contains
+it.
 }
 \examples{
 seats <- data.frame(
@@ -65,11 +100,13 @@ seats <- data.frame(
   arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
   constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
 )
-thg <- temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                            start = "constituted", end = "concluded")
 growth <- hg_growth(thg)
 growth
 plot(growth)
+# a regular grid: every two steps, each window two steps wide
+hg_growth(thg, step = 2)
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

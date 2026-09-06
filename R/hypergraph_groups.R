@@ -6,9 +6,9 @@
 #' Hypergraph from co-occurrence data or an edge list
 #'
 #' Constructs a [net_hypergraph][build_hypergraph] the way a network is
-#' defined from data. **Co-occurrence data** name an `actor` and the column
-#' it co-occurs `by`: every actor sharing one value of `cooccur_by` (a
-#' session, a team, a citation block) belongs to one hyperedge. An **edge
+#' defined from data. **Co-presence data** name an `actor` and a `group`:
+#' every actor sharing one value of `group` (a session, a team, a citation
+#' block) belongs to one hyperedge. An **edge
 #' list** names `from` and `to`, and every row is a hyperedge of size two.
 #' An optional `weight` column produces a weighted incidence matrix.
 #'
@@ -16,8 +16,12 @@
 #'   edge.
 #' @param actor Character. Name of the column whose values become the
 #'   hypergraph's nodes (members, participants, actors).
-#' @param cooccur_by Character. Name of the column whose shared values bind
-#'   actors into one hyperedge (groups, sessions, teams).
+#' @param group Character. Name of the column whose shared values bind
+#'   actors into one hyperedge (groups, sessions, teams) -- Dynet's
+#'   co-presence vocabulary. When neither pair of columns is named, `from`
+#'   and `to` are detected case-insensitively from the alias table
+#'   [temporal_hypergraph()] uses (`source`/`target`, `sender`/`receiver`,
+#'   ...), and failing that `actor` and `group`.
 #' @param weight Character or `NULL`. If supplied, the column is summed per
 #'   `(actor, hyperedge)` pair to produce a weighted incidence matrix. Default
 #'   `NULL` produces a 0/1 binary incidence matrix.
@@ -29,12 +33,13 @@
 #'   large, sparse event data such as the full GFCC citation-block corpus.
 #' @param from,to Column names of a pairwise edge list, as an alternative to
 #'   `actor` and `cooccur_by`.
-#' @param member,group Former names of `actor` and `cooccur_by`; still
-#'   accepted.
+#' @param member,cooccur_by Deprecated names of `actor` and `group`; using
+#'   them warns with a `honets_deprecated` condition.
 #'
 #' @return A `net_hypergraph` object with the same structure produced by
 #'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
-#'   `n_hyperedges`, `size_distribution`, `params`). The `params` list
+#'   `n_hyperedges`, `size_distribution`, `params`), plus `edge_data` when
+#'   `data` carries hyperedge attributes (see Details). The `params` list
 #'   records `source = "group_hypergraph"` and the original column names.
 #'
 #' @details
@@ -57,6 +62,13 @@
 #' Rows with `NA` in the actor, hyperedge or weight column are dropped
 #' silently.
 #'
+#' Every other column of `data` that is constant within a hyperedge (a
+#' session's date, a team's department) is kept as a hyperedge attribute in
+#' the result's `edge_data` table, one row per hyperedge, where
+#' [hg_subset()]'s `where` argument and [hg_project()]'s `edge_source` can
+#' use it. Columns that vary within a hyperedge describe memberships, not
+#' hyperedges, and are left out.
+#'
 #' @seealso [build_hypergraph()] for the clique-based constructor,
 #'   [temporal_hypergraph()] for the same inputs with a clock.
 #'
@@ -67,7 +79,7 @@
 #'   session = c("S1", "S1", "S1", "S2", "S2",
 #'               "S3", "S3", "S3", "S3")
 #' )
-#' hg <- group_hypergraph(df, actor = "person", cooccur_by = "session")
+#' hg <- group_hypergraph(df, actor = "person", group = "session")
 #' print(hg)
 #' summary(hg)
 #'
@@ -86,16 +98,33 @@
 #'   77,187 nonzero incidences).
 #'
 #' @export
-group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NULL,
+group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
                              nodes = NULL, sparse = FALSE, from = NULL, to = NULL,
-                             member = NULL, group = NULL) {
+                             member = NULL, cooccur_by = NULL) {
   stopifnot(is.data.frame(data))
-  # `member` / `group` are the former names of `actor` / `cooccur_by`.
-  member <- actor %||% member
-  group <- cooccur_by %||% group
+  if (!is.null(member)) {
+    .thg_deprecated("member", "actor", "group_hypergraph")
+    if (is.null(actor)) actor <- member
+  }
+  if (!is.null(cooccur_by)) {
+    .thg_deprecated("cooccur_by", "group", "group_hypergraph")
+    if (is.null(group)) group <- cooccur_by
+  }
+  member <- actor
+  if (is.null(member) && is.null(group) && is.null(from) && is.null(to)) {
+    # nothing named: detect an edge list, then co-presence columns
+    from <- .thg_match_column(data, "from")
+    to <- .thg_match_column(data, "to", exclude = from)
+    if (is.null(from) || is.null(to)) {
+      from <- NULL
+      to <- NULL
+      member <- .thg_match_column(data, "actor")
+      group <- .thg_match_column(data, "group", exclude = member)
+    }
+  }
   if (!is.null(from) || !is.null(to)) {
     stopifnot(
-      "name either `from` and `to` or `actor` and `cooccur_by`, not both" =
+      "name either `from` and `to` or `actor` and `group`, not both" =
         is.null(member) && is.null(group),
       "`from` and `to` must both name columns of `data`" =
         is.character(from) && length(from) == 1L && from %in% names(data) &&
@@ -111,14 +140,18 @@ group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NUL
       long$weight <- c(data[[weight]], data[[weight]])
       weight <- "weight"
     }
+    # the remaining columns ride along as candidate edge attributes
+    for (column in setdiff(names(data), c(from, to, weight))) {
+      long[[column]] <- c(data[[column]], data[[column]])
+    }
     data <- long
     member <- "actor"
     group <- "edge"
   }
   stopifnot(
-    "`actor` (or `member`) must name one column of `data`" =
+    "`actor` must name one column of `data`" =
       is.character(member) && length(member) == 1L && member %in% names(data),
-    "`cooccur_by` (or `group`) must name one column of `data`" =
+    "`group` must name one column of `data`" =
       is.character(group) && length(group) == 1L && group %in% names(data)
   )
   stopifnot(
@@ -129,8 +162,9 @@ group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NUL
   )
 
   cols <- c(member, group, weight)
-  d <- data[, cols, drop = FALSE]
-  d <- d[stats::complete.cases(d), , drop = FALSE]
+  candidates <- setdiff(names(data), cols)
+  d <- data[, c(cols, candidates), drop = FALSE]
+  d <- d[stats::complete.cases(d[, cols, drop = FALSE]), , drop = FALSE]
   if (nrow(d) == 0L) {
     stop("No complete observations after dropping NAs.", call. = FALSE)
   }
@@ -190,6 +224,23 @@ group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NUL
   group_levels <- group_levels[keep]
   n_groups <- length(group_levels)
 
+  # Every other column that is constant within a group describes that
+  # hyperedge (as in temporal_hypergraph()) and is kept as an attribute;
+  # a column that varies within a group describes memberships and is left
+  # out. Without such columns the object keeps its original layout.
+  attributes <- Filter(function(column) {
+    by_group <- split(d[[column]], d[[group]])
+    !any(vapply(by_group, function(x) length(unique(x[!is.na(x)])) > 1L,
+                logical(1L)))
+  }, candidates)
+  edge_data <- NULL
+  if (length(attributes)) {
+    edge_data <- d[match(group_levels, d[[group]]), c(group, attributes),
+                   drop = FALSE]
+    names(edge_data)[1L] <- "edge"
+    rownames(edge_data) <- NULL
+  }
+
   # Member indices of every column from the non-zero cells at once; reading
   # a sparse matrix one column at a time is slow with tens of thousands of
   # hyperedges.
@@ -205,24 +256,23 @@ group_hypergraph <- function(data, actor = NULL, cooccur_by = NULL, weight = NUL
     integer(0L)
   }
 
-  structure(
-    list(
-      hyperedges        = hyperedges,
-      incidence         = incidence,
-      nodes             = member_levels,
-      n_nodes           = n_members,
-      n_hyperedges      = n_groups,
-      size_distribution = size_dist,
-      params = list(
-        source         = "group_hypergraph",
-        member         = member,
-        group          = group,
-        weight         = weight,
-        nodes          = nodes,
-        sparse         = sparse,
-        n_observations = nrow(d)
-      )
-    ),
-    class = "net_hypergraph"
+  out <- list(
+    hyperedges        = hyperedges,
+    incidence         = incidence,
+    nodes             = member_levels,
+    n_nodes           = n_members,
+    n_hyperedges      = n_groups,
+    size_distribution = size_dist,
+    params = list(
+      source         = "group_hypergraph",
+      member         = member,
+      group          = group,
+      weight         = weight,
+      nodes          = nodes,
+      sparse         = sparse,
+      n_observations = nrow(d)
+    )
   )
+  if (!is.null(edge_data)) out$edge_data <- edge_data
+  structure(out, class = "net_hypergraph")
 }

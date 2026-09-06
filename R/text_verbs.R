@@ -698,7 +698,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
     if (nrow(sub) == 0L) {
       return(row)
     }
-    word_hg <- group_hypergraph(sub, member = "word", group = "edge",
+    word_hg <- group_hypergraph(sub, actor = "word", group = "edge",
                                 weight = "weight")
     values <- hypergraph_centrality(word_hg, type = centrality)
     row[values$node] <- values[[centrality]]

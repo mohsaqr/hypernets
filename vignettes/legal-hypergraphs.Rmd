@@ -54,38 +54,46 @@ head(gfcc_citations)
 
 ## Models
 
-`temporal_hypergraph()` reads co-occurrence data: `actor` names the node
-column and `cooccur_by` the column whose shared value binds actors into one
-hyperedge, here the case. `start` and `end` give the interval on which the
-hyperedge is active, the paper's interval-event model; a case without a
-conclusion date stays active through the end of observation, which is what
-the paper does by filling those dates with its cut-off, 2023-06-15. Every
-other column that is constant within a case, such as the economic sector,
-is kept as an attribute of the hyperedge; the seat, which varies within a
-case, is not.
+`temporal_hypergraph()` reads co-presence data the way Dynet does: `actor`
+names the node column and `group` the column whose shared value binds
+actors into one hyperedge, here the case. `start` and `end` give the
+interval on which the hyperedge is active, the paper's interval-event
+model. The dates become days since the first constitution, the unit and
+origin the object reports. A case without a conclusion date stays active
+through the end of observation, which the paper sets at its cut-off,
+2023-06-15; `observation_end` declares that window without rewriting the
+data. Every other column that is constant within a case, such as the
+economic sector, is kept as an attribute of the hyperedge; the seat, which
+varies within a case, is not.
 
 ```{r icsid-build}
 tribunals <- temporal_hypergraph(
-  icsid_tribunals, actor = "arbitrator", cooccur_by = "case",
-  start = "constituted", end = "concluded"
+  icsid_tribunals, actor = "arbitrator", group = "case",
+  start = "constituted", end = "concluded",
+  observation_end = as.Date("2023-06-15")
 )
+tribunals
 summary(tribunals)
 ```
 
 The citation table is the same shape: the cited decision is the actor and
-the citation block the column it co-occurs by. A block has a single
-`time`, the date of the decision that contains it, after which it stays in
-the network: the paper's point-aggregation model. The citing decision is
-constant within a block, so `citing` becomes the block's attribute. The
-decision table is the node universe, so that a decision exists from its own
-date whether or not it has been cited. `sparse = TRUE` stores the 46,257 by
-3,618 incidence as a sparse matrix.
+the citation block the group. A block has a single `time`, the date of the
+decision that contains it, so it is a contact hyperedge: an instantaneous
+event, as in a contact log. The paper's point-aggregation model, in which
+a block stays in the network once it has appeared, is not a property of
+the data but a way of looking at it, and it is asked for below with
+`mode = "cumulative"`. The citing decision is constant within a block, so
+`citing` becomes the block's attribute. The decision table is the node
+universe, so that a decision exists from its own date whether or not it
+has been cited. `sparse = TRUE` stores the 46,257 by 3,618 incidence as a
+sparse matrix.
 
 ```{r gfcc-build}
 blocks <- temporal_hypergraph(
-  gfcc_citations, actor = "cited", cooccur_by = "block", time = "date_citing",
+  gfcc_citations, actor = "cited", group = "block", time = "date_citing",
   nodes = gfcc_decisions, sparse = TRUE
 )
+blocks
 summary(blocks)
 ```
 
@@ -97,13 +105,14 @@ pending case; here those cases have no end.
 
 ### Four representations of the same data
 
-`hypergraph_snapshot()` with `mode = "all"` returns the static aggregate of a
-temporal hypergraph, a `net_hypergraph` that every static verb accepts.
+`hypergraph_snapshot()` with `mode = "cumulative"` and no `at` returns the
+static aggregate of a temporal hypergraph, every hyperedge begun by the end
+of observation, as a `net_hypergraph` that every static verb accepts.
 
 ```{r aggregates}
-tribunals_all <- hypergraph_snapshot(tribunals, mode = "all")
+tribunals_all <- hypergraph_snapshot(tribunals, mode = "cumulative")
 tribunals_all
-blocks_all <- hypergraph_snapshot(blocks, mode = "all")
+blocks_all <- hypergraph_snapshot(blocks, mode = "cumulative")
 blocks_all
 ```
 
@@ -172,11 +181,13 @@ plot(retention, color_by = "size", labels = FALSE, padding = 0.035,
 
 `hg_growth()` counts, at every event time, the nodes and hyperedges present:
 the hyperedges as they are, the distinct member sets, and the memberships.
-For growing data every count is cumulative and a decision enters at its own
-date. The result is a time series table.
+With `mode = "cumulative"` every count is cumulative and a decision enters
+at its own date, the paper's growing citation network. The result is a
+time series table whose `time` column is on the hypergraph's clock, days
+since the first decision; the plot method draws it on the calendar.
 
 ```{r gfcc-growth}
-growth_blocks <- hg_growth(blocks)
+growth_blocks <- hg_growth(blocks, mode = "cumulative")
 tail(growth_blocks, 3)
 ```
 
@@ -188,14 +199,16 @@ plot(growth_blocks,
 ```
 
 `hg_edges()` on a temporal hypergraph evaluates every snapshot requested with
-`at`, and `what = "distribution"` returns the empirical distribution of a
-hyperedge measure with its complementary cumulative share, one block of
-rows per date.
+`at` (dates are read on the hypergraph's clock), and `what = "distribution"`
+returns the empirical distribution of a hyperedge measure with its
+complementary cumulative share, one block of rows per date. The cumulative
+mode again gives the network as it stood on each date.
 
 ```{r gfcc-sizes}
 census_dates <- as.Date(c("1960-12-31", "1975-12-31", "1990-12-31",
                           "2005-12-31", "2020-12-31"))
-sizes_by_date <- hg_edges(blocks, what = "distribution", at = census_dates)
+sizes_by_date <- hg_edges(blocks, what = "distribution", at = census_dates,
+                          snapshot_mode = "cumulative")
 head(sizes_by_date)
 ```
 
@@ -220,7 +233,7 @@ plot(intersections)
 binary hypergraph, on which the same counts are smaller.
 
 ```{r gfcc-intersections-binary, fig.height = 4}
-blocks_binary <- hypergraph_snapshot(blocks, mode = "all", multiedges = FALSE)
+blocks_binary <- hypergraph_snapshot(blocks, mode = "cumulative", multiedges = FALSE)
 intersections_binary <- hg_edges(blocks_binary, s = 2:4, what = "distribution",
                                  measure = "n_incident_edges")
 plot(intersections_binary)
@@ -423,10 +436,10 @@ citation table.
 ```{r gfcc-backward}
 backward_citations <- subset(gfcc_citations, date_citing > date_cited)
 backward <- temporal_hypergraph(
-  backward_citations, actor = "cited", cooccur_by = "block",
+  backward_citations, actor = "cited", group = "block",
   time = "date_citing", nodes = gfcc_decisions, sparse = TRUE
 )
-backward_all <- hypergraph_snapshot(backward, mode = "all")
+backward_all <- hypergraph_snapshot(backward, mode = "cumulative")
 backward_all
 ```
 

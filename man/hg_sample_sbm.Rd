@@ -60,5 +60,5 @@ hypergraph SBM construction used by HyperG.
 \examples{
 P <- matrix(c(.5, .05, .05, .5), 2, 2)
 h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-table(h$blocks)
+as.data.frame(h, what = "nodes")
 }

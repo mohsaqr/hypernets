@@ -39,7 +39,8 @@
 #' bs <- bootstrap_hon(human_long, action = "code", actor = "session_id",
 #'                     time = "timestamp", n_boot = 20, max_order = 2,
 #'                     seed = 1)
-#' head(as.data.frame(bs, order_min = 2))
+#' rules <- as.data.frame(bs, order_min = 2)
+#' head(rules)
 #'
 #' @name long-data
 #' @aliases ai_long
@@ -85,7 +86,7 @@ NULL
 #' @examples
 #' head(icsid_tribunals)
 #' tribunals <- temporal_hypergraph(icsid_tribunals, actor = "arbitrator",
-#'                                  cooccur_by = "case", start = "constituted",
+#'                                  group = "case", start = "constituted",
 #'                                  end = "concluded")
 #' summary(tribunals)
 "icsid_tribunals"
@@ -143,7 +144,7 @@ NULL
 #' @examples
 #' head(gfcc_citations)
 #' blocks <- temporal_hypergraph(gfcc_citations, actor = "cited",
-#'                               cooccur_by = "block", time = "date_citing",
+#'                               group = "block", time = "date_citing",
 #'                               nodes = gfcc_decisions, sparse = TRUE)
 #' summary(blocks)
 "gfcc_citations"

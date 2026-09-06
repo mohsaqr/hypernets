@@ -61,7 +61,7 @@ events <- data.frame(
   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
               "m4", "m4", "m4", "m5", "m5")
 )
-hg <- group_hypergraph(events, member = "person", group = "meeting")
+hg <- group_hypergraph(events, actor = "person", group = "meeting")
 tr <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"))
 tr
 as.data.frame(tr)

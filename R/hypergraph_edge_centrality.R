@@ -16,7 +16,10 @@
 #'   the Wasserman--Faust correction for disconnected line graphs.
 #' @param top Optional number of highest-scoring hyperedges to retain per
 #'   `(time, s, measure)` group.
-#' @param at,snapshot_mode,multiedges Temporal snapshot arguments passed to
+#' @param start,end,step,window,at Measurement grid passed to
+#'   [hypergraph_snapshots()] when `hg` is temporal.
+#' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
+#'   `"cumulative"`) and multi-edge handling passed to
 #'   [hypergraph_snapshots()] when `hg` is temporal.
 #' @return A tidy data frame with `edge`, `s`, `measure`, and `value`; temporal
 #'   input adds a leading `time` column.
@@ -33,11 +36,12 @@
 #' @export
 hg_edge_centrality <- function(hg, s = 1L,
                                measure = c("betweenness", "closeness"),
-                               normalized = TRUE, top = NULL, at = NULL,
-                               snapshot_mode = c("active", "cumulative", "all"),
+                               normalized = TRUE, top = NULL, start = NULL,
+                               end = NULL, step = NULL, window = NULL, at = NULL,
+                               snapshot_mode = c("active", "cumulative"),
                                multiedges = TRUE) {
   measure <- match.arg(measure, several.ok = TRUE)
-  snapshot_mode <- match.arg(snapshot_mode)
+  snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_edge_centrality", "snapshot_mode")
   if (!is.numeric(s) || length(s) < 1L || any(!is.finite(s)) ||
       any(s < 1) || any(abs(s - round(s)) > sqrt(.Machine$double.eps))) {
     .thg_bad_input("`s` must contain positive whole numbers")
@@ -51,7 +55,8 @@ hg_edge_centrality <- function(hg, s = 1L,
   }
 
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, at = at, mode = snapshot_mode,
+    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+                                  window = window, at = at, mode = snapshot_mode,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edge_centrality(snaps[[i]], s = s, measure = measure,

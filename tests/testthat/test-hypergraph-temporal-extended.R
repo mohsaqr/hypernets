@@ -16,7 +16,7 @@ testthat::skip_on_cran()
 
 test_that("constant columns become hyperedge attributes and travel into subsets", {
   thg <- temporal_hypergraph(
-    .tribunal_seats(), actor = "arbitrator", cooccur_by = "case",
+    .tribunal_seats(), actor = "arbitrator", group = "case",
     start = "constituted", end = "concluded"
   )
   # `seat` varies within a case and is not a hyperedge attribute
@@ -28,14 +28,15 @@ test_that("constant columns become hyperedge attributes and travel into subsets"
   expect_identical(snap$edge_data$sector, c("oil", "oil"))
   sub <- hg_subset(snap, edges = "C")
   expect_identical(sub$edge_data$pending, TRUE)
-  expect_s3_class(plot(sub, color_by = "sector", linetype_by = "pending"), "ggplot")
+  sub_plot <- plot(sub, color_by = "sector", linetype_by = "pending")
+  expect_s3_class(sub_plot, "ggplot")
 })
 
 test_that("sparse temporal hypergraphs give sparse snapshots identical to dense", {
   dat <- .tribunal_seats()
   universe <- c("p1", "p2", "a1", "a2", "a3", "a4", "a5", "zz")
   build <- function(sparse) {
-    temporal_hypergraph(dat, actor = "arbitrator", cooccur_by = "case",
+    temporal_hypergraph(dat, actor = "arbitrator", group = "case",
                         start = "constituted", end = "concluded",
                         sparse = sparse, nodes = universe)
   }
@@ -60,7 +61,7 @@ test_that("duplicate collapse works on sparse incidence and keeps metadata", {
     event = rep(c("e1", "e2", "e3"), each = 3), time = 1,
     label = rep(c("x", "y", "z"), each = 3)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event",
+  thg <- temporal_hypergraph(dat, actor = "member", group = "event",
                              time = "time", sparse = TRUE)
   simple <- hypergraph_snapshot(thg, 1, multiedges = FALSE)
   expect_identical(simple$n_hyperedges, 1L)

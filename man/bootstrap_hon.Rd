@@ -80,7 +80,8 @@ hg_seqs <- list(
 )
 bs <- bootstrap_hon(hg_seqs, n_boot = 50, max_order = 2, seed = 1)
 bs
-head(as.data.frame(bs))
+rules <- as.data.frame(bs)
+head(rules)
 
 }
 \references{

@@ -54,9 +54,9 @@ df <- data.frame(
   person  = c("A", "B", "C", "A", "B", "D", "C", "D", "E"),
   session = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3")
 )
-hg  <- group_hypergraph(df, member = "person", group = "session")
+hg  <- group_hypergraph(df, actor = "person", group = "session")
 net <- clique_expansion(hg)
-net$weights
+net
 
 }
 \references{

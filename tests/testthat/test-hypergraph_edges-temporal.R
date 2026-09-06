@@ -6,7 +6,7 @@ testthat::skip_on_cran()
     arbitrator = c("p1", "a1", "a2", "p2", "a1", "a3", "p1", "a4", "a5"),
     constituted = rep(c(1, 2, 4), each = 3), concluded = rep(c(4, 3, 6), each = 3)
   )
-  temporal_hypergraph(seats, actor = "arbitrator", cooccur_by = "case",
+  temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                       start = "constituted", end = "concluded")
 }
 
@@ -29,8 +29,10 @@ test_that("hg_edges summary is a series over time", {
   expect_identical(s$n_edges, c(1L, 2L, 2L, 2L, 1L))
   # A and B share a1 at times 2 and 3; A and C share p1 at time 4
   expect_equal(s$mean, c(0, 2, 2, 2, 0))
-  expect_s3_class(plot(s, columns = c("mean", "max")), "ggplot")
-  one <- hg_edges(hypergraph_snapshot(.edges_thg(), at = 2), what = "summary")
+  summary_plot <- plot(s, columns = c("mean", "max"))
+  expect_s3_class(summary_plot, "ggplot")
+  snap_two <- hypergraph_snapshot(.edges_thg(), at = 2)
+  one <- hg_edges(snap_two, what = "summary")
   expect_identical(class(one), "data.frame")
   expect_equal(one$mean, 3)
 })
@@ -41,11 +43,13 @@ test_that("several thresholds give one block each, and distributions carry time"
   expect_identical(names(multi)[1L], "s")
   expect_identical(multi$s, c(1L, 1L, 2L, 2L))
   expect_identical(multi$n_incident_edges, c(1L, 1L, 0L, 0L))
-  expect_false("s" %in% names(hg_edges(snap)))
+  single <- hg_edges(snap)
+  expect_false("s" %in% names(single))
   d <- hg_edges(.edges_thg(), what = "distribution", at = c(2, 6))
   expect_s3_class(d, "honets_distribution")
   expect_identical(d$time, c(2, 6))
   expect_equal(d$ccdf, c(1, 1))
-  expect_s3_class(plot(d), "ggplot")
+  distribution_plot <- plot(d)
+  expect_s3_class(distribution_plot, "ggplot")
   expect_error(hg_edges(snap, s = 0), class = "honets_bad_input")
 })

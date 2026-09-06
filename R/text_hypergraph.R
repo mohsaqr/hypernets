@@ -380,7 +380,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     sent_counts$w <- as.numeric(sent_counts$n)
     builder <- if (isTRUE(sparse)) .thg_sparse_bipartite else
       group_hypergraph
-    hg <- builder(sent_counts, member = "word", group = "edge", weight = "w")
+    hg <- builder(sent_counts, actor = "word", group = "edge", weight = "w")
     weights <- data.frame(edge = sent_counts$edge, word = sent_counts$word,
                           weight = sent_counts$w)
     weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
@@ -411,7 +411,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     win_counts <- stats::aggregate(n ~ edge + word, data = win_long,
                                    FUN = sum)
     win_counts$w <- as.numeric(win_counts$n)
-    hg <- group_hypergraph(win_counts, member = "word",
+    hg <- group_hypergraph(win_counts, actor = "word",
                                       group = "edge", weight = "w")
     weights <- data.frame(edge = win_counts$edge, word = win_counts$word,
                           weight = win_counts$w)
@@ -430,9 +430,9 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     builder <- if (isTRUE(sparse)) .thg_sparse_bipartite else
       group_hypergraph
     hg <- if (identical(nodes, "doc")) {
-      builder(counts, member = "doc", group = "word", weight = "w")
+      builder(counts, actor = "doc", group = "word", weight = "w")
     } else {
-      builder(counts, member = "word", group = "doc", weight = "w")
+      builder(counts, actor = "word", group = "doc", weight = "w")
     }
     weights <- data.frame(doc = counts$doc, word = counts$word,
                           n = counts$n, weight = counts$w)

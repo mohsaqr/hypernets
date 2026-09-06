@@ -42,6 +42,6 @@ distinct hyperedges. Sampling probabilities can be unequal.
 \examples{
 u <- hg_sample_uniform(20, 8, k = 3, seed = 1)
 r <- hg_sample_regular(20, 8, k = 2, seed = 1)
-unique(colSums(u$incidence))
-unique(rowSums(r$incidence))
+hg_measures(u, what = "distribution", measure = "size")
+hg_measures(r, what = "distribution", measure = "hyperdegree")
 }

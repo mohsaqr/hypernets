@@ -10,8 +10,12 @@ hg_edges(
   what = c("edges", "distribution", "summary"),
   measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
   s = 1L,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 
@@ -20,8 +24,12 @@ hypergraph_edges(
   what = c("edges", "distribution", "summary"),
   measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
   s = 1L,
+  start = NULL,
+  end = NULL,
+  step = NULL,
+  window = NULL,
   at = NULL,
-  snapshot_mode = c("active", "cumulative", "all"),
+  snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
 }
@@ -43,7 +51,13 @@ as incident. The default \code{1} is ordinary incidence; larger values match
 the thresholds used by \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}. Several values give one
 block of rows each, with an \code{s} column.}
 
-\item{at, snapshot_mode, multiedges}{Temporal snapshot arguments passed to
+\item{start, end, step, window, at}{Measurement grid passed to
+\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal: the bounds of the
+period, how often to look, how much time each look covers, or the
+instants themselves.}
+
+\item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
+\code{"cumulative"}) and multi-edge handling passed to
 \code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
 }
 \value{

@@ -36,7 +36,7 @@ are valid outcomes of this incidence model.
 }
 \examples{
 h <- hg_sample_gnp(n = 20, m = 8, p = 0.2, seed = 1)
-h$n_hyperedges
+summary(h)
 }
 \references{
 Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version

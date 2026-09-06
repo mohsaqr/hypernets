@@ -26,7 +26,12 @@
 #'   as incident. The default `1` is ordinary incidence; larger values match
 #'   the thresholds used by [hg_edge_centrality()]. Several values give one
 #'   block of rows each, with an `s` column.
-#' @param at,snapshot_mode,multiedges Temporal snapshot arguments passed to
+#' @param start,end,step,window,at Measurement grid passed to
+#'   [hypergraph_snapshots()] when `hg` is temporal: the bounds of the
+#'   period, how often to look, how much time each look covers, or the
+#'   instants themselves.
+#' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
+#'   `"cumulative"`) and multi-edge handling passed to
 #'   [hypergraph_snapshots()] when `hg` is temporal.
 #' @return With `what = "edges"`, a base data.frame with one row per
 #'   hyperedge and columns `edge` (name), `size` (integer, vertices it
@@ -57,12 +62,13 @@
 #' @export
 hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
                      measure = c("size", "weight", "n_incident_edges",
-                                 "n_neighbors"), s = 1L, at = NULL,
-                     snapshot_mode = c("active", "cumulative", "all"),
+                                 "n_neighbors"), s = 1L, start = NULL,
+                     end = NULL, step = NULL, window = NULL, at = NULL,
+                     snapshot_mode = c("active", "cumulative"),
                      multiedges = TRUE) {
   what <- match.arg(what)
   measure <- match.arg(measure)
-  snapshot_mode <- match.arg(snapshot_mode)
+  snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_edges", "snapshot_mode")
   if (!is.numeric(s) || length(s) < 1L || any(!is.finite(s)) || any(s < 1) ||
       any(abs(s - round(s)) > sqrt(.Machine$double.eps))) {
     .thg_bad_input("`s` must contain positive whole numbers")
@@ -70,7 +76,8 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
   s <- as.integer(round(s))
 
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, at = at, mode = snapshot_mode,
+    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+                                  window = window, mode = snapshot_mode, at = at,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edges(snaps[[i]], what = what, measure = measure, s = s)
@@ -81,7 +88,10 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
     })
     out <- do.call(rbind, rows)
     rownames(out) <- NULL
-    return(.thg_edges_class(out, what, measure))
+    out <- .thg_edges_class(out, what, measure)
+    attr(out, "time_unit") <- hg$time_unit
+    attr(out, "origin") <- hg$origin
+    return(out)
   }
 
   .thg_check_hg(hg)

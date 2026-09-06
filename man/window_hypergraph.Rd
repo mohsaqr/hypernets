@@ -89,7 +89,8 @@ hg <- window_hypergraph(human_long, action = "code",
                         actor = "session_id", time = "timestamp",
                         window = 3L)
 hg
-head(as.data.frame(hg))
+edges <- as.data.frame(hg)
+head(edges)
 
 # Tumbling windows over wide-format sequences
 wide <- data.frame(

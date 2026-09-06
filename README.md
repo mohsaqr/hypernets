@@ -60,7 +60,7 @@ embeddings `sbert`, both optional.
 | `hypergraph_pagerank()` | EDVW PageRank with personalization, sparse-capable | Chitra & Raphael (2019); Page et al. (1999) |
 | `knn_hypergraph()`, `dual_hypergraph()` | Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap | — |
 | `clique_expansion()`, `hypergraph_project()`, `hypergraph_line_graph()` | Projections: weighted pairwise network, association-weighted graph, s-line graph | [Coupette, Hartung & Katz (2024)](https://doi.org/10.1098/rsta.2023.0141); Aksoy et al. (2020) |
-| `temporal_hypergraph()`, `hypergraph_snapshot()`, `hypergraph_snapshots()` | Growing and interval hypergraphs; active, cumulative, and aggregate snapshots | Coupette, Hartung & Katz (2024) |
+| `temporal_hypergraph()`, `hypergraph_snapshot()`, `hypergraph_snapshots()` | Interval and contact hypergraphs in Dynet's vocabulary (`actor`/`group`, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a `step`/`window` grid | Coupette, Hartung & Katz (2024) |
 | `hypergraph_edges()`, `hypergraph_edge_centrality()` | Hyperedge distributions and s-betweenness/s-closeness | Coupette, Hartung & Katz (2024); Aksoy et al. (2020) |
 | `hypergraph_motifs()` | Induced Y/T/O census and configuration-model null profile | Coupette, Hartung & Katz (2024) |
 | `hypergraph_communities()`, `hypergraph_community_quality()` | Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance | Coupette, Hartung & Katz (2024) |
@@ -134,7 +134,7 @@ sc <- build_simplicial(hon, type = "pathway")
 betti_numbers(sc)
 
 # hypergraph: each session as one multi-way interaction over its codes
-hg <- group_hypergraph(human_long, member = "code", group = "session_id")
+hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
 hypergraph_centrality(hg, type = "pagerank")
 
 # text: a corpus as a document-word hypergraph, clustered into topics

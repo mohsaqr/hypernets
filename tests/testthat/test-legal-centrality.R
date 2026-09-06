@@ -19,8 +19,8 @@ test_that("edge centrality applies over temporal snapshots", {
     event = rep(c("e1", "e2", "e3"), each = 2),
     time = rep(1:3, each = 2)
   )
-  thg <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event", time = "time")
-  out <- hg_edge_centrality(thg, measure = "closeness")
+  thg <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
+  out <- hg_edge_centrality(thg, measure = "closeness", snapshot_mode = "cumulative")
   expect_equal(unique(out$time), as.character(1:3))
   expect_equal(nrow(out), 1 + 2 + 3)
 })

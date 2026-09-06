@@ -101,7 +101,10 @@
 #' @param what `"test"` for observed/null summaries, `"counts"` for observed
 #'   counts only, or `"draws"` for every null count.
 #' @param alternative Empirical permutation-test direction.
-#' @param at,snapshot_mode,multiedges Temporal snapshot arguments passed to
+#' @param start,end,step,window,at Measurement grid passed to
+#'   [hypergraph_snapshots()] when `hg` is temporal.
+#' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
+#'   `"cumulative"`) and multi-edge handling passed to
 #'   [hypergraph_snapshots()] when `hg` is temporal.
 #' @return A tidy data frame. Test output includes observed count, null mean
 #'   and standard deviation, z-score, empirical p-value, relative abundance
@@ -119,14 +122,15 @@
 hg_motifs <- function(hg, n = 1000L, seed = NULL,
                       what = c("test", "counts", "draws"),
                       alternative = c("two_sided", "greater", "less"),
-                      at = NULL,
-                      snapshot_mode = c("active", "cumulative", "all"),
+                      start = NULL, end = NULL, step = NULL, window = NULL,
+                      at = NULL, snapshot_mode = c("active", "cumulative"),
                       multiedges = TRUE) {
   what <- match.arg(what)
   alternative <- match.arg(alternative)
-  snapshot_mode <- match.arg(snapshot_mode)
+  snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_motifs", "snapshot_mode")
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, at = at, mode = snapshot_mode,
+    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+                                  window = window, at = at, mode = snapshot_mode,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_motifs(

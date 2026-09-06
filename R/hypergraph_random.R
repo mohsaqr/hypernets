@@ -25,7 +25,7 @@
 #' 1.0.0.
 #' @examples
 #' h <- hg_sample_gnp(n = 20, m = 8, p = 0.2, seed = 1)
-#' h$n_hyperedges
+#' summary(h)
 #' @export
 hg_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
   n <- .hgr_count(n, "n", minimum = 1L)
@@ -75,7 +75,7 @@ hg_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
 #' @examples
 #' P <- matrix(c(.5, .05, .05, .5), 2, 2)
 #' h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-#' table(h$blocks)
+#' as.data.frame(h, what = "nodes")
 #' @export
 hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
                           variable_size = FALSE, absolute_purity = TRUE,
@@ -179,8 +179,8 @@ hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
 #' @examples
 #' u <- hg_sample_uniform(20, 8, k = 3, seed = 1)
 #' r <- hg_sample_regular(20, 8, k = 2, seed = 1)
-#' unique(colSums(u$incidence))
-#' unique(rowSums(r$incidence))
+#' hg_measures(u, what = "distribution", measure = "size")
+#' hg_measures(r, what = "distribution", measure = "hyperdegree")
 #' @export
 hg_sample_uniform <- function(n, m, k, prob = NULL, seed = NULL) {
   n <- .hgr_count(n, "n", 1L)

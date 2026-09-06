@@ -98,7 +98,7 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
     edge = ids[center_idx],
     w = w
   )
-  hg <- group_hypergraph(long, member = "item", group = "edge",
+  hg <- group_hypergraph(long, actor = "item", group = "edge",
                                     weight = "w")
   hg$knn <- list(k = as.integer(k), weight = weight)
   hg

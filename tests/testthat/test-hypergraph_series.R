@@ -11,7 +11,7 @@ testthat::skip_on_cran()
 }
 
 .interval_thg <- function() {
-  temporal_hypergraph(.tribunals(), actor = "arbitrator", cooccur_by = "case",
+  temporal_hypergraph(.tribunals(), actor = "arbitrator", group = "case",
                       start = "constituted", end = "concluded")
 }
 
@@ -22,7 +22,7 @@ testthat::skip_on_cran()
     event = rep(c("e1", "e2", "e3", "e4"), each = 2),
     time = rep(c(1, 2, 3, 3), each = 2)
   )
-  temporal_hypergraph(dat, actor = "member", cooccur_by = "event", time = "time",
+  temporal_hypergraph(dat, actor = "member", group = "event", time = "time",
                       nodes = nodes)
 }
 
@@ -39,8 +39,8 @@ test_that("hg_growth counts active and cumulative structure of interval data", {
   expect_identical(g$n_edges_cumulative, c(1L, 2L, 2L, 3L, 3L))
 })
 
-test_that("hg_growth on growing data is cumulative and counts distinct sets", {
-  g <- hg_growth(.growing_thg())
+test_that("hg_growth in cumulative mode counts distinct sets", {
+  g <- hg_growth(.growing_thg(), mode = "cumulative")
   expect_identical(g$time, c(1, 2, 3))
   expect_identical(g$n_nodes, c(2L, 3L, 4L))
   expect_identical(g$n_edges, c(1L, 2L, 4L))
@@ -54,27 +54,30 @@ test_that("a node universe with entry times drives node counts and snapshots", {
                          start = c(1, 1, 2, 3, 0))
   thg <- .growing_thg(nodes = universe)
   expect_identical(thg$nodes, c("a", "b", "c", "d", "z"))
-  g <- hg_growth(thg)
+  g <- hg_growth(thg, mode = "cumulative")
   expect_identical(g$n_nodes, c(3L, 4L, 5L))
   snap <- hypergraph_snapshot(thg, at = 1)
   expect_identical(snap$nodes, c("a", "b", "z"))
   expect_identical(snap$n_hyperedges, 1L)
-  expect_identical(hypergraph_snapshot(thg, mode = "all")$n_nodes, 5L)
+  all_snap <- hypergraph_snapshot(thg, mode = "cumulative")
+  expect_identical(all_snap$n_nodes, 5L)
   # the node table's first column is the name; `time` also gives the entry
   named <- data.frame(key = c("a", "b", "c", "d", "z"), time = c(1, 1, 2, 3, 0))
   dat <- data.frame(member = c("a", "b", "b", "c", "c", "d", "a", "b"),
                     event = rep(c("e1", "e2", "e3", "e4"), each = 2),
                     time = rep(c(1, 2, 3, 3), each = 2))
-  renamed <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event",
+  renamed <- temporal_hypergraph(dat, actor = "member", group = "event",
                                  time = "time", nodes = named)
   expect_identical(renamed$node_data, thg$node_data)
-  expect_error(temporal_hypergraph(dat, actor = "member", cooccur_by = "event",
+  expect_error(temporal_hypergraph(dat, actor = "member", group = "event",
                                    time = "time", nodes = list(1)),
                class = "honets_bad_input")
   # a bare universe keeps every node in every snapshot
   bare <- .growing_thg(nodes = c("a", "b", "c", "d", "z"))
-  expect_identical(hypergraph_snapshot(bare, at = 1)$n_nodes, 5L)
-  expect_identical(hg_growth(bare)$n_nodes, c(2L, 3L, 4L))
+  bare_snap <- hypergraph_snapshot(bare, at = 1)
+  expect_identical(bare_snap$n_nodes, 5L)
+  bare_growth <- hg_growth(bare, mode = "cumulative")
+  expect_identical(bare_growth$n_nodes, c(2L, 3L, 4L))
   expect_error(.growing_thg(nodes = c("a", "b")), class = "honets_bad_input")
 })
 
@@ -98,14 +101,16 @@ test_that("component statistics follow the shared-hyperedge connectivity", {
     data.frame(case = rep(c("A", "B"), each = 3),
                arbitrator = c("p1", "a1", "a2", "p2", "a3", "a4"),
                start = 1, end = 2),
-    actor = "arbitrator", cooccur_by = "case", start = "start", end = "end"
+    actor = "arbitrator", group = "case", start = "start", end = "end"
   )
-  two <- hg_measures(hypergraph_snapshot(apart, at = 1), what = "components")
+  apart_snap <- hypergraph_snapshot(apart, at = 1)
+  two <- hg_measures(apart_snap, what = "components")
   expect_identical(two$component, 1:2)
   expect_identical(two$n_nodes, c(3L, 3L))
   expect_identical(two$n_edges, c(1L, 1L))
   expect_equal(two$share, c(0.5, 0.5))
-  expect_identical(hg_growth(apart, components = TRUE)$n_components, c(2L, 2L))
+  apart_growth <- hg_growth(apart, components = TRUE)
+  expect_identical(apart_growth$n_components, c(2L, 2L))
 })
 
 test_that("diameter matches a hand-computed path", {
@@ -120,24 +125,31 @@ test_that("diameter matches a hand-computed path", {
 
 test_that("series and distribution tables plot", {
   g <- hg_growth(.interval_thg())
-  expect_s3_class(plot(g), "ggplot")
-  expect_s3_class(plot(g, columns = c("n_nodes", "n_edges"), facets = FALSE), "ggplot")
+  series_plot <- plot(g)
+  expect_s3_class(series_plot, "ggplot")
+  columns_plot <- plot(g, columns = c("n_nodes", "n_edges"), facets = FALSE)
+  expect_s3_class(columns_plot, "ggplot")
   expect_error(plot(g, columns = "nope"), class = "honets_bad_input")
   snap <- hypergraph_snapshot(.interval_thg(), at = 2)
   d <- hg_measures(snap, what = "distribution", measure = "n_neighbors")
   expect_s3_class(d, "honets_distribution")
   expect_identical(attr(d, "measure"), "n_neighbors")
   expect_equal(d$ccdf[[1L]], 1)
-  expect_s3_class(plot(d), "ggplot")
-  expect_s3_class(plot(d, log = FALSE), "ggplot")
+  distribution_plot <- plot(d)
+  expect_s3_class(distribution_plot, "ggplot")
+  linear_plot <- plot(d, log = FALSE)
+  expect_s3_class(linear_plot, "ggplot")
 })
 
-test_that("temporal summary reports the observation window", {
+test_that("temporal summary reports the clock and the span", {
   s <- summary(.interval_thg())
   expect_identical(s$first_time, 1)
   expect_identical(s$last_time, 6)
   expect_equal(s$mean_duration, mean(c(3, 1, 2)))
-  expect_true(is.na(summary(.growing_thg())$mean_duration))
+  expect_identical(s$time_unit, "step")
+  growing_summary <- summary(.growing_thg())
+  expect_true(is.na(growing_summary$mean_duration))
+  expect_identical(growing_summary$format, "contact")
 })
 
 test_that("hg_growth rejects non-temporal input", {
