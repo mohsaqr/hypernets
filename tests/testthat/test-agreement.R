@@ -35,8 +35,9 @@ test_that("hg_agreement ari is label-permutation invariant, agreement is not", {
   out <- hg_agreement(x, y)
   expect_equal(out$ari, 1)
   expect_equal(out$agreement, 0)
-  expect_equal(hg_agreement(x, x)$agreement, 1)
-  expect_equal(hg_agreement(x, x)$ari, 1)
+  self <- hg_agreement(x, x)
+  expect_equal(self$agreement, 1)
+  expect_equal(self$ari, 1)
 })
 
 test_that("hg_agreement prefers `predicted` and joins on shared nodes", {
@@ -100,7 +101,8 @@ test_that("hg_seeds picks the top-pi nodes per cluster, deterministically", {
   # d5 then d6.
   expect_identical(seeds, c(d1 = "A", d3 = "A", d5 = "B", d6 = "B"))
   # n larger than the cluster returns the whole cluster
-  expect_identical(length(hg_seeds(pool, n = 10)), 6L)
+  all_seeds <- hg_seeds(pool, n = 10)
+  expect_identical(length(all_seeds), 6L)
 })
 
 test_that("hg_seeds feeds hg_classify directly", {
@@ -111,7 +113,8 @@ test_that("hg_seeds feeds hg_classify directly", {
   expect_identical(length(seeds), 2L)
   fit <- hg_classify(hg, labels = seeds, type = "random_walk")
   full <- hg_cluster(hg, k = 2, seed = 1, type = "random_walk")
-  expect_equal(hg_agreement(fit, full)$agreement, 1)
+  fit_vs_full <- hg_agreement(fit, full)
+  expect_equal(fit_vs_full$agreement, 1)
 })
 
 test_that("hg_seeds validates its contract", {
@@ -125,14 +128,15 @@ test_that("classifiers accept labels as a tidy data.frame", {
   as_vector <- c(cooking_1 = "cooking", space_1 = "space")
   as_frame <- data.frame(node = c("cooking_1", "space_1"),
                          label = c("cooking", "space"))
-  expect_identical(hg_classify(hg, labels = as_frame),
-                   hg_classify(hg, labels = as_vector))
+  from_frame <- hg_classify(hg, labels = as_frame)
+  from_vector <- hg_classify(hg, labels = as_vector)
+  expect_identical(from_frame, from_vector)
   # a hg_cluster() result is a valid labels input directly
   topics <- hg_cluster(hg, k = 2, seed = 1, type = "random_walk")
   one_per <- subset(topics, !duplicated(cluster))
-  expect_identical(hg_classify(hg, labels = one_per)$predicted,
-                   hg_classify(hg,
-                               labels = .thg_labels_input(one_per))$predicted)
+  from_cluster <- hg_classify(hg, labels = one_per)
+  from_coerced <- hg_classify(hg, labels = .thg_labels_input(one_per))
+  expect_identical(from_cluster$predicted, from_coerced$predicted)
   expect_error(hg_classify(hg, labels = data.frame(node = "cooking_1")),
                "labels")
 })
@@ -174,6 +178,49 @@ test_that("hg_agreement(what = 'mapping') names the best-matching label per row"
   expect_equal(m$share, c(2 / 3, 1))
   # natural order of label_x
   x$cluster <- sub("Cluster 2", "Cluster 10", x$cluster)
-  expect_identical(hg_agreement(x, y, what = "mapping")$label_x,
-                   c("Cluster 1", "Cluster 10"))
+  natural <- hg_agreement(x, y, what = "mapping")
+  expect_identical(natural$label_x, c("Cluster 1", "Cluster 10"))
+})
+
+test_that("hg_agreement summary counts majority-aligned nodes", {
+  x <- data.frame(node = letters[1:5],
+                  cluster = c("g1", "g1", "g1", "g2", "g2"))
+  y <- data.frame(node = letters[1:5],
+                  cluster = c("h1", "h1", "h2", "h2", "h2"))
+  out <- hg_agreement(x, y)
+  mapping <- hg_agreement(x, y, what = "mapping")
+  expect_named(out, c("n", "agreement", "aligned", "ari"))
+  expect_identical(out$aligned, 4L)
+  expect_identical(out$aligned, sum(mapping$overlap))
+  # INVARIANT: aligned is bounded by n and equals n for identical labelings
+  same <- hg_agreement(x, x)
+  expect_identical(same$aligned, 5L)
+  expect_true(out$aligned <= out$n)
+})
+
+test_that("hg_agreement node and label selectors read any two tables", {
+  predictions <- data.frame(node = c("d1", "d2", "d3", "d4"),
+                            predicted = c("early", "early", "late", "late"))
+  corpus <- data.frame(doc = c("d1", "d2", "d3", "d4"),
+                       year = c(2020L, 2020L, 2020L, 2024L))
+  tab <- hg_agreement(predictions, corpus, node = c("node", "doc"),
+                      label = c("predicted", "year"), what = "table")
+  expect_identical(tab$label_x, c("early", "late", "late"))
+  expect_identical(tab$label_y, c("2020", "2020", "2024"))
+  expect_identical(tab$n, c(2L, 1L, 1L))
+  # one name applies to both sides
+  renamed <- data.frame(id = c("d1", "d2", "d3", "d4"),
+                        predicted = c("early", "early", "late", "late"))
+  names(corpus) <- c("id", "predicted")
+  corpus$predicted <- c("early", "early", "early", "late")
+  one_name <- hg_agreement(renamed, corpus, node = "id")
+  expect_identical(one_name$n, 4L)
+  expect_equal(one_name$agreement, 3 / 4)
+  expect_error(hg_agreement(predictions, corpus, node = "id"),
+               class = "honets_bad_input")
+  expect_error(hg_agreement(predictions, corpus, node = c("node", "id"),
+                            label = c("predicted", "nope")),
+               class = "honets_bad_input")
+  expect_error(hg_agreement(predictions, corpus, node = c("a", "b", "c")),
+               class = "honets_bad_input")
 })

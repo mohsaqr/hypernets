@@ -280,9 +280,19 @@ print.net_hypergraph <- function(x, ...) {
 #' @param sort_by `NULL` (construction order, default), `"weight"`, or
 #'   `"size"` - sort the table by that column, largest first (ties broken
 #'   by hyperedge id so the order is deterministic).
-#' @return A data.frame with one row per hyperedge and columns `hyperedge`
-#'   (character id), `size` (integer), `states` (comma-separated member
-#'   states), and `weight` (numeric window count, or `NA`).
+#' @param what `"edges"` (default) for one row per hyperedge, `"nodes"`
+#'   for one row per node, or `"memberships"` for one row per node-in-
+#'   hyperedge cell of the incidence matrix.
+#' @return A data.frame. For `what = "edges"`, one row per hyperedge with
+#'   columns `hyperedge` (character id), `size` (integer), `states`
+#'   (comma-separated member states), and `weight` (numeric window count,
+#'   or `NA`). For `what = "nodes"`, one row per node with columns `node`
+#'   and `degree` (the number of hyperedges it belongs to), plus `block`
+#'   for a hypergraph with planted blocks ([hg_sample_sbm()]); `sort_by =
+#'   "degree"` orders it. For `what = "memberships"`, one row per non-zero
+#'   incidence cell with columns `node`, `hyperedge` and `weight` (the
+#'   incidence value: 1 for a binary hypergraph, the summed weight for a
+#'   weighted one), in hyperedge order; `sort_by = "weight"` orders it.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
@@ -291,10 +301,53 @@ print.net_hypergraph <- function(x, ...) {
 #' as.data.frame(hg)
 #' as.data.frame(hg, sort_by = "weight")
 #' as.data.frame(hg, sort_by = "weight", top = 3)
+#' as.data.frame(hg, what = "nodes", sort_by = "degree")
+#' as.data.frame(hg, what = "memberships")
 #' @export
 as.data.frame.net_hypergraph <- function(x, row.names = NULL,
                                          optional = FALSE, ...,
+                                         what = c("edges", "nodes",
+                                                  "memberships"),
                                          sort_by = NULL, top = NULL) {
+  what <- match.arg(what)
+  if (identical(what, "memberships")) {
+    nodes <- x$nodes %||% rownames(x$incidence) %||%
+      paste0("n", seq_len(x$n_nodes))
+    hyperedges <- colnames(x$incidence) %||%
+      paste0("h", seq_len(x$n_hyperedges))
+    cells <- Matrix::which(x$incidence != 0, arr.ind = TRUE)
+    out <- data.frame(
+      node = as.character(nodes[cells[, 1L]]),
+      hyperedge = as.character(hyperedges[cells[, 2L]]),
+      weight = as.numeric(x$incidence[cells]),
+      stringsAsFactors = FALSE
+    )
+    out <- out[order(cells[, 2L], cells[, 1L]), , drop = FALSE]
+    if (!is.null(sort_by)) {
+      sort_by <- match.arg(sort_by, "weight")
+      out <- out[order(-out$weight, out$hyperedge, out$node), , drop = FALSE]
+    }
+    rownames(out) <- NULL
+    return(.ho_top(out, top))
+  }
+  if (identical(what, "nodes")) {
+    nodes <- x$nodes %||% rownames(x$incidence) %||%
+      paste0("n", seq_len(x$n_nodes))
+    degree <- if (x$n_hyperedges > 0L) {
+      as.integer(Matrix::rowSums(x$incidence > 0))
+    } else {
+      rep(0L, x$n_nodes)
+    }
+    out <- data.frame(node = as.character(nodes), degree = degree,
+                      stringsAsFactors = FALSE)
+    if (!is.null(x$blocks)) out$block <- as.integer(x$blocks)
+    if (!is.null(sort_by)) {
+      sort_by <- match.arg(sort_by, "degree")
+      out <- out[order(-out$degree, out$node), , drop = FALSE]
+      rownames(out) <- NULL
+    }
+    return(.ho_top(out, top))
+  }
   out <- data.frame(
     hyperedge = colnames(x$incidence) %||%
       paste0("h", seq_len(x$n_hyperedges)),

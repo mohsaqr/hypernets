@@ -9,6 +9,7 @@
   row.names = NULL,
   optional = FALSE,
   ...,
+  what = c("edges", "nodes", "memberships"),
   sort_by = NULL,
   top = NULL
 )
@@ -22,6 +23,10 @@
 
 \item{...}{Additional arguments (ignored).}
 
+\item{what}{\code{"edges"} (default) for one row per hyperedge, \code{"nodes"}
+for one row per node, or \code{"memberships"} for one row per node-in-
+hyperedge cell of the incidence matrix.}
+
 \item{sort_by}{\code{NULL} (construction order, default), \code{"weight"}, or
 \code{"size"} - sort the table by that column, largest first (ties broken
 by hyperedge id so the order is deterministic).}
@@ -31,9 +36,15 @@ applied after any filter and after \code{sort_by}, so \code{sort_by} and
 \code{top} compose. Default \code{NULL} returns every row.}
 }
 \value{
-A data.frame with one row per hyperedge and columns \code{hyperedge}
-(character id), \code{size} (integer), \code{states} (comma-separated member
-states), and \code{weight} (numeric window count, or \code{NA}).
+A data.frame. For \code{what = "edges"}, one row per hyperedge with
+columns \code{hyperedge} (character id), \code{size} (integer), \code{states}
+(comma-separated member states), and \code{weight} (numeric window count,
+or \code{NA}). For \code{what = "nodes"}, one row per node with columns \code{node}
+and \code{degree} (the number of hyperedges it belongs to), plus \code{block}
+for a hypergraph with planted blocks (\code{\link[=hg_sample_sbm]{hg_sample_sbm()}}); \code{sort_by = "degree"} orders it. For \code{what = "memberships"}, one row per non-zero
+incidence cell with columns \code{node}, \code{hyperedge} and \code{weight} (the
+incidence value: 1 for a binary hypergraph, the summed weight for a
+weighted one), in hyperedge order; \code{sort_by = "weight"} orders it.
 }
 \description{
 One row per hyperedge: its identifier, size (number of distinct member
@@ -47,4 +58,6 @@ hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c")), window = 2L)
 as.data.frame(hg)
 as.data.frame(hg, sort_by = "weight")
 as.data.frame(hg, sort_by = "weight", top = 3)
+as.data.frame(hg, what = "nodes", sort_by = "degree")
+as.data.frame(hg, what = "memberships")
 }

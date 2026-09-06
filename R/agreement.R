@@ -77,23 +77,51 @@
 
 # Extract the label column from a tidy labeling: `predicted`
 # (classification results) first, else `cluster` (clustering results).
-.thg_labeling <- function(x, arg) {
+.thg_labeling <- function(x, arg, node = "node", label = NULL) {
   stopifnot(
-    "labelings must be data.frames with a `node` column" =
-      is.data.frame(x) && "node" %in% names(x)
+    "labelings must be data.frames" = is.data.frame(x),
+    "`node` must be a single column name" =
+      is.character(node) && length(node) == 1L && !is.na(node),
+    "`label` must be NULL or a single column name" =
+      is.null(label) || (is.character(label) && length(label) == 1L && !is.na(label))
   )
-  column <- intersect(c("predicted", "cluster", "label"), names(x))
-  if (length(column) == 0L) {
+  if (!node %in% names(x)) {
     stop(errorCondition(
-      sprintf(paste0("`%s` has no `predicted`, `cluster` or `label` ",
-                     "column; pass a result from hg_cluster(), ",
-                     "hg_classify(), hg_neural() or hg_hypergat(), or a ",
-                     "table of known labels"), arg),
+      sprintf("`%s` has no `%s` column", arg, node),
       class = "honets_bad_input", call = NULL
     ))
   }
-  data.frame(node = x$node, label = as.character(x[[column[[1]]]]),
+  column <- if (is.null(label)) {
+    intersect(c("predicted", "cluster", "label"), names(x))
+  } else {
+    intersect(label, names(x))
+  }
+  if (length(column) == 0L) {
+    stop(errorCondition(
+      if (is.null(label)) {
+        sprintf(paste0("`%s` has no `predicted`, `cluster` or `label` ",
+                       "column; pass a result from hg_cluster(), ",
+                       "hg_classify(), hg_neural() or hg_hypergat(), a ",
+                       "table of known labels, or name the column with `label`"), arg)
+      } else {
+        sprintf("`%s` has no `%s` column", arg, label)
+      },
+      class = "honets_bad_input", call = NULL
+    ))
+  }
+  data.frame(node = as.character(x[[node]]),
+             label = as.character(x[[column[[1]]]]),
              stringsAsFactors = FALSE)
+}
+
+# A column selector for `hg_agreement()`: one name applies to both
+# labelings, two names apply to `x` and `y` in turn.
+.thg_pair_selector <- function(value, arg) {
+  if (is.null(value)) return(list(NULL, NULL))
+  if (!is.character(value) || !length(value) %in% c(1L, 2L) || anyNA(value)) {
+    .thg_bad_input(sprintf("`%s` must be one column name, or two (for `x` and `y`)", arg))
+  }
+  if (length(value) == 1L) list(value, value) else list(value[[1L]], value[[2L]])
 }
 
 # Coerce a `labels` argument to the named-character-vector contract the
@@ -132,6 +160,12 @@
 #'   `predicted`, `cluster` or `label` column (first match in that
 #'   order wins). Nodes are matched by name; nodes present in only one
 #'   labeling are dropped.
+#' @param node,label Column names, one name for both labelings or two
+#'   names for `x` and `y` in turn, that override the defaults above --
+#'   `hg_agreement(predictions, corpus, node = c("node", "doc"), label =
+#'   c("predicted", "year"))` scores a classifier against a column of the
+#'   corpus table without reshaping it. `label = NULL` (default) keeps the
+#'   `predicted` / `cluster` / `label` lookup.
 #' @param what `"summary"` (default) for the one-row comparison,
 #'   `"table"` for the tidy contingency table of the joined labels, or
 #'   `"mapping"` for one row per label of `x` naming the label of `y` that
@@ -140,7 +174,10 @@
 #' @param method One or more label-permutation-invariant measures: `"ari"`
 #'   (default), `"ami"`, or `"nmi"`. Ignored for `what = "table"`.
 #' @return A base `data.frame`. For `what = "summary"`: one row with
-#'   columns `n` (nodes compared), `agreement` (share of equal labels)
+#'   columns `n` (nodes compared), `agreement` (share of equal labels),
+#'   `aligned` (nodes that stay with the majority of their `x` label in
+#'   `y` -- the sum of `overlap` over `what = "mapping"`, so a
+#'   label-name-free count of how many nodes a re-fit keeps together)
 #'   and the requested measure columns. For `what = "table"`: one row per
 #'   label pair with columns `label_x`, `label_y` and `n`. For
 #'   `what = "mapping"`: one row per label of `x` with columns `label_x`,
@@ -166,12 +203,19 @@
 #' hg_agreement(fit, topics)
 #' hg_agreement(fit, topics, what = "table")
 #' hg_agreement(fit, topics, what = "mapping")
+#' # a labeling read from any table: name its node and label columns
+#' known <- data.frame(doc = c("cooking_1", "space_2"), theme = c("cooking", "space"))
+#' hg_agreement(topics, known, node = c("node", "doc"), label = c("cluster", "theme"),
+#'              what = "table")
 #' @export
 hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
-                         method = "ari") {
+                         method = "ari", node = "node", label = NULL) {
   what <- match.arg(what)
   method <- match.arg(method, c("ari", "ami", "nmi"), several.ok = TRUE)
-  joined <- merge(.thg_labeling(x, "x"), .thg_labeling(y, "y"),
+  node <- .thg_pair_selector(node, "node")
+  label <- .thg_pair_selector(label, "label")
+  joined <- merge(.thg_labeling(x, "x", node[[1L]], label[[1L]]),
+                  .thg_labeling(y, "y", node[[2L]], label[[2L]]),
                   by = "node", suffixes = c("_x", "_y"))
   if (nrow(joined) == 0L) {
     stop(errorCondition(
@@ -203,9 +247,11 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
     rownames(out) <- NULL
     return(out)
   }
+  cross <- table(joined$label_x, joined$label_y)
   out <- data.frame(
     n = nrow(joined),
-    agreement = mean(joined$label_x == joined$label_y)
+    agreement = mean(joined$label_x == joined$label_y),
+    aligned = as.integer(sum(apply(cross, 1L, max)))
   )
   if ("ari" %in% method) out$ari <- .thg_ari(joined$label_x, joined$label_y)
   if ("ami" %in% method) out$ami <- .thg_ami(joined$label_x, joined$label_y)

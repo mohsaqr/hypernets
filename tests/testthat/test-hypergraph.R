@@ -198,3 +198,50 @@ test_that("print/summary handle empty hypergraph", {
   s <- summary(hg)
   expect_s3_class(s, "data.frame")
 })
+
+test_that("as.data.frame(what = 'nodes') reports one row per node", {
+  df <- data.frame(
+    member = c("a", "b", "c", "b", "c", "d"),
+    session = c("s1", "s1", "s1", "s2", "s2", "s2")
+  )
+  hg <- group_hypergraph(df, actor = "member", group = "session")
+  nodes <- as.data.frame(hg, what = "nodes")
+  expect_identical(names(nodes), c("node", "degree"))
+  expect_identical(nodes$node, c("a", "b", "c", "d"))
+  expect_identical(nodes$degree, c(1L, 2L, 2L, 1L))
+  by_degree <- as.data.frame(hg, what = "nodes", sort_by = "degree", top = 2)
+  expect_identical(by_degree$node, c("b", "c"))
+  sparse <- group_hypergraph(df, actor = "member", group = "session",
+                             sparse = TRUE)
+  sparse_nodes <- as.data.frame(sparse, what = "nodes")
+  expect_identical(sparse_nodes, nodes)
+  # planted blocks ride along
+  P <- matrix(c(.5, .05, .05, .5), 2, 2)
+  sbm <- hg_sample_sbm(P = P, block_sizes = c(3, 3), d = 2, seed = 1)
+  sbm_nodes <- as.data.frame(sbm, what = "nodes")
+  expect_identical(names(sbm_nodes), c("node", "degree", "block"))
+  expect_identical(sbm_nodes$block, rep(1:2, each = 3))
+})
+
+test_that("as.data.frame(what = 'memberships') lists every incidence cell", {
+  dfw <- data.frame(person = c("A", "B", "A", "A", "B"),
+                    grp = c("g1", "g1", "g1", "g2", "g2"),
+                    n = c(2, 5, 3, 1, 4), stringsAsFactors = FALSE)
+  hw <- group_hypergraph(dfw, actor = "person", group = "grp", weight = "n")
+  cells <- as.data.frame(hw, what = "memberships")
+  expect_identical(names(cells), c("node", "hyperedge", "weight"))
+  expect_identical(cells$node, c("A", "B", "A", "B"))
+  expect_identical(cells$hyperedge, c("g1", "g1", "g2", "g2"))
+  expect_equal(cells$weight, c(5, 5, 1, 4))
+  heaviest <- as.data.frame(hw, what = "memberships", sort_by = "weight", top = 1)
+  expect_identical(heaviest$hyperedge, "g1")
+  # INVARIANT: the table is the incidence matrix in long form, dense or sparse
+  sparse <- group_hypergraph(dfw, actor = "person", group = "grp",
+                             weight = "n", sparse = TRUE)
+  sparse_cells <- as.data.frame(sparse, what = "memberships")
+  expect_equal(sparse_cells, cells)
+  expect_equal(sum(cells$weight), sum(hw$incidence))
+  binary <- group_hypergraph(dfw, actor = "person", group = "grp")
+  binary_cells <- as.data.frame(binary, what = "memberships")
+  expect_equal(binary_cells$weight, rep(1, 4))
+})

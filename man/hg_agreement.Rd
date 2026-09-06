@@ -5,13 +5,22 @@
 \alias{hypergraph_agreement}
 \title{Agreement between two labelings of the same nodes}
 \usage{
-hg_agreement(x, y, what = c("summary", "table", "mapping"), method = "ari")
+hg_agreement(
+  x,
+  y,
+  what = c("summary", "table", "mapping"),
+  method = "ari",
+  node = "node",
+  label = NULL
+)
 
 hypergraph_agreement(
   x,
   y,
   what = c("summary", "table", "mapping"),
-  method = "ari"
+  method = "ari",
+  node = "node",
+  label = NULL
 )
 }
 \arguments{
@@ -28,10 +37,19 @@ change of method, topic by topic.}
 
 \item{method}{One or more label-permutation-invariant measures: \code{"ari"}
 (default), \code{"ami"}, or \code{"nmi"}. Ignored for \code{what = "table"}.}
+
+\item{node, label}{Column names, one name for both labelings or two
+names for \code{x} and \code{y} in turn, that override the defaults above --
+\code{hg_agreement(predictions, corpus, node = c("node", "doc"), label = c("predicted", "year"))} scores a classifier against a column of the
+corpus table without reshaping it. \code{label = NULL} (default) keeps the
+\code{predicted} / \code{cluster} / \code{label} lookup.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "summary"}: one row with
-columns \code{n} (nodes compared), \code{agreement} (share of equal labels)
+columns \code{n} (nodes compared), \code{agreement} (share of equal labels),
+\code{aligned} (nodes that stay with the majority of their \code{x} label in
+\code{y} -- the sum of \code{overlap} over \code{what = "mapping"}, so a
+label-name-free count of how many nodes a re-fit keeps together)
 and the requested measure columns. For \code{what = "table"}: one row per
 label pair with columns \code{label_x}, \code{label_y} and \code{n}. For
 \code{what = "mapping"}: one row per label of \code{x} with columns \code{label_x},
@@ -65,6 +83,10 @@ fit <- hg_classify(hg, labels = c(cooking_1 = "Cluster 1",
 hg_agreement(fit, topics)
 hg_agreement(fit, topics, what = "table")
 hg_agreement(fit, topics, what = "mapping")
+# a labeling read from any table: name its node and label columns
+known <- data.frame(doc = c("cooking_1", "space_2"), theme = c("cooking", "space"))
+hg_agreement(topics, known, node = c("node", "doc"), label = c("cluster", "theme"),
+             what = "table")
 }
 \references{
 Hubert, L., & Arabie, P. (1985). Comparing partitions.
