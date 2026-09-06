@@ -35,7 +35,8 @@ hg_hypergat(
   class_weights = c("balanced", "none"),
   embeddings = NULL,
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  what = c("predictions", "attention")
 )
 
 text_hypergat(
@@ -68,7 +69,8 @@ text_hypergat(
   class_weights = c("balanced", "none"),
   embeddings = NULL,
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  what = c("predictions", "attention")
 )
 }
 \arguments{
@@ -138,14 +140,32 @@ initialization.}
 given a seed.}
 
 \item{verbose}{Message the loss each epoch.}
+
+\item{what}{\code{"predictions"} (default) returns the per-document
+classification table; \code{"attention"} returns the trained network's
+node-level attention per document and word, the input
+\code{hg_keywords(type = "attention")} takes.}
 }
 \value{
-A base \code{data.frame}, one row per (kept) document: \code{node},
-\code{label} (the given label or \code{NA}), \code{predicted}, \code{score} (softmax
-probability of the winning class), \code{margin} (winner minus runner-up).
-The training history is attached as attribute \code{"history"}
-(\code{epoch}, \code{loss}, \code{val_accuracy}).
+With \code{what = "predictions"}, a base \code{data.frame}, one row per
+(kept) document: \code{node}, \code{label} (the given label or \code{NA}),
+\code{predicted}, \code{score} (softmax probability of the winning class),
+\code{margin} (winner minus runner-up). The training history is attached
+as attribute \code{"history"} (\code{epoch}, \code{loss}, \code{val_accuracy}).
 Attribute \code{"semantic"} records the topic keywords and LDA settings.
+
+With \code{what = "attention"}, a base \code{data.frame}, one row per
+(document, word) pair: \code{node}, \code{word}, \code{attention} (the word's
+node-level attention weights from the \strong{first} attention layer, the
+one that attends over the word embeddings, in evaluation mode, summed
+over the hyperedges it belongs to -- each hyperedge's weights sum to
+one, so a document's \code{attention} column sums to its hyperedge count),
+\code{attention_2} (the same from the second layer) and \code{n_edges} (how many
+of the document's hyperedges contain the word). Ordered by \code{node},
+then \code{word}. The second layer attends over first-layer outputs, which
+are identical for every word of a document that has a single hyperedge
+(one sentence), so \code{attention_2} is uniform within such documents by
+construction; \code{hg_keywords(type = "attention")} uses \code{attention}.
 }
 \description{
 Trains the dual-attention hypergraph network of Ding et al. (2020) --

@@ -8,7 +8,7 @@ text_hypergraph(
   x,
   column = NULL,
   id = NULL,
-  construction = c("bag", "window", "knn"),
+  construction = c("bag", "window", "sentence", "knn"),
   nodes = c("doc", "word"),
   weight = c("n", "tfidf"),
   stop_words = NULL,
@@ -19,7 +19,7 @@ text_hypergraph(
   k = 10L,
   embeddings = NULL,
   model = NULL,
-  sparse = FALSE
+  sparse = NULL
 )
 }
 \arguments{
@@ -33,7 +33,8 @@ values (unique, non-missing) become the document identifiers. Defaults
 to the names of \code{x} when it is a named character vector, otherwise
 \code{"doc_1"}, \code{"doc_2"}, ...}
 
-\item{construction}{\code{"bag"} (default), \code{"window"}, or \code{"knn"} -- see
+\item{construction}{\code{"bag"} (default), \code{"window"}, \code{"sentence"} or
+\code{"knn"} -- see
 Details.}
 
 \item{nodes}{Which entity is the vertex set for the bag construction:
@@ -42,7 +43,8 @@ words) and \code{"knn"} (vertices are documents).}
 
 \item{weight}{Term weighting for the bag construction: \code{"n"} (raw count,
 default) or \code{"tfidf"}. The window construction always weights by
-window counts; the knn construction by cosine similarity.}
+window counts, the sentence construction by in-sentence counts, the
+knn construction by cosine similarity.}
 
 \item{stop_words}{Optional character vector of words to drop after
 tokenization (compared after lowercasing when \code{lowercase = TRUE}); see
@@ -70,8 +72,10 @@ the text with \code{sbert}.}
 \item{model}{Passed to \code{sbert::encode()} when embeddings are computed
 (\code{NULL} = sbert's default model).}
 
-\item{sparse}{Store the incidence as a \code{Matrix::dgCMatrix} (bag
-construction only, default \code{FALSE}). Sparse hypergraphs scale to tens
+\item{sparse}{Store the incidence as a \code{Matrix::dgCMatrix} (bag and
+sentence constructions). Default \code{NULL} chooses: sparse when the
+document-by-word incidence would have a million cells or more, dense
+otherwise. Sparse hypergraphs scale to tens
 of thousands of documents; \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_classify]{hg_classify()}},
 \code{\link[=hg_pagerank]{hg_pagerank()}}, and \code{\link[=hg_measures]{hg_measures()}} use sparse operator paths that
 agree with the dense engines (tested), while tensor centralities and
@@ -114,6 +118,14 @@ a window, the two constructions produce the same incidence matrix
 differ only at the edges of the definition -- a document shorter than
 \code{window}, a trailing partial chunk, or a word repeated inside one
 window, which a set-valued hyperedge collapses.
+\item \code{construction = "sentence"}: words are vertices and every sentence is
+a hyperedge -- HyperGAT's sentence-as-hyperedge construction (Ding et
+al. 2020, Sec. 3.2) over the whole corpus. Documents are split at
+\code{.}, \code{!}, \verb{?} and \verb{;}; each sentence with at least one surviving token
+is one hyperedge named \verb{<doc>#<sentence>}, and its incidence weight
+is the word's occurrence count in that sentence. Two words are then
+related when they share a sentence, not merely a document -- the
+scope \code{\link[=hg_keywords]{hg_keywords()}} uses for \code{type = "sentence_centrality"}.
 \item \code{construction = "knn"}: documents are vertices and each document plus
 its \code{k} nearest neighbors in an embedding space is one hyperedge,
 weighted by cosine similarity (see \code{\link[=knn_hypergraph]{knn_hypergraph()}}). Pass a

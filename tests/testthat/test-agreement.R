@@ -151,8 +151,29 @@ test_that("hg_keywords collapse = TRUE matches the long form", {
   topics <- hg_cluster(hg, k = 2, seed = 1, type = "random_walk")
   long <- hg_keywords(hg, topics, n = 3)
   wide <- hg_keywords(hg, topics, n = 3, collapse = TRUE)
-  expect_identical(names(wide), c("cluster", "words"))
+  expect_identical(names(wide), c("type", "cluster", "size", "words"))
+  expect_identical(wide$size, as.integer(table(topics$cluster)[wide$cluster]))
   expect_identical(nrow(wide), length(unique(long$cluster)))
   rebuilt <- aggregate(word ~ cluster, data = long, paste, collapse = ", ")
   expect_identical(wide$words, rebuilt$word)
+  expect_true(all(wide$type == "mass"))
+})
+
+test_that("hg_agreement(what = 'mapping') names the best-matching label per row", {
+  x <- data.frame(node = c("a", "b", "c", "d", "e"),
+                  cluster = c("Cluster 1", "Cluster 1", "Cluster 1",
+                              "Cluster 2", "Cluster 2"))
+  y <- data.frame(node = c("a", "b", "c", "d", "e"),
+                  cluster = c("p", "p", "q", "q", "q"))
+  m <- hg_agreement(x, y, what = "mapping")
+  expect_named(m, c("label_x", "n", "label_y", "overlap", "share"))
+  expect_identical(m$label_x, c("Cluster 1", "Cluster 2"))
+  expect_identical(m$n, c(3L, 2L))
+  expect_identical(m$label_y, c("p", "q"))
+  expect_identical(m$overlap, c(2L, 2L))
+  expect_equal(m$share, c(2 / 3, 1))
+  # natural order of label_x
+  x$cluster <- sub("Cluster 2", "Cluster 10", x$cluster)
+  expect_identical(hg_agreement(x, y, what = "mapping")$label_x,
+                   c("Cluster 1", "Cluster 10"))
 })

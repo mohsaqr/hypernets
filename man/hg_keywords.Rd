@@ -2,42 +2,149 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_keywords}
 \alias{hg_keywords}
+\alias{print.honets_keywords}
+\alias{plot.honets_keywords}
 \alias{hypergraph_keywords}
-\title{Characteristic hyperedges (keywords) per cluster}
+\title{Characteristic words (keywords) per cluster}
 \usage{
-hg_keywords(hg, clusters, n = 10L, collapse = FALSE)
+hg_keywords(
+  hg,
+  clusters,
+  n = 10L,
+  type = NULL,
+  sort_by = c("score", "share"),
+  min_docs = 1L,
+  centrality = c("pagerank", "clique", "Z", "H"),
+  scores = NULL,
+  collapse = FALSE
+)
 
-hypergraph_keywords(hg, clusters, n = 10L, collapse = FALSE)
+\method{print}{honets_keywords}(x, ...)
+
+\method{plot}{honets_keywords}(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
+
+hypergraph_keywords(
+  hg,
+  clusters,
+  n = 10L,
+  type = NULL,
+  sort_by = c("score", "share"),
+  min_docs = 1L,
+  centrality = c("pagerank", "clique", "Z", "H"),
+  scores = NULL,
+  collapse = FALSE
+)
 }
 \arguments{
-\item{hg}{The hypergraph the clustering was computed on.}
+\item{hg}{The hypergraph the clustering was computed on, or the
+sentence hypergraph of the same documents (see Sentence scope).}
 
 \item{clusters}{The tidy table returned by \code{\link[=hg_cluster]{hg_cluster()}} (columns
 \code{node}, \code{cluster}), or a named vector of cluster labels.}
 
 \item{n}{Keywords per cluster (default \code{10}); \code{Inf} returns all.}
 
-\item{collapse}{If \code{TRUE}, return one row per cluster with its
-keywords joined into a single comma-separated string -- the compact
-display for comparing many clusters at once. Default \code{FALSE}.}
+\item{type}{Which score ranks the words: any of \code{"mass"},
+\code{"frequency"}, \code{"ctfidf"}, \code{"centrality"}. Several at once give one
+block of rows per score. Default \code{"mass"}, or none when only
+\code{scores} is wanted.}
+
+\item{sort_by}{\code{"score"} (default) ranks a cluster's words by the
+selected score, the heavy vocabulary; \code{"share"} ranks them by the
+fraction of the word's total score that falls in the cluster, the
+distinctive vocabulary. Ties are broken by the other column, then
+alphabetically.}
+
+\item{min_docs}{Keep only words that occur in at least this many of the
+cluster's documents (default \code{1}). The support floor that stops
+\code{sort_by = "share"} from surfacing words a cluster owns because they
+occur once.}
+
+\item{centrality}{For \code{type = "centrality"}, the \code{\link[=hypergraph_centrality]{hypergraph_centrality()}}
+measure: \code{"pagerank"} (default; it reads the incidence weights and does
+not tie on words present in every document, as the clique measure
+does), \code{"clique"}, \code{"Z"} or \code{"H"}.}
+
+\item{scores}{An external score table (columns \code{node}, \code{word} and one
+numeric column), summed per cluster and added as its own block.}
+
+\item{collapse}{If \code{TRUE}, return one row per type and cluster with the
+words joined into a single comma-separated string -- a display table,
+not tidy data. Default \code{FALSE}.}
+
+\item{x}{For \code{plot()} and \code{print()}: a table returned by \code{hg_keywords()}.}
+
+\item{...}{Unused; for S3 consistency.}
+
+\item{value}{For \code{plot()}: which column the bars show, \code{"score"}
+(default) or \code{"share"}; match it to \code{sort_by}.}
+
+\item{label}{For \code{plot()}: print each bar's value at its end
+(default \code{TRUE}).}
+
+\item{ncol}{For \code{plot()}: panels per row; default one column per score
+type, so clusters run down and types across. With a single type and
+many clusters, pass e.g. \code{ncol = 4}.}
 }
 \value{
-A base \code{data.frame}. Default: one row per cluster-keyword
-pair, columns \code{cluster}, \code{rank}, \code{word} (the hyperedge name),
-\code{score} (in-cluster weight mass) and \code{share} (\code{score} divided by
-the hyperedge's total mass), ranked by \code{score} within cluster with
-ties broken alphabetically. With \code{collapse = TRUE}: one row per
-cluster, columns \code{cluster} and \code{words}.
+A base \code{data.frame} of class \code{honets_keywords}, one row per
+type-cluster-keyword triple, columns \code{type}, \code{cluster}, \code{size} (the
+cluster's documents), \code{rank}, \code{word}, \code{score} (the selected score),
+\code{share} (\code{score} divided by the word's summed score over all
+clusters) and \code{n_docs} (the cluster's documents containing the word),
+ranked by \code{sort_by} within type and cluster; only words with a
+positive score and at least \code{min_docs} documents appear. With
+\code{collapse = TRUE}: one row per type and cluster, columns \code{type},
+\code{cluster}, \code{size} and \code{words}. The print method shows the collapsed
+view, truncated to the console width; \code{as.data.frame()} is the long
+form. Raises \code{honets_bad_input} for unknown node names, a \code{type} that
+needs the token layer on a hypergraph without one, or a malformed
+\code{scores} table.
+
+\code{plot()} returns a ggplot: one panel per cluster (rows) and score type
+(columns), each with its own word axis, horizontal bars of \code{value} per
+word, Okabe-Ito fill by type. It needs the long form and raises
+\code{honets_bad_input} on a collapsed table.
 }
 \description{
-For a clustered hypergraph, ranks each cluster's hyperedges by the
-incidence weight mass its member nodes place on them. On a
-\code{nodes = "doc"} \code{\link[=text_hypergraph]{text_hypergraph()}} this is per-topic keyword
-extraction: a word's score in a cluster is the summed (tf-idf) weight
-it receives from that cluster's documents, and \code{share} is the fraction
-of the word's total corpus mass concentrated in the cluster --
-\code{score} finds the cluster's heavy vocabulary, \code{share} its distinctive
-vocabulary.
+For a clustered hypergraph, ranks each cluster's hyperedges -- on a
+\code{nodes = "doc"} \code{\link[=text_hypergraph]{text_hypergraph()}}, its words -- by one of four scores
+computed from the hypergraph, or by a score table supplied from another
+fit. This is the topic-description step that turns a partition from
+\code{\link[=hg_cluster]{hg_cluster()}} into named topics.
+}
+\details{
+\itemize{
+\item \code{"mass"} (default): the summed incidence weight a cluster's documents
+place on the word (tf-idf mass under \code{weight = "tfidf"}, counts under
+\code{weight = "n"}). Works on any hypergraph.
+\item \code{"frequency"}: the raw token count of the word in the cluster's
+documents, whatever the incidence weighting.
+\item \code{"ctfidf"}: class-based tf-idf (Grootendorst 2022), the topic
+representation BERTopic uses: the cluster's L1-normalised term
+frequency times \code{log(A / f_w + 1)}, where \code{f_w} is the word's corpus
+count and \code{A} the average token count per cluster (truncated to an
+integer, as in the reference implementation).
+\item \code{"centrality"}: the word's centrality within the cluster's own word
+hypergraph (words as nodes, the cluster's documents as hyperedges,
+incidence = the stored weights), from \code{\link[=hypergraph_centrality]{hypergraph_centrality()}} with
+the measure named in \code{centrality}.
+}
+
+\code{"frequency"}, \code{"ctfidf"} and \code{"centrality"} need the token-level layer
+of a bag-of-words document hypergraph (\code{construction = "bag"},
+\code{nodes = "doc"}); other hypergraphs raise \code{honets_bad_input}.
+
+\strong{Sentence scope.} When \code{hg} is a \code{text_hypergraph(construction = "sentence")} of the documents, \code{clusters} still names documents, and the
+scores are computed over the cluster's \emph{sentences}: two words are then
+related by sharing a sentence rather than a document. \code{"mass"} and
+\code{"frequency"} sum the in-sentence counts; \code{"centrality"} is the word's
+centrality among the cluster's sentence hyperedges.
+
+\strong{External scores.} \code{scores} takes a data.frame with columns \code{node},
+\code{word} and one numeric column (for instance the \code{attention} table from
+\code{hg_hypergat(what = "attention")}). Its values are summed per cluster
+and reported as their own block, labelled by the numeric column's name.
 }
 \examples{
 hg <- text_hypergraph(c(
@@ -48,4 +155,14 @@ hg <- text_hypergraph(c(
 ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 topics <- hg_cluster(hg, k = 2, seed = 1)
 hg_keywords(hg, topics, n = 3)
+hg_keywords(hg, topics, n = 3, type = "ctfidf")
+words <- hg_keywords(hg, topics, n = 4,
+                     type = c("frequency", "ctfidf", "centrality"))
+plot(words)
+# distinctive rather than heavy vocabulary: rank by share, with support
+hg_keywords(hg, topics, n = 3, sort_by = "share", min_docs = 1)
+}
+\references{
+Grootendorst, M. (2022). BERTopic: Neural topic modeling with a
+class-based TF-IDF procedure. arXiv:2203.05794.
 }

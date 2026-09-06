@@ -26,6 +26,10 @@
     self$alpha <- alpha
     self$transfer <- transfer
     self$concat <- concat
+    # set by hg_hypergat(what = "attention") to keep the last node-level
+    # attention tensor [B, E, N] after a forward pass
+    self$capture <- FALSE
+    self$attention <- NULL
     stdv <- 1 / sqrt(out_features)
     runif_par <- function(...) {
       torch::nn_parameter(torch::torch_empty(...)$uniform_(-stdv, stdv))
@@ -58,6 +62,9 @@
     neg <- torch::torch_full_like(e, -9e15)
     att_edge <- torch::nnf_softmax(torch::torch_where(adj > 0, e, neg),
                                    dim = 3L)
+    if (isTRUE(self$capture)) {
+      self$attention <- att_edge$detach()
+    }
     edge <- torch::torch_matmul(att_edge, x)                # [B, E, out]
     edge <- torch::nnf_dropout(edge, self$p_drop, training = self$training)
     # edge-level attention: score([x_att_n || edge_att_e] a2), masked
@@ -343,12 +350,29 @@
 #' @param seed Integer seed (R and torch); results are deterministic
 #'   given a seed.
 #' @param verbose Message the loss each epoch.
-#' @return A base `data.frame`, one row per (kept) document: `node`,
-#'   `label` (the given label or `NA`), `predicted`, `score` (softmax
-#'   probability of the winning class), `margin` (winner minus runner-up).
-#'   The training history is attached as attribute `"history"`
-#'   (`epoch`, `loss`, `val_accuracy`).
+#' @param what `"predictions"` (default) returns the per-document
+#'   classification table; `"attention"` returns the trained network's
+#'   node-level attention per document and word, the input
+#'   `hg_keywords(type = "attention")` takes.
+#' @return With `what = "predictions"`, a base `data.frame`, one row per
+#'   (kept) document: `node`, `label` (the given label or `NA`),
+#'   `predicted`, `score` (softmax probability of the winning class),
+#'   `margin` (winner minus runner-up). The training history is attached
+#'   as attribute `"history"` (`epoch`, `loss`, `val_accuracy`).
 #'   Attribute `"semantic"` records the topic keywords and LDA settings.
+#'
+#'   With `what = "attention"`, a base `data.frame`, one row per
+#'   (document, word) pair: `node`, `word`, `attention` (the word's
+#'   node-level attention weights from the **first** attention layer, the
+#'   one that attends over the word embeddings, in evaluation mode, summed
+#'   over the hyperedges it belongs to -- each hyperedge's weights sum to
+#'   one, so a document's `attention` column sums to its hyperedge count),
+#'   `attention_2` (the same from the second layer) and `n_edges` (how many
+#'   of the document's hyperedges contain the word). Ordered by `node`,
+#'   then `word`. The second layer attends over first-layer outputs, which
+#'   are identical for every word of a document that has a single hyperedge
+#'   (one sentence), so `attention_2` is uniform within such documents by
+#'   construction; `hg_keywords(type = "attention")` uses `attention`.
 #' @references
 #' Ding, K., Wang, J., Li, J., Li, D., & Liu, H. (2020). Be more with
 #' less: Hypergraph attention networks for inductive text classification.
@@ -379,7 +403,8 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
                         batch_size = 8L, weight_decay = 1e-6,
                         lr_decay = 0.1, lr_step = 3L, validation = 0.1,
                         class_weights = c("balanced", "none"),
-                        embeddings = NULL, seed = 1L, verbose = FALSE) {
+                        embeddings = NULL, seed = 1L, verbose = FALSE,
+                        what = c("predictions", "attention")) {
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
       "hg_hypergat() needs the torch package: install.packages(\"torch\")",
@@ -388,6 +413,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   }
   class_weights <- match.arg(class_weights)
   semantic <- match.arg(semantic)
+  what <- match.arg(what)
   labels <- .thg_labels_input(labels)
   stopifnot(
     "`x` must be a character vector or a data.frame" =
@@ -618,6 +644,9 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   }
 
   model$eval()
+  if (identical(what, "attention")) {
+    return(.thg_hypergat_attention(model, model_docs, corpus))
+  }
   probs <- score_docs(seq_along(corpus$doc_id))
   dimnames(probs) <- list(corpus$doc_id, classes)
   lab_full <- rep(NA_character_, length(corpus$doc_id))
@@ -629,6 +658,47 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
     val_accuracy = history[2L, ]
   )
   attr(out, "semantic") <- semantic_info
+  out
+}
+
+# Node-level attention of both layers for every (document, word) pair, summed
+# over the word's hyperedges. Layer 1 attends over the word embeddings and is
+# the word-level signal; layer 2 attends over layer-1 outputs, which for a
+# document with a single hyperedge are identical across its words (a node's
+# representation is a weighted sum of its hyperedges' representations), so
+# layer-2 attention is uniform there by construction. Sequential 16-document
+# batches in evaluation mode, mirroring score_docs().
+.thg_hypergat_attention <- function(model, model_docs, corpus) {
+  model$gat1$capture <- TRUE
+  model$gat2$capture <- TRUE
+  on.exit({
+    model$gat1$capture <- FALSE
+    model$gat2$capture <- FALSE
+  }, add = TRUE)
+  starts <- seq(1L, length(model_docs), by = 16L)
+  rows <- lapply(starts, \(s) {
+    chunk <- s:min(s + 15L, length(model_docs))
+    batch <- .thg_hypergat_batch(model_docs[chunk])
+    torch::with_no_grad(model(batch$items, batch$adj, batch$mask))
+    adj <- as.array(batch$adj)
+    items <- as.matrix(batch$items)
+    mass <- function(layer) {
+      apply(as.array(layer$attention) * adj, c(1L, 3L), sum)  # [B, N]
+    }
+    n_edges <- apply(adj, c(1L, 3L), sum)
+    present <- which(n_edges > 0, arr.ind = TRUE)
+    data.frame(
+      node = corpus$doc_id[chunk][present[, 1L]],
+      word = corpus$vocab[items[present] - 1L],
+      attention = mass(model$gat1)[present],
+      attention_2 = mass(model$gat2)[present],
+      n_edges = as.integer(n_edges[present]),
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  out <- out[order(out$node, out$word), , drop = FALSE]
+  rownames(out) <- NULL
   out
 }
 

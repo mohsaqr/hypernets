@@ -8,6 +8,7 @@ hg_cluster(
   hg,
   k,
   type = c("zhou", "random_walk"),
+  edge_weights = NULL,
   seed = NULL,
   nstart = 25L,
   what = c("clusters", "embedding", "eigenvalues"),
@@ -24,6 +25,15 @@ default).}
 
 \item{type}{\code{"zhou"} or \code{"random_walk"}, as in
 \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.}
+
+\item{edge_weights}{Hyperedge weights for the Laplacian: \code{NULL}
+(default, every hyperedge counts once), a positive numeric vector with
+one entry per hyperedge, or \code{"idf"} to weight each word hyperedge by
+its smoothed inverse document frequency (needs \code{weight = "tfidf"}), so
+a word used in most documents binds them less than a rare shared word.
+Note that the default \code{type = "zhou"} reads only which documents a
+hyperedge binds; the incidence cells (\verb{weight =}) enter the
+\code{"random_walk"} type only.}
 
 \item{seed}{Random seed passed to the selected solver; set it for a
 reproducible partition.}

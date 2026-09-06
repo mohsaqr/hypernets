@@ -8,7 +8,7 @@
   x,
   row.names = NULL,
   optional = FALSE,
-  what = c("weights", "documents", "vocabulary"),
+  what = c("weights", "documents", "vocabulary", "sentences"),
   ...
 )
 }
@@ -20,9 +20,13 @@
 \item{what}{Which table: \code{"weights"} (default) -- for the bag construction
 one row per document-word pair (\code{doc}, \code{word}, \code{n}, \code{weight}); for the
 window construction one row per window-content/word membership
-(\code{edge}, \code{word}, \code{weight} = window count); for the knn construction one
+(\code{edge}, \code{word}, \code{weight} = window count); for the sentence
+construction one row per sentence/word membership (\code{edge}, \code{word},
+\code{weight} = in-sentence count); for the knn construction one
 row per hyperedge membership (\code{doc}, \code{edge}, \code{weight} = cosine
-similarity). \code{"documents"} gives one row per document (with
+similarity). \code{"sentences"} (sentence construction only) gives one row
+per sentence hyperedge (\code{edge}, \code{doc}, \code{sentence}, \code{n_tokens}).
+\code{"documents"} gives one row per document (with
 \code{n_tokens}/\code{n_types} for token-based constructions, plus any metadata
 columns carried from the input). \code{"vocabulary"} gives one row per word
 (\code{word}, \code{n}, \code{doc_freq}, and \code{idf} under tf-idf weighting; empty for

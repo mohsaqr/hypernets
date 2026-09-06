@@ -1,4 +1,5 @@
-# Constructor: corpus -> weighted text hypergraph, in three constructions.
+# Constructor: corpus -> weighted text hypergraph, in four constructions.
+.thg_sparse_threshold <- 1e6
 #
 # "bag": the bipartite document-word incidence (Hayashi et al. 2020 analyze
 # documents as vertices with words as hyperedges; HyperGAT-style uses the
@@ -68,6 +69,14 @@
 #'   differ only at the edges of the definition -- a document shorter than
 #'   `window`, a trailing partial chunk, or a word repeated inside one
 #'   window, which a set-valued hyperedge collapses.
+#' * `construction = "sentence"`: words are vertices and every sentence is
+#'   a hyperedge -- HyperGAT's sentence-as-hyperedge construction (Ding et
+#'   al. 2020, Sec. 3.2) over the whole corpus. Documents are split at
+#'   `.`, `!`, `?` and `;`; each sentence with at least one surviving token
+#'   is one hyperedge named `<doc>#<sentence>`, and its incidence weight
+#'   is the word's occurrence count in that sentence. Two words are then
+#'   related when they share a sentence, not merely a document -- the
+#'   scope [hg_keywords()] uses for `type = "sentence_centrality"`.
 #' * `construction = "knn"`: documents are vertices and each document plus
 #'   its `k` nearest neighbors in an embedding space is one hyperedge,
 #'   weighted by cosine similarity (see [knn_hypergraph()]). Pass a
@@ -92,14 +101,16 @@
 #'   values (unique, non-missing) become the document identifiers. Defaults
 #'   to the names of `x` when it is a named character vector, otherwise
 #'   `"doc_1"`, `"doc_2"`, ...
-#' @param construction `"bag"` (default), `"window"`, or `"knn"` -- see
+#' @param construction `"bag"` (default), `"window"`, `"sentence"` or
+#'   `"knn"` -- see
 #'   Details.
 #' @param nodes Which entity is the vertex set for the bag construction:
 #'   `"doc"` (default) or `"word"`. Ignored by `"window"` (vertices are
 #'   words) and `"knn"` (vertices are documents).
 #' @param weight Term weighting for the bag construction: `"n"` (raw count,
 #'   default) or `"tfidf"`. The window construction always weights by
-#'   window counts; the knn construction by cosine similarity.
+#'   window counts, the sentence construction by in-sentence counts, the
+#'   knn construction by cosine similarity.
 #' @param stop_words Optional character vector of words to drop after
 #'   tokenization (compared after lowercasing when `lowercase = TRUE`); see
 #'   [stop_words_en()]. Not applicable to `"knn"`.
@@ -118,8 +129,10 @@
 #'   the text with `sbert`.
 #' @param model Passed to `sbert::encode()` when embeddings are computed
 #'   (`NULL` = sbert's default model).
-#' @param sparse Store the incidence as a `Matrix::dgCMatrix` (bag
-#'   construction only, default `FALSE`). Sparse hypergraphs scale to tens
+#' @param sparse Store the incidence as a `Matrix::dgCMatrix` (bag and
+#'   sentence constructions). Default `NULL` chooses: sparse when the
+#'   document-by-word incidence would have a million cells or more, dense
+#'   otherwise. Sparse hypergraphs scale to tens
 #'   of thousands of documents; [hg_cluster()], [hg_classify()],
 #'   [hg_pagerank()], and [hg_measures()] use sparse operator paths that
 #'   agree with the dense engines (tested), while tensor centralities and
@@ -173,7 +186,8 @@
 #' text_hypergraph(corpus, construction = "knn", k = 1, embeddings = emb)
 #' @export
 text_hypergraph <- function(x, column = NULL, id = NULL,
-                            construction = c("bag", "window", "knn"),
+                            construction = c("bag", "window", "sentence",
+                                             "knn"),
                             nodes = c("doc", "word"),
                             weight = c("n", "tfidf"),
                             stop_words = NULL,
@@ -184,14 +198,14 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                             k = 10L,
                             embeddings = NULL,
                             model = NULL,
-                            sparse = FALSE) {
+                            sparse = NULL) {
   construction <- match.arg(construction)
   nodes <- match.arg(nodes)
-  stopifnot("`sparse` must be TRUE or FALSE" =
-              isTRUE(sparse) || isFALSE(sparse))
-  if (isTRUE(sparse) && !identical(construction, "bag")) {
+  stopifnot("`sparse` must be NULL, TRUE or FALSE" =
+              is.null(sparse) || isTRUE(sparse) || isFALSE(sparse))
+  if (isTRUE(sparse) && !construction %in% c("bag", "sentence")) {
     stop(errorCondition(
-      "`sparse = TRUE` currently supports the bag construction only",
+      "`sparse = TRUE` currently supports the bag and sentence constructions only",
       class = "honets_bad_input", call = NULL
     ))
   }
@@ -256,9 +270,25 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                          min_count = min_count, weight = weight))
   }
 
-  tokens <- .thg_tokenize(text, lowercase = lowercase)
-  if (!is.null(stop_words)) {
-    tokens <- lapply(tokens, \(x) x[!x %in% stop_words])
+  sentence_tokens <- NULL
+  if (identical(construction, "sentence")) {
+    # split first, tokenize each sentence, drop empty sentences; the
+    # document's tokens are the concatenation so the shared count /
+    # min_count / vocabulary pipeline below applies unchanged
+    sentence_tokens <- lapply(strsplit(text, "[.!?;]+"), \(pieces) {
+      toks <- .thg_tokenize(pieces, lowercase = lowercase)
+      if (!is.null(stop_words)) {
+        toks <- lapply(toks, \(x) x[!x %in% stop_words])
+      }
+      toks[lengths(toks) > 0L]
+    })
+    tokens <- lapply(sentence_tokens,
+                     \(s) unlist(s, use.names = FALSE) %||% character(0))
+  } else {
+    tokens <- .thg_tokenize(text, lowercase = lowercase)
+    if (!is.null(stop_words)) {
+      tokens <- lapply(tokens, \(x) x[!x %in% stop_words])
+    }
   }
 
   words <- unlist(tokens, use.names = FALSE) %||% character(0)
@@ -286,6 +316,12 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       ))
     }
     tokens <- lapply(tokens, \(t) t[t %in% keep])
+    if (!is.null(sentence_tokens)) {
+      sentence_tokens <- lapply(sentence_tokens, \(doc) {
+        doc <- lapply(doc, \(t) t[t %in% keep])
+        doc[lengths(doc) > 0L]
+      })
+    }
   }
 
   kept_docs <- doc_id[doc_id %in% counts$doc]
@@ -310,8 +346,51 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   vocabulary <- vocabulary[order(vocabulary$word), , drop = FALSE]
   rownames(vocabulary) <- NULL
 
+  # storage: sparse when the incidence would exceed a million cells, dense
+  # otherwise (the dense engines cover every algorithm; the sparse ones the
+  # spectral / transductive core)
+  if (is.null(sparse)) {
+    sparse <- construction %in% c("bag", "sentence") &&
+      n_docs * nrow(vocabulary) >= .thg_sparse_threshold
+  }
+
   n_windows <- NULL
-  if (identical(construction, "window")) {
+  sentences <- NULL
+  if (identical(construction, "sentence")) {
+    if (identical(weight, "tfidf")) {
+      stop(errorCondition(
+        "`weight = \"tfidf\"` applies to the bag construction only; sentence hyperedges are weighted by in-sentence counts",
+        class = "honets_bad_input", call = NULL
+      ))
+    }
+    names(sentence_tokens) <- doc_id
+    sentence_tokens <- sentence_tokens[kept_docs]
+    edge_doc <- rep(kept_docs, lengths(sentence_tokens))
+    edge_index <- unlist(lapply(lengths(sentence_tokens), seq_len),
+                         use.names = FALSE)
+    edge_id <- paste0(edge_doc, "#", edge_index)
+    flat <- unlist(sentence_tokens, recursive = FALSE, use.names = FALSE)
+    sent_long <- data.frame(
+      edge = rep(edge_id, lengths(flat)),
+      word = unlist(flat, use.names = FALSE),
+      n = 1L
+    )
+    sent_counts <- stats::aggregate(n ~ edge + word, data = sent_long,
+                                    FUN = sum)
+    sent_counts$w <- as.numeric(sent_counts$n)
+    builder <- if (isTRUE(sparse)) .thg_sparse_bipartite else
+      group_hypergraph
+    hg <- builder(sent_counts, member = "word", group = "edge", weight = "w")
+    weights <- data.frame(edge = sent_counts$edge, word = sent_counts$word,
+                          weight = sent_counts$w)
+    weights <- weights[order(weights$edge, weights$word), , drop = FALSE]
+    rownames(weights) <- NULL
+    sentences <- data.frame(edge = edge_id, doc = edge_doc,
+                            sentence = edge_index,
+                            n_tokens = lengths(flat),
+                            stringsAsFactors = FALSE)
+    nodes <- "word"
+  } else if (identical(construction, "window")) {
     if (identical(weight, "tfidf")) {
       stop(errorCondition(
         "`weight = \"tfidf\"` applies to the bag construction only; windowed hyperedges are weighted by window counts",
@@ -381,7 +460,9 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     weights = weights,
     construction = construction,
     nodes = nodes,
-    weighting = if (identical(construction, "window")) "window_count" else weight,
+    sentences = sentences,
+    weighting = switch(construction, window = "window_count",
+                       sentence = "sentence_count", weight),
     window = if (identical(construction, "window")) as.integer(window) else NULL,
     window_mode = if (identical(construction, "window")) window_mode else NULL,
     n_windows = n_windows,
@@ -489,6 +570,11 @@ print.text_hypergraph <- function(x, ...) {
       nrow(x$text$documents), nrow(x$text$vocabulary),
       x$text$window, x$text$window_mode, x$text$n_windows
     ),
+    sentence = sprintf(
+      "Text hypergraph: %d documents, %d words (sentence hyperedges: %d sentences)",
+      nrow(x$text$documents), nrow(x$text$vocabulary),
+      nrow(x$text$sentences)
+    ),
     knn = sprintf(
       "Text hypergraph: %d documents (kNN embedding hyperedges: k = %d, cosine)",
       nrow(x$text$documents), x$text$k
@@ -503,6 +589,7 @@ print.text_hypergraph <- function(x, ...) {
     switch(x$text$construction,
       bag = if (identical(x$text$nodes, "doc")) "words" else "documents",
       window = "distinct windows",
+      sentence = "sentences",
       knn = "kNN neighborhoods"
     ),
     min(sizes), max(sizes), stats::median(sizes)
@@ -517,9 +604,13 @@ print.text_hypergraph <- function(x, ...) {
 #' @param what Which table: `"weights"` (default) -- for the bag construction
 #'   one row per document-word pair (`doc`, `word`, `n`, `weight`); for the
 #'   window construction one row per window-content/word membership
-#'   (`edge`, `word`, `weight` = window count); for the knn construction one
+#'   (`edge`, `word`, `weight` = window count); for the sentence
+#'   construction one row per sentence/word membership (`edge`, `word`,
+#'   `weight` = in-sentence count); for the knn construction one
 #'   row per hyperedge membership (`doc`, `edge`, `weight` = cosine
-#'   similarity). `"documents"` gives one row per document (with
+#'   similarity). `"sentences"` (sentence construction only) gives one row
+#'   per sentence hyperedge (`edge`, `doc`, `sentence`, `n_tokens`).
+#'   `"documents"` gives one row per document (with
 #'   `n_tokens`/`n_types` for token-based constructions, plus any metadata
 #'   columns carried from the input). `"vocabulary"` gives one row per word
 #'   (`word`, `n`, `doc_freq`, and `idf` under tf-idf weighting; empty for
@@ -534,8 +625,15 @@ print.text_hypergraph <- function(x, ...) {
 as.data.frame.text_hypergraph <- function(x, row.names = NULL,
                                           optional = FALSE,
                                           what = c("weights", "documents",
-                                                   "vocabulary"),
+                                                   "vocabulary",
+                                                   "sentences"),
                                           ...) {
   what <- match.arg(what)
+  if (identical(what, "sentences") && is.null(x$text$sentences)) {
+    stop(errorCondition(
+      "`what = \"sentences\"` needs construction = \"sentence\"",
+      class = "honets_bad_input", call = NULL
+    ))
+  }
   x$text[[what]]
 }

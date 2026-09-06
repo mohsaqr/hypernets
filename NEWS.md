@@ -1,3 +1,56 @@
+# honets 0.3.1
+
+* **Topic summaries with plots**: `hg_topic_sizes()` (document and
+  weighted shares), `hg_topic_quality()` (NPMI coherence and share
+  exclusivity of each topic's top words) and `hg_membership()` (fuzzy
+  c-means membership of every document in every topic, from the spectral
+  embedding). Each returns a data.frame with a `plot()` method.
+* **`hg_relations()`**: the topic-by-topic co-occurrence network through
+  shared vocabulary (full counting; `similarity =` association, cosine,
+  jaccard, inclusion or equivalence), as a `source, target, weight` edge
+  list or a `cograph_network`.
+* `hg_keywords()` takes an external score table through `scores =` and a
+  sentence hypergraph as `hg` for sentence scope; the long form carries
+  `size`; the print method is compact; centrality defaults to PageRank.
+  `text_hypergraph()` chooses sparse storage automatically.
+* `hg_cluster(edge_weights =)`: hyperedge weights for either Laplacian,
+  numeric or `"idf"` (each word weighted by its inverse document
+  frequency). The default `type = "zhou"` cut reads only hyperedge
+  membership, so `weight = "tfidf"` alone does not change it; this argument
+  is how tf-idf reaches the clustering. Comparison:
+  `docs/covid-weighting.html`.
+* **`clean_text()`**: corpus repair before `text_hypergraph()` -- HTML,
+  mojibake, citations and numbering, URLs and DOIs, copyright notices,
+  numbers, custom `remove` patterns, a content floor -- returning the same
+  rows so nothing drops silently. Vignette: `vignette("covid-topics")`,
+  sixteen topics of the COVID-19 education literature in five calls.
+* **Sentence hyperedges.** `text_hypergraph(construction = "sentence")`
+  binds the words of each sentence (HyperGAT's construction over a whole
+  corpus), with `as.data.frame(hg, what = "sentences")`.
+  `hg_keywords(type = "sentence_centrality", sentences = )` ranks a topic's
+  words by centrality among the topic's sentences.
+* **Topic descriptions.** `hg_keywords()` gains `type =`: `"mass"` (the
+  previous score, default), `"frequency"` (raw counts), `"ctfidf"`
+  (Grootendorst 2022 class-based tf-idf, matched to BERTopic's
+  `ClassTfidfTransformer` to 1e-12), `"centrality"` (the word's
+  `hypergraph_centrality()` in the cluster's own word hypergraph, measure
+  chosen with `centrality =`) and `"attention"` (summed HyperGAT word
+  attention). `hg_hypergat(what = "attention")` returns that per-document,
+  per-word attention table. `type` takes several scores at once; the table
+  (class `honets_keywords`, new leading `type` column) has a `plot()`
+  method: one panel per topic and score, bars of the score per word
+  (`value = "share"` to show shares). `sort_by = "share"` ranks a topic's
+  words by the fraction of their total score it holds (distinctive rather
+  than heavy vocabulary) and `min_docs` is the support floor; the table
+  gains an `n_docs` column, and the collapsed table a `size` column.
+  `hg_agreement(what = "mapping")` maps each cluster of one partition to
+  the cluster of another that holds most of it. Worked examples: `docs/levebee-topics.html`
+  and `docs/covid-topics.html`.
+* **BERTopic benchmark.** `benchmarks/run_bertopic_benchmark.R` runs the
+  actual `bertopic.BERTopic` package (ten seeds, three variants) against
+  `hg_cluster()` on R8, on both the tf-idf hypergraph and a kNN hypergraph
+  built from the same sentence embeddings; paired effects with bootstrap CIs
+  are reported in the benchmarks article.
 # honets 0.3.0
 
 * **The complete Hayashi clustering family is implemented.**

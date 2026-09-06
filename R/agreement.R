@@ -132,14 +132,21 @@
 #'   `predicted`, `cluster` or `label` column (first match in that
 #'   order wins). Nodes are matched by name; nodes present in only one
 #'   labeling are dropped.
-#' @param what `"summary"` (default) for the one-row comparison, or
-#'   `"table"` for the tidy contingency table of the joined labels.
+#' @param what `"summary"` (default) for the one-row comparison,
+#'   `"table"` for the tidy contingency table of the joined labels, or
+#'   `"mapping"` for one row per label of `x` naming the label of `y` that
+#'   holds most of its nodes -- how a partition survives a reweighting or a
+#'   change of method, topic by topic.
 #' @param method One or more label-permutation-invariant measures: `"ari"`
 #'   (default), `"ami"`, or `"nmi"`. Ignored for `what = "table"`.
 #' @return A base `data.frame`. For `what = "summary"`: one row with
 #'   columns `n` (nodes compared), `agreement` (share of equal labels)
-#'   and the requested measure columns. For `what = "table"`: one row per label pair with
-#'   columns `label_x`, `label_y` and `n`.
+#'   and the requested measure columns. For `what = "table"`: one row per
+#'   label pair with columns `label_x`, `label_y` and `n`. For
+#'   `what = "mapping"`: one row per label of `x` with columns `label_x`,
+#'   `n` (its nodes), `label_y` (the label of `y` holding most of them),
+#'   `overlap` (how many) and `share` (`overlap / n`), in the natural order
+#'   of `label_x`.
 #' @references Hubert, L., & Arabie, P. (1985). Comparing partitions.
 #'   *Journal of Classification*, 2, 193--218.
 #'
@@ -158,8 +165,10 @@
 #'                                   space_1 = "Cluster 2"))
 #' hg_agreement(fit, topics)
 #' hg_agreement(fit, topics, what = "table")
+#' hg_agreement(fit, topics, what = "mapping")
 #' @export
-hg_agreement <- function(x, y, what = c("summary", "table"), method = "ari") {
+hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
+                         method = "ari") {
   what <- match.arg(what)
   method <- match.arg(method, c("ari", "ami", "nmi"), several.ok = TRUE)
   joined <- merge(.thg_labeling(x, "x"), .thg_labeling(y, "y"),
@@ -177,6 +186,22 @@ hg_agreement <- function(x, y, what = c("summary", "table"), method = "ari") {
     ord <- counts[order(counts$label_x, counts$label_y), , drop = FALSE]
     rownames(ord) <- NULL
     return(ord)
+  }
+  if (identical(what, "mapping")) {
+    cross <- table(joined$label_x, joined$label_y)
+    best <- apply(cross, 1L, which.max)
+    out <- data.frame(
+      label_x = rownames(cross),
+      n = as.integer(rowSums(cross)),
+      label_y = colnames(cross)[best],
+      overlap = as.integer(apply(cross, 1L, max)),
+      stringsAsFactors = FALSE
+    )
+    out$share <- out$overlap / out$n
+    out <- out[order(match(out$label_x, .thg_kw_natural(out$label_x))), ,
+               drop = FALSE]
+    rownames(out) <- NULL
+    return(out)
   }
   out <- data.frame(
     n = nrow(joined),

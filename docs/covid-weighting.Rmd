@@ -1,0 +1,190 @@
+---
+title: "Four ways to cut the same corpus: weights and walks at sixteen topics"
+author: "honets"
+date: "2026-09-06"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "", fig.width = 9, dpi = 110,
+                      out.width = "100%")
+library(honets)
+```
+
+The default spectral cut of a text hypergraph, `type = "zhou"`, reads only
+which documents each word binds: every hyperedge counts once and the
+incidence cells set by `weight =` are ignored. So `weight = "tfidf"` and
+`weight = "n"` give the same partition to machine precision. The cells do
+enter two other places: the `type = "random_walk"` Laplacian, which walks
+on them, and the hyperedge weights that `edge_weights =` adds to either
+Laplacian. This document puts the four resulting cuts of the COVID-19
+education corpus side by side at sixteen topics so the choice can be made
+by looking, not by argument.
+
+| Cut | Laplacian | What a word's weight does |
+|---|---|---|
+| `zhou` | Zhou, unit hyperedge weights | nothing: membership only |
+| `zhou_idf` | Zhou, hyperedge weight = idf of the word | a word in most documents binds them less |
+| `walk_counts` | random walk on raw counts | a document's heavy words pull more |
+| `walk_tfidf` | random walk on tf-idf cells | heavy and rare words pull more |
+
+# The corpus and the four cuts
+
+```{r corpus}
+abstracts <- clean_text(sbert::covid, column = "Abstract",
+                        remove = "no abstract available", min_content = 0.5)
+abstracts <- unique(abstracts)
+abstracts$doc <- sprintf("abs_%04d", seq_len(nrow(abstracts)))
+boilerplate <- c("covid", "coronavirus", "sars", "cov", "pandemic",
+                 "disease", "study", "studies", "result", "results",
+                 "conclusion", "conclusions", "background", "method",
+                 "methods", "objective", "aim")
+tfidf <- text_hypergraph(abstracts, column = "Abstract", id = "doc",
+                         weight = "tfidf",
+                         stop_words = c(stop_words_en(), boilerplate),
+                         min_count = 5L, sparse = TRUE)
+counts <- text_hypergraph(abstracts, column = "Abstract", id = "doc",
+                          weight = "n",
+                          stop_words = c(stop_words_en(), boilerplate),
+                          min_count = 5L, sparse = TRUE)
+cuts <- list(
+  zhou = hg_cluster(tfidf, k = 16, seed = 1),
+  zhou_idf = hg_cluster(tfidf, k = 16, seed = 1, edge_weights = "idf"),
+  walk_counts = hg_cluster(counts, k = 16, seed = 1, type = "random_walk"),
+  walk_tfidf = hg_cluster(tfidf, k = 16, seed = 1, type = "random_walk")
+)
+```
+
+That the default cut ignores the cells is checked, not asserted:
+
+```{r same}
+max(abs(hg_cluster(tfidf, k = 8, seed = 1, what = "eigenvalues")$value -
+        hg_cluster(counts, k = 8, seed = 1, what = "eigenvalues")$value))
+```
+
+# How much they agree
+
+Adjusted Rand index between every pair of partitions. One means the same
+sixteen topics, zero means no more agreement than chance.
+
+```{r agreement}
+ari <- outer(names(cuts), names(cuts), Vectorize(\(a, b) {
+  hg_agreement(cuts[[a]], cuts[[b]])$ari
+}))
+dimnames(ari) <- list(names(cuts), names(cuts))
+knitr::kable(round(ari, 2), caption = "Adjusted Rand index between cuts")
+```
+
+# Balance and distinctiveness
+
+Topic sizes, and how much of each topic's top-six owned vocabulary it
+actually owns: the mean share of a word's corpus count that falls in the
+topic, over the six words `sort_by = "share"` ranks first with at least 15
+supporting abstracts. The weakest topic's mean share says whether every
+topic has a vocabulary of its own.
+
+```{r balance}
+balance <- function(partition) {
+  owned <- hg_keywords(tfidf, partition, n = 6, type = "frequency",
+                       sort_by = "share", min_docs = 15)
+  sizes <- hg_keywords(tfidf, partition, n = 1, collapse = TRUE)$size
+  by_topic <- tapply(owned$share, owned$cluster, mean)
+  data.frame(smallest = min(sizes), largest = max(sizes),
+             `size CV` = round(stats::sd(sizes) / mean(sizes), 2),
+             `mean share` = round(mean(owned$share), 3),
+             `weakest topic` = round(min(by_topic), 3),
+             check.names = FALSE)
+}
+knitr::kable(do.call(rbind, lapply(cuts, balance)))
+```
+
+# The sixteen topics under each cut
+
+Each cut's topics, described by the six words they own, one table per cut.
+Topic numbers are not comparable across cuts; read the words.
+
+```{r words-zhou}
+hg_keywords(tfidf, cuts$zhou, n = 6, type = "frequency",
+            sort_by = "share", min_docs = 15, collapse = TRUE)
+```
+
+```{r words-zhou-idf}
+hg_keywords(tfidf, cuts$zhou_idf, n = 6, type = "frequency",
+            sort_by = "share", min_docs = 15, collapse = TRUE)
+```
+
+```{r words-walk-counts}
+hg_keywords(tfidf, cuts$walk_counts, n = 6, type = "frequency",
+            sort_by = "share", min_docs = 15, collapse = TRUE)
+```
+
+```{r words-walk-tfidf}
+hg_keywords(tfidf, cuts$walk_tfidf, n = 6, type = "frequency",
+            sort_by = "share", min_docs = 15, collapse = TRUE)
+```
+
+# Where the default and the idf-weighted cut differ
+
+The two Zhou cuts agree at ARI 0.42, the highest pair. `hg_agreement(what
+= "mapping")` names, for each topic of the default cut, the idf-weighted
+topic that takes most of its abstracts and the share it takes: a topic that
+maps at 0.9 survived the reweighting intact; one that maps at 0.4 was
+split. The two keyword tables are joined on so the mapping can be read in
+words.
+
+```{r mapping}
+mapping <- hg_agreement(cuts$zhou, cuts$zhou_idf, what = "mapping")
+words_zhou <- hg_keywords(tfidf, cuts$zhou, n = 3, type = "frequency",
+                          sort_by = "share", min_docs = 15, collapse = TRUE)
+words_idf <- hg_keywords(tfidf, cuts$zhou_idf, n = 3, type = "frequency",
+                         sort_by = "share", min_docs = 15, collapse = TRUE)
+mapping <- merge(mapping, subset(words_zhou, select = c(cluster, words)),
+                 by.x = "label_x", by.y = "cluster", sort = FALSE)
+mapping <- merge(mapping, subset(words_idf, select = c(cluster, words)),
+                 by.x = "label_y", by.y = "cluster", sort = FALSE,
+                 suffixes = c("_zhou", "_idf"))
+knitr::kable(
+  subset(mapping, select = c(label_x, words_zhou, label_y, words_idf, share)),
+  digits = 2, row.names = FALSE,
+  col.names = c("zhou topic", "its words", "goes mostly to", "those words",
+                "share kept")
+)
+```
+
+# The spectra
+
+The eigenvalue gaps that say how many clusters each Laplacian supports.
+The idf weighting does not change that answer: two, then four, then
+nothing.
+
+```{r spectra}
+gaps <- function(hg, ...) {
+  round(head(hg_cluster(hg, k = 8, seed = 1, what = "eigenvalues", ...)$gap, 6), 3)
+}
+knitr::kable(rbind(
+  zhou = gaps(tfidf),
+  zhou_idf = gaps(tfidf, edge_weights = "idf"),
+  walk_counts = gaps(counts, type = "random_walk"),
+  walk_tfidf = gaps(tfidf, type = "random_walk")
+), col.names = paste("gap after", 1:6))
+```
+
+# Reading it
+
+Three of the four cuts are about equally balanced and equally distinctive;
+the random walk on tf-idf is the outlier, with the most uneven sizes and a
+weakest topic that owns little. The idf-weighted Zhou cut keeps most of the
+default's topics and reshuffles the rest, so it is a variant of the same
+partition rather than a different one. Whether that variant is better is a
+reading of the two word tables, and the tables are above.
+
+```{r session}
+sessionInfo()
+```

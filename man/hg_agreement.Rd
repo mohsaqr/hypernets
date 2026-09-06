@@ -5,9 +5,14 @@
 \alias{hypergraph_agreement}
 \title{Agreement between two labelings of the same nodes}
 \usage{
-hg_agreement(x, y, what = c("summary", "table"), method = "ari")
+hg_agreement(x, y, what = c("summary", "table", "mapping"), method = "ari")
 
-hypergraph_agreement(x, y, what = c("summary", "table"), method = "ari")
+hypergraph_agreement(
+  x,
+  y,
+  what = c("summary", "table", "mapping"),
+  method = "ari"
+)
 }
 \arguments{
 \item{x, y}{Tidy labelings: data.frames with a \code{node} column and a
@@ -15,8 +20,11 @@ hypergraph_agreement(x, y, what = c("summary", "table"), method = "ari")
 order wins). Nodes are matched by name; nodes present in only one
 labeling are dropped.}
 
-\item{what}{\code{"summary"} (default) for the one-row comparison, or
-\code{"table"} for the tidy contingency table of the joined labels.}
+\item{what}{\code{"summary"} (default) for the one-row comparison,
+\code{"table"} for the tidy contingency table of the joined labels, or
+\code{"mapping"} for one row per label of \code{x} naming the label of \code{y} that
+holds most of its nodes -- how a partition survives a reweighting or a
+change of method, topic by topic.}
 
 \item{method}{One or more label-permutation-invariant measures: \code{"ari"}
 (default), \code{"ami"}, or \code{"nmi"}. Ignored for \code{what = "table"}.}
@@ -24,8 +32,12 @@ labeling are dropped.}
 \value{
 A base \code{data.frame}. For \code{what = "summary"}: one row with
 columns \code{n} (nodes compared), \code{agreement} (share of equal labels)
-and the requested measure columns. For \code{what = "table"}: one row per label pair with
-columns \code{label_x}, \code{label_y} and \code{n}.
+and the requested measure columns. For \code{what = "table"}: one row per
+label pair with columns \code{label_x}, \code{label_y} and \code{n}. For
+\code{what = "mapping"}: one row per label of \code{x} with columns \code{label_x},
+\code{n} (its nodes), \code{label_y} (the label of \code{y} holding most of them),
+\code{overlap} (how many) and \code{share} (\code{overlap / n}), in the natural order
+of \code{label_x}.
 }
 \description{
 Compares any two tidy labelings -- partitions from \code{\link[=hg_cluster]{hg_cluster()}},
@@ -52,6 +64,7 @@ fit <- hg_classify(hg, labels = c(cooking_1 = "Cluster 1",
                                   space_1 = "Cluster 2"))
 hg_agreement(fit, topics)
 hg_agreement(fit, topics, what = "table")
+hg_agreement(fit, topics, what = "mapping")
 }
 \references{
 Hubert, L., & Arabie, P. (1985). Comparing partitions.

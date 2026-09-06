@@ -36,6 +36,7 @@ reference:
   - persistent_homology
   - persistence_landscape
   - bottleneck_distance
+  - wasserstein_distance
   - verify_simplicial
 
 - title: Hypergraphs
@@ -50,6 +51,9 @@ reference:
   - temporal_hypergraph
   - hypergraph_snapshot
   - hypergraph_snapshots
+  - hg_sample_gnp
+  - hg_sample_sbm
+  - hg_sample_uniform
 - subtitle: Measures and centralities
   contents:
   - hypergraph_measures
@@ -62,6 +66,8 @@ reference:
   contents:
   - hypergraph_laplacian
   - hypergraph_cluster
+  - hypergraph_joint_cluster
+  - hg_embed
   - hypergraph_transduction
 - subtitle: Projections
   contents:
@@ -85,12 +91,17 @@ reference:
 - title: Text hypergraphs
   desc: A corpus as a weighted document-word hypergraph, analysed with tidy verbs.
   contents:
+  - clean_text
   - text_hypergraph
   - stop_words_en
   - hg_measures
   - hg_centrality
   - hg_cluster
   - hg_keywords
+  - hg_relations
+  - hg_topic_sizes
+  - hg_topic_quality
+  - hg_membership
   - hg_stability
   - hg_agreement
   - hg_seeds
@@ -113,6 +124,7 @@ articles:
 - title: Text hypergraphs
   navbar: ~
   contents:
+  - covid-topics
   - legal-hypergraphs
   - text-hypergraphs
   - text-constructions

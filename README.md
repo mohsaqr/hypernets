@@ -142,7 +142,9 @@ thg <- text_hypergraph(covid_abstracts, column = "abstract", id = "doc",
                        weight = "tfidf", stop_words = stop_words_en(),
                        min_count = 3L)
 topics <- hg_cluster(thg, k = 4, type = "random_walk", seed = 1)
-hg_keywords(thg, topics, n = 5, collapse = TRUE)
+hg_keywords(thg, topics, n = 5, collapse = TRUE)                    # tf-idf mass
+hg_keywords(thg, topics, n = 5, type = "ctfidf", collapse = TRUE)  # BERTopic's c-TF-IDF
+hg_keywords(thg, topics, n = 5, type = "centrality", collapse = TRUE)
 ```
 
 `clique_expansion()` projects a hypergraph back to a pairwise network that any

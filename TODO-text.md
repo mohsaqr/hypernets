@@ -27,8 +27,11 @@ on Nestimate and no work in this list requires modifying it.
   XGI remains a local-validation dependency, never a runtime dependency.
 - [x] Run a ten-seed UMAP/HDBSCAN baseline on R8, including a matched
   eight-cluster control, paired effects, and bootstrap confidence intervals.
-- [ ] Run the promised benchmark through the actual Python `BERTopic` class;
-  do not label the modular UMAP/HDBSCAN baseline as BERTopic.
+- [x] Run the promised benchmark through the actual Python `BERTopic` class
+  (0.17.4, `all-MiniLM-L6-v2`, ten seeds, three variants, two honets arms;
+  `benchmarks/run_bertopic_benchmark.R`, results in `benchmarks/RESULTS.md`
+  and the benchmarks article). The modular UMAP/HDBSCAN baseline keeps its
+  own label.
 - [x] Add worst-community weighted conductance to hypergraph
   community-quality output.
 - [x] Ship one dedicated embedding wrapper under both `hg_embed()` and

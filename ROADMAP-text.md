@@ -293,7 +293,8 @@ stays in honets; cograph begins at the graph-shaped boundary.
   analysis** — sbert embeddings → kNN/windowed hyperedges → EDVW spectral
   clustering + transductive classification → tensor centralities; zero
   Python at runtime, oracle-verified against HyperNetX/XGI.
-- BERTopic as the reported baseline (multi-seed, effect sizes + CIs).
+- [x] DONE 2026-09-05: BERTopic as the reported baseline (actual package
+  0.17.4, ten seeds, paired effects + bootstrap CIs; `benchmarks/RESULTS.md`).
 
 ## Scope boundary
 

@@ -213,3 +213,48 @@ test_that("hg_hypergat argument contracts are enforced", {
     class = "honets_dropped_documents"
   )
 })
+
+test_that("hg_hypergat(what = 'attention') returns per-edge-normalised word attention", {
+  skip_if_not_installed("torch")
+  att <- hg_hypergat(hypergat_docs, labels = hypergat_labels,
+                     embed_dim = 16, hidden = 8, epochs = 5, lr = 0.05,
+                     validation = 0, seed = 1, what = "attention")
+  expect_named(att, c("node", "word", "attention", "attention_2", "n_edges"))
+  expect_true(all(att$attention > 0 & att$attention <= att$n_edges))
+  expect_true(all(att$attention_2 > 0 & att$attention_2 <= att$n_edges))
+  expect_true(all(att$n_edges >= 1L))
+  expect_false(anyDuplicated(att[, c("node", "word")]) > 0)
+  expect_identical(att, att[order(att$node, att$word), ])
+  # each hyperedge's node-level weights sum to one, so a document's total
+  # attention equals its hyperedge (sentence) count
+  sentences <- lengths(strsplit(hypergat_docs, "[.!?;]+"))
+  totals <- tapply(att$attention, att$node, sum)
+  expect_equal(as.numeric(totals[names(sentences)]),
+               as.numeric(sentences), tolerance = 1e-6)
+  totals_2 <- tapply(att$attention_2, att$node, sum)
+  expect_equal(as.numeric(totals_2[names(sentences)]),
+               as.numeric(sentences), tolerance = 1e-6)
+  # structural: in a one-sentence document every word's layer-1 output is
+  # the same edge vector, so layer-2 attention is exactly uniform there,
+  # while layer-1 attention (over the word embeddings) is not
+  one <- hg_hypergat(c(a = "simmer the soup with onions and carrots",
+                       b = "the telescope revealed a distant galaxy"),
+                     labels = c(a = "x", b = "y"), embed_dim = 16, hidden = 8,
+                     epochs = 5, lr = 0.05, validation = 0, seed = 1,
+                     what = "attention")
+  uniform <- 1 / as.numeric(table(one$node)[one$node])
+  expect_equal(one$attention_2, uniform, tolerance = 1e-6)
+  expect_false(isTRUE(all.equal(one$attention, uniform, tolerance = 1e-3)))
+  # deterministic under a seed
+  again <- hg_hypergat(hypergat_docs, labels = hypergat_labels,
+                       embed_dim = 16, hidden = 8, epochs = 5, lr = 0.05,
+                       validation = 0, seed = 1, what = "attention")
+  expect_equal(att, again)
+  # feeds hg_keywords(type = "attention")
+  hg <- text_hypergraph(hypergat_docs, stop_words = stop_words_en())
+  kw <- hg_keywords(hg, hypergat_labels, n = 3, scores = att)
+  expect_named(kw, c("type", "cluster", "size", "rank", "word", "score",
+                     "share", "n_docs"))
+  expect_identical(unique(kw$type), "attention")
+  expect_setequal(unique(kw$cluster), unique(hypergat_labels))
+})

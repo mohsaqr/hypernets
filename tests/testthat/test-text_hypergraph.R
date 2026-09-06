@@ -146,3 +146,23 @@ test_that("stop_words_en is a clean, deterministic function-word list", {
   expect_true(all(c("the", "and", "of") %in% s))
   expect_false(any(c("covid", "study", "learning") %in% s))
 })
+
+test_that("sparse storage is chosen automatically above a million cells", {
+  small <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
+  expect_false(inherits(small$incidence, "dgCMatrix"))
+  expect_true(inherits(
+    text_hypergraph(c(a = "salt and soup", b = "soup and stars"), sparse = TRUE)$incidence,
+    "dgCMatrix"))
+  # 1,200 documents x 900 words crosses the threshold (alphabetic words:
+  # the tokeniser drops digits)
+  set.seed(1)
+  vocab <- head(apply(expand.grid(letters, letters, letters), 1, paste,
+                      collapse = ""), 900)
+  docs <- vapply(seq_len(1200), \(i) paste(sample(vocab, 12), collapse = " "),
+                 character(1))
+  big <- text_hypergraph(docs)
+  expect_true(inherits(big$incidence, "dgCMatrix"))
+  expect_false(inherits(text_hypergraph(docs, sparse = FALSE)$incidence,
+                        "dgCMatrix"))
+  expect_error(text_hypergraph(docs, sparse = NA), "sparse")
+})

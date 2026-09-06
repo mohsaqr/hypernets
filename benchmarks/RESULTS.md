@@ -1,4 +1,4 @@
-# v0.5-v0.6 benchmark results — updated 2026-08-26
+# v0.5-v0.6 benchmark results — updated 2026-09-05
 
 Full grid produced by `run_benchmarks.R`, `bench_lowlabel()` and
 `bench_neural()` on the TextGCN corpora/splits (`download.sh`); tables
@@ -28,7 +28,8 @@ configuration tested. HGNN configs reported: paper defaults (lr 0.001,
 `run_umap_hdbscan_benchmark.R` compares unsupervised honets spectral
 clustering with fixed TF-IDF/SVD embeddings followed by UMAP and either
 HDBSCAN or a fixed-k k-means control. This is an embedding-clustering
-baseline, **not a run of the BERTopic package**.
+baseline, **not a run of the BERTopic package**; the actual BERTopic run is
+the next section.
 
 Default HDBSCAN selected 142--170 topics and 17.5--23.0% outliers. Honets,
 given R8's known eight-class count, led by 0.394 ARI, 0.210 AMI, and 0.193 NMI
@@ -37,6 +38,55 @@ is mixed: honets led ARI by **0.0372** (95% CI **0.0270--0.0478**,
 paired dz 2.05), while the UMAP+k-means path led AMI by
 **0.0219** (0.0088--0.0350) and NMI by **0.0219** (0.0087--0.0341).
 All six effect estimates are committed under `benchmarks/results/`.
+
+## BERTopic baseline (R8, 10 paired seeds, actual package)
+
+`run_bertopic_benchmark.R` (Python side `bertopic_core.py`, venv
+`benchmarks/.venv`) instantiates `bertopic.BERTopic` 0.17.4 with the
+package's own defaults -- `all-MiniLM-L6-v2` sentence embeddings, UMAP
+(15 neighbours, 5 components, min_dist 0, cosine), contrib HDBSCAN
+(min_cluster_size 10, EOM), c-TF-IDF -- and varies only UMAP's
+`random_state` over seeds 1--10. Three BERTopic variants are scored against
+the eight R8 labels: the package as shipped (`bertopic_default`); the fitted
+model reduced with `reduce_topics()` to eight real topics (`bertopic_k`;
+BERTopic counts the outlier topic toward `nr_topics`, so nine are requested
+when outliers exist); and that model with `reduce_outliers(strategy =
+"embeddings")` so every document is assigned (`bertopic_k_assigned`). Two
+honets arms use the same k = 8: the tf-idf document-word hypergraph
+(`honets_hypergraph`, as in the section above) and a kNN hypergraph
+(`text_hypergraph(construction = "knn", k = 10)`) built on the **identical
+MiniLM embeddings** (`honets_knn_sbert`), both through `hg_cluster(what =
+"embedding")` + 25-start k-means.
+
+Means over ten seeds:
+
+| Method | ARI | AMI | NMI | Clusters | Outliers |
+|---|---|---|---|---|---|
+| bertopic_default | 0.0478 | 0.3326 | 0.3490 | 121--138 | 25.9--36.4% |
+| bertopic_k | 0.2320 | 0.3578 | 0.3597 | 8 | 25.9--36.4% |
+| bertopic_k_assigned | 0.4099 | 0.5328 | 0.5342 | 8 | 0 |
+| honets_hypergraph | 0.4306 | 0.5416 | 0.5425 | 8 | 0 |
+| honets_knn_sbert | 0.5124 | 0.6107 | 0.6115 | 8 | 0 |
+
+Paired effects against the fair comparator `bertopic_k_assigned` (95%
+paired bootstrap CIs, 5000 draws): `honets_hypergraph` leads ARI by
+**0.0207** (0.0176--0.0230), AMI by 0.0087 (0.0011--0.0153) and NMI by
+0.0082 (0.0001--0.0148) -- every interval excludes zero, the AMI/NMI ones
+narrowly. On the same sentence embeddings, `honets_knn_sbert` leads ARI by
+**0.1026** (0.0992--0.1050), AMI by **0.0778** (0.0703--0.0845) and NMI by
+**0.0772** (0.0694--0.0839). Against the package as shipped the gaps are
+0.38--0.46 ARI, driven by HDBSCAN's 121--138 topics and one-third outliers.
+
+Caveats. The honets arms have zero (`honets_hypergraph`) or near-zero
+(`honets_knn_sbert`, SD 0.0014 ARI) seed variance -- the spectral embedding
+is deterministic and 25-start k-means converges to one partition -- so the
+paired CIs and `paired_dz` reflect BERTopic's UMAP seed variance alone.
+BERTopic is a topic model with representations and outlier handling as
+design goals; only its cluster assignments are scored here. Wall-clock:
+MiniLM embedding 20s; BERTopic fit 7.9s/seed; kNN hypergraph + spectral
+embedding 110s once. Per-seed rows and effects are in
+`benchmarks/results/bertopic_r8.csv` / `bertopic_effects.csv` and copied to
+`vignettes/articles/benchmark-bertopic-{seeds,effects}.csv`.
 
 ## Legal Hypergraphs archive reproduction
 

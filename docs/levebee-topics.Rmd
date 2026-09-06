@@ -1,0 +1,175 @@
+---
+title: "Topic descriptions under several scores: Levebee mathematics feedback"
+author: "honets"
+date: "2026-09-06"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "", fig.width = 9, dpi = 110,
+                      out.width = "100%")
+library(honets)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+  torch::torch_is_installed()
+```
+
+> The same corpus the **sbert** package uses in its "Semantic Topics in
+> Levebee AI Mathematics Feedback" vignette, clustered as a hypergraph and
+> described with `hg_keywords()` under several scores at once. Every number
+> and bar is recomputed at knit time.
+
+# The corpus and its embeddings
+
+`sbert::feedback_translations` holds 8,757 AI-generated feedback messages
+from the Levebee mathematics application, translated into English. The sbert
+vignette deduplicates them and works with the first 600 distinct messages,
+whose `all-MiniLM-L6-v2` embeddings ship precomputed with that package. Using
+the same 600 messages and the same vectors keeps this document offline and
+directly comparable to the sbert topics.
+
+```{r corpus}
+sample <- readRDS(system.file("extdata", "feedback_embeddings.rds",
+                              package = "sbert"))
+str(sample, max.level = 1)
+```
+
+`sample$text` is the 600 messages and `sample$embeddings` their 600 x 384
+MiniLM matrix, one row per message in the same order. Both go straight into
+the constructors; documents are numbered `doc_1` to `doc_600` on both sides.
+
+# Two hypergraphs, one partition
+
+The clustering uses the semantic geometry: each message plus its ten nearest
+neighbours in embedding space is one hyperedge (`construction = "knn"`), and
+`hg_cluster()` cuts the hypergraph Laplacian's spectral embedding into six
+groups, the count the sbert vignette settles on by coherence.
+
+```{r cluster}
+hg_knn <- text_hypergraph(sample$text, construction = "knn", k = 10,
+                          embeddings = sample$embeddings)
+hg_knn
+topics <- hg_cluster(hg_knn, k = 6, seed = 1)
+table(topics$cluster)
+```
+
+The kNN hypergraph has no words in it, so the description step uses the
+lexical view of the same 600 messages: the bag-of-words document hypergraph,
+whose token layer carries the counts, weights and per-document vocabulary
+that the keyword scores need. Any partition whose names are these documents
+can be described with it.
+
+```{r bag}
+hg_bag <- text_hypergraph(sample$text, weight = "tfidf",
+                          stop_words = stop_words_en(), min_count = 2L)
+hg_bag
+```
+
+# Four keyword views of the same six topics
+
+`hg_keywords()` ranks each cluster's words under the score named in `type`;
+several types at once return one block of rows per score:
+
+* **frequency** -- what the topic says most (raw counts);
+* **ctfidf** -- what the topic alone says (Grootendorst's class-based
+  tf-idf, the BERTopic representation);
+* **centrality** -- which words sit at the centre of the topic's own
+  word hypergraph (words as nodes, the topic's messages as hyperedges;
+  clique eigenvector centrality);
+* **attention** -- which words the HyperGAT classifier attends to when
+  it learns to predict the topic label from the message: the first
+  attention layer's node-level weights (the layer that attends over the
+  word embeddings), summed over the topic's messages.
+
+The first three are cheap and deterministic. The fourth needs
+\pkg{torch}: `hg_hypergat(what = "attention")` trains the network on the
+cluster labels and returns every message's per-word attention, which
+`hg_keywords(type = "attention")` sums per topic.
+
+```{r views}
+views <- hg_keywords(hg_bag, topics, n = 6,
+                     type = c("frequency", "ctfidf", "centrality"))
+hg_keywords(hg_bag, topics, n = 6, collapse = TRUE,
+            type = c("frequency", "ctfidf", "centrality"))
+```
+
+```{r attention, eval = has_torch}
+attention <- hg_hypergat(sample$text, labels = topics, epochs = 10,
+                         seed = 1, what = "attention")
+head(attention)
+hg_keywords(hg_bag, topics, n = 6, scores = attention, collapse = TRUE)
+```
+
+Two facts about this table are worth checking before trusting the column.
+First, the network was trained to predict the cluster labels, so its
+attention explains *this* partition; its agreement with the labels on all
+600 messages is the number to look at. Second, `attention_2`, the second
+layer's weights, is uniform within every one-sentence message by
+construction (all of a document's words receive the same first-layer output
+when the document has a single hyperedge), which is why the keyword score
+uses the first layer. Within a message the first layer does discriminate
+("red" gets more than "should" or "two" below), but summed over a topic the
+score still rises with how often a word occurs, so its rank order is close
+to frequency's. The Spearman correlation between the two, over all
+(topic, word) pairs, is computed here rather than asserted:
+
+```{r attention-check, eval = has_torch}
+fit <- hg_hypergat(sample$text, labels = topics, epochs = 10, seed = 1)
+mean(fit$predicted == fit$label)
+subset(attention, node == "doc_2")
+both <- hg_keywords(hg_bag, topics, n = Inf, scores = attention,
+                    type = "frequency")
+paired <- merge(subset(both, type == "frequency"),
+                subset(both, type == "attention"),
+                by = c("cluster", "word"), suffixes = c("_freq", "_att"))
+cor(paired$score_freq, paired$score_att, method = "spearman")
+```
+
+# The figure: one panel per topic and score
+
+`plot()` on the keyword table draws horizontal bars of the score, one row of
+panels per topic and one column per score type, each panel with its own
+word axis, fill colour by type. The three lexical scores side by side:
+
+```{r plot-three, fig.height = 13}
+plot(views)
+```
+
+With the attention view added as a fourth column:
+
+```{r plot-four, fig.height = 13, eval = has_torch}
+four <- hg_keywords(hg_bag, topics, n = 6, scores = attention,
+                    type = c("frequency", "ctfidf", "centrality"))
+plot(four)
+```
+
+# Reading the disagreement
+
+Where the columns agree, the topic owns its vocabulary: read the
+choose-a-picture panel ("them", "choose", "pick", "select") across the
+row. Where they disagree, each score is telling you something different.
+Frequency promotes words the whole corpus shares ("one", "you"); c-TF-IDF
+demotes them and surfaces the topic's own terms ("middle", "top", "gray");
+centrality picks the words that co-occur with the most other words inside
+the topic, which favours the hub of a template ("picture", "pictures");
+attention is whatever the classifier found diagnostic for the topic label,
+and summed per topic it stays close to frequency (the correlation above),
+so read it as a frequency count re-weighted by what the classifier used.
+None is *the* keyword list. A topic is characterised by the set, and the figure is the
+compact way to read the set.
+
+These word lists resemble the ones printed in the sbert vignette for the
+same 600 messages (its topic 1, for instance, is "picture", "pictures",
+"choose"). That is a reading of the two documents side by side, not a
+computed comparison: sbert's topic model is not run here, and no agreement
+statistic between the two partitions is reported.
+
+```{r session}
+sessionInfo()
+```
