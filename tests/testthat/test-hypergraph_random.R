@@ -8,8 +8,10 @@ test_that("G(n,p) generator follows Bernoulli incidence model", {
 })
 
 test_that("G(n,p) keeps valid limiting and Poisson cases", {
-  expect_true(all(hg_sample_gnp(5, m = 3, p = 0, seed = 1)$incidence == 0))
-  expect_true(all(hg_sample_gnp(5, m = 3, p = 1, seed = 1)$incidence == 1))
+  empty <- hg_sample_gnp(5, m = 3, p = 0, seed = 1)
+  expect_true(all(empty$incidence == 0))
+  full <- hg_sample_gnp(5, m = 3, p = 1, seed = 1)
+  expect_true(all(full$incidence == 1))
   h <- hg_sample_gnp(5, p = 0.2, lambda = 0, seed = 1)
   expect_equal(h$n_hyperedges, 0L)
 })

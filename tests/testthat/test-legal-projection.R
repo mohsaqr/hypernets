@@ -46,6 +46,8 @@ test_that("hyperedge incidence threshold is configurable", {
                event = rep(c("e1", "e2", "e3"), c(3, 3, 2))),
     "member", "event"
   )
-  expect_equal(hg_edges(h, s = 1)$n_incident_edges, c(2L, 2L, 2L))
-  expect_equal(hg_edges(h, s = 2)$n_incident_edges, c(1L, 1L, 0L))
+  edges_s1 <- hg_edges(h, s = 1)
+  expect_equal(edges_s1$n_incident_edges, c(2L, 2L, 2L))
+  edges_s2 <- hg_edges(h, s = 2)
+  expect_equal(edges_s2$n_incident_edges, c(1L, 1L, 0L))
 })

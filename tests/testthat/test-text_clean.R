@@ -38,23 +38,27 @@ test_that("clean_text switches, stop words, min_content and NA behave", {
   expect_false(grepl("3.2.1", keep_numbers, fixed = TRUE))
   raw_html <- clean_text(messy[["html"]], html = FALSE)
   expect_true(grepl("<b>", raw_html, fixed = TRUE))
-  expect_identical(clean_text("Copyright 2020 Elsevier. Great work.",
-                              copyright = FALSE),
-                   "Copyright Elsevier. Great work.")
-  expect_identical(clean_text("Copyright 2020 Elsevier. Great work."), "")
-  expect_identical(clean_text("Great work. Copyright 2020 Elsevier."),
-                   "Great work.")
+  kept_copyright <- clean_text("Copyright 2020 Elsevier. Great work.",
+                               copyright = FALSE)
+  expect_identical(kept_copyright, "Copyright Elsevier. Great work.")
+  leading_notice <- clean_text("Copyright 2020 Elsevier. Great work.")
+  expect_identical(leading_notice, "")
+  trailing_notice <- clean_text("Great work. Copyright 2020 Elsevier.")
+  expect_identical(trailing_notice, "Great work.")
   sw <- clean_text("The cat sat on the mat", stop_words = c("the", "on"))
   expect_identical(sw, "cat sat mat")
   # the content floor: the journal citation is nearly all digits/punctuation
   floored <- clean_text(messy, min_content = 0.5)
   expect_identical(unname(floored[["journal"]]), "")
   expect_true(nzchar(floored[["html"]]))
-  expect_identical(clean_text(c("a", NA_character_)), c("a", ""))
-  expect_identical(clean_text(character(0)), character(0))
+  with_na <- clean_text(c("a", NA_character_))
+  expect_identical(with_na, c("a", ""))
+  empty <- clean_text(character(0))
+  expect_identical(empty, character(0))
   # idempotent: cleaning clean text changes nothing
   once <- clean_text(messy)
-  expect_identical(clean_text(once), once)
+  twice <- clean_text(once)
+  expect_identical(twice, once)
 })
 
 test_that("clean_text keeps data.frame rows aligned and feeds text_hypergraph", {
@@ -84,7 +88,8 @@ test_that("clean_text `remove` patterns empty placeholders before the floor", {
   out <- clean_text(x, remove = "no abstract available")
   expect_identical(out, c("", "A real abstract about schools."))
   # without the pattern the placeholder survives as ordinary text
-  expect_identical(clean_text(x)[[1L]], "[No abstract available]")
+  kept <- clean_text(x)
+  expect_identical(kept[[1L]], "[No abstract available]")
   # several patterns, case-insensitive, regex
   out2 <- clean_text("Published by ELSEVIER Ltd; Data: Table 2.",
                      remove = c("published by \\w+ ltd", "table \\d"))

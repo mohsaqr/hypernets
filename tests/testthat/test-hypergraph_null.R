@@ -84,7 +84,7 @@ test_that("direct null statistics equal the delegated measures path", {
   nz <- which(m > 0, arr.ind = TRUE)
   long <- data.frame(vertex = rownames(m)[nz[, "row"]],
                      edge = colnames(m)[nz[, "col"]], w = 1)
-  ref_hg <- group_hypergraph(long, member = "vertex",
+  ref_hg <- group_hypergraph(long, actor = "vertex",
                                         group = "edge", weight = "w")
   s_tab <- hg_measures(ref_hg, what = "summary")
   expect_equal(unname(fast["density"]),
@@ -96,8 +96,9 @@ test_that("direct null statistics equal the delegated measures path", {
   expect_equal(unname(fast["pairwise_participation"]),
                subset(s_tab, measure == "pairwise_participation")$value,
                tolerance = 1e-12)
+  overlap_tab <- hg_measures(ref_hg, what = "overlap")
   expect_equal(unname(fast["avg_jaccard"]),
-               mean(hg_measures(ref_hg, what = "overlap")$jaccard),
+               mean(overlap_tab$jaccard),
                tolerance = 1e-12)
 })
 
@@ -133,10 +134,11 @@ test_that("INVARIANT: configuration draws never exceed the observed margins", {
   # Stub matching preserves each margin up to collapse, so a draw's degrees
   # and sizes can fall but must never rise, and the total membership count
   # can only fall.
-  m <- (text_hypergraph(c(
+  hg <- text_hypergraph(c(
     a = "salt and soup and onions and night", b = "soup and salt and night",
     c = "stars and sky and salt", d = "stars and sky and night"
-  ))$incidence > 0) * 1L
+  ))
+  m <- (hg$incidence > 0) * 1L
   set.seed(7)
   draws <- replicate(30, .thg_configuration_draw(m), simplify = FALSE)
   expect_true(all(vapply(draws, \(d) all(rowSums(d) <= rowSums(m)),
@@ -169,7 +171,8 @@ test_that("collapse in the configuration null is warned about, not hidden", {
 test_that("the configuration null actually randomises", {
   # A draw that is not shuffled would reproduce the observed membership
   # exactly, making every p-value 1 and the null vacuous.
-  m <- (text_hypergraph(blocky)$incidence > 0) * 1L
+  hg <- text_hypergraph(blocky)
+  m <- (hg$incidence > 0) * 1L
   set.seed(5)
   draws <- replicate(20, .thg_configuration_draw(m), simplify = FALSE)
   expect_true(any(vapply(draws, \(d) !identical(d, m), logical(1))))

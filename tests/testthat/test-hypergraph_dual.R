@@ -14,7 +14,8 @@ test_that("the dual incidence is exactly the transpose", {
 
 test_that("the dual of the dual restores the original incidence", {
   hg <- text_hypergraph(dual_corpus, weight = "tfidf")
-  back <- dual_hypergraph(dual_hypergraph(hg))
+  dual <- dual_hypergraph(hg)
+  back <- dual_hypergraph(dual)
   expect_identical(back$incidence, hg$incidence)
 })
 
@@ -26,7 +27,9 @@ test_that("the dual of a bag hypergraph equals the opposite orientation", {
   expect_identical(dual$text$nodes, "word")
   expect_s3_class(dual, "text_hypergraph")
   # and every verb sees the same hypergraph
-  expect_identical(hg_measures(dual), hg_measures(word_hg))
+  dual_measures <- hg_measures(dual)
+  word_measures <- hg_measures(word_hg)
+  expect_identical(dual_measures, word_measures)
 })
 
 test_that("duals of non-bag constructions drop the text layer", {

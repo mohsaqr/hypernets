@@ -328,7 +328,8 @@ test_that("euler_characteristic of K4 is 1", {
   mat <- .make_sc_mat()
   sc <- build_simplicial(mat)
   # chi = f0 - f1 + f2 - f3 = 4 - 6 + 4 - 1 = 1
-  expect_equal(euler_characteristic(sc), 1L)
+  chi <- euler_characteristic(sc)
+  expect_equal(chi, 1L)
 })
 
 test_that("euler_characteristic rejects non-simplicial_complex", {

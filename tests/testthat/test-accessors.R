@@ -39,12 +39,14 @@ expect_tidy <- function(d, min_rows = 1L) {
 
 test_that("as.data.frame.net_hon returns rules and nodes", {
   h <- build_hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
-  rules <- expect_tidy(as.data.frame(h))
+  rules <- as.data.frame(h)
+  expect_tidy(rules)
   expect_named(rules, c("path", "from", "to", "count", "probability",
                         "from_order", "to_order"))
   expect_identical(rules, h$ho_edges, ignore_attr = "row.names")
 
-  nodes <- expect_tidy(as.data.frame(h, what = "nodes"))
+  nodes <- as.data.frame(h, what = "nodes")
+  expect_tidy(nodes)
   expect_named(nodes, c("id", "label", "name"))
   expect_identical(nrow(nodes), h$n_nodes)
 })
@@ -53,22 +55,25 @@ test_that("as.data.frame.net_hon filters by order and sorts", {
   h <- build_hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
   ho <- as.data.frame(h, order_min = 2L)
   expect_true(all(ho$from_order >= 2L))
-  expect_lt(nrow(ho), nrow(as.data.frame(h)))
+  all_rules <- as.data.frame(h)
+  expect_lt(nrow(ho), nrow(all_rules))
 
   sorted <- as.data.frame(h, sort_by = "count")
   expect_identical(sorted$count, sort(sorted$count, decreasing = TRUE))
   # sorting is a permutation, not a filter
-  expect_identical(sum(sorted$count), sum(as.data.frame(h)$count))
+  expect_identical(sum(sorted$count), sum(all_rules$count))
 })
 
 test_that("as.data.frame.net_honem returns embeddings and variance", {
   h <- build_hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
   em <- build_honem(h, dim = 4L)
-  d <- expect_tidy(as.data.frame(em))
+  d <- as.data.frame(em)
+  expect_tidy(d)
   expect_named(d, c("node", "dim1", "dim2", "dim3", "dim4"))
   expect_identical(d$node, em$nodes)
 
-  v <- expect_tidy(as.data.frame(em, what = "variance"))
+  v <- as.data.frame(em, what = "variance")
+  expect_tidy(v)
   expect_named(v, c("dim", "singular_value", "proportion"))
   # proportions are a distribution over the retained dimensions
   expect_equal(sum(v$proportion), 1)
@@ -77,9 +82,12 @@ test_that("as.data.frame.net_honem returns embeddings and variance", {
 
 test_that("as.data.frame.net_hypa returns scores, over and under", {
   hp <- build_hypa(.ac_seqs(), order = 2L)
-  all_s <- expect_tidy(as.data.frame(hp))
-  over  <- expect_tidy(as.data.frame(hp, what = "over"), min_rows = 0L)
-  under <- expect_tidy(as.data.frame(hp, what = "under"), min_rows = 0L)
+  all_s <- as.data.frame(hp)
+  expect_tidy(all_s)
+  over <- as.data.frame(hp, what = "over")
+  expect_tidy(over, min_rows = 0L)
+  under <- as.data.frame(hp, what = "under")
+  expect_tidy(under, min_rows = 0L)
   expect_lte(nrow(over) + nrow(under), nrow(all_s))
   expect_identical(names(over), names(all_s))
 
@@ -92,22 +100,27 @@ test_that("as.data.frame.net_hypa returns scores, over and under", {
 
 test_that("as.data.frame.net_mogen returns the order table and transitions", {
   mo <- build_mogen(.ac_seqs(), max_order = 2L)
-  ord <- expect_tidy(as.data.frame(mo))
+  ord <- as.data.frame(mo)
+  expect_tidy(ord)
   expect_named(ord, c("order", "log_likelihood", "aic", "bic", "dof",
                       "layer_dof", "optimal"))
   expect_identical(sum(ord$optimal), 1L)
   expect_identical(ord$order[ord$optimal], mo$optimal_order)
 
-  tr <- expect_tidy(as.data.frame(mo, what = "transitions"))
-  expect_identical(tr, mogen_transitions(mo, order = mo$optimal_order))
+  tr <- as.data.frame(mo, what = "transitions")
+  expect_tidy(tr)
+  tr_direct <- mogen_transitions(mo, order = mo$optimal_order)
+  expect_identical(tr, tr_direct)
 })
 
 test_that("as.data.frame.net_markov_order returns orders and the null", {
   mk <- markov_order_test(.ac_wide(), max_order = 2L, n_perm = 20L, seed = 1L)
-  ord <- expect_tidy(as.data.frame(mk))
+  ord <- as.data.frame(mk)
+  expect_tidy(ord)
   expect_identical(ord, mk$test_table, ignore_attr = "row.names")
 
-  nul <- expect_tidy(as.data.frame(mk, what = "null"))
+  nul <- as.data.frame(mk, what = "null")
+  expect_tidy(nul)
   expect_named(nul, c("order", "replicate", "g2"))
   # one row per (tested order, permutation replicate)
   expect_identical(nrow(nul), length(unlist(mk$permutation_null)))
@@ -116,7 +129,8 @@ test_that("as.data.frame.net_markov_order returns orders and the null", {
 
 test_that("as.data.frame.net_path_dependence filters and sorts", {
   pd <- path_dependence(.ac_wide(), order = 2L)
-  d <- expect_tidy(as.data.frame(pd))
+  d <- as.data.frame(pd)
+  expect_tidy(d)
   expect_true(all(c("context", "n", "KL") %in% names(d)))
 
   filt <- as.data.frame(pd, min_count = 50L)
@@ -131,12 +145,14 @@ test_that("as.data.frame.net_path_dependence filters and sorts", {
 
 test_that("as.data.frame.net_simplicial returns simplices and the f-vector", {
   sc <- build_simplicial(.ac_mat(), type = "clique", threshold = 0.5)
-  d <- expect_tidy(as.data.frame(sc))
+  d <- as.data.frame(sc)
+  expect_tidy(d)
   expect_named(d, c("id", "dim", "size", "members"))
   expect_identical(nrow(d), sc$n_simplices)
   expect_identical(d$size, d$dim + 1L)
 
-  fv <- expect_tidy(as.data.frame(sc, what = "f_vector"))
+  fv <- as.data.frame(sc, what = "f_vector")
+  expect_tidy(fv)
   expect_named(fv, c("dim", "count"))
   # the f-vector must account for every simplex, and match the per-dim counts
   expect_identical(sum(fv$count), sc$n_simplices)
@@ -154,40 +170,47 @@ test_that("as.data.frame.net_simplicial filters by dimension", {
 test_that("as.data.frame.net_q_analysis returns q levels and node max-q", {
   sc <- build_simplicial(.ac_mat(), type = "clique", threshold = 0.5)
   qa <- q_analysis(sc)
-  lv <- expect_tidy(as.data.frame(qa))
+  lv <- as.data.frame(qa)
+  expect_tidy(lv)
   expect_named(lv, c("q", "components"))
   expect_identical(max(lv$q), qa$max_q)
   expect_true(all(lv$components >= 1L))
 
-  nd <- expect_tidy(as.data.frame(qa, what = "nodes"))
+  nd <- as.data.frame(qa, what = "nodes")
+  expect_tidy(nd)
   expect_named(nd, c("node", "max_q"))
   expect_identical(nd$node, sc$nodes)
 })
 
 test_that("as.data.frame.net_persistent_homology returns diagram and curves", {
   ph <- persistent_homology(.ac_mat(), n_steps = 6L, max_dim = 2L)
-  pd <- expect_tidy(as.data.frame(ph))
+  pd <- as.data.frame(ph)
+  expect_tidy(pd)
   expect_named(pd, c("dimension", "birth", "death", "persistence"))
   # persistence is death - birth, and never negative
   expect_true(all(pd$persistence >= 0))
 
-  bc <- expect_tidy(as.data.frame(ph, what = "betti"))
+  bc <- as.data.frame(ph, what = "betti")
+  expect_tidy(bc)
   expect_named(bc, c("threshold", "dimension", "betti"))
 
   srt <- as.data.frame(ph, sort_by = "persistence")
   expect_identical(srt$persistence, sort(srt$persistence, decreasing = TRUE))
-  expect_true(all(as.data.frame(ph, dimension = 1L)$dimension == 1L))
+  dim1 <- as.data.frame(ph, dimension = 1L)
+  expect_true(all(dim1$dimension == 1L))
 })
 
 test_that("as.data.frame.net_persistence_landscape returns the grid", {
   ph <- persistent_homology(.ac_mat(), n_steps = 6L, max_dim = 2L)
   pl <- persistence_landscape(ph, k_max = 3L)
-  d <- expect_tidy(as.data.frame(pl))
+  d <- as.data.frame(pl)
+  expect_tidy(d)
   expect_named(d, c("k", "t", "value"))
   expect_identical(sort(unique(d$k)), 1:3)
   # landscape functions are non-negative by construction
   expect_true(all(d$value >= 0))
-  expect_true(all(as.data.frame(pl, k = 2L)$k == 2L))
+  k2 <- as.data.frame(pl, k = 2L)
+  expect_true(all(k2$k == 2L))
 })
 
 # ---- hypergraph family ---------------------------------------------------
@@ -196,18 +219,21 @@ test_that("as.data.frame.net_hypergraph_measures returns all three tables", {
   hg <- build_hypergraph(.ac_mat(), threshold = 0.5)
   hm <- hypergraph_measures(hg)
 
-  nd <- expect_tidy(as.data.frame(hm))
+  nd <- as.data.frame(hm)
+  expect_tidy(nd)
   expect_named(nd, c("node", "hyperdegree", "node_strength", "max_edge_size"))
   expect_identical(nrow(nd), hg$n_nodes)
 
-  ed <- expect_tidy(as.data.frame(hm, what = "edges"))
+  ed <- as.data.frame(hm, what = "edges")
+  expect_tidy(ed)
   expect_named(ed, c("hyperedge", "size"))
   expect_identical(nrow(ed), hg$n_hyperedges)
   # summed hyperedge sizes must equal summed hyperdegrees (both count
   # (node, hyperedge) memberships)
   expect_identical(sum(ed$size), sum(nd$hyperdegree))
 
-  gl <- expect_tidy(as.data.frame(hm, what = "global"))
+  gl <- as.data.frame(hm, what = "global")
+  expect_tidy(gl)
   expect_named(gl, c("measure", "value"))
   expect_identical(gl$value[gl$measure == "n_nodes"], as.numeric(hg$n_nodes))
 
@@ -378,8 +404,8 @@ test_that("top = NULL is the default and changes nothing", {
 test_that("top = larger than the table returns the whole table", {
   h <- build_hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
   full <- as.data.frame(h, sort_by = "count")
-  expect_identical(as.data.frame(h, sort_by = "count", top = nrow(full) + 100L),
-                   full)
+  over_topped <- as.data.frame(h, sort_by = "count", top = nrow(full) + 100L)
+  expect_identical(over_topped, full)
 })
 
 test_that("top = rejects a non-whole, zero, negative or vector value", {
@@ -402,7 +428,8 @@ test_that("sort_by and top compose rather than fighting", {
   h <- build_hon(.ac_seqs(), max_order = 2L, min_freq = 20L)
   by_count <- as.data.frame(h, sort_by = "count", top = 5L)
   expect_identical(by_count$count, sort(by_count$count, decreasing = TRUE))
-  expect_identical(max(by_count$count), max(as.data.frame(h)$count))
+  all_rules <- as.data.frame(h)
+  expect_identical(max(by_count$count), max(all_rules$count))
 
   unsorted_then_topped <- as.data.frame(h, top = 5L)
   expect_false(identical(unsorted_then_topped, by_count))
@@ -411,6 +438,6 @@ test_that("sort_by and top compose rather than fighting", {
   ho <- as.data.frame(h, order_min = 2L, sort_by = "count", top = 4L)
   expect_true(all(ho$from_order >= 2L))
   expect_identical(nrow(ho), 4L)
-  expect_identical(ho, `rownames<-`(
-    utils::head(as.data.frame(h, order_min = 2L, sort_by = "count"), 4L), NULL))
+  ho_full <- as.data.frame(h, order_min = 2L, sort_by = "count")
+  expect_identical(ho, `rownames<-`(utils::head(ho_full, 4L), NULL))
 })

@@ -31,10 +31,13 @@ test_that("hg_topic_sizes counts documents and weights them", {
   # natural order and the plot
   many <- stats::setNames(c("Cluster 10", "Cluster 2", "Cluster 1",
                             "Cluster 10", "Cluster 2"), .topic_clusters$node)
-  expect_identical(hg_topic_sizes(hg, many)$topic,
+  many_sizes <- hg_topic_sizes(hg, many)
+  expect_identical(many_sizes$topic,
                    c("Cluster 1", "Cluster 2", "Cluster 10"))
-  expect_s3_class(plot(sizes), "ggplot")
-  expect_s3_class(plot(weighted), "ggplot")
+  sizes_plot <- plot(sizes)
+  expect_s3_class(sizes_plot, "ggplot")
+  weighted_plot <- plot(weighted)
+  expect_s3_class(weighted_plot, "ggplot")
   expect_error(hg_topic_sizes(hg, .topic_clusters, weights = c(cooking_1 = 1)),
                class = "honets_bad_input")
   expect_error(hg_topic_sizes(hg, c(zz = "a", cooking_1 = "b")),
@@ -65,7 +68,8 @@ test_that("hg_topic_quality scores coherence by NPMI and exclusivity by share", 
   indep <- rbind(c(1, 1), c(1, 0), c(0, 1), c(0, 0))
   expect_equal(.thg_npmi(indep), 0)
   expect_true(is.na(.thg_npmi(matrix(1, 3, 1))))
-  expect_s3_class(plot(q), "ggplot")
+  quality_plot <- plot(q)
+  expect_s3_class(quality_plot, "ggplot")
   expect_error(hg_topic_quality(hg, c(zz = "a", cooking_1 = "b")),
                class = "honets_bad_input")
   expect_identical(hypergraph_topic_quality, hg_topic_quality)
@@ -92,7 +96,8 @@ test_that("hg_membership gives fuzzy weights that sum to one and favour the hard
              space_3 = "B")
   m1 <- hg_membership(hg, alone)
   expect_equal(subset(m1, node == "cooking_1" & topic == "A")$membership, 1)
-  expect_s3_class(plot(m), "ggplot")
+  membership_plot <- plot(m)
+  expect_s3_class(membership_plot, "ggplot")
   expect_error(hg_membership(hg, c(zz = "a", cooking_1 = "b")),
                class = "honets_bad_input")
   expect_identical(hypergraph_membership, hg_membership)

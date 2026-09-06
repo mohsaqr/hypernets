@@ -48,10 +48,12 @@ test_that("citation representations count directed edges and degrees", {
 })
 
 test_that("INVARIANT: sparse and dense representations agree", {
-  expect_equal(hg_representations(.rep_tribunals(sparse = TRUE)),
-               hg_representations(.rep_tribunals()))
-  expect_equal(hg_representations(.rep_citations(sparse = TRUE), graph = "citation"),
-               hg_representations(.rep_citations(), graph = "citation"))
+  sparse_tribunals <- hg_representations(.rep_tribunals(sparse = TRUE))
+  dense_tribunals <- hg_representations(.rep_tribunals())
+  expect_equal(sparse_tribunals, dense_tribunals)
+  sparse_citations <- hg_representations(.rep_citations(sparse = TRUE), graph = "citation")
+  dense_citations <- hg_representations(.rep_citations(), graph = "citation")
+  expect_equal(sparse_citations, dense_citations)
 })
 
 test_that("citation projection is the source-to-member graph", {
@@ -83,9 +85,9 @@ test_that("citation projection is the source-to-member graph", {
   # the source may be named as an attribute column of the hyperedges
   named <- .rep_citations()
   names(named$edge_data)[2L] <- "citing"
-  expect_equal(as.matrix(hg_project(named, method = "citation", what = "matrix",
-                                    edge_source = "citing")),
-               as.matrix(undirected))
+  named_projection <- hg_project(named, method = "citation", what = "matrix",
+                                 edge_source = "citing")
+  expect_equal(as.matrix(named_projection), as.matrix(undirected))
   expect_error(hg_project(named, method = "citation"), class = "honets_bad_input")
   expect_error(hg_project(hg, method = "clique", directed = TRUE),
                class = "honets_bad_input")

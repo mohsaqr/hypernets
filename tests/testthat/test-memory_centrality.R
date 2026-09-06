@@ -73,8 +73,10 @@ test_that("projections place higher-order mass on the intended states", {
 test_that("memory changes the ranking relative to the first-order network", {
   seqs <- c(replicate(8, rep(c("a", "b", "c"), 4), simplify = FALSE),
             replicate(8, rep(c("x", "b", "d"), 4), simplify = FALSE))
-  ho <- hon_centrality(build_hon(seqs, max_order = 2L))
-  fo <- hon_centrality(build_hon(seqs, max_order = 1L))
+  hon_ho <- build_hon(seqs, max_order = 2L)
+  ho <- hon_centrality(hon_ho)
+  hon_fo <- build_hon(seqs, max_order = 1L)
+  fo <- hon_centrality(hon_fo)
   expect_identical(ho$state, fo$state)
   # b is the shared hub: with memory its flow splits across two contexts
   expect_false(isTRUE(all.equal(ho$pagerank, fo$pagerank)))
@@ -85,9 +87,11 @@ test_that("memory changes the ranking relative to the first-order network", {
 test_that("centralities are invariant under state relabeling", {
   relabel <- c(a = "p", b = "q", c = "r")
   seqs <- replicate(6, rep(c("a", "b", "c"), 5), simplify = FALSE)
-  cen1 <- hon_centrality(build_hon(seqs, max_order = 2L))
-  cen2 <- hon_centrality(build_hon(
-    lapply(seqs, function(s) unname(relabel[s])), max_order = 2L))
+  hon1 <- build_hon(seqs, max_order = 2L)
+  cen1 <- hon_centrality(hon1)
+  hon2 <- build_hon(lapply(seqs, function(s) unname(relabel[s])),
+                    max_order = 2L)
+  cen2 <- hon_centrality(hon2)
   expect_identical(unname(relabel[cen1$state]), cen2$state)
   expect_equal(cen1$pagerank, cen2$pagerank, tolerance = 1e-12)
   expect_equal(cen1$betweenness, cen2$betweenness, tolerance = 1e-12)
@@ -112,14 +116,12 @@ test_that("results are non-negative, finite and deterministically ordered", {
 
 test_that("type selection returns exactly the requested columns", {
   hon <- .hc_planted()
-  expect_identical(names(hon_centrality(hon, type = "pagerank")),
-                   c("state", "pagerank"))
-  expect_identical(names(hon_centrality(hon, type = c("closeness",
-                                                      "betweenness"))),
-                   c("state", "betweenness", "closeness"))
-  expect_identical(names(hon_centrality(hon, project = FALSE,
-                                        type = "pagerank")),
-                   c("node", "order", "pagerank"))
+  pr_only <- hon_centrality(hon, type = "pagerank")
+  expect_identical(names(pr_only), c("state", "pagerank"))
+  cl_bt <- hon_centrality(hon, type = c("closeness", "betweenness"))
+  expect_identical(names(cl_bt), c("state", "betweenness", "closeness"))
+  pr_raw <- hon_centrality(hon, project = FALSE, type = "pagerank")
+  expect_identical(names(pr_raw), c("node", "order", "pagerank"))
 })
 
 test_that("damping and weighting change PageRank as expected", {

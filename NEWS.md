@@ -1,3 +1,70 @@
+# honets 0.3.4
+
+The temporal hypergraph speaks Dynet's vocabulary (`../temporal`), so a
+relational log reads the same way in both packages.
+
+* **`group`** replaces `cooccur_by` in `temporal_hypergraph()` and
+  `group_hypergraph()` (Dynet's co-presence format is `actor`/`group`).
+  `cooccur_by` and `member` remain as deprecated aliases for one release and
+  warn with a `honets_deprecated` condition.
+* **Column detection** uses Dynet's alias table, case-insensitively:
+  `Sender`/`Receiver`, `source`/`target`, `onset`/`terminus`, `timestamp`
+  are understood without being named; an explicit name must exist as
+  written (`honets_missing_column`).
+* **Time parsing** follows Dynet: numeric times stay as they are (unit
+  `"step"`); `Date`, `POSIXct` and character date-times become elapsed
+  time since the earliest time in a unit chosen for the span (`"days"`
+  beyond three days) or given as `time_unit`. The object stores
+  `time_unit` and `origin`, `print()` reports them, every `time` column of
+  a result is on that clock, and dates passed to `at`, `start`, `end` or
+  the observation bounds are converted (or refused on a numeric clock).
+  Raw character dates are never compared.
+* **`time` is a contact clock.** A hyperedge with a `time` is an
+  instantaneous event, as in Dynet's contact format; the former "growing"
+  reading is `mode = "cumulative"` in `hypergraph_snapshot()`,
+  `hypergraph_snapshots()`, `hg_growth()` and `hg_edges()`, and `print()`
+  says so. `mode = "all"` is deprecated: it is `"cumulative"` with `at`
+  unset. `evolution` is replaced by `format` (`"interval"` or `"contact"`).
+* **`observation_start` / `observation_end`** with Dynet's meaning: they
+  bound the snapshot times and the measurement grid
+  (`honets_outside_observation`), an open-ended hyperedge is active
+  through the end of observation, and the stored memberships are never
+  rewritten.
+* **The measurement grid**: `hypergraph_snapshots(x, start, end, step,
+  window, mode)` -- `step` is how often to look, `window` how much time
+  each look covers (`0` a point, `"all"` the whole period), `at` names
+  instants -- and `hg_growth()` and `hg_edges()` take the same four.
+  Without `step` and `at` the grid is the event times, as before.
+* `as.data.frame(x, what = "memberships" | "edges" | "nodes")` for a
+  temporal hypergraph; series plots draw the calendar when the hypergraph
+  has one.
+* Behaviour-neutral on the bundled legal data: Table 2, the component
+  sweep and the motif counts of the Legal Hypergraphs vignette are
+  unchanged.
+
+# honets 0.3.3
+
+Every line of code a user reads now follows the one-call-per-line rule: no
+verb nested inside another call, no `as.data.frame()` inside a call, no `$`
+reach into a `net_*` result -- in the vignettes, the roxygen examples, the
+hand-knit `docs/` documents and the tests alike. Three small additions made
+the tidy versions possible:
+
+* **`hg_agreement()`** gains an `aligned` column in its summary (the nodes
+  that stay with the majority of their `x` label in `y`; the sum of
+  `overlap` over `what = "mapping"`) and `node` / `label` column selectors,
+  one name for both labelings or two for `x` and `y`, so a classifier can
+  be scored against a column of the corpus table directly:
+  `hg_agreement(predictions, corpus, node = c("node", "doc"), label =
+  c("predicted", "year"), what = "table")`.
+* **`group_hypergraph()`** keeps every column that is constant within a
+  hyperedge as an attribute in `edge_data`, as `temporal_hypergraph()` does,
+  so `hg_subset(where =)` and `edge_source =` work on it without assembling
+  the table by hand. A plain member/group table keeps its original layout.
+* **`as.data.frame(hg, what = "nodes")`** for any `net_hypergraph`: one row
+  per node with `degree`, plus `block` for the stochastic block model
+  generator; `sort_by = "degree"` and `top` apply.
+
 # honets 0.3.2
 
 The Legal Hypergraphs workflow (Coupette, Hartung & Katz 2024) is now

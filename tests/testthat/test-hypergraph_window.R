@@ -199,7 +199,7 @@ test_that("print and summary run and report the windowed source", {
   # bipartite print line no longer vanishes either
   bp <- group_hypergraph(
     data.frame(p = c("a", "b", "a"), g = c("g1", "g1", "g2")),
-    member = "p", group = "g")
+    actor = "p", group = "g")
   expect_output(print(bp), "group membership")
 })
 
@@ -210,15 +210,16 @@ test_that("Laplacian family defaults to window counts as hyperedge weights", {
   expect_true(length(unique(hg$window_counts)) > 1L)  # non-trivial weights
   for (ty in c("zhou", "random_walk")) {
     # for loop kept: two assertions over a 2-level argument, no data to grow
-    expect_identical(
-      hypergraph_laplacian(hg, type = ty),
-      hypergraph_laplacian(hg, type = ty,
-                           edge_weights = as.numeric(hg$window_counts))
-    )
+    default_laplacian <- hypergraph_laplacian(hg, type = ty)
+    counts_laplacian <- hypergraph_laplacian(
+      hg, type = ty, edge_weights = as.numeric(hg$window_counts))
+    expect_identical(default_laplacian, counts_laplacian)
   }
+  zhou_default <- hypergraph_laplacian(hg)
+  zhou_unit <- hypergraph_laplacian(hg, edge_weights = rep(1, hg$n_hyperedges))
   expect_false(isTRUE(all.equal(
-    hypergraph_laplacian(hg),
-    hypergraph_laplacian(hg, edge_weights = rep(1, hg$n_hyperedges)),
+    zhou_default,
+    zhou_unit,
     check.attributes = FALSE
   )))
   cl <- hypergraph_cluster(hg, k = 2L, seed = 5)
@@ -264,7 +265,8 @@ test_that("min_weight keeps only recurrent hyperedges", {
   hg <- window_hypergraph(list(c("a", "b", "a", "b", "a", "c")), window = 2L,
                           min_weight = 2L)
   expect_identical(hg$n_hyperedges, 1L)
-  expect_identical(as.data.frame(hg)$states, "a, b")
+  hyperedges <- as.data.frame(hg)
+  expect_identical(hyperedges$states, "a, b")
   expect_identical(hg$params$n_dropped, 1L)
   expect_error(window_hypergraph(list(c("a", "b")), min_weight = 0L),
                "min_weight")

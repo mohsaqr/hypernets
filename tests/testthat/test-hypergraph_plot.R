@@ -44,13 +44,20 @@ test_that("plot.net_hypergraph draws through cograph and does not print twice", 
 
 test_that("plot.net_hypergraph returns a ggplot for every selector", {
   hg <- .plot_fixture()
-  expect_s3_class(plot(hg), "ggplot")
-  expect_s3_class(plot(hg, padding = 0.03), "ggplot")
-  expect_s3_class(plot(hg, color_by = "size"), "ggplot")
-  expect_s3_class(plot(hg, color_by = "sector", linetype_by = "sector"), "ggplot")
-  expect_s3_class(plot(hg, color_by = c(e1 = "u", e2 = "v", e3 = "u", e4 = "v")), "ggplot")
-  expect_s3_class(plot(hg, color_by = 1:4, labels = FALSE), "ggplot")
-  expect_s3_class(plot(hg, labels = c(a = "Alpha"), layout = "circle"), "ggplot")
+  default_plot <- plot(hg)
+  expect_s3_class(default_plot, "ggplot")
+  padded_plot <- plot(hg, padding = 0.03)
+  expect_s3_class(padded_plot, "ggplot")
+  size_plot <- plot(hg, color_by = "size")
+  expect_s3_class(size_plot, "ggplot")
+  sector_plot <- plot(hg, color_by = "sector", linetype_by = "sector")
+  expect_s3_class(sector_plot, "ggplot")
+  named_plot <- plot(hg, color_by = c(e1 = "u", e2 = "v", e3 = "u", e4 = "v"))
+  expect_s3_class(named_plot, "ggplot")
+  numeric_plot <- plot(hg, color_by = 1:4, labels = FALSE)
+  expect_s3_class(numeric_plot, "ggplot")
+  circle_plot <- plot(hg, labels = c(a = "Alpha"), layout = "circle")
+  expect_s3_class(circle_plot, "ggplot")
 })
 
 test_that("a layout table is reused and validated", {
@@ -61,7 +68,8 @@ test_that("a layout table is reused and validated", {
   expect_true(all(pos$x >= 0 & pos$x <= 1 & pos$y >= 0 & pos$y <= 1))
   again <- honets:::.thg_layout(hg, pos, seed = 1L)
   expect_equal(again$x, pos$x)
-  expect_s3_class(plot(hg, layout = pos), "ggplot")
+  layout_plot <- plot(hg, layout = pos)
+  expect_s3_class(layout_plot, "ggplot")
   expect_error(plot(hg, layout = pos[-1, ]), class = "honets_bad_input")
 })
 

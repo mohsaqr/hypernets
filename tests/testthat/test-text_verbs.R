@@ -61,7 +61,8 @@ test_that("hg_cluster matches the seeded engine partition and is reproducible", 
 
   tab <- hg_cluster(hg, k = 2, type = "random_walk", seed = 7)
   expect_identical(tab, expected)
-  expect_identical(tab, hg_cluster(hg, k = 2, type = "random_walk", seed = 7))
+  again <- hg_cluster(hg, k = 2, type = "random_walk", seed = 7)
+  expect_identical(tab, again)
   expect_identical(nrow(tab), hg$n_nodes)
   expect_identical(length(unique(tab$cluster)), 2L)
 })
@@ -191,11 +192,12 @@ test_that("hg_keywords works on sparse hypergraphs and vector input", {
                            cluster = c("food", "food", "sky", "sky"))
 
 test_that("type = 'frequency' is the raw count whatever the weighting", {
-  kw_n <- hg_keywords(.kw_fixture(weight = "n"), .kw_clusters, n = Inf)
-  kw_freq_n <- hg_keywords(.kw_fixture(weight = "n"), .kw_clusters, n = Inf,
-                           type = "frequency")
-  kw_freq_tfidf <- hg_keywords(.kw_fixture(weight = "tfidf"), .kw_clusters,
-                               n = Inf, type = "frequency")
+  hg_n <- .kw_fixture(weight = "n")
+  hg_tfidf <- .kw_fixture(weight = "tfidf")
+  kw_n <- hg_keywords(hg_n, .kw_clusters, n = Inf)
+  kw_freq_n <- hg_keywords(hg_n, .kw_clusters, n = Inf, type = "frequency")
+  kw_freq_tfidf <- hg_keywords(hg_tfidf, .kw_clusters, n = Inf,
+                               type = "frequency")
   values <- c("cluster", "rank", "word", "score", "share")
   # under weight = "n" the incidence mass IS the count
   expect_equal(kw_freq_n[values], kw_n[values])
@@ -212,7 +214,8 @@ test_that("type = 'frequency' is the raw count whatever the weighting", {
 test_that("type = 'ctfidf' reproduces BERTopic's ClassTfidfTransformer", {
   # oracle: bertopic 0.17.4 ClassTfidfTransformer().fit_transform() on the
   # 2 x 17 class-term count matrix of this fixture (python, 2026-09-05)
-  kw <- hg_keywords(.kw_fixture(), .kw_clusters, n = Inf, type = "ctfidf")
+  hg <- .kw_fixture()
+  kw <- hg_keywords(hg, .kw_clusters, n = Inf, type = "ctfidf")
   pick <- function(cl, w) subset(kw, cluster == cl & word == w)$score
   expect_equal(pick("food", "soup"), 0.358351893845611, tolerance = 1e-12)
   expect_equal(pick("food", "carrots"), 0.23978952727983707,
@@ -236,11 +239,9 @@ test_that("type = 'centrality' equals hypergraph_centrality on the cluster", {
                     centrality = "clique")
   layer <- as.data.frame(hg, what = "weights")
   sky <- subset(layer, doc %in% c("space_1", "space_2"))
-  direct <- hypergraph_centrality(
-    group_hypergraph(sky, member = "word", group = "doc",
-                     weight = "weight"),
-    type = "clique"
-  )
+  sky_hg <- group_hypergraph(sky, actor = "word", group = "doc",
+                             weight = "weight")
+  direct <- hypergraph_centrality(sky_hg, type = "clique")
   got <- subset(kw, cluster == "sky")
   expect_equal(stats::setNames(got$score, got$word)[direct$node],
                stats::setNames(direct$clique, direct$node))
@@ -266,7 +267,8 @@ test_that("hg_keywords type = contracts are enforced by class", {
   expect_error(hg_keywords(window, word_groups, type = "centrality"),
                class = "honets_bad_input")
   # mass still works on any hypergraph
-  expect_s3_class(hg_keywords(window, word_groups), "data.frame")
+  mass <- hg_keywords(window, word_groups)
+  expect_s3_class(mass, "data.frame")
   expect_error(hg_keywords(hg, .kw_clusters, type = "attention"),
                class = "honets_bad_input")
   expect_error(hg_keywords(hg, .kw_clusters,
@@ -308,8 +310,10 @@ test_that("several `type`s stack into one table and plot", {
   expect_s3_class(many, "honets_keywords")
   expect_named(many, c("type", "cluster", "size", "rank", "word", "score",
                        "share", "n_docs"))
-  expect_equal(as.data.frame(many), as.data.frame(do.call(rbind, one)),
-               ignore_attr = TRUE)
+  many_table <- as.data.frame(many)
+  stacked <- do.call(rbind, one)
+  stacked_table <- as.data.frame(stacked)
+  expect_equal(many_table, stacked_table, ignore_attr = TRUE)
   expect_identical(unique(many$type), c("frequency", "ctfidf", "centrality"))
   wide <- hg_keywords(hg, .kw_clusters, n = 3, collapse = TRUE,
                       type = c("ctfidf", "frequency"))
@@ -348,7 +352,8 @@ test_that("sort_by = 'share' and min_docs rank and filter as documented", {
   p <- plot(by_share, value = "share")
   expect_s3_class(p, "ggplot")
   expect_identical(p$labels$x, "share")
-  expect_s3_class(plot(by_share, ncol = 2), "ggplot")
+  two_col <- plot(by_share, ncol = 2)
+  expect_s3_class(two_col, "ggplot")
   expect_error(plot(by_share, ncol = 0), "ncol")
 })
 
@@ -359,8 +364,8 @@ test_that("clusters come out in natural order, not string order", {
   kw <- hg_keywords(hg, many, n = 2, collapse = TRUE)
   expect_identical(kw$cluster, c("Cluster 1", "Cluster 2", "Cluster 10"))
   named <- stats::setNames(c("b", "a", "b", "a"), names(many))
-  expect_identical(hg_keywords(hg, named, n = 1, collapse = TRUE)$cluster,
-                   c("a", "b"))
+  named_kw <- hg_keywords(hg, named, n = 1, collapse = TRUE)
+  expect_identical(named_kw$cluster, c("a", "b"))
   expect_identical(.thg_kw_natural(c("x2", "x10", "x1")), c("x1", "x2", "x10"))
 })
 
@@ -397,8 +402,9 @@ test_that("construction = 'sentence' binds the words of each sentence", {
   expect_identical(as.numeric(two$incidence["soup", "a#2"]), 1)
   # the vocabulary equals the bag construction's under the same filters
   bag <- text_hypergraph(.sent_docs, stop_words = .sent_sw)
-  expect_identical(as.data.frame(sh, what = "vocabulary")$word,
-                   as.data.frame(bag, what = "vocabulary")$word)
+  sh_vocab <- as.data.frame(sh, what = "vocabulary")
+  bag_vocab <- as.data.frame(bag, what = "vocabulary")
+  expect_identical(sh_vocab$word, bag_vocab$word)
   # sparse gives the same incidence
   sparse <- text_hypergraph(.sent_docs, construction = "sentence",
                             stop_words = .sent_sw, sparse = TRUE)
@@ -425,10 +431,11 @@ test_that("a sentence hypergraph scopes centrality to the cluster's sentences", 
   # direct: the sky sentences only
   sents <- as.data.frame(sh, what = "sentences")
   sky_edges <- sents$edge[sents$doc %in% c("space_1", "space_2")]
-  sky <- subset(as.data.frame(sh), edge %in% sky_edges)
-  direct <- hypergraph_centrality(
-    group_hypergraph(sky, member = "word", group = "edge",
-                     weight = "weight"), type = "clique")
+  sh_table <- as.data.frame(sh)
+  sky <- subset(sh_table, edge %in% sky_edges)
+  sky_hg <- group_hypergraph(sky, actor = "word", group = "edge",
+                             weight = "weight")
+  direct <- hypergraph_centrality(sky_hg, type = "clique")
   got <- subset(kw, cluster == "sky")
   expect_equal(stats::setNames(got$score, got$word)[direct$node],
                stats::setNames(direct$clique, direct$node))
@@ -456,8 +463,9 @@ test_that("hg_cluster(edge_weights) reaches both engines and 'idf' reads the voc
   sparse <- text_hypergraph(docs, weight = "tfidf", sparse = TRUE)
   # the default cut ignores the cells: tfidf and counts agree exactly
   counts <- text_hypergraph(docs, weight = "n")
-  expect_equal(hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")$value,
-               hg_cluster(counts, k = 2, seed = 1, what = "eigenvalues")$value)
+  e_default <- hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")
+  e_counts <- hg_cluster(counts, k = 2, seed = 1, what = "eigenvalues")
+  expect_equal(e_default$value, e_counts$value)
   # idf weights change the spectrum, identically on both engines
   e_dense <- hg_cluster(dense, k = 2, seed = 1, edge_weights = "idf",
                         what = "eigenvalues")
@@ -467,21 +475,21 @@ test_that("hg_cluster(edge_weights) reaches both engines and 'idf' reads the voc
   n_common <- min(nrow(e_dense), nrow(e_sparse))
   expect_equal(head(e_dense$value, n_common), head(e_sparse$value, n_common),
                tolerance = 1e-8)
-  expect_false(isTRUE(all.equal(
-    e_dense$value,
-    hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")$value
-  )))
+  e_unweighted <- hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")
+  expect_false(isTRUE(all.equal(e_dense$value, e_unweighted$value)))
   # explicit numeric weights equal to the idf give the same answer
-  idf <- as.data.frame(dense, what = "vocabulary")$idf
-  names(idf) <- as.data.frame(dense, what = "vocabulary")$word
+  vocab <- as.data.frame(dense, what = "vocabulary")
+  idf <- vocab$idf
+  names(idf) <- vocab$word
   e_num <- hg_cluster(dense, k = 2, seed = 1,
                       edge_weights = as.numeric(idf[colnames(dense$incidence)]),
                       what = "eigenvalues")
   expect_equal(e_num$value, e_dense$value)
   # a scalar recycles to unit weights, i.e. the default
-  expect_equal(hg_cluster(dense, k = 2, seed = 1, edge_weights = 2,
-                          what = "eigenvalues")$value,
-               hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")$value)
+  e_scalar <- hg_cluster(dense, k = 2, seed = 1, edge_weights = 2,
+                         what = "eigenvalues")
+  e_unit <- hg_cluster(dense, k = 2, seed = 1, what = "eigenvalues")
+  expect_equal(e_scalar$value, e_unit$value)
   expect_error(hg_cluster(counts, k = 2, edge_weights = "idf"),
                class = "honets_bad_input")
   expect_error(hg_cluster(dense, k = 2, edge_weights = c(1, 2)),
@@ -497,7 +505,8 @@ test_that("the keyword print method is compact and the default centrality is pag
   expect_true(any(grepl("^ *type +cluster +size +words", out)))
   expect_identical(sum(grepl("Cluster|food|sky", out)), 4L)
   expect_true(any(grepl("12 rows in the long form", out)))
-  expect_identical(nrow(as.data.frame(kw)), 12L)
+  long <- as.data.frame(kw)
+  expect_identical(nrow(long), 12L)
   pr <- hg_keywords(hg, .kw_clusters, n = Inf, type = "centrality")
   explicit <- hg_keywords(hg, .kw_clusters, n = Inf, type = "centrality",
                           centrality = "pagerank")
@@ -519,15 +528,20 @@ test_that("hg_relations is the bibliometric co-occurrence of topics through word
   expect_equal(rel$weight, co["food", "sky"])
   expect_equal(rel$weight, 1)
   d <- diag(co)
-  expect_equal(hg_relations(hg, .kw_clusters, similarity = "association")$weight,
+  association <- hg_relations(hg, .kw_clusters, similarity = "association")
+  expect_equal(association$weight,
                co["food", "sky"] / (d[["food"]] * d[["sky"]]))
-  expect_equal(hg_relations(hg, .kw_clusters, similarity = "cosine")$weight,
+  cosine <- hg_relations(hg, .kw_clusters, similarity = "cosine")
+  expect_equal(cosine$weight,
                co["food", "sky"] / sqrt(d[["food"]] * d[["sky"]]))
-  expect_equal(hg_relations(hg, .kw_clusters, similarity = "jaccard")$weight,
+  jaccard <- hg_relations(hg, .kw_clusters, similarity = "jaccard")
+  expect_equal(jaccard$weight,
                co["food", "sky"] / (d[["food"]] + d[["sky"]] - co["food", "sky"]))
-  expect_equal(hg_relations(hg, .kw_clusters, similarity = "inclusion")$weight,
+  inclusion <- hg_relations(hg, .kw_clusters, similarity = "inclusion")
+  expect_equal(inclusion$weight,
                co["food", "sky"] / min(d[["food"]], d[["sky"]]))
-  expect_equal(hg_relations(hg, .kw_clusters, similarity = "equivalence")$weight,
+  equivalence <- hg_relations(hg, .kw_clusters, similarity = "equivalence")
+  expect_equal(equivalence$weight,
                co["food", "sky"]^2 / (d[["food"]] * d[["sky"]]))
   # three topics: pairs in natural order, zero-weight pairs dropped
   three <- stats::setNames(c("Cluster 1", "Cluster 2", "Cluster 10", "Cluster 10"),

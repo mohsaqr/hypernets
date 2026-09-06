@@ -5,8 +5,8 @@ test_that("AMI and NMI match the paper's scikit-learn convention", {
   expect_equal(out$ari, 0.242424242424242, tolerance = 1e-12)
   expect_equal(out$ami, 0.298792458170890, tolerance = 1e-12)
   expect_equal(out$nmi, 0.515803742979389, tolerance = 1e-12)
-  expect_equal(hg_agreement(x, x, method = c("ami", "nmi"))[, c("ami", "nmi")],
-               data.frame(ami = 1, nmi = 1))
+  self_agreement <- hg_agreement(x, x, method = c("ami", "nmi"))
+  expect_equal(self_agreement[, c("ami", "nmi")], data.frame(ami = 1, nmi = 1))
 })
 
 test_that("Infomap ensemble returns AMI medoid and all representations", {
@@ -22,8 +22,10 @@ test_that("Infomap ensemble returns AMI medoid and all representations", {
   expect_equal(nrow(fit$partitions), 18)
   expect_true(fit$medoid_run %in% 1:3)
   expect_equal(unname(diag(fit$similarity$ami)), rep(1, 3))
-  expect_equal(as.data.frame(fit), fit$medoid)
-  expect_equal(nrow(as.data.frame(fit, what = "ami")), 9)
+  medoid <- as.data.frame(fit)
+  expect_equal(medoid, fit$medoid)
+  ami <- as.data.frame(fit, what = "ami")
+  expect_equal(nrow(ami), 9)
 })
 
 test_that("paper partition quality is exact on disconnected cliques", {
@@ -60,5 +62,6 @@ test_that("one-community conductance is undefined", {
                event = rep(c("ab", "bc"), each = 2)),
     "member", "event"
   )
-  expect_true(is.na(hg_community_quality(h, c(a = 1, b = 1, c = 1))$conductance))
+  q <- hg_community_quality(h, c(a = 1, b = 1, c = 1))
+  expect_true(is.na(q$conductance))
 })

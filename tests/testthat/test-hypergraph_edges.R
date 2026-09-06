@@ -11,7 +11,7 @@ edge_fixture <- function(weight = 1) {
              "e4", "e4", "e4", "e4"),
     w = weight
   )
-  group_hypergraph(long, member = "vertex", group = "edge",
+  group_hypergraph(long, actor = "vertex", group = "edge",
                               weight = "w")
 }
 
@@ -34,18 +34,20 @@ test_that("weight sums the incidence, size counts membership", {
 
 test_that("INVARIANT: size agrees with hg_measures, n_incident with the line graph", {
   hg <- edge_fixture()
-  expect_identical(hg_edges(hg)$size, hg_measures(hg, what = "edges")$size)
+  edge_table <- hg_edges(hg)
+  edge_measures <- hg_measures(hg, what = "edges")
+  expect_identical(edge_table$size, edge_measures$size)
   # n_incident_edges is the s = 1 line-graph degree.
   line <- hg_line_graph(hg, s = 1)
   degree <- table(c(line$from, line$to))
-  expect_identical(as.integer(degree[hg_edges(hg)$edge]),
-                   hg_edges(hg)$n_incident_edges)
+  expect_identical(as.integer(degree[edge_table$edge]),
+                   edge_table$n_incident_edges)
 })
 
 test_that("INVARIANT: isolated and singleton hyperedges are handled", {
   long <- data.frame(vertex = c("a", "b", "c", "z"),
                      edge = c("e1", "e1", "e1", "solo"), w = 1)
-  hg <- group_hypergraph(long, member = "vertex", group = "edge",
+  hg <- group_hypergraph(long, actor = "vertex", group = "edge",
                                     weight = "w")
   got <- hg_edges(hg)
   # "solo" holds one vertex, shares it with nothing, and reaches nobody.
@@ -61,16 +63,21 @@ test_that("INVARIANT: measures are invariant to input row order", {
              "e4", "e4", "e3"),
     w = 1
   )
-  shuffled <- group_hypergraph(long, member = "vertex",
+  shuffled <- group_hypergraph(long, actor = "vertex",
                                           group = "edge", weight = "w")
-  expect_equal(hg_edges(edge_fixture()), hg_edges(shuffled))
+  ordered_edges <- hg_edges(edge_fixture())
+  shuffled_edges <- hg_edges(shuffled)
+  expect_equal(ordered_edges, shuffled_edges)
 })
 
 test_that("INVARIANT: sparse and dense incidences agree", {
   docs <- c(a = "salt and soup and night", b = "soup and stars",
             c = "stars and night", d = "night and pepper and salt")
-  expect_equal(hg_edges(text_hypergraph(docs)),
-               hg_edges(text_hypergraph(docs, sparse = TRUE)))
+  dense_hg <- text_hypergraph(docs)
+  dense_edges <- hg_edges(dense_hg)
+  sparse_hg <- text_hypergraph(docs, sparse = TRUE)
+  sparse_edges <- hg_edges(sparse_hg)
+  expect_equal(dense_edges, sparse_edges)
 })
 
 test_that("the distribution is a proper CCDF", {
@@ -89,7 +96,8 @@ test_that("INVARIANT: CCDF starts at 1, is non-increasing, proportions sum to 1"
   expect_equal(got$ccdf[1], 1)
   expect_true(all(diff(got$ccdf) < 0))
   expect_equal(sum(got$proportion), 1)
-  expect_equal(sum(got$n), nrow(hg_edges(hg)))
+  edge_table <- hg_edges(hg)
+  expect_equal(sum(got$n), nrow(edge_table))
 })
 
 test_that("bad input raises classed conditions", {

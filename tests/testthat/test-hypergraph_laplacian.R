@@ -10,7 +10,7 @@
                 "m4", "m4", "m4", "m5", "m5"),
     stringsAsFactors = FALSE
   )
-  group_hypergraph(events, member = "person", group = "meeting")
+  group_hypergraph(events, actor = "person", group = "meeting")
 }
 
 # Small weighted hypergraph (EDVW cells) - connected
@@ -22,7 +22,7 @@
     hours = c(2, 1, 1, 3, 2, 1, 2, 2, 4, 1, 1),
     stringsAsFactors = FALSE
   )
-  group_hypergraph(events, member = "person", group = "meeting",
+  group_hypergraph(events, actor = "person", group = "meeting",
                    weight = "hours")
 }
 
@@ -101,8 +101,10 @@ test_that("Laplacian is permutation-equivariant in the node order", {
   hg2 <- hg
   hg2$incidence <- hg$incidence[perm, , drop = FALSE]
   hg2$nodes <- hg$nodes[perm]
-  L1 <- unclass(hypergraph_laplacian(hg, type = "random_walk"))
-  L2 <- unclass(hypergraph_laplacian(hg2, type = "random_walk"))
+  laplacian_original <- hypergraph_laplacian(hg, type = "random_walk")
+  L1 <- unclass(laplacian_original)
+  laplacian_permuted <- hypergraph_laplacian(hg2, type = "random_walk")
+  L2 <- unclass(laplacian_permuted)
   expect_equal(L2, L1[perm, perm], ignore_attr = TRUE, tolerance = 1e-12)
 })
 
@@ -144,9 +146,10 @@ test_that("RDC-SymNMF follows Algorithm 2 and decreases Eq. 16", {
   expect_true(all(cl$embedding >= 0))
   expect_equal(dim(cl$embedding), c(6L, 2L))
   expect_true(all(diff(cl$params$objective_history) <= 1e-8))
+  rw_laplacian <- hypergraph_laplacian(hg, "random_walk")
   expect_equal(cl$params$objective,
                sum((diag(hg$n_nodes) -
-                      unclass(hypergraph_laplacian(hg, "random_walk")) -
+                      unclass(rw_laplacian) -
                       tcrossprod(cl$embedding))^2),
                tolerance = 1e-8)
   assignment <- max.col(cl$embedding, ties.method = "first")
@@ -192,8 +195,8 @@ test_that("J-NMF and JS-NMF implement Eqs. 18 and 19", {
         sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
       expect_error(plot(fit, what = "spectrum"), "no Laplacian spectrum")
     } else {
-      C <- diag(hg$n_nodes) -
-        unclass(hypergraph_laplacian(hg, type = "random_walk"))
+      rw_laplacian <- hypergraph_laplacian(hg, type = "random_walk")
+      C <- diag(hg$n_nodes) - unclass(rw_laplacian)
       expected_objective <- sum((C - M %*% t(fit$params$Mhat))^2) +
         sum((M - fit$params$Mhat)^2) +
         sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
@@ -229,9 +232,10 @@ test_that("joint clustering aligns named relations and validates inputs", {
   hg <- .hl_planted()
   S <- diag(hg$n_nodes)
   dimnames(S) <- list(rev(hg$nodes), rev(hg$nodes))
-  expect_s3_class(hypergraph_joint_cluster(
+  aligned_fit <- hypergraph_joint_cluster(
     hg, S, 2, nstart = 1, seed = 1, max_iter = 2
-  ), "net_hypergraph_cluster")
+  )
+  expect_s3_class(aligned_fit, "net_hypergraph_cluster")
   expect_error(hypergraph_joint_cluster(hg, matrix(-1, 6, 6), 2),
                "non-negative")
   expect_error(hypergraph_joint_cluster(hg, diag(5), 2), "n_nodes")
@@ -248,15 +252,18 @@ test_that("summary.net_hypergraph_cluster returns tidy shares", {
 
 test_that("plot.net_hypergraph_cluster panels are ggplots", {
   cl <- hypergraph_cluster(.hl_planted(), k = 2, seed = 1)
-  expect_s3_class(plot(cl, what = "spectrum"), "ggplot")
-  expect_s3_class(plot(cl, what = "embedding"), "ggplot")
+  spectrum_plot <- plot(cl, what = "spectrum")
+  expect_s3_class(spectrum_plot, "ggplot")
+  embedding_plot <- plot(cl, what = "embedding")
+  expect_s3_class(embedding_plot, "ggplot")
 })
 
 # ---- transduction ------------------------------------------------------
 
 test_that("transduction closed form equals the Neumann series", {
   hg <- .hl_planted()
-  L <- unclass(hypergraph_laplacian(hg, type = "zhou"))
+  zhou_laplacian <- hypergraph_laplacian(hg, type = "zhou")
+  L <- unclass(zhou_laplacian)
   n <- nrow(L)
   S <- diag(n) - L
   xi <- 0.9
@@ -303,7 +310,8 @@ test_that("transduction works with the random_walk Laplacian and weights", {
   tr <- hypergraph_transduction(hg, labels = c(a = "x", e = "y"),
                                 type = "random_walk")
   expect_s3_class(tr, "net_hypergraph_transduction")
-  expect_equal(nrow(as.data.frame(tr)), hg$n_nodes)
+  predictions <- as.data.frame(tr)
+  expect_equal(nrow(predictions), hg$n_nodes)
 })
 
 # ---- error paths -------------------------------------------------------
@@ -312,7 +320,7 @@ test_that("disconnected hypergraphs raise a classed condition", {
   events <- data.frame(person = c("a", "b", "c", "d"),
                        meeting = c("m1", "m1", "m2", "m2"),
                        stringsAsFactors = FALSE)
-  hg <- group_hypergraph(events, member = "person", group = "meeting")
+  hg <- group_hypergraph(events, actor = "person", group = "meeting")
   expect_error(hypergraph_laplacian(hg),
                class = "honets_hypergraph_disconnected")
   expect_error(hypergraph_cluster(hg, k = 2),

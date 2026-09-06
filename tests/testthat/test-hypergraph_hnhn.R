@@ -3,7 +3,7 @@
     node = c("a", "b", "c", "a", "b", "b", "c", "d"),
     edge = c("e1", "e1", "e1", "e2", "e2", "e3", "e3", "e3")
   )
-  group_hypergraph(events, member = "node", group = "edge")
+  group_hypergraph(events, actor = "node", group = "edge")
 }
 
 test_that("HNHN alpha=beta=0 gives directional neighborhood means", {

@@ -1,6 +1,6 @@
 test_that("HyperGCN mediator expansion implements Algorithms 1 and 2", {
   events <- data.frame(node = letters[1:4], edge = "e")
-  hg <- group_hypergraph(events, member = "node", group = "edge")
+  hg <- group_hypergraph(events, actor = "node", group = "edge")
   signal <- matrix(c(0, 3, 1, 2), ncol = 1)
   A <- .thg_hypergcn_adjacency(hg, signal, mediators = TRUE)
   raw <- diag(1, 4)
@@ -16,7 +16,7 @@ test_that("HyperGCN mediator expansion implements Algorithms 1 and 2", {
 
 test_that("1-HyperGCN retains only the farthest pair", {
   events <- data.frame(node = letters[1:4], edge = "e")
-  hg <- group_hypergraph(events, member = "node", group = "edge")
+  hg <- group_hypergraph(events, actor = "node", group = "edge")
   A <- .thg_hypergcn_adjacency(hg, matrix(c(0, 3, 1, 2), ncol = 1),
                                 mediators = FALSE)
   expect_gt(A[1, 2], 0)

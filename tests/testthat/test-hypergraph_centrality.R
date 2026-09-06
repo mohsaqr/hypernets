@@ -54,7 +54,8 @@ test_that("sort_by ranks the table without changing the values", {
 test_that("clique centrality matches igraph::eigen_centrality on expansion", {
   skip_if_not_installed("igraph")
   hg  <- .hc_two_overlapping()
-  ours <- .hc_vec(hypergraph_centrality(hg, type = "clique"), "clique")
+  cent <- hypergraph_centrality(hg, type = "clique")
+  ours <- .hc_vec(cent, "clique")
   # Recompute via clique expansion + igraph
   net <- clique_expansion(hg)
   W   <- net$weights
@@ -94,7 +95,8 @@ test_that("ZEC power-iteration update matches manual formula on one triangle", {
                   session = c("S1", "S1", "S1"),
                   stringsAsFactors = FALSE)
   hg <- group_hypergraph(d, "member", "session")
-  cent <- .hc_vec(hypergraph_centrality(hg, type = "Z"), "Z")
+  zec <- hypergraph_centrality(hg, type = "Z")
+  cent <- .hc_vec(zec, "Z")
   expected <- rep(1 / sqrt(3), 3)
   names(expected) <- c("A", "B", "C")
   expect_equal(cent, expected, tolerance = 1e-6)
@@ -102,7 +104,8 @@ test_that("ZEC power-iteration update matches manual formula on one triangle", {
 
 test_that("ZEC distinguishes hub-like vs peripheral in a 4-node, 2-edge case", {
   # Edges (A,B,C) and (A,B,D). A and B are in both edges.
-  cent <- .hc_vec(hypergraph_centrality(.hc_two_overlapping(), type = "Z"), "Z")
+  zec <- hypergraph_centrality(.hc_two_overlapping(), type = "Z")
+  cent <- .hc_vec(zec, "Z")
   expect_gt(cent[["A"]], cent[["C"]])
   expect_gt(cent[["B"]], cent[["D"]])
 })
@@ -228,7 +231,7 @@ test_that("pagerank collapse theorem: binary incidence equals igraph on
     s = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3"),
     stringsAsFactors = FALSE
   )
-  hg <- group_hypergraph(df, member = "p", group = "s")
+  hg <- group_hypergraph(df, actor = "p", group = "s")
   pr <- hypergraph_centrality(hg, type = "pagerank")
   # Edge-independent case: W[u,v] = sum over shared edges of w(e)/delta(e),
   # self-loops included (the walk may stay in place)
@@ -259,11 +262,10 @@ test_that("pagerank is invariant under state relabeling", {
   set.seed(41)
   traj <- sample(letters[1:4], 30, replace = TRUE)
   relabel <- c(a = "w", b = "x", c = "y", d = "z")
-  pr1 <- hypergraph_centrality(
-    window_hypergraph(list(traj), window = 3L), type = "pagerank")
-  pr2 <- hypergraph_centrality(
-    window_hypergraph(list(unname(relabel[traj])), window = 3L),
-    type = "pagerank")
+  hg1 <- window_hypergraph(list(traj), window = 3L)
+  pr1 <- hypergraph_centrality(hg1, type = "pagerank")
+  hg2 <- window_hypergraph(list(unname(relabel[traj])), window = 3L)
+  pr2 <- hypergraph_centrality(hg2, type = "pagerank")
   expect_equal(unname(pr1$pagerank), unname(pr2$pagerank),
                tolerance = 1e-12)
 })
@@ -300,14 +302,13 @@ test_that("pagerank degenerate and error paths", {
 test_that("scalar edge_weights recycles across the Laplacian family too", {
   hg <- window_hypergraph(list(c("a", "b", "a", "b", "c", "a")), window = 2L)
   m <- hg$n_hyperedges
-  expect_identical(
-    hypergraph_centrality(hg, type = "pagerank", edge_weights = 1),
-    hypergraph_centrality(hg, type = "pagerank", edge_weights = rep(1, m))
-  )
-  expect_identical(
-    hypergraph_laplacian(hg, edge_weights = 2),
-    hypergraph_laplacian(hg, edge_weights = rep(2, m))
-  )
+  pr_scalar <- hypergraph_centrality(hg, type = "pagerank", edge_weights = 1)
+  pr_vector <- hypergraph_centrality(hg, type = "pagerank",
+                                     edge_weights = rep(1, m))
+  expect_identical(pr_scalar, pr_vector)
+  laplacian_scalar <- hypergraph_laplacian(hg, edge_weights = 2)
+  laplacian_vector <- hypergraph_laplacian(hg, edge_weights = rep(2, m))
+  expect_identical(laplacian_scalar, laplacian_vector)
   expect_error(
     hypergraph_centrality(hg, type = "pagerank", edge_weights = -1),
     "edge_weights")

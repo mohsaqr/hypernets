@@ -3,7 +3,7 @@
     node = c("a", "b", "c", "b", "c", "d"),
     edge = c("e1", "e1", "e1", "e2", "e2", "e2")
   )
-  group_hypergraph(events, member = "node", group = "edge")
+  group_hypergraph(events, actor = "node", group = "edge")
 }
 
 test_that("AllSet memberships retain the two paper multisets", {

@@ -42,8 +42,9 @@ test_that("binary weighting gives an unweighted membership incidence", {
 })
 
 test_that("construction is deterministic, with alphabetical tie-breaks", {
-  expect_identical(knn_hypergraph(two_pairs, k = 2),
-                   knn_hypergraph(two_pairs, k = 2))
+  first <- knn_hypergraph(two_pairs, k = 2)
+  second <- knn_hypergraph(two_pairs, k = 2)
+  expect_identical(first, second)
   ties <- matrix(c(1, 0, 1, 0, 1, 0), nrow = 3, byrow = TRUE,
                  dimnames = list(c("z", "m", "a"), NULL))
   hg <- knn_hypergraph(ties, k = 1)
@@ -85,7 +86,8 @@ test_that("text_hypergraph knn construction matches knn_hypergraph", {
   expect_identical(thg$incidence, direct$incidence)
   expect_s3_class(thg, "text_hypergraph")
   expect_identical(thg$text$construction, "knn")
-  expect_identical(nrow(as.data.frame(thg, what = "vocabulary")), 0L)
+  vocab <- as.data.frame(thg, what = "vocabulary")
+  expect_identical(nrow(vocab), 0L)
   tab <- as.data.frame(thg)
   expect_identical(names(tab), c("doc", "edge", "weight"))
   expect_identical(nrow(tab), 12L)

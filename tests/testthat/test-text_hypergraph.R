@@ -6,8 +6,9 @@ test_that("counts and the weights table are exact for a hand-built corpus", {
   hg <- text_hypergraph(tiny_corpus)
   expect_s3_class(hg, "text_hypergraph")
   expect_s3_class(hg, "net_hypergraph")
+  tab <- as.data.frame(hg)
   expect_identical(
-    as.data.frame(hg),
+    tab,
     data.frame(
       doc = c("a", "a", "a", "b", "b", "b"),
       word = c("and", "salt", "soup", "and", "soup", "stars"),
@@ -54,20 +55,21 @@ test_that("node orientation controls which entity is the vertex set", {
 test_that("total incidence weight equals the weights table in both modes", {
   doc_hg <- text_hypergraph(tiny_corpus, nodes = "doc", weight = "tfidf")
   word_hg <- text_hypergraph(tiny_corpus, nodes = "word", weight = "tfidf")
-  expect_equal(sum(doc_hg$incidence), sum(as.data.frame(doc_hg)$weight))
-  expect_equal(sum(word_hg$incidence), sum(as.data.frame(word_hg)$weight))
+  doc_tab <- as.data.frame(doc_hg)
+  word_tab <- as.data.frame(word_hg)
+  expect_equal(sum(doc_hg$incidence), sum(doc_tab$weight))
+  expect_equal(sum(word_hg$incidence), sum(word_tab$weight))
   expect_true(all(doc_hg$incidence >= 0))
 })
 
 test_that("stop words and min_count filter the vocabulary", {
   hg <- text_hypergraph(tiny_corpus, stop_words = "and")
-  expect_false("and" %in% as.data.frame(hg, what = "vocabulary")$word)
+  vocab <- as.data.frame(hg, what = "vocabulary")
+  expect_false("and" %in% vocab$word)
 
   hg2 <- text_hypergraph(tiny_corpus, min_count = 2L)
-  expect_identical(
-    as.data.frame(hg2, what = "vocabulary")$word,
-    c("and", "soup")
-  )
+  vocab2 <- as.data.frame(hg2, what = "vocabulary")
+  expect_identical(vocab2$word, c("and", "soup"))
 })
 
 test_that("data.frame input keeps IDs and carries metadata into documents", {
@@ -90,7 +92,8 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
                           stop_words = "and"),
     class = "honets_dropped_documents"
   )
-  expect_identical(as.data.frame(hg, what = "documents")$doc, c("a", "c"))
+  docs <- as.data.frame(hg, what = "documents")
+  expect_identical(docs$doc, c("a", "c"))
 })
 
 test_that("contract violations raise classed errors", {
@@ -110,10 +113,9 @@ test_that("contract violations raise classed errors", {
 })
 
 test_that("construction is deterministic", {
-  expect_identical(
-    text_hypergraph(tiny_corpus, weight = "tfidf"),
-    text_hypergraph(tiny_corpus, weight = "tfidf")
-  )
+  first <- text_hypergraph(tiny_corpus, weight = "tfidf")
+  second <- text_hypergraph(tiny_corpus, weight = "tfidf")
+  expect_identical(first, second)
 })
 
 test_that("print announces the corpus and delegates to the engine", {
@@ -132,10 +134,8 @@ test_that("covid_abstracts dataset is intact", {
 
 test_that("curly apostrophes keep possessives as one token", {
   hg <- text_hypergraph(c(d = "the children\u2019s teacher's plan"))
-  expect_identical(
-    as.data.frame(hg, what = "vocabulary")$word,
-    c("children's", "plan", "teacher's", "the")
-  )
+  vocab <- as.data.frame(hg, what = "vocabulary")
+  expect_identical(vocab$word, c("children's", "plan", "teacher's", "the"))
 })
 
 test_that("stop_words_en is a clean, deterministic function-word list", {
@@ -150,9 +150,9 @@ test_that("stop_words_en is a clean, deterministic function-word list", {
 test_that("sparse storage is chosen automatically above a million cells", {
   small <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
   expect_false(inherits(small$incidence, "dgCMatrix"))
-  expect_true(inherits(
-    text_hypergraph(c(a = "salt and soup", b = "soup and stars"), sparse = TRUE)$incidence,
-    "dgCMatrix"))
+  small_sparse <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"),
+                                  sparse = TRUE)
+  expect_true(inherits(small_sparse$incidence, "dgCMatrix"))
   # 1,200 documents x 900 words crosses the threshold (alphabetic words:
   # the tokeniser drops digits)
   set.seed(1)
@@ -162,7 +162,7 @@ test_that("sparse storage is chosen automatically above a million cells", {
                  character(1))
   big <- text_hypergraph(docs)
   expect_true(inherits(big$incidence, "dgCMatrix"))
-  expect_false(inherits(text_hypergraph(docs, sparse = FALSE)$incidence,
-                        "dgCMatrix"))
+  big_dense <- text_hypergraph(docs, sparse = FALSE)
+  expect_false(inherits(big_dense$incidence, "dgCMatrix"))
   expect_error(text_hypergraph(docs, sparse = NA), "sparse")
 })

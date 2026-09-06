@@ -65,7 +65,7 @@ test_that("edge-independent weights collapse to the graph walk (Chitra & Raphael
     edge = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3"),
     w = c(1, 2, 3, 2, 3, 1.5, 1, 1.5)
   )
-  hg <- group_hypergraph(long, member = "vertex", group = "edge",
+  hg <- group_hypergraph(long, actor = "vertex", group = "edge",
                                     weight = "w")
   omega <- c(1, 2, 0.5)
 
@@ -142,8 +142,8 @@ test_that("hg_pagerank equals hypergraph_centrality(type = \"pagerank\")", {
     edge = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3", "e4", "e4"),
     w = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2)
   )
-  binary <- group_hypergraph(long, member = "vertex", group = "edge")
-  weighted <- group_hypergraph(long, member = "vertex", group = "edge",
+  binary <- group_hypergraph(long, actor = "vertex", group = "edge")
+  weighted <- group_hypergraph(long, actor = "vertex", group = "edge",
                                weight = "w")
   for (hg in list(binary, weighted)) {
     verb <- hg_pagerank(hg, damping = 0.85, tol = 1e-14)

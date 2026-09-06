@@ -16,7 +16,7 @@ fixture <- function(weight = 1) {
              "e4", "e4", "e4", "e4"),
     w = weight
   )
-  group_hypergraph(long, member = "vertex", group = "edge",
+  group_hypergraph(long, actor = "vertex", group = "edge",
                               weight = "w")
 }
 
@@ -69,24 +69,29 @@ test_that("INVARIANT: projections are invariant to input row order", {
              "e4", "e4", "e3"),
     w = 1
   )
-  shuffled <- group_hypergraph(long, member = "vertex",
+  shuffled <- group_hypergraph(long, actor = "vertex",
                                           group = "edge", weight = "w")
-  expect_equal(hg_project(hg, method = "association"),
-               hg_project(shuffled, method = "association"))
-  expect_equal(hg_line_graph(hg), hg_line_graph(shuffled))
+  association <- hg_project(hg, method = "association")
+  association_shuffled <- hg_project(shuffled, method = "association")
+  expect_equal(association, association_shuffled)
+  line <- hg_line_graph(hg)
+  line_shuffled <- hg_line_graph(shuffled)
+  expect_equal(line, line_shuffled)
 })
 
 test_that("clique projection matches clique_expansion()", {
   hg <- fixture(weight = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2))
   ours <- hg_project(hg, method = "clique", what = "matrix")
-  theirs <- clique_expansion(hg)$weights
+  expansion <- clique_expansion(hg)
+  theirs <- expansion$weights
   expect_equal(unname(as.matrix(ours)), unname(theirs))
 })
 
 test_that("weighted = FALSE drops the incidence weights", {
   weighted_hg <- fixture(weight = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2))
   binary <- hg_project(weighted_hg, method = "clique", weighted = FALSE)
-  expect_equal(binary, hg_project(fixture(), method = "clique"))
+  unweighted <- hg_project(fixture(), method = "clique")
+  expect_equal(binary, unweighted)
 })
 
 test_that("s-line graph overlaps match, and s filters them", {
@@ -101,16 +106,20 @@ test_that("s-line graph overlaps match, and s filters them", {
   expect_identical(s2$to, c("e4", "e4", "e4"))
   expect_equal(s2$weight, c(3, 2, 2))
 
-  expect_equal(hg_line_graph(hg, s = 3)$weight, 3)
-  expect_identical(nrow(hg_line_graph(hg, s = 4)), 0L)
-  expect_identical(names(hg_line_graph(hg, s = 4)),
+  s3 <- hg_line_graph(hg, s = 3)
+  expect_equal(s3$weight, 3)
+  s4 <- hg_line_graph(hg, s = 4)
+  expect_identical(nrow(s4), 0L)
+  expect_identical(names(s4),
                    c("from", "to", "weight"))
 })
 
 test_that("INVARIANT: the s = 1 line graph is the dual's clique projection", {
   hg <- fixture()
-  expect_equal(hg_line_graph(hg, s = 1),
-               hg_project(dual_hypergraph(hg), weighted = FALSE))
+  line <- hg_line_graph(hg, s = 1)
+  dual <- dual_hypergraph(hg)
+  dual_projection <- hg_project(dual, weighted = FALSE)
+  expect_equal(line, dual_projection)
 })
 
 test_that("INVARIANT: sparse and dense incidences agree", {
@@ -119,17 +128,21 @@ test_that("INVARIANT: sparse and dense incidences agree", {
   dense <- text_hypergraph(docs)
   sparse <- text_hypergraph(docs, sparse = TRUE)
   expect_true(methods::is(sparse$incidence, "sparseMatrix"))
-  expect_equal(hg_project(dense, method = "association"),
-               hg_project(sparse, method = "association"))
-  expect_equal(hg_project(dense, method = "clique"),
-               hg_project(sparse, method = "clique"))
-  expect_equal(hg_line_graph(dense, s = 2), hg_line_graph(sparse, s = 2))
+  association_dense <- hg_project(dense, method = "association")
+  association_sparse <- hg_project(sparse, method = "association")
+  expect_equal(association_dense, association_sparse)
+  clique_dense <- hg_project(dense, method = "clique")
+  clique_sparse <- hg_project(sparse, method = "clique")
+  expect_equal(clique_dense, clique_sparse)
+  line_dense <- hg_line_graph(dense, s = 2)
+  line_sparse <- hg_line_graph(sparse, s = 2)
+  expect_equal(line_dense, line_sparse)
 })
 
 test_that("singleton hyperedges contribute nothing instead of dividing by zero", {
   long <- data.frame(vertex = c("a", "b", "c", "z"),
                      edge = c("e1", "e1", "e1", "solo"), w = 1)
-  hg <- group_hypergraph(long, member = "vertex", group = "edge",
+  hg <- group_hypergraph(long, actor = "vertex", group = "edge",
                                     weight = "w")
   got <- hg_project(hg, method = "association")
   expect_true(all(is.finite(got$weight)))
