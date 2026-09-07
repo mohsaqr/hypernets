@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/mohsaqr/hypernets/blob/main/DESCRIPTION)
 
 Saqr M (2026). *honets: Higher-Order Network Analysis*. R package
-version 0.3.10, <https://github.com/mohsaqr/hypernets>.
+version 0.3.11, <https://github.com/mohsaqr/hypernets>.
 
     @Manual{,
       title = {honets: Higher-Order Network Analysis},
       author = {Mohammed Saqr},
       year = {2026},
-      note = {R package version 0.3.10},
+      note = {R package version 0.3.11},
       url = {https://github.com/mohsaqr/hypernets},
     }

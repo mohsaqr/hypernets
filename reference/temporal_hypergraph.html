@@ -23,7 +23,7 @@ format:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,9 @@ format:</p>
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>A data frame with one row per relation.</p></dd>
+<dd><p>A data frame with one row per relation, or a sequence table
+(a wide data frame of states, a list of character vectors, or a <code>tna</code> /
+<code>netobject</code> model); see Details.</p></dd>
 
 
 <dt id="arg-from-to">from, to<a class="anchor" aria-label="anchor" href="#arg-from-to"></a></dt>
@@ -183,7 +185,23 @@ data: ask for it with <code>mode = "cumulative"</code> in <code><a href="hypergr
 <code><a href="hg_growth.html">hg_growth()</a></code> and <code><a href="hg_edges.html">hg_edges()</a></code>.</p></dd>
 
 
-</dl><p>Column names are resolved case-insensitively from the same alias table
+</dl><p>A third shape is a <strong>sequence table</strong>: one row per session and one column
+per position holding the state at that step (the wide format of tna and
+TraMineR), a list of character vectors, or a <code>tna</code> / <code>netobject</code> model
+built from one. It is recognised when no relational column is named or
+detected and every column is categorical. Each session is one hyperedge
+whose members are the states it contains, and a state's membership is a
+contact at its position, <code>1</code> to the session's length, on a <code>"step"</code>
+clock: the simple co-occurrence reading in which time is order.</p>
+<p>In any shape a membership may carry its own time, as when a log has one
+row per attendance rather than one time per group. The hyperedge then
+spans from its first to its last membership, each membership is present
+on its own spell only, and a snapshot keeps the memberships present in
+its window: <code>mode = "cumulative"</code> at step <code>t</code> is what each session had
+shown by <code>t</code>, and <code>window = 3</code> at <code>t</code> is what it showed on steps <code>t</code> to
+<code>t + 2</code>. When every membership carries its hyperedge's time, as a
+tribunal or a citation block does, nothing changes.</p>
+<p>Column names are resolved case-insensitively from the same alias table
 Dynet uses, so <code>Sender</code>/<code>Receiver</code>, <code>source</code>/<code>target</code>, <code>onset</code>/<code>terminus</code>
 and <code>timestamp</code> are understood without being spelled out; a name you give
 explicitly must exist as written. Times may be numeric, <code>Date</code>, <code>POSIXct</code>

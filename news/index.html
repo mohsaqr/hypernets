@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,11 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.11" id="honets-0311">honets 0.3.11<a class="anchor" aria-label="anchor" href="#honets-0311"></a></h2>
+<ul><li>
+<code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> reads a sequence table – a wide data frame of states, a list of character vectors, or a <code>tna</code> / <code>netobject</code> model – as one hyperedge per session whose states are contacts at their position, on a <code>"step"</code> clock: simple co-occurrence with time as order. In any input shape a membership may now carry its own time; the hyperedge spans its first to its last membership and a snapshot keeps the memberships present in its window, so <code>mode = "cumulative"</code> at step <code>t</code> is what a session had shown by <code>t</code> and <code>window = 3</code> is what it showed on three consecutive steps. <code><a href="../reference/hg_growth.html">hg_growth()</a></code> counts the memberships present. Constant-time data are unchanged: every legal-hypergraphs number is identical.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.10" id="honets-0310">honets 0.3.10<a class="anchor" aria-label="anchor" href="#honets-0310"></a></h2>
 <ul><li>Two tests loaded <code>human_long</code> from the retired hypernets package instead of honets’ own bundled copy (identical data), failing R CMD check on any machine without that package.</li>

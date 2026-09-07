@@ -1,5 +1,21 @@
 # Changelog
 
+## honets 0.3.11
+
+- [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md)
+  reads a sequence table – a wide data frame of states, a list of
+  character vectors, or a `tna` / `netobject` model – as one hyperedge
+  per session whose states are contacts at their position, on a `"step"`
+  clock: simple co-occurrence with time as order. In any input shape a
+  membership may now carry its own time; the hyperedge spans its first
+  to its last membership and a snapshot keeps the memberships present in
+  its window, so `mode = "cumulative"` at step `t` is what a session had
+  shown by `t` and `window = 3` is what it showed on three consecutive
+  steps.
+  [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
+  counts the memberships present. Constant-time data are unchanged:
+  every legal-hypergraphs number is identical.
+
 ## honets 0.3.10
 
 - Two tests loaded `human_long` from the retired hypernets package

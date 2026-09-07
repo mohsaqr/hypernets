@@ -36,7 +36,9 @@ temporal_hypergraph(
 
 - data:
 
-  A data frame with one row per relation.
+  A data frame with one row per relation, or a sequence table (a wide
+  data frame of states, a list of character vectors, or a `tna` /
+  `netobject` model); see Details.
 
 - from, to:
 
@@ -126,6 +128,25 @@ one-row description.
   [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   and
   [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md).
+
+A third shape is a **sequence table**: one row per session and one
+column per position holding the state at that step (the wide format of
+tna and TraMineR), a list of character vectors, or a `tna` / `netobject`
+model built from one. It is recognised when no relational column is
+named or detected and every column is categorical. Each session is one
+hyperedge whose members are the states it contains, and a state's
+membership is a contact at its position, `1` to the session's length, on
+a `"step"` clock: the simple co-occurrence reading in which time is
+order.
+
+In any shape a membership may carry its own time, as when a log has one
+row per attendance rather than one time per group. The hyperedge then
+spans from its first to its last membership, each membership is present
+on its own spell only, and a snapshot keeps the memberships present in
+its window: `mode = "cumulative"` at step `t` is what each session had
+shown by `t`, and `window = 3` at `t` is what it showed on steps `t` to
+`t + 2`. When every membership carries its hyperedge's time, as a
+tribunal or a citation block does, nothing changes.
 
 Column names are resolved case-insensitively from the same alias table
 Dynet uses, so `Sender`/`Receiver`, `source`/`target`,
