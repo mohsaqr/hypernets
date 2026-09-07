@@ -10,7 +10,7 @@
   more than 70 years of GFCC citation and ICSID collaboration data. Its
   analysis moves from individual vertices and hyperedges to paths,
   projections, motifs and communities.
-- **Methods implemented in honets**: temporal growing/interval snapshots;
+- **Methods implemented in hypernets**: temporal growing/interval snapshots;
   hyperedge degree/cardinality/neighbourhood distributions; s-line graphs
   with s-betweenness and s-closeness; log-subhypergraph centrality;
   configuration-model nulls and induced Y/T/O motifs; an association projection in

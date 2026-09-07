@@ -1,9 +1,9 @@
-# honets text and hypergraph roadmap
+# hypernets text and hypergraph roadmap
 
 This file preserves the release history of the retired `texthypergraph`
-package and records its continuation inside honets. Sections v0.1-v0.6 are
+package and records its continuation inside hypernets. Sections v0.1-v0.6 are
 historical implementation notes; v0.7 and later describe the maintained
-honets package.
+hypernets package.
 
 **What the package is:** hypergraph text analysis in R — corpus in, weighted
 text hypergraph out, spectral/statistical analysis through tidy verbs. First
@@ -12,10 +12,10 @@ classification exists in R at all, not even non-neural Zhou 2006).
 
 **Current ownership contract (no duplication):**
 
-- honets owns all higher-order and text-hypergraph construction, analysis,
+- hypernets owns all higher-order and text-hypergraph construction, analysis,
   inference and result classes. The retired package is an archive only.
 - Nestimate is neither an Import nor a Suggest. Historical identity checks
-  remain local equivalence tests; no honets runtime path calls Nestimate.
+  remain local equivalence tests; no hypernets runtime path calls Nestimate.
 - cograph is the imported graph and plotting engine at the graph-shaped
   boundary. Dynet remains a separate temporal-network peer.
 - `sbert` (Suggests) is the native embedding front-end; every verb also
@@ -208,24 +208,24 @@ It was not a scoping decision: "Out of scope" below excludes none of it.
 **Package-boundary contract (settled 2026-09-01; clarified 2026-09-02).**
 
 ```
-honets           owns the hypergraph layer: construction, incidence and
+hypernets           owns the hypergraph layer: construction, incidence and
                  spectral algebra, projections, hypergraph nulls and motifs,
                  plus any temporal hypergraph representation
 
-cograph          imported graph and plotting engine; once honets produces a
+cograph          imported graph and plotting engine; once hypernets produces a
                  projection or s-line graph, cograph owns ordinary paths,
                  centralities, communities, comparisons and rendering
 
-Dynet            separate temporal-network peer; never an honets dependency
+Dynet            separate temporal-network peer; never an hypernets dependency
                  or computational layer. Similar start/end/step/window names
                  are interoperability, not delegation
 ```
 
 **Dependency decision.** Dynet is absent from both Imports and Suggests.
 `cograph` is an explicit Import: it is already the rendering contract for
-honets objects, so making the graph algorithms optional would add guards
+hypernets objects, so making the graph algorithms optional would add guards
 without delivering meaningful independence. Hypergraph-specific mathematics
-stays in honets; cograph begins at the graph-shaped boundary.
+stays in hypernets; cograph begins at the graph-shaped boundary.
 
 ### Items — each names its equivalence oracle before implementation
 
@@ -247,7 +247,7 @@ stays in honets; cograph begins at the graph-shaped boundary.
   `what = "distribution"` for degree/cardinality CCDFs. Everything the
   package returns today is keyed on vertices. *Oracle*: XGI edge-stat suite.
 - [x] **DONE 2026-09-02 `hg_edge_centrality()`** — s-betweenness and s-closeness via
-  `hg_line_graph()` handed to cograph's statnet-verified graph kernels. honets
+  `hg_line_graph()` handed to cograph's statnet-verified graph kernels. hypernets
   owns the s-line transformation; cograph owns the ordinary shortest-path
   centrality after that boundary.
 - [x] **DONE 2026-09-01 `hg_null_test(method = "configuration")` plus
@@ -260,7 +260,7 @@ stays in honets; cograph begins at the graph-shaped boundary.
 - [x] **DONE 2026-09-02 `hg_communities()` and
   `hg_community_quality()`** — Infomap over
   `hg_project(method = "association")`, including the paper's optional
-  self-association weights, repeated seeded fits and medoid selection. honets
+  self-association weights, repeated seeded fits and medoid selection. hypernets
   builds the paper-specific association graph; cograph performs the ordinary
   graph clustering and renders the result.
 - [x] **DONE 2026-09-02 `hg_agreement(method = "ami")`** — adjusted mutual
@@ -269,7 +269,7 @@ stays in honets; cograph begins at the graph-shaped boundary.
 - [x] **DONE 2026-09-02 `temporal_hypergraph()` plus snapshots** — long or
   wide relational memberships, growing or interval evolution, active,
   cumulative and aggregate views, with optional multi-edge collapse. This is
-  native honets code and introduces no Dynet dependency. *Oracle*: the paper's
+  native hypernets code and introduces no Dynet dependency. *Oracle*: the paper's
   temporal GFCC/ICSID construction.
 - [x] **DONE 2026-09-02:** worst-community weighted conductance added to
   `hg_community_quality()`. Larger bundled corpora remain carried forward.
@@ -300,6 +300,6 @@ stays in honets; cograph begins at the graph-shaped boundary.
 
 Native hypergraph neural models are in scope and already include HGNN and
 HyperGAT. PLM training/wrappers, hMETIS/KaHyPar partitioning and retrieval
-stacks remain outside honets; pretrained embeddings enter through sbert or a
+stacks remain outside hypernets; pretrained embeddings enter through sbert or a
 caller-supplied matrix. Nestimate is retained only as a historical oracle,
 never as a runtime dependency.

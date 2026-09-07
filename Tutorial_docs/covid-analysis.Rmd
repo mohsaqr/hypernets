@@ -10,13 +10,13 @@ output:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8,
                       fig.height = 5, cache = FALSE)
-library(honets)
+library(hypernets)
 okabe <- c("#E69F00", "#56B4E9", "#009E73", "#CC79A7",
            "#0072B2", "#D55E00", "#F0E442", "#999999")
 ```
 
 What is in the 165 COVID-era education abstracts bundled with
-honets -- which documents and words carry the corpus, how many
+hypernets -- which documents and words carry the corpus, how many
 topics it contains, what those topics are, and whether its structure is
 distinguishable from chance? Every step is one package verb; every claim
 in the prose restates a number computed in the chunk above it.

@@ -1,4 +1,4 @@
-# Multi-seed benchmark of honets unsupervised hypergraph clustering against
+# Multi-seed benchmark of hypernets unsupervised hypergraph clustering against
 # the actual BERTopic package (Grootendorst 2022) on R8's labelled topics.
 # Run from the package root:
 #   Rscript benchmarks/run_bertopic_benchmark.R
@@ -10,17 +10,17 @@
 # Outputs (benchmarks/results/, gitignored):
 #   bertopic_python_r8.csv        BERTopic per-seed metrics (three variants)
 #   bertopic_embeddings_r8.{npy,csv}  all-MiniLM-L6-v2 document embeddings
-#   bertopic_r8.csv               per-seed metrics, honets arms + BERTopic
+#   bertopic_r8.csv               per-seed metrics, hypernets arms + BERTopic
 #   bertopic_effects.csv          paired effects with bootstrap CIs
 #
-# honets arms:
-#   honets_hypergraph  tf-idf document-word hypergraph -> Zhou spectral
+# hypernets arms:
+#   hypernets_hypergraph  tf-idf document-word hypergraph -> Zhou spectral
 #                      embedding -> k-means (as in run_umap_hdbscan_benchmark.R)
-#   honets_knn_sbert   kNN hypergraph on the identical MiniLM embeddings ->
+#   hypernets_knn_sbert   kNN hypergraph on the identical MiniLM embeddings ->
 #                      Zhou spectral embedding -> k-means; same vectors as
 #                      BERTopic, so this arm isolates the clustering paradigm.
 
-suppressPackageStartupMessages(library(honets))
+suppressPackageStartupMessages(library(hypernets))
 source("benchmarks/harness.R")
 source("R/agreement.R")
 
@@ -35,7 +35,7 @@ stopifnot("BERTopic venv missing -- see header of this script" =
             file.exists(python))
 python_out <- file.path(result_dir, "bertopic_python_r8.csv")
 embedding_stem <- file.path(result_dir, "bertopic_embeddings_r8")
-numba_cache <- file.path(tempdir(), "honets_numba")
+numba_cache <- file.path(tempdir(), "hypernets_numba")
 dir.create(numba_cache, showWarnings = FALSE)
 old_numba <- Sys.getenv("NUMBA_CACHE_DIR", unset = NA_character_)
 Sys.setenv(NUMBA_CACHE_DIR = numba_cache, TOKENIZERS_PARALLELISM = "false")
@@ -101,7 +101,7 @@ hg_knn <- text_hypergraph(docs, construction = "knn", k = knn_k,
 knn <- spectral_arm(hg_knn)
 knn$seconds <- knn$seconds + proc.time()[["elapsed"]] - build_started
 
-arms <- list(honets_hypergraph = bag, honets_knn_sbert = knn)
+arms <- list(hypernets_hypergraph = bag, hypernets_knn_sbert = knn)
 
 kmeans_rows <- function(method, arm) {
   dims <- grep("^dim", names(arm$embedding), value = TRUE)
@@ -124,11 +124,11 @@ kmeans_rows <- function(method, arm) {
     )
   }))
 }
-honets_rows <- do.call(rbind, Map(kmeans_rows, names(arms), arms))
+hypernets_rows <- do.call(rbind, Map(kmeans_rows, names(arms), arms))
 
 keep <- c("dataset", "method", "seed", "ari", "ami", "nmi", "n_clusters",
           "outlier_fraction", "embedding_s", "fit_s")
-per_seed <- rbind(honets_rows[, keep], baseline[, keep])
+per_seed <- rbind(hypernets_rows[, keep], baseline[, keep])
 per_seed <- per_seed[order(per_seed$method, per_seed$seed), ]
 rownames(per_seed) <- NULL
 
@@ -154,7 +154,7 @@ effects <- do.call(rbind, lapply(seq_len(nrow(grid)), function(i) {
   data.frame(
     dataset = dataset, reference = reference, comparator = comparator,
     metric = metric, n_seeds = length(seeds),
-    honets_mean = mean(h), honets_ci_low = ci_h[1L], honets_ci_high = ci_h[2L],
+    hypernets_mean = mean(h), hypernets_ci_low = ci_h[1L], hypernets_ci_high = ci_h[2L],
     baseline_mean = mean(b), baseline_ci_low = ci_b[1L],
     baseline_ci_high = ci_b[2L], mean_difference = mean(delta),
     difference_ci_low = ci_d[1L], difference_ci_high = ci_d[2L],

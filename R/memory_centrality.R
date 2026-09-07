@@ -113,7 +113,7 @@
                max_paths, "). The higher-order topology has too many ",
                "equally short paths; raise `max_paths` or reduce the ",
                "network (higher `min_freq`, lower `max_order`)."),
-        class = "honets_too_many_paths", call = NULL))
+        class = "hypernets_too_many_paths", call = NULL))
     }
     paths[[v]] <- ps
   }
@@ -157,7 +157,7 @@
     warning(warningCondition(
       sprintf("PageRank did not converge in %d iterations (L1 change > %g).",
               as.integer(max_iter), tol),
-      class = "honets_no_converge"))
+      class = "hypernets_no_converge"))
   }
   stats::setNames(x, rownames(mat))
 }
@@ -367,7 +367,7 @@
 #'   weights of `hon$matrix`.
 #' @param max_iter,tol Power-iteration controls for PageRank.
 #' @param max_paths Integer cap on the shortest paths enumerated for
-#'   betweenness. Exceeding it raises a `honets_too_many_paths` error
+#'   betweenness. Exceeding it raises a `hypernets_too_many_paths` error
 #'   rather than silently truncating. Default `1e6`.
 #' @param sort_by `NULL` (alphabetical by state or node, the default) or
 #'   one of the requested `type`s - sort the table by that centrality,

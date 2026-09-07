@@ -22,7 +22,7 @@ hypergraph_classify(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
 
 \item{labels}{The known labels: a named character vector (names are
 node identifiers -- documents under \code{nodes = "doc"} -- values their

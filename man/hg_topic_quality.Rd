@@ -2,13 +2,13 @@
 % Please edit documentation in R/text_topics.R
 \name{hg_topic_quality}
 \alias{hg_topic_quality}
-\alias{plot.honets_topic_quality}
+\alias{plot.hypernets_topic_quality}
 \alias{hypergraph_topic_quality}
 \title{Topic coherence and exclusivity}
 \usage{
 hg_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
 
-\method{plot}{honets_topic_quality}(x, ...)
+\method{plot}{hypernets_topic_quality}(x, ...)
 
 hypergraph_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
 }
@@ -28,10 +28,10 @@ hypergraph_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base \code{data.frame} of class \code{honets_topic_quality}, one row per
+A base \code{data.frame} of class \code{hypernets_topic_quality}, one row per
 topic in natural order: \code{topic}, \code{size}, \code{n_words} (top words scored),
 \code{coherence}, \code{exclusivity}. \code{plot()} draws exclusivity against
-coherence with one labelled point per topic. Raises \code{honets_bad_input}
+coherence with one labelled point per topic. Raises \code{hypernets_bad_input}
 for unknown node names.
 }
 \description{

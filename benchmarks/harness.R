@@ -127,14 +127,14 @@ bench_transduction <- function(name, xi = 0.99,
   docs <- corpus$text
   names(docs) <- corpus$id
   t_build <- system.time({
-    hg <- honets::text_hypergraph(
+    hg <- hypernets::text_hypergraph(
       docs, weight = weight, stop_words = character(0),
       min_count = min_count, sparse = TRUE
     )
     keep <- .bench_giant_component(hg)
     if (length(keep) < hg$n_nodes) {
       # rebuild on the giant component only (see .bench_giant_component)
-      hg <- honets::text_hypergraph(
+      hg <- hypernets::text_hypergraph(
         docs[names(docs) %in% keep], weight = weight,
         stop_words = character(0), min_count = min_count, sparse = TRUE
       )
@@ -146,7 +146,7 @@ bench_transduction <- function(name, xi = 0.99,
   seeds <- train$label
   names(seeds) <- train$id
   t_fit <- system.time(
-    fit <- honets::hg_classify(hg, labels = seeds, xi = xi,
+    fit <- hypernets::hg_classify(hg, labels = seeds, xi = xi,
                                        type = type,
                                        normalization = normalization)
   )[["elapsed"]]
@@ -175,7 +175,7 @@ bench_centroid <- function(name, weight = c("tfidf", "n"), min_count = 1L,
   docs <- corpus$text
   names(docs) <- corpus$id
   t_build <- system.time(
-    hg <- honets::text_hypergraph(
+    hg <- hypernets::text_hypergraph(
       docs, weight = weight, stop_words = character(0),
       min_count = min_count, sparse = TRUE
     )
@@ -227,12 +227,12 @@ bench_lowlabel <- function(name, fractions = c(0.01, 0.05, 0.1, 0.2),
   corpus <- bench_load(name, dir)
   docs <- corpus$text
   names(docs) <- corpus$id
-  hg <- honets::text_hypergraph(
+  hg <- hypernets::text_hypergraph(
     docs, weight = weight, stop_words = character(0), sparse = TRUE
   )
   keep <- .bench_giant_component(hg)
   if (length(keep) < hg$n_nodes) {
-    hg <- honets::text_hypergraph(
+    hg <- hypernets::text_hypergraph(
       docs[names(docs) %in% keep], weight = weight,
       stop_words = character(0), sparse = TRUE
     )
@@ -262,7 +262,7 @@ bench_lowlabel <- function(name, fractions = c(0.01, 0.05, 0.1, 0.2),
 
   eval_draw <- function(fraction, draw) {
     seeds <- draw_seeds(fraction)
-    fit <- honets::hg_classify(hg, labels = seeds, xi = xi,
+    fit <- hypernets::hg_classify(hg, labels = seeds, xi = xi,
                                        normalization = "class_mass")
     trans_pred <- fit$predicted[match(test$id, fit$node)]
     rows <- match(names(seeds), hg$nodes)
@@ -313,7 +313,7 @@ bench_neural <- function(name, hidden = 128L, epochs = 600L, lr = 0.01,
   corpus <- bench_load(name, dir)
   docs <- corpus$text
   names(docs) <- corpus$id
-  hg <- honets::text_hypergraph(
+  hg <- hypernets::text_hypergraph(
     docs, weight = weight, stop_words = character(0), sparse = TRUE
   )
   train <- corpus[corpus$split == "train" & corpus$id %in% hg$nodes, ]
@@ -322,7 +322,7 @@ bench_neural <- function(name, hidden = 128L, epochs = 600L, lr = 0.01,
   test <- corpus[corpus$split == "test", ]
   one <- function(s) {
     t_fit <- system.time(
-      fit <- honets::hg_neural(hg, labels = seeds, hidden = hidden,
+      fit <- hypernets::hg_neural(hg, labels = seeds, hidden = hidden,
                                        epochs = epochs, lr = lr, seed = s)
     )[["elapsed"]]
     predicted <- fit$predicted[match(test$id, fit$node)]
@@ -363,12 +363,12 @@ bench_hypergat <- function(name, n_seeds = 3L, epochs = 10L,
   seeds <- meta$label[is_train]
   names(seeds) <- names(docs)[is_train]
   # mirror the official highbar rule: drop the 9 most frequent tokens
-  toks <- table(unlist(honets:::.thg_tokenize(docs, TRUE)))
+  toks <- table(unlist(hypernets:::.thg_tokenize(docs, TRUE)))
   top_toks <- names(head(sort(toks, decreasing = TRUE), 9))
   stops <- union(stop_words_en(), top_toks)
   one <- function(s) {
     t_fit <- system.time(
-      fit <- honets::hg_hypergat(
+      fit <- hypernets::hg_hypergat(
         docs, labels = seeds, stop_words = stops, min_count = 5L,
         epochs = epochs, seed = s
       )

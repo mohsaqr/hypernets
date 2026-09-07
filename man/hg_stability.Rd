@@ -22,7 +22,7 @@ hypergraph_stability(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
 
 \item{k}{Vector of cluster counts to test, each at least 2.}
 

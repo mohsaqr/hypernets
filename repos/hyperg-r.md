@@ -12,7 +12,7 @@
   plotting. **Undirected, UNWEIGHTED only** (stated in its own docs); no
   tensor centralities; no sequence/text input.
 - **Role for us**: local oracle for the unweighted Laplacian, kNN, dual and
-  random-generator work shipped in honets. G(n,p), k-uniform and k-regular
+  random-generator work shipped in hypernets. G(n,p), k-uniform and k-regular
   generators have exact seeded incidence parity; the native SBM follows the
   same graph-augmentation definition and is checked by planted-block and
   edge-size invariants.

@@ -197,7 +197,7 @@ BERTopic package; the actual BERTopic run follows in the next section.
 unsupervised_effects <- read.csv("benchmark-umap-hdbscan-effects.csv")
 knitr::kable(
   subset(unsupervised_effects,
-         select = c(comparator, metric, honets_mean, baseline_mean,
+         select = c(comparator, metric, hypernets_mean, baseline_mean,
                     mean_difference, difference_ci_low,
                     difference_ci_high, paired_dz)),
   digits = 4
@@ -205,7 +205,7 @@ knitr::kable(
 ```
 
 Default HDBSCAN over-splits R8 (142--170 clusters and 17.5--23.0% outliers),
-so honets leads all three external metrics. At matched cluster count, honets
+so hypernets leads all three external metrics. At matched cluster count, hypernets
 leads ARI by 0.0372 (95% paired bootstrap CI 0.0270--0.0478), while the
 UMAP+k-means baseline leads AMI and NMI by about 0.0219. Both sides of the
 result are reported.
@@ -218,7 +218,7 @@ contrib HDBSCAN, c-TF-IDF), ten UMAP seeds. Three BERTopic variants are
 scored: the package as shipped (HDBSCAN picks the topic count and leaves
 outliers as -1), the fitted model reduced with `reduce_topics()` to eight
 real topics, and that model with `reduce_outliers(strategy = "embeddings")`
-so every document is assigned. Two honets arms cluster with the same k = 8
+so every document is assigned. Two hypernets arms cluster with the same k = 8
 through `hg_cluster()` + k-means: the tf-idf document--word hypergraph and a
 kNN hypergraph (`text_hypergraph(construction = "knn")`) built on the
 identical MiniLM vectors, which isolates the clustering paradigm from the
@@ -234,7 +234,7 @@ knitr::kable(
 bertopic_effects <- read.csv("benchmark-bertopic-effects.csv")
 knitr::kable(
   subset(bertopic_effects, comparator == "bertopic_k_assigned",
-         select = c(reference, metric, honets_mean, baseline_mean,
+         select = c(reference, metric, hypernets_mean, baseline_mean,
                     mean_difference, difference_ci_low,
                     difference_ci_high)),
   digits = 4, caption = "Paired effects against the fully assigned eight-topic BERTopic"
@@ -246,7 +246,7 @@ outliers, so it trails on every metric. At matched topic count with every
 document assigned, the tf-idf hypergraph leads ARI by 0.0207 (95% paired
 bootstrap CI 0.0176--0.0230) and AMI/NMI by under 0.01 with intervals that
 narrowly exclude zero. On the same sentence embeddings, the kNN hypergraph
-leads ARI by 0.1026 (0.0992--0.1050) and AMI/NMI by about 0.077. The honets
+leads ARI by 0.1026 (0.0992--0.1050) and AMI/NMI by about 0.077. The hypernets
 arms have essentially no seed variance (the spectral embedding is
 deterministic), so the intervals reflect BERTopic's UMAP seed variance.
 Only cluster assignments are scored; BERTopic's topic representations are

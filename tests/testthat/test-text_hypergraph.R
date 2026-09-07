@@ -90,7 +90,7 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
   expect_warning(
     hg <- text_hypergraph(c(a = "salt and soup", b = "and", c = "soup"),
                           stop_words = "and"),
-    class = "honets_dropped_documents"
+    class = "hypernets_dropped_documents"
   )
   docs <- as.data.frame(hg, what = "documents")
   expect_identical(docs$doc, c("a", "c"))
@@ -99,16 +99,16 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
 test_that("contract violations raise classed errors", {
   expect_error(
     text_hypergraph(c(a = "and", b = "and"), stop_words = "and"),
-    class = "honets_empty_corpus"
+    class = "hypernets_empty_corpus"
   )
   expect_error(
     text_hypergraph(data.frame(txt = "salt")),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(
     text_hypergraph(data.frame(id = c("a", "a"), txt = c("x", "y")),
                     column = "txt", id = "id"),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
 })
 

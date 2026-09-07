@@ -6,7 +6,7 @@
   if (!inherits(hg, "net_hypergraph")) {
     stop(errorCondition(
       "`hg` must be a net_hypergraph (text_hypergraph, knn_hypergraph, group_hypergraph, ...)",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   invisible(hg)
@@ -17,14 +17,14 @@
 #' Delegates to [hypergraph_measures()] and returns the requested
 #' slice as a tidy data.frame.
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
 #' @param what Which table: `"nodes"` (default; one row per node with
 #'   `hyperdegree`, `strength`, `max_edge_size` and `n_neighbors`, the
 #'   distinct nodes it shares a hyperedge with), `"edges"` (one row per
 #'   hyperedge with its `size`), `"overlap"` (one row per hyperedge pair with
 #'   `overlap`, `overlap_coefficient`, `jaccard`), `"summary"` (one row per
 #'   scalar measure), `"distribution"` (the empirical distribution of
-#'   `measure`, as a `honets_distribution` table whose `plot()` draws the
+#'   `measure`, as a `hypernets_distribution` table whose `plot()` draws the
 #'   CCDF), or `"components"` (one row per connected component through shared
 #'   hyperedges, with its `n_nodes`, `n_edges`, `share` of nodes and
 #'   `diameter`).
@@ -57,7 +57,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
       hg_measures(hg, what = "nodes")[[measure]]
     }
     out <- .thg_distribution(values)
-    class(out) <- c("honets_distribution", "data.frame")
+    class(out) <- c("hypernets_distribution", "data.frame")
     attr(out, "measure") <- measure
     return(out)
   }
@@ -107,7 +107,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #' Delegates to [hypergraph_centrality()]: clique-expansion
 #' eigenvector centrality and the tensor Z- and H-eigenvector centralities.
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
 #' @param type Centralities to compute; any of `"clique"`, `"Z"`, `"H"`
 #'   (default: all three).
 #' @param sort_by Optional centrality name to sort by, descending (ties broken
@@ -134,7 +134,7 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
   if (.thg_is_sparse(hg)) {
     stop(errorCondition(
       "tensor centralities need the dense representation; use hg_pagerank() at scale",
-      class = "honets_sparse_unsupported", call = NULL
+      class = "hypernets_sparse_unsupported", call = NULL
     ))
   }
   stopifnot(
@@ -162,7 +162,7 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #' edge-dependent vertex weights -- the natural choice for tf-idf-weighted
 #' text hypergraphs).
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
 #' @param k Number of clusters (explicit by design; there is no correct
 #'   default).
 #' @param type `"zhou"` or `"random_walk"`, as in
@@ -221,7 +221,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
     stop(errorCondition(
       paste0("`algorithm = \"symnmf\"` requires a dense incidence matrix; ",
              "RDC-Sym factorizes a dense n_nodes x n_nodes similarity."),
-      class = "honets_dense_required", call = NULL
+      class = "hypernets_dense_required", call = NULL
     ))
   }
   fit <- if (.thg_is_sparse(hg)) {
@@ -260,7 +260,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
       stop(errorCondition(
         paste0("`edge_weights = \"idf\"` needs a text_hypergraph(weight = ",
                "\"tfidf\", nodes = \"doc\"), whose hyperedges are words"),
-        class = "honets_bad_input", call = NULL
+        class = "hypernets_bad_input", call = NULL
       ))
     }
     idf <- stats::setNames(vocab$idf, vocab$word)[colnames(hg$incidence)]
@@ -272,7 +272,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
       !length(edge_weights) %in% c(1L, hg$n_hyperedges)) {
     stop(errorCondition(
       "`edge_weights` must be NULL, \"idf\", or positive numbers, one per hyperedge",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   rep_len(as.numeric(edge_weights), hg$n_hyperedges)
@@ -303,7 +303,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'
 #' `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer
 #' of a bag-of-words document hypergraph (`construction = "bag"`,
-#' `nodes = "doc"`); other hypergraphs raise `honets_bad_input`.
+#' `nodes = "doc"`); other hypergraphs raise `hypernets_bad_input`.
 #'
 #' **Sentence scope.** When `hg` is a `text_hypergraph(construction =
 #' "sentence")` of the documents, `clusters` still names documents, and the
@@ -353,7 +353,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   type, so clusters run down and types across. With a single type and
 #'   many clusters, pass e.g. `ncol = 4`.
 #' @param ... Unused; for S3 consistency.
-#' @return A base `data.frame` of class `honets_keywords`, one row per
+#' @return A base `data.frame` of class `hypernets_keywords`, one row per
 #'   type-cluster-keyword triple, columns `type`, `cluster`, `size` (the
 #'   cluster's documents), `rank`, `word`, `score` (the selected score),
 #'   `share` (`score` divided by the word's summed score over all
@@ -363,14 +363,14 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   `collapse = TRUE`: one row per type and cluster, columns `type`,
 #'   `cluster`, `size` and `words`. The print method shows the collapsed
 #'   view, truncated to the console width; `as.data.frame()` is the long
-#'   form. Raises `honets_bad_input` for unknown node names, a `type` that
+#'   form. Raises `hypernets_bad_input` for unknown node names, a `type` that
 #'   needs the token layer on a hypergraph without one, or a malformed
 #'   `scores` table.
 #'
 #'   `plot()` returns a ggplot: one panel per cluster (rows) and score type
 #'   (columns), each with its own word axis, horizontal bars of `value` per
 #'   word, Okabe-Ito fill by type. It needs the long form and raises
-#'   `honets_bad_input` on a collapsed table.
+#'   `hypernets_bad_input` on a collapsed table.
 #' @references
 #' Grootendorst, M. (2022). BERTopic: Neural topic modeling with a
 #' class-based TF-IDF procedure. arXiv:2203.05794.
@@ -403,7 +403,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     stop(errorCondition(
       paste0("`type` must be distinct values from: ",
              paste(choices, collapse = ", ")),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   centrality <- match.arg(centrality)
@@ -426,7 +426,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(scope$docs,
@@ -453,7 +453,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
   if (length(blocks) == 0L) {
     stop(errorCondition(
       "nothing to rank: give at least one `type`, or `scores`",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
 
@@ -485,7 +485,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
   if (isTRUE(collapse)) {
     out <- .thg_kw_collapse(out)
   }
-  class(out) <- c("honets_keywords", "data.frame")
+  class(out) <- c("hypernets_keywords", "data.frame")
   out
 }
 
@@ -507,7 +507,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
 
 #' @rdname hg_keywords
 #' @export
-print.honets_keywords <- function(x, ...) {
+print.hypernets_keywords <- function(x, ...) {
   shown <- if ("words" %in% names(x)) as.data.frame(x) else
     .thg_kw_collapse(as.data.frame(x))
   # fit the words column to the console: the other columns plus separators
@@ -528,7 +528,7 @@ print.honets_keywords <- function(x, ...) {
 
 #' @rdname hg_keywords
 #' @export
-plot.honets_keywords <- function(x, value = c("score", "share"),
+plot.hypernets_keywords <- function(x, value = c("score", "share"),
                                  label = TRUE, ncol = NULL, ...) {
   value <- match.arg(value)
   stopifnot("`ncol` must be NULL or a single positive number" =
@@ -538,7 +538,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
            names(x))) {
     stop(errorCondition(
       "plot() needs the long form of hg_keywords() (collapse = FALSE)",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   stopifnot("`label` must be TRUE or FALSE" = isTRUE(label) || isFALSE(label))
@@ -648,7 +648,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
       paste0("this `type` needs the token layer of a bag-of-words document ",
              "hypergraph (text_hypergraph(construction = \"bag\", ",
              "nodes = \"doc\")) or a sentence hypergraph; use type = \"mass\" otherwise"),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   weights <- scope$token
@@ -683,7 +683,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
       stop(errorCondition(
         paste0("`type = \"centrality\"` needs the token layer of a ",
                "bag-of-words document hypergraph or a sentence hypergraph"),
-        class = "honets_bad_input", call = NULL
+        class = "hypernets_bad_input", call = NULL
       ))
     }
     data.frame(edge = scope$token$doc, word = scope$token$word,
@@ -725,7 +725,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
       paste0("`scores` must be a data.frame with columns `node`, `word` and ",
              "one numeric score column (for instance the table from ",
              "hg_hypergat(what = \"attention\"))"),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   value_col <- value_col[[1L]]
@@ -733,7 +733,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
   if (nrow(scores) == 0L) {
     stop(errorCondition(
       "no rows of `scores` refer to documents of `hg`",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   words <- sort(unique(as.character(scores$word)))
@@ -779,7 +779,7 @@ plot.honets_keywords <- function(x, value = c("score", "share"),
 #'   topics with a positive weight, columns `source`, `target`, `weight`,
 #'   pairs in the topics' natural order. For `what = "network"`: a
 #'   `cograph_network` with one node per topic (`label`, `name`, `size`)
-#'   and one undirected weighted edge per pair. Raises `honets_bad_input`
+#'   and one undirected weighted edge per pair. Raises `hypernets_bad_input`
 #'   for unknown node names.
 #' @references
 #' van Eck, N. J., & Waltman, L. (2009). How to normalize cooccurrence
@@ -815,7 +815,7 @@ hg_relations <- function(hg, clusters,
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(hg$nodes,
@@ -863,7 +863,7 @@ hg_relations <- function(hg, clusters,
 #' labels known for a few nodes spread over the hypergraph structure to
 #' classify every node.
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers -- documents under `nodes = "doc"` -- values their
 #'   class labels), or a tidy data.frame with a `node` column and a

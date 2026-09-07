@@ -48,7 +48,7 @@ weights of \code{hon$matrix}.}
 \item{max_iter, tol}{Power-iteration controls for PageRank.}
 
 \item{max_paths}{Integer cap on the shortest paths enumerated for
-betweenness. Exceeding it raises a \code{honets_too_many_paths} error
+betweenness. Exceeding it raises a \code{hypernets_too_many_paths} error
 rather than silently truncating. Default \code{1e6}.}
 
 \item{sort_by}{\code{NULL} (alphabetical by state or node, the default) or

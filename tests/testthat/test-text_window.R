@@ -136,7 +136,7 @@ test_that("window construction rejects tf-idf and window < 2", {
   expect_error(
     text_hypergraph(c(d = "a b c"), construction = "window",
                     weight = "tfidf"),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(
     text_hypergraph(c(d = "a b c"), construction = "window", window = 1)

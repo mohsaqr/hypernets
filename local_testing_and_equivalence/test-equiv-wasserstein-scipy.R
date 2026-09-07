@@ -1,5 +1,5 @@
 # Independent assignment oracle for wasserstein_distance(). The R code builds
-# persistence-diagram costs; SciPy, not honets' Hungarian implementation,
+# persistence-diagram costs; SciPy, not hypernets' Hungarian implementation,
 # solves the augmented assignment. Run manually from the package root:
 #   Rscript local_testing_and_equivalence/test-equiv-wasserstein-scipy.R
 

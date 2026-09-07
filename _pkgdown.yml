@@ -7,7 +7,7 @@ template:
 reference:
 - title: Package
   contents:
-  - honets-package
+  - hypernets-package
 
 - title: Memory networks
   desc: A node is a state plus the memory of how it was reached.

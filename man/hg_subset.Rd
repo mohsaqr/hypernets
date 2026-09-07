@@ -5,13 +5,21 @@
 \alias{hypergraph_subset}
 \title{Sub-hypergraph by hyperedges, nodes or hyperedge attributes}
 \usage{
-hg_subset(hg, edges = NULL, nodes = NULL, where = NULL, drop_isolated = TRUE)
+hg_subset(
+  hg,
+  edges = NULL,
+  nodes = NULL,
+  where = NULL,
+  size = NULL,
+  drop_isolated = TRUE
+)
 
 hypergraph_subset(
   hg,
   edges = NULL,
   nodes = NULL,
   where = NULL,
+  size = NULL,
   drop_isolated = TRUE
 )
 }
@@ -30,6 +38,10 @@ this set are kept, and the node set of the result is exactly \code{nodes}.}
 one element per attribute column of the edge metadata (the columns
 \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} keeps because they are constant within a
 hyperedge), each holding the value or values to keep.}
+
+\item{size}{Hyperedge sizes to keep, as a vector of member counts (distinct
+members): \code{size = 3} keeps the hyperedges with exactly three members, the
+3-uniform hypergraph that \code{\link[=hg_motifs]{hg_motifs()}} needs.}
 
 \item{drop_isolated}{Drop nodes that belong to no retained hyperedge?
 Default \code{TRUE}. Ignored when \code{nodes} is given.}

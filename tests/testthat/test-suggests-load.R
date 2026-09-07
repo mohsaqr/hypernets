@@ -1,11 +1,11 @@
 # Packages in Suggests must never be touched while the namespace loads:
 # R CMD INSTALL lazy-loads every top-level expression, so a top-level
-# `torch::nn_module(...)` makes honets uninstallable wherever torch is
+# `torch::nn_module(...)` makes hypernets uninstallable wherever torch is
 # absent (this broke CI on 2026-09-07). Every top-level expression that
 # references a Suggests package must be a function definition.
 
 .suggests_packages <- function() {
-  desc <- read.dcf(system.file("DESCRIPTION", package = "honets"),
+  desc <- read.dcf(system.file("DESCRIPTION", package = "hypernets"),
                    fields = "Suggests")
   pkgs <- unlist(strsplit(desc[[1L]], ",\\s*"))
   trimws(sub("\\s*\\(.*\\)$", "", pkgs))

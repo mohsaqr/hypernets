@@ -9,7 +9,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(honets)
+library(hypernets)
 ```
 
 The bag-of-words hypergraph of `vignette("text-hypergraphs")` ignores two

@@ -28,7 +28,7 @@ testthat::skip_on_cran()
 
 test_that("hg_growth counts active and cumulative structure of interval data", {
   g <- hg_growth(.interval_thg())
-  expect_s3_class(g, "honets_series")
+  expect_s3_class(g, "hypernets_series")
   expect_s3_class(g, "data.frame")
   expect_identical(g$time, c(1, 2, 3, 4, 6))
   expect_identical(g$n_nodes, c(3L, 5L, 5L, 5L, 3L))
@@ -71,14 +71,14 @@ test_that("a node universe with entry times drives node counts and snapshots", {
   expect_identical(renamed$node_data, thg$node_data)
   expect_error(temporal_hypergraph(dat, actor = "member", group = "event",
                                    time = "time", nodes = list(1)),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   # a bare universe keeps every node in every snapshot
   bare <- .growing_thg(nodes = c("a", "b", "c", "d", "z"))
   bare_snap <- hypergraph_snapshot(bare, at = 1)
   expect_identical(bare_snap$n_nodes, 5L)
   bare_growth <- hg_growth(bare, mode = "cumulative")
   expect_identical(bare_growth$n_nodes, c(2L, 3L, 4L))
-  expect_error(.growing_thg(nodes = c("a", "b")), class = "honets_bad_input")
+  expect_error(.growing_thg(nodes = c("a", "b")), class = "hypernets_bad_input")
 })
 
 test_that("component statistics follow the shared-hyperedge connectivity", {
@@ -117,10 +117,10 @@ test_that("diameter matches a hand-computed path", {
   path <- matrix(0, 4, 4)
   path[cbind(1:3, 2:4)] <- 1
   path <- path + t(path)
-  expect_identical(honets:::.thg_diameter(path > 0), 3L)
-  expect_identical(honets:::.thg_diameter(matrix(TRUE, 1, 1)), 0L)
+  expect_identical(hypernets:::.thg_diameter(path > 0), 3L)
+  expect_identical(hypernets:::.thg_diameter(matrix(TRUE, 1, 1)), 0L)
   two <- diag(2) > 0
-  expect_true(is.na(honets:::.thg_diameter(two)))
+  expect_true(is.na(hypernets:::.thg_diameter(two)))
 })
 
 test_that("series and distribution tables plot", {
@@ -129,10 +129,10 @@ test_that("series and distribution tables plot", {
   expect_s3_class(series_plot, "ggplot")
   columns_plot <- plot(g, columns = c("n_nodes", "n_edges"), facets = FALSE)
   expect_s3_class(columns_plot, "ggplot")
-  expect_error(plot(g, columns = "nope"), class = "honets_bad_input")
+  expect_error(plot(g, columns = "nope"), class = "hypernets_bad_input")
   snap <- hypergraph_snapshot(.interval_thg(), at = 2)
   d <- hg_measures(snap, what = "distribution", measure = "n_neighbors")
-  expect_s3_class(d, "honets_distribution")
+  expect_s3_class(d, "hypernets_distribution")
   expect_identical(attr(d, "measure"), "n_neighbors")
   expect_equal(d$ccdf[[1L]], 1)
   distribution_plot <- plot(d)
@@ -153,6 +153,6 @@ test_that("temporal summary reports the clock and the span", {
 })
 
 test_that("hg_growth rejects non-temporal input", {
-  expect_error(hg_growth(42), class = "honets_bad_input")
-  expect_error(hg_growth(.interval_thg(), at = NA), class = "honets_bad_input")
+  expect_error(hg_growth(42), class = "hypernets_bad_input")
+  expect_error(hg_growth(.interval_thg(), at = NA), class = "hypernets_bad_input")
 })

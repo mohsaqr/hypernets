@@ -1,6 +1,6 @@
 # Research paper library
 
-Local copies of papers used to design or verify honets. This directory is
+Local copies of papers used to design or verify hypernets. This directory is
 kept in the source repository for research and reproducibility, but excluded
 from the built R package by `.Rbuildignore`.
 
@@ -85,12 +85,12 @@ hypergraphs”, *Philosophical Transactions of the Royal Society A* 382(2270),
 
 - Open-access record: [PubMed Central PMC10894694](https://pmc.ncbi.nlm.nih.gov/articles/PMC10894694/)
 - Reproducibility archive: [Zenodo 8081507](https://doi.org/10.5281/zenodo.8081507)
-- honets method mapping: [`../repos/legal-hypergraphs.md`](../repos/legal-hypergraphs.md)
+- hypernets method mapping: [`../repos/legal-hypergraphs.md`](../repos/legal-hypergraphs.md)
 - License: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ## Method bibliography without a local PDF
 
-These sources directly define exported honets methods but are indexed by DOI
+These sources directly define exported hypernets methods but are indexed by DOI
 or bibliographic record rather than copied into this repository.
 
 ### Memory networks

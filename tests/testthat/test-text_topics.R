@@ -17,7 +17,7 @@ skip_on_cran()
 test_that("hg_topic_sizes counts documents and weights them", {
   hg <- .topic_hg()
   sizes <- hg_topic_sizes(hg, .topic_clusters)
-  expect_s3_class(sizes, "honets_topic_sizes")
+  expect_s3_class(sizes, "hypernets_topic_sizes")
   expect_named(sizes, c("topic", "n", "share"))
   expect_identical(sizes$topic, c("food", "sky"))
   expect_identical(sizes$n, c(2L, 3L))
@@ -39,16 +39,16 @@ test_that("hg_topic_sizes counts documents and weights them", {
   weighted_plot <- plot(weighted)
   expect_s3_class(weighted_plot, "ggplot")
   expect_error(hg_topic_sizes(hg, .topic_clusters, weights = c(cooking_1 = 1)),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_topic_sizes(hg, c(zz = "a", cooking_1 = "b")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_identical(hypergraph_topic_sizes, hg_topic_sizes)
 })
 
 test_that("hg_topic_quality scores coherence by NPMI and exclusivity by share", {
   hg <- .topic_hg()
   q <- hg_topic_quality(hg, .topic_clusters, n = 2)
-  expect_s3_class(q, "honets_topic_quality")
+  expect_s3_class(q, "hypernets_topic_quality")
   expect_named(q, c("topic", "size", "n_words", "coherence", "exclusivity"))
   expect_identical(q$topic, c("food", "sky"))
   expect_identical(q$size, c(2L, 3L))
@@ -71,7 +71,7 @@ test_that("hg_topic_quality scores coherence by NPMI and exclusivity by share", 
   quality_plot <- plot(q)
   expect_s3_class(quality_plot, "ggplot")
   expect_error(hg_topic_quality(hg, c(zz = "a", cooking_1 = "b")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_identical(hypergraph_topic_quality, hg_topic_quality)
 })
 
@@ -79,7 +79,7 @@ test_that("hg_membership gives fuzzy weights that sum to one and favour the hard
   hg <- .topic_hg()
   topics <- hg_cluster(hg, k = 2, seed = 1)
   m <- hg_membership(hg, topics)
-  expect_s3_class(m, "honets_membership")
+  expect_s3_class(m, "hypernets_membership")
   expect_named(m, c("node", "cluster", "topic", "membership"))
   expect_identical(nrow(m), 5L * 2L)
   sums <- tapply(m$membership, m$node, sum)
@@ -99,6 +99,6 @@ test_that("hg_membership gives fuzzy weights that sum to one and favour the hard
   membership_plot <- plot(m)
   expect_s3_class(membership_plot, "ggplot")
   expect_error(hg_membership(hg, c(zz = "a", cooking_1 = "b")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_identical(hypergraph_membership, hg_membership)
 })

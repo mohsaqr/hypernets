@@ -101,7 +101,7 @@ test_that("INVARIANT: CCDF starts at 1, is non-increasing, proportions sum to 1"
 })
 
 test_that("bad input raises classed conditions", {
-  expect_error(hg_edges(42), class = "honets_bad_input")
+  expect_error(hg_edges(42), class = "hypernets_bad_input")
   expect_error(hg_edges(edge_fixture(), what = "nope"), "arg")
   expect_error(hg_edges(edge_fixture(), measure = "nope"), "arg")
 })

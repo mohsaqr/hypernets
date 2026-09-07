@@ -71,6 +71,9 @@
 #'   one element per attribute column of the edge metadata (the columns
 #'   [temporal_hypergraph()] keeps because they are constant within a
 #'   hyperedge), each holding the value or values to keep.
+#' @param size Hyperedge sizes to keep, as a vector of member counts (distinct
+#'   members): `size = 3` keeps the hyperedges with exactly three members, the
+#'   3-uniform hypergraph that [hg_motifs()] needs.
 #' @param drop_isolated Drop nodes that belong to no retained hyperedge?
 #'   Default `TRUE`. Ignored when `nodes` is given.
 #' @return A `net_hypergraph` whose incidence matrix is the selected
@@ -92,15 +95,18 @@
 #' hg_subset(hg, where = c(kind = "y"))
 #' @export
 hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
-                      drop_isolated = TRUE) {
+                      size = NULL, drop_isolated = TRUE) {
   .thg_check_hg(hg)
   stopifnot(
     "`drop_isolated` must be TRUE or FALSE" =
       is.logical(drop_isolated) && length(drop_isolated) == 1L &&
       !is.na(drop_isolated)
   )
-  if (is.null(edges) && is.null(nodes) && is.null(where)) {
-    .thg_bad_input("supply at least one of `edges`, `nodes` or `where`")
+  if (is.null(edges) && is.null(nodes) && is.null(where) && is.null(size)) {
+    .thg_bad_input("supply at least one of `edges`, `nodes`, `where` or `size`")
+  }
+  if (!is.null(size) && (!is.numeric(size) || anyNA(size) || any(size < 1))) {
+    .thg_bad_input("`size` must be a vector of positive member counts")
   }
   edge_names <- colnames(hg$incidence)
   keep_edge <- rep(TRUE, hg$n_hyperedges)
@@ -136,6 +142,10 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
       keep_edge <- keep_edge & !is.na(values) & values %in% where[[attribute]]
     }
   }
+  if (!is.null(size)) {
+    members <- as.numeric(Matrix::colSums(.thg_binary(hg$incidence)))
+    keep_edge <- keep_edge & members %in% size
+  }
   if (!is.null(nodes)) {
     nodes <- as.character(nodes)
     unknown <- setdiff(nodes, hg$nodes)
@@ -160,7 +170,7 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
   incidence <- incidence[keep_node, , drop = FALSE]
   out <- .thg_rebuild(hg, incidence, keep_edge)
   out$params$subset <- list(edges = edges, nodes = nodes, where = where,
-                            drop_isolated = drop_isolated)
+                            size = size, drop_isolated = drop_isolated)
   out
 }
 

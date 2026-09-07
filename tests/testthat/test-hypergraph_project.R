@@ -162,15 +162,15 @@ test_that("the matrix hand-off is symmetric, zero-diagonal and named", {
 })
 
 test_that("bad input raises classed conditions", {
-  expect_error(hg_project(42), class = "honets_bad_input")
-  expect_error(hg_line_graph(list()), class = "honets_bad_input")
+  expect_error(hg_project(42), class = "hypernets_bad_input")
+  expect_error(hg_line_graph(list()), class = "hypernets_bad_input")
   expect_error(
     hg_project(fixture(), method = "association", weighted = FALSE),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(
     hg_project(fixture(), method = "association", weighted = TRUE),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(hg_project(fixture(), weighted = NA), "TRUE or FALSE")
   expect_error(hg_line_graph(fixture(), s = 0), "at least 1")

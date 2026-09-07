@@ -10,10 +10,10 @@
   essential death = Inf), `persistence_landscape`, matching visualization.
   Inputs are Euclidean point clouds only — no graphs, no weighted networks,
   no sequences, no q-analysis.
-- **Role for us**: independent oracle for the shipped honets
+- **Role for us**: independent oracle for the shipped hypernets
   `wasserstein_distance()` and `bottleneck_distance()`. NOT a
   delegation target (third-party, 0.1.x, different conventions).
-- **Collision caution**: its expanding TDA surface overlaps honets names;
+- **Collision caution**: its expanding TDA surface overlaps hypernets names;
   oracle scripts must use explicit namespaces rather than attach both.
 - **Links**: https://cran.r-project.org/package=SimplicialComplex ·
   https://github.com/TDA-R/SimplicialComplex

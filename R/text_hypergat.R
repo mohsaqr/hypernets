@@ -159,7 +159,7 @@
     warning(warningCondition(
       sprintf("%d document(s) had no usable tokens and were dropped",
               sum(!keep)),
-      class = "honets_dropped_documents"
+      class = "hypernets_dropped_documents"
     ))
   }
   list(sentences = sentences[keep], doc_id = doc_id[keep], vocab = vocab)
@@ -187,7 +187,7 @@
   if (!any(keep)) {
     stop(errorCondition(
       "LDA has no terms after the official max_df = 0.98 filter",
-      class = "honets_empty_corpus", call = NULL
+      class = "hypernets_empty_corpus", call = NULL
     ))
   }
   X_fit <- X[, keep, drop = FALSE]
@@ -414,7 +414,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
       "hg_hypergat() needs the torch package: install.packages(\"torch\")",
-      class = "honets_missing_torch", call = NULL
+      class = "hypernets_missing_torch", call = NULL
     ))
   }
   class_weights <- match.arg(class_weights)
@@ -494,7 +494,7 @@ hg_hypergat <- function(x, labels, column = NULL, id = NULL,
   if (length(classes) < 2L) {
     stop(errorCondition(
       "`labels` must contain at least two distinct classes.",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
 

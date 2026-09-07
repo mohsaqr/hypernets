@@ -63,7 +63,7 @@ the data is then used.}
 Default \code{FALSE}.}
 
 \item{cooccur_by}{Deprecated name of \code{group}; using it warns with a
-\code{honets_deprecated} condition.}
+\code{hypernets_deprecated} condition.}
 }
 \value{
 A \code{net_temporal_hypergraph} holding the membership table (\code{node},

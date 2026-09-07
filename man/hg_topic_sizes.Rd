@@ -2,13 +2,13 @@
 % Please edit documentation in R/text_topics.R
 \name{hg_topic_sizes}
 \alias{hg_topic_sizes}
-\alias{plot.honets_topic_sizes}
+\alias{plot.hypernets_topic_sizes}
 \alias{hypergraph_topic_sizes}
 \title{Topic sizes}
 \usage{
 hg_topic_sizes(hg, clusters, weights = NULL)
 
-\method{plot}{honets_topic_sizes}(x, ...)
+\method{plot}{hypernets_topic_sizes}(x, ...)
 
 hypergraph_topic_sizes(hg, clusters, weights = NULL)
 }
@@ -26,11 +26,11 @@ giving each document's weight.}
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base \code{data.frame} of class \code{honets_topic_sizes}, one row per
+A base \code{data.frame} of class \code{hypernets_topic_sizes}, one row per
 topic in natural order: \code{topic}, \code{n}, \code{share}, and with \code{weights}
 also \code{weighted_n} and \code{weighted_share}. \code{plot()} draws the shares as
 horizontal bars, weighted beside unweighted when both exist. Raises
-\code{honets_bad_input} for unknown node names or weights that do not name
+\code{hypernets_bad_input} for unknown node names or weights that do not name
 every clustered document.
 }
 \description{

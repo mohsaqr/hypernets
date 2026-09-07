@@ -15,7 +15,7 @@ hg_centrality(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
 
 \item{type}{Centralities to compute; any of \code{"clique"}, \code{"Z"}, \code{"H"}
 (default: all three).}

@@ -23,7 +23,7 @@ test_that("temporal hg_edges adds a time column per snapshot", {
 
 test_that("hg_edges summary is a series over time", {
   s <- hg_edges(.edges_thg(), what = "summary", measure = "n_neighbors")
-  expect_s3_class(s, "honets_series")
+  expect_s3_class(s, "hypernets_series")
   expect_identical(names(s), c("time", "n_edges", "mean", "sd", "min", "q25",
                                "median", "q75", "max"))
   expect_identical(s$n_edges, c(1L, 2L, 2L, 2L, 1L))
@@ -46,10 +46,10 @@ test_that("several thresholds give one block each, and distributions carry time"
   single <- hg_edges(snap)
   expect_false("s" %in% names(single))
   d <- hg_edges(.edges_thg(), what = "distribution", at = c(2, 6))
-  expect_s3_class(d, "honets_distribution")
+  expect_s3_class(d, "hypernets_distribution")
   expect_identical(d$time, c(2, 6))
   expect_equal(d$ccdf, c(1, 1))
   distribution_plot <- plot(d)
   expect_s3_class(distribution_plot, "ggplot")
-  expect_error(hg_edges(snap, s = 0), class = "honets_bad_input")
+  expect_error(hg_edges(snap, s = 0), class = "hypernets_bad_input")
 })

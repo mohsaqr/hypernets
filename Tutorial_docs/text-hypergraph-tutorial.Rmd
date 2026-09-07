@@ -1,5 +1,5 @@
 ---
-title: "Hypergraph text analysis with honets, stage by stage"
+title: "Hypergraph text analysis with hypernets, stage by stage"
 output:
   html_document:
     toc: true
@@ -9,7 +9,7 @@ output:
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(honets)
+library(hypernets)
 ```
 
 A co-occurrence graph records that two words appeared together. A corpus
@@ -17,7 +17,7 @@ knows more than that: a word binds *all* the documents containing it at
 once, a token window binds *all* the words inside it, and a document sits
 near *all* its semantic neighbors. A hypergraph — edges that contain any
 number of vertices — represents each of those facts directly instead of
-breaking them into pairs. honets' text family builds three such hypergraphs
+breaking them into pairs. hypernets' text family builds three such hypergraphs
 from a corpus and analyzes them with tidy verbs, on top of the hypergraph
 family's spectral methods of Zhou, Huang & Schölkopf (2006) and Hayashi,
 Aksoy, Park & Park (2020) (HyperNetX-parity verified) and its incidence

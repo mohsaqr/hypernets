@@ -1,6 +1,6 @@
 # HON-family Python ecosystem — pathpy / pyHON / HYPA / HONEM
 
-One note for the *sequence* higher-order side (the honets paradigm, distinct
+One note for the *sequence* higher-order side (the hypernets paradigm, distinct
 from the hypergraph packages in this folder):
 
 - **pathpy** (Scholtes group) — the only real package (`pip install pathpy`):
@@ -13,8 +13,8 @@ from the hypergraph packages in this folder):
 - No Python package implements a permutation-based Markov-order test
   (`markov_order_test()` has no upstream equivalent).
 
-**Status for us**: already integrated — honets' local equivalence
+**Status for us**: already integrated — hypernets' local equivalence
 suite uses pyHON, pyMOGen, and pathpy as oracles via reticulate
 (`helper-python-equiv.R`; MOGen matches pathpy.MultiOrderModel at machine
 precision). Nothing new to adopt; the parity proofs live in
-`honets/local_testing_and_equivalence/`.
+`hypernets/local_testing_and_equivalence/`.

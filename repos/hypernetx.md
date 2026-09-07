@@ -17,7 +17,7 @@
 - **Role for us**: primary local oracle for the shipped weighted Laplacian,
   RDC-Spec clustering and EDVW PageRank paths. Its homology module remains a
   possible second TDA oracle. HyperNetX does not supply the Hayashi
-  SymNMF/JointNMF branches; honets now implements RDC-Sym (Algorithm 2),
+  SymNMF/JointNMF branches; hypernets now implements RDC-Sym (Algorithm 2),
   J-NMF (Eq. 18), and JS-NMF (Eq. 19), verified directly against their
   paper equations and objective invariants.
 - **Links**: https://github.com/pnnl/HyperNetX ·

@@ -12,7 +12,7 @@ testthat::skip_on_cran()
 
 test_that("repeated-collaboration statistics are counted exactly", {
   m <- (.null_fixture()$incidence > 0) * 1L
-  got <- honets:::.thg_null_statistics(m, c("repeated_edges", "repeated_pairs"))
+  got <- hypernets:::.thg_null_statistics(m, c("repeated_edges", "repeated_pairs"))
   expect_equal(unname(got), c(1, 4))
   out <- hg_null_test(.null_fixture(), statistic = c("repeated_edges", "repeated_pairs"),
                       method = "assignment", n = 19, seed = 1)
@@ -27,7 +27,7 @@ test_that("the degree-ordered assignment preserves both margins exactly", {
   m[cbind(sample(8, 36, replace = TRUE), rep(1:12, each = 3))] <- 1L
   m <- (m > 0) * 1L
   for (i in seq_len(20)) {
-    draw <- honets:::.thg_assignment_draw(m)
+    draw <- hypernets:::.thg_assignment_draw(m)
     expect_identical(rowSums(draw), rowSums(m))
     expect_identical(colSums(draw), colSums(m))
     expect_true(all(draw %in% c(0L, 1L)))

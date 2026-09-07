@@ -58,22 +58,22 @@ test_that("construction is deterministic, with alphabetical tie-breaks", {
 
 test_that("contract violations raise classed errors", {
   no_names <- matrix(seq_len(6) + 0.5, nrow = 3)
-  expect_error(knn_hypergraph(no_names, k = 1), class = "honets_bad_input")
+  expect_error(knn_hypergraph(no_names, k = 1), class = "hypernets_bad_input")
   dup <- matrix(seq_len(4) + 0.5, nrow = 2,
                 dimnames = list(c("a", "a"), NULL))
-  expect_error(knn_hypergraph(dup, k = 1), class = "honets_bad_input")
+  expect_error(knn_hypergraph(dup, k = 1), class = "hypernets_bad_input")
   expect_error(knn_hypergraph(two_pairs, k = 0))
   expect_error(knn_hypergraph(two_pairs, k = 4))
   zero_row <- matrix(c(1, 0, 0, 0), nrow = 2,
                      dimnames = list(c("a", "b"), NULL))
-  expect_error(knn_hypergraph(zero_row, k = 1), class = "honets_bad_input")
+  expect_error(knn_hypergraph(zero_row, k = 1), class = "hypernets_bad_input")
 })
 
 test_that("orthogonal neighbors are refused under cosine weighting", {
   ortho <- matrix(c(1, 0, 0, 1), nrow = 2,
                   dimnames = list(c("a", "b"), NULL))
   expect_error(knn_hypergraph(ortho, k = 1),
-               class = "honets_nonpositive_similarity")
+               class = "hypernets_nonpositive_similarity")
   hg <- knn_hypergraph(ortho, k = 1, weight = "binary")
   expect_identical(hg$n_hyperedges, 2L)
 })
@@ -123,26 +123,26 @@ test_that("knn construction rejects token-layer arguments and bad shapes", {
   expect_error(
     text_hypergraph(corpus, construction = "knn", embeddings = two_pairs,
                     stop_words = "the"),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(
     text_hypergraph(corpus, construction = "knn", embeddings = two_pairs,
                     min_count = 2L),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   wrong_rows <- two_pairs[seq_len(3), , drop = FALSE]
   rownames(wrong_rows) <- NULL
   expect_error(
     text_hypergraph(corpus, construction = "knn", k = 1,
                     embeddings = wrong_rows),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   misnamed <- two_pairs
   rownames(misnamed) <- c("a", "b", "c", "x")
   expect_error(
     text_hypergraph(corpus, construction = "knn", k = 1,
                     embeddings = misnamed),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
 })
 

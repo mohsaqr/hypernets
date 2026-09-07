@@ -19,7 +19,7 @@ test_that("induced Y, T and O motifs are counted exactly", {
 test_that("configuration MCMC preserves degree and cardinality before collapse", {
   edges <- list(c(1, 2, 3), c(1, 4, 5), c(2, 4, 6), c(3, 5, 6))
   set.seed(10)
-  draw <- honets:::.thg_configuration_mcmc(edges, steps = 100,
+  draw <- hypernets:::.thg_configuration_mcmc(edges, steps = 100,
                                             collapse = FALSE)
   expect_equal(sort(lengths(draw)), sort(lengths(edges)))
   expect_equal(tabulate(unlist(draw), 6), tabulate(unlist(edges), 6))
@@ -50,5 +50,5 @@ test_that("motif census applies to temporal snapshots", {
 
 test_that("motifs require a 3-uniform hypergraph", {
   h <- .legal_motif_hg(list(c(1, 2), c(1, 2, 3)))
-  expect_error(hg_motifs(h, what = "counts"), class = "honets_bad_input")
+  expect_error(hg_motifs(h, what = "counts"), class = "hypernets_bad_input")
 })

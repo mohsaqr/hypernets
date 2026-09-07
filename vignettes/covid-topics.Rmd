@@ -14,10 +14,10 @@ has_sbert <- requireNamespace("sbert", quietly = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       warning = FALSE, eval = has_sbert,
                       fig.width = 7, fig.height = 5, out.width = "100%")
-library(honets)
+library(hypernets)
 ```
 
-The text hypergraph pipeline in honets represents a corpus as a
+The text hypergraph pipeline in hypernets represents a corpus as a
 document-word hypergraph and partitions it with a spectral method. This
 vignette applies the pipeline to the `covid` corpus of the sbert package,
 a Scopus export of 4,170 records on COVID-19 and education published

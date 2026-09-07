@@ -66,10 +66,10 @@ test_that("hg_agreement what = 'table' reproduces the contingency counts", {
 test_that("hg_agreement raises classed errors on bad input", {
   good <- data.frame(node = c("a", "b"), cluster = c("A", "B"))
   expect_error(hg_agreement(good, data.frame(node = c("a", "b"))),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_agreement(good, data.frame(node = c("x", "y"),
                                              cluster = c("A", "B"))),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("hg_stability reports one tidy row per k and finds planted stability", {
@@ -217,10 +217,10 @@ test_that("hg_agreement node and label selectors read any two tables", {
   expect_identical(one_name$n, 4L)
   expect_equal(one_name$agreement, 3 / 4)
   expect_error(hg_agreement(predictions, corpus, node = "id"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_agreement(predictions, corpus, node = c("node", "id"),
                             label = c("predicted", "nope")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_agreement(predictions, corpus, node = c("a", "b", "c")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })

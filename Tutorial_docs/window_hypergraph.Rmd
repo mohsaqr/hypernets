@@ -1,6 +1,6 @@
 ---
 title: "Windowed sequence hyperedges: multi-way co-occurrence in coded sequences"
-author: "honets"
+author: "hypernets"
 date: "2026-08-25"
 output:
   html_document:
@@ -35,14 +35,14 @@ sense of Chitra & Raphael (2019), which the spectral machinery of Zhou,
 Huang & Schölkopf (2006) and Hayashi, Aksoy, Park & Park (2020) consumes
 directly.
 
-The data are `human_long`, bundled with honets: 10,796 coded human
+The data are `human_long`, bundled with hypernets: 10,796 coded human
 turns from 429 human–AI pair-programming sessions, nine action codes, each
 code carrying an a-priori cluster label (Directive, Evaluative,
 Metacognitive) that the analysis below never uses — it will serve as an
 external check at the end.
 
 ```{r load}
-library(honets)
+library(hypernets)
 ```
 
 ## How a sequence becomes a hypergraph

@@ -5,7 +5,7 @@ testthat::skip_on_cran()
 # Helper: build a known network.
 #
 # Inherited from Nestimate, where this called build_network(method =
-# "relative"). honets does not depend on Nestimate, so the row-normalised
+# "relative"). hypernets does not depend on Nestimate, so the row-normalised
 # transition matrix is computed here directly and wrapped as a netobject.
 # Verified to reproduce Nestimate::build_network(seqs, method = "relative")
 # exactly (max abs difference 0, identical dimnames) on this seed, so every

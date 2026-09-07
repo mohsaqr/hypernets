@@ -62,7 +62,7 @@ test_that("an edge list gives hyperedges of size two", {
   expect_equal(static$nodes, c("a", "b", "c"))
   expect_error(temporal_hypergraph(contacts, from = "from", to = "to",
                                    actor = "from", time = "time"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("snapshot duplicate handling records multiplicity", {
@@ -93,10 +93,10 @@ test_that("temporal constructors reject invalid spells and read per-row times as
   interval <- data.frame(member = "a", event = "e1", start = 2, end = 1)
   expect_error(temporal_hypergraph(interval, actor = "member", group = "event",
                                    start = "start", end = "end"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(temporal_hypergraph(spread, actor = "member", group = "event",
                                    time = "time", start = "time"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 # ---- Dynet vocabulary -------------------------------------------------------
@@ -105,18 +105,18 @@ test_that("deprecated argument names still work and warn with a class", {
   dat <- data.frame(member = c("a", "b"), event = "e1", time = 1)
   expect_warning(
     old <- temporal_hypergraph(dat, actor = "member", cooccur_by = "event", time = "time"),
-    class = "honets_deprecated"
+    class = "hypernets_deprecated"
   )
   new <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
   expect_identical(old, new)
   new_group <- group_hypergraph(dat, actor = "member", group = "event")
   expect_warning(
     old_member <- group_hypergraph(dat, member = "member", group = "event"),
-    class = "honets_deprecated"
+    class = "hypernets_deprecated"
   )
   expect_warning(
     old_by <- group_hypergraph(dat, actor = "member", cooccur_by = "event"),
-    class = "honets_deprecated"
+    class = "hypernets_deprecated"
   )
   expect_identical(old_member, new_group)
   expect_identical(old_by, new_group)
@@ -137,12 +137,12 @@ test_that("columns are detected from Dynet's alias table, case-insensitively", {
   expect_identical(interval$params$end, "terminus")
   # an explicit name must exist as written
   expect_error(temporal_hypergraph(log, from = "sender", to = "Receiver", time = "Timestamp"),
-               class = "honets_missing_column")
+               class = "hypernets_missing_column")
   expect_error(temporal_hypergraph(data.frame(x = 1, y = 2, time = 1)),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   copresence <- data.frame(student = c("a", "b"), seminar = "s1", time = 1)
   expect_error(temporal_hypergraph(copresence, actor = "student"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   static <- group_hypergraph(spells)
   expect_identical(static$n_hyperedges, 2L)
 })
@@ -171,13 +171,13 @@ test_that("calendar times become offsets from an origin in a reported unit", {
   numeric <- temporal_hypergraph(transform(dates, time = c(1, 5, 9)),
                                  from = "from", to = "to", time = "time")
   expect_error(hypergraph_snapshot(numeric, at = as.Date("2024-01-05")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(temporal_hypergraph(transform(dates, time = c("yesterday", "today", "now")),
                                    from = "from", to = "to", time = "time"),
-               class = "honets_unparsed_time")
+               class = "hypernets_unparsed_time")
   expect_error(temporal_hypergraph(transform(dates, time = c(TRUE, FALSE, TRUE)),
                                    from = "from", to = "to", time = "time"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("`time` is a contact clock and the cumulative view is a mode", {
@@ -185,7 +185,7 @@ test_that("`time` is a contact clock and the cumulative view is a mode", {
                     time = rep(c(1, 3), each = 2), stop = rep(c(2, 4), each = 2))
   expect_error(temporal_hypergraph(dat, actor = "member", group = "event",
                                    time = "time", end = "stop"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   contact <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
   expect_identical(contact$format, "contact")
   between <- hypergraph_snapshot(contact, at = 2)
@@ -199,7 +199,7 @@ test_that("`time` is a contact clock and the cumulative view is a mode", {
   expect_true(any(grepl("contact", printed)))
   expect_true(any(grepl("cumulative", printed)))
   expect_warning(old <- hypergraph_snapshot(contact, mode = "all"),
-                 class = "honets_deprecated")
+                 class = "hypernets_deprecated")
   expect_identical(old$incidence, at_end$incidence)
 })
 
@@ -216,12 +216,12 @@ test_that("observation bounds clip the grid without rewriting memberships", {
   expect_true(bounded$params$observation_explicit)
   # INVARIANT: the stored spells are the raw ones
   expect_identical(as.data.frame(bounded), as.data.frame(open))
-  expect_error(hypergraph_snapshot(bounded, at = 1), class = "honets_outside_observation")
-  expect_error(hg_growth(bounded, start = 9), class = "honets_outside_observation")
+  expect_error(hypergraph_snapshot(bounded, at = 1), class = "hypernets_outside_observation")
+  expect_error(hg_growth(bounded, start = 9), class = "hypernets_outside_observation")
   expect_error(temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                                    start = "start", end = "end",
                                    observation_start = 5, observation_end = 2),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   # the open-ended case is active through the end of observation
   last <- hypergraph_snapshot(bounded)
   expect_identical(last$params$at, 8)
@@ -253,15 +253,15 @@ test_that("the measurement grid follows step, window and at", {
   expect_identical(unique(edges$time), c(0, 2, 4))
   instants <- hypergraph_snapshots(thg, at = c(5, 1))
   expect_identical(names(instants), c("1", "5"))
-  expect_error(hg_growth(thg, step = 2, window = "all"), class = "honets_bad_input")
-  expect_error(hg_growth(thg, at = 1, step = 1), class = "honets_bad_input")
-  expect_error(hg_growth(thg, step = 0), class = "honets_bad_input")
-  expect_error(hg_growth(thg, window = -1), class = "honets_bad_input")
-  expect_error(hg_growth(thg, start = 3, end = 1), class = "honets_bad_input")
-  expect_error(hypergraph_snapshot(thg, at = c(1, 2)), class = "honets_bad_input")
+  expect_error(hg_growth(thg, step = 2, window = "all"), class = "hypernets_bad_input")
+  expect_error(hg_growth(thg, at = 1, step = 1), class = "hypernets_bad_input")
+  expect_error(hg_growth(thg, step = 0), class = "hypernets_bad_input")
+  expect_error(hg_growth(thg, window = -1), class = "hypernets_bad_input")
+  expect_error(hg_growth(thg, start = 3, end = 1), class = "hypernets_bad_input")
+  expect_error(hypergraph_snapshot(thg, at = c(1, 2)), class = "hypernets_bad_input")
 })
 
-test_that("INVARIANT: honets and Dynet agree on which actor pairs are ever co-present", {
+test_that("INVARIANT: hypernets and Dynet agree on which actor pairs are ever co-present", {
   skip_if_not_installed("Dynet")
   log <- data.frame(
     student = c("a", "b", "c", "a", "b", "d", "c", "d"),
@@ -278,9 +278,9 @@ test_that("INVARIANT: honets and Dynet agree on which actor pairs are ever co-pr
                              start = "start", end = "end")
   aggregate <- hypergraph_snapshot(thg, mode = "cumulative")
   projection <- hg_project(aggregate)
-  honets_pairs <- unique(paste(pmin(projection$from, projection$to),
+  hypernets_pairs <- unique(paste(pmin(projection$from, projection$to),
                                pmax(projection$from, projection$to)))
-  expect_setequal(honets_pairs, dynet_pairs)
+  expect_setequal(hypernets_pairs, dynet_pairs)
   # and on the clock: the same unit and origin
   expect_identical(thg$time_unit, dn$meta$time_unit)
   expect_identical(as.numeric(thg$origin), as.numeric(dn$meta$origin))

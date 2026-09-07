@@ -1,4 +1,4 @@
-# Multi-seed UMAP/HDBSCAN benchmark against honets unsupervised
+# Multi-seed UMAP/HDBSCAN benchmark against hypernets unsupervised
 # hypergraph clustering on R8's labelled topics. Run from the package root:
 #   Rscript benchmarks/run_umap_hdbscan_benchmark.R
 #
@@ -6,7 +6,7 @@
 #   benchmarks/results/umap_hdbscan_r8.csv      per-seed metrics
 #   benchmarks/results/umap_hdbscan_effects.csv paired effects
 
-suppressPackageStartupMessages(library(honets))
+suppressPackageStartupMessages(library(hypernets))
 source("benchmarks/harness.R")
 source("R/agreement.R")
 
@@ -16,7 +16,7 @@ result_dir <- file.path("benchmarks", "results")
 dir.create(result_dir, showWarnings = FALSE, recursive = TRUE)
 
 python_out <- file.path(result_dir, "umap_hdbscan_python_r8.csv")
-numba_cache <- file.path(tempdir(), "honets_numba")
+numba_cache <- file.path(tempdir(), "hypernets_numba")
 dir.create(numba_cache, showWarnings = FALSE)
 old_numba <- Sys.getenv("NUMBA_CACHE_DIR", unset = NA_character_)
 Sys.setenv(NUMBA_CACHE_DIR = numba_cache)
@@ -58,7 +58,7 @@ build_seconds <- proc.time()[["elapsed"]] - build_started
 dims <- grep("^dim", names(embedding), value = TRUE)
 x <- as.matrix(embedding[, dims, drop = FALSE])
 
-honets_rows <- lapply(seeds, function(seed) {
+hypernets_rows <- lapply(seeds, function(seed) {
   set.seed(seed)
   started <- proc.time()[["elapsed"]]
   fit <- stats::kmeans(x, centers = length(unique(truth)), nstart = 25L,
@@ -66,7 +66,7 @@ honets_rows <- lapply(seeds, function(seed) {
   elapsed <- proc.time()[["elapsed"]] - started
   reference <- truth[embedding$node]
   data.frame(
-    dataset = dataset, method = "honets_hypergraph", seed = seed,
+    dataset = dataset, method = "hypernets_hypergraph", seed = seed,
     ari = .thg_ari(reference, fit$cluster),
     ami = .thg_ami(reference, fit$cluster),
     nmi = .thg_nmi(reference, fit$cluster),
@@ -74,7 +74,7 @@ honets_rows <- lapply(seeds, function(seed) {
     embedding_s = build_seconds, fit_s = elapsed
   )
 })
-per_seed <- rbind(do.call(rbind, honets_rows), baseline)
+per_seed <- rbind(do.call(rbind, hypernets_rows), baseline)
 per_seed <- per_seed[order(per_seed$method, per_seed$seed), ]
 rownames(per_seed) <- NULL
 
@@ -90,7 +90,7 @@ effects <- do.call(rbind, lapply(seq_along(comparators), function(j) {
   comparator <- comparators[j]
   do.call(rbind, lapply(metrics, function(metric) {
     metric_i <- match(metric, metrics)
-    h <- per_seed[per_seed$method == "honets_hypergraph", metric]
+    h <- per_seed[per_seed$method == "hypernets_hypergraph", metric]
     b <- per_seed[per_seed$method == comparator, metric]
     delta <- h - b
     ci_h <- bootstrap_mean(h, seed = 100L + metric_i)
@@ -98,8 +98,8 @@ effects <- do.call(rbind, lapply(seq_along(comparators), function(j) {
     ci_d <- bootstrap_mean(delta, seed = 300L + 10L * j + metric_i)
     data.frame(
       dataset = dataset, comparator = comparator, metric = metric,
-      n_seeds = length(seeds), honets_mean = mean(h),
-      honets_ci_low = ci_h[1L], honets_ci_high = ci_h[2L],
+      n_seeds = length(seeds), hypernets_mean = mean(h),
+      hypernets_ci_low = ci_h[1L], hypernets_ci_high = ci_h[2L],
       baseline_mean = mean(b), baseline_ci_low = ci_b[1L],
       baseline_ci_high = ci_b[2L], mean_difference = mean(delta),
       difference_ci_low = ci_d[1L], difference_ci_high = ci_d[2L],

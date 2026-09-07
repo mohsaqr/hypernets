@@ -68,7 +68,7 @@ fragment scores low; \code{0.5} is a sensible floor for abstracts.}
 \value{
 \code{x} with the text cleaned: a character vector of the same length
 (names kept), or the same data.frame with \code{column} replaced. \code{NA} and
-low-content texts become \code{""}. Raises \code{honets_bad_input} for a
+low-content texts become \code{""}. Raises \code{hypernets_bad_input} for a
 malformed \code{x}, \code{column} or switch.
 }
 \description{
@@ -78,7 +78,7 @@ bracketed citation numbers and list or section numbering, URLs and DOIs,
 trailing copyright notices, bare numbers, and optionally stop words. Each
 step is a switch. The result has the same length (or the same rows) as the
 input; a text that falls below \code{min_content} becomes the empty string,
-which \code{\link[=text_hypergraph]{text_hypergraph()}} then drops with a \code{honets_dropped_documents}
+which \code{\link[=text_hypergraph]{text_hypergraph()}} then drops with a \code{hypernets_dropped_documents}
 warning, so nothing leaves the corpus silently.
 }
 \examples{

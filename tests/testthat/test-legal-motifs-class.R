@@ -34,14 +34,14 @@ test_that("INVARIANT: vectorised motif census equals the pairwise loop", {
     n <- sample(6:14, 1)
     m <- sample(4:24, 1)
     edges <- unique(lapply(seq_len(m), function(i) sort(sample(n, 3))))
-    expect_identical(honets:::.thg_yto_counts(edges), .motif_loop(edges))
+    expect_identical(hypernets:::.thg_yto_counts(edges), .motif_loop(edges))
   }
 })
 
 test_that("motif tests carry their draws and plot", {
   h <- .motif_hg(list(c(1, 2, 3), c(1, 2, 4), c(1, 3, 5), c(2, 4, 5)))
   out <- hg_motifs(h, n = 9, seed = 7)
-  expect_s3_class(out, "honets_motifs")
+  expect_s3_class(out, "hypernets_motifs")
   expect_s3_class(out, "data.frame")
   test <- as.data.frame(out)
   expect_identical(class(test), "data.frame")

@@ -10,7 +10,7 @@ hg_line_graph(hg, s = 1, what = c("edges", "matrix"))
 hypergraph_line_graph(hg, s = 1, what = c("edges", "matrix"))
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any honets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
 \code{net_hypergraph}.}
 
 \item{s}{Minimum number of shared vertices for two hyperedges to be

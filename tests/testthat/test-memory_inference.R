@@ -13,15 +13,15 @@ test_that("weighted count aggregation equals re-counting the multiset", {
   set.seed(21)
   trajectories <- replicate(6, sample(letters[1:4], 10, replace = TRUE),
                             simplify = FALSE)
-  sc <- honets:::.hi_seq_counts(trajectories, max_order = 3L)
+  sc <- hypernets:::.hi_seq_counts(trajectories, max_order = 3L)
   results <- lapply(1:10, function(i) {
     w <- sample(0:3, 6, replace = TRUE)
     if (sum(w) == 0L) w[1L] <- 1L
-    env_fast <- honets:::.hi_count_env(sc, w)
+    env_fast <- hypernets:::.hi_count_env(sc, w)
     # genuine exception to the no-loop rule is not needed: rep() expands
     # the multiset that the slow reference re-counts
     multiset <- rep(trajectories, times = w)
-    env_slow <- honets:::.hon_build_observations(multiset, 3L)
+    env_slow <- hypernets:::.hon_build_observations(multiset, 3L)
     keys <- sort(ls(env_slow))
     expect_identical(sort(ls(env_fast)), keys)
     for (k in keys) {

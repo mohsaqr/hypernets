@@ -7,7 +7,7 @@
 #   Rscript benchmarks/run_legal_hypergraphs_reproduction.R \
 #     /path/to/legalhypergraphs-8081507 [output-directory]
 
-suppressPackageStartupMessages(library(honets))
+suppressPackageStartupMessages(library(hypernets))
 
 args <- commandArgs(trailingOnly = TRUE)
 archive <- if (length(args)) args[[1L]] else
@@ -163,7 +163,7 @@ for (i in seq_len(length(medoids) - 1L)) {
 medoid_similarity <- do.call(rbind, similarity_rows)
 write_result(medoid_similarity, "gfcc-medoid-similarity.csv")
 
-# Re-evaluate each association medoid on its own honets projection and verify
+# Re-evaluate each association medoid on its own hypernets projection and verify
 # the four diagnostics reported in the authors' archived evaluation table.
 quality_rows <- lapply(seq_len(nrow(representations)), function(i) {
   spec <- representations[i, ]

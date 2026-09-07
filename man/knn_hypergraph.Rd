@@ -35,8 +35,8 @@ L2-normalized embeddings, so normalized encoder output (the default of
 \code{sbert::encode()}) gives the conventional kNN structure.
 }
 \section{Conditions}{
- Raises \code{honets_bad_input} for broken contracts, and
-\code{honets_nonpositive_similarity} when \code{weight = "cosine"} selects a neighbor
+ Raises \code{hypernets_bad_input} for broken contracts, and
+\code{hypernets_nonpositive_similarity} when \code{weight = "cosine"} selects a neighbor
 with similarity <= 0 -- a non-positive incidence weight would invalidate
 the random-walk machinery downstream; use \code{weight = "binary"} or a
 smaller \code{k} instead.

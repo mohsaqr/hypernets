@@ -582,7 +582,7 @@ as.data.frame.net_hypa <- function(x, row.names = NULL, optional = FALSE, ...,
     if (is.null(out[[col]])) {
       stop(errorCondition(
         sprintf("no `%s` column found on this net_hypa result", col),
-        class = "honets_bad_input", call = NULL))
+        class = "hypernets_bad_input", call = NULL))
     }
     # p ascends (most significant first); the magnitude keys descend.
     key <- if (sort_by == "p") out[[col]] else -out[[col]]

@@ -73,13 +73,13 @@ test_that("clean_text keeps data.frame rows aligned and feeds text_hypergraph", 
   expect_identical(out$text[[2L]], "")
   # the empty row is dropped by the constructor, with its named warning
   expect_warning(hg <- text_hypergraph(out, column = "text", id = "id"),
-                 class = "honets_dropped_documents")
+                 class = "hypernets_dropped_documents")
   expect_setequal(hg$nodes, c("a", "c"))
-  expect_error(clean_text(df), class = "honets_bad_input")
-  expect_error(clean_text(df, column = "nope"), class = "honets_bad_input")
-  expect_error(clean_text("x", column = "text"), class = "honets_bad_input")
-  expect_error(clean_text(1), class = "honets_bad_input")
-  expect_error(clean_text("x", html = NA), class = "honets_bad_input")
+  expect_error(clean_text(df), class = "hypernets_bad_input")
+  expect_error(clean_text(df, column = "nope"), class = "hypernets_bad_input")
+  expect_error(clean_text("x", column = "text"), class = "hypernets_bad_input")
+  expect_error(clean_text(1), class = "hypernets_bad_input")
+  expect_error(clean_text("x", html = NA), class = "hypernets_bad_input")
   expect_error(clean_text("x", min_content = 2), "min_content")
 })
 

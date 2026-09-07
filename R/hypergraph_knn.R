@@ -27,8 +27,8 @@
 #'   `k` and the weighting. Accepted by [hg_measures()], [hg_centrality()],
 #'   [hg_cluster()], and [hg_classify()].
 #'
-#' @section Conditions: Raises `honets_bad_input` for broken contracts, and
-#'   `honets_nonpositive_similarity` when `weight = "cosine"` selects a neighbor
+#' @section Conditions: Raises `hypernets_bad_input` for broken contracts, and
+#'   `hypernets_nonpositive_similarity` when `weight = "cosine"` selects a neighbor
 #'   with similarity <= 0 -- a non-positive incidence weight would invalidate
 #'   the random-walk machinery downstream; use `weight = "binary"` or a
 #'   smaller `k` instead.
@@ -55,14 +55,14 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
       !all(nzchar(ids))) {
     stop(errorCondition(
       "`embeddings` must carry unique, non-empty rownames (the item IDs)",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   norms <- sqrt(rowSums(embeddings^2))
   if (any(norms < sqrt(.Machine$double.eps))) {
     stop(errorCondition(
       "`embeddings` contains all-zero rows; cosine similarity is undefined",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
 
@@ -89,7 +89,7 @@ knn_hypergraph <- function(embeddings, k, weight = c("cosine", "binary")) {
         "non-positive weight in the incidence; use weight = \"binary\" or a",
         "smaller `k`"
       ),
-      class = "honets_nonpositive_similarity", call = NULL
+      class = "hypernets_nonpositive_similarity", call = NULL
     ))
   }
 

@@ -1,10 +1,10 @@
-#' honets: Higher-Order Network Analysis
+#' hypernets: Higher-Order Network Analysis
 #'
 #' A higher-order network is one in which a relation reaches beyond a single
 #' pair of nodes at a single moment: either it *binds more than two nodes at
 #' once*, or it *depends on more than the current node*. The literature
 #' (Battiston et al. 2020; Bianconi 2021) organizes that idea into three
-#' structure families, and honets implements all three behind one taxonomy.
+#' structure families, and hypernets implements all three behind one taxonomy.
 #'
 #' @section The three families:
 #'

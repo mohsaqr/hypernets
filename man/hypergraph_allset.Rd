@@ -44,7 +44,7 @@ hypergraph_alldeepsets(...)
 hypergraph_allset_transformer(...)
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}),
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}),
 dense or sparse.}
 
 \item{labels}{The known labels: a named character vector (names are

@@ -86,7 +86,7 @@ test_that("hg_neural argument contracts are enforced", {
   skip_if_not_installed("torch")
   hg <- text_hypergraph(neural_corpus, stop_words = neural_stop)
   expect_error(hg_neural(hg, labels = c(cooking_1 = "x")),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_neural(hg, labels = c(zz = "x", cooking_1 = "y")),
                "Unknown node names")
   bad_feats <- diag(4)

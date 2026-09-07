@@ -34,7 +34,7 @@
   if (any(vertex_degree <= 0)) {
     stop(errorCondition(
       "every vertex must belong to at least one hyperedge",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   transition <- (membership %*% (t(incidence) * (edge_weights / delta))) /
@@ -65,7 +65,7 @@
 #' with uniform teleportation it equals
 #' `hypergraph_centrality(type = "pagerank")` (tested).
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
 #'   `net_hypergraph` (connected when `damping = 1`).
 #' @param damping Probability of following the hypergraph walk (default
 #'   `0.85`); `1 - damping` is the teleport probability. Must be in
@@ -89,8 +89,8 @@
 #' @return A base `data.frame`, one row per vertex, with columns `node` and
 #'   `pagerank` (non-negative, summing to 1).
 #'
-#' @section Conditions: Raises `honets_bad_input` for broken contracts and
-#'   warns with `honets_no_converge` (returning the last iterate) when
+#' @section Conditions: Raises `hypernets_bad_input` for broken contracts and
+#'   warns with `hypernets_no_converge` (returning the last iterate) when
 #'   `max_iter` is reached before `tol`.
 #'
 #' @references
@@ -154,7 +154,7 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
         !all(names(personalized) %in% ids)) {
       stop(errorCondition(
         "`personalized` must be a named non-negative vector with a positive sum, over vertex names of `hg`",
-        class = "honets_bad_input", call = NULL
+        class = "hypernets_bad_input", call = NULL
       ))
     }
     teleport <- rep(0, length(ids))
@@ -181,7 +181,7 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
     warning(warningCondition(
       sprintf("PageRank did not converge in %d iterations (returning the last iterate)",
               as.integer(max_iter)),
-      class = "honets_no_converge"
+      class = "hypernets_no_converge"
     ))
   }
 

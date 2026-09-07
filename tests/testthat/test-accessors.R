@@ -2,7 +2,7 @@ testthat::skip_on_cran()
 
 # ---- Tidy accessors: every net_* result class ----------------------------
 #
-# Taxonomy contract (honets 0.2.0): every result object in every structure
+# Taxonomy contract (hypernets 0.2.0): every result object in every structure
 # family is reachable with as.data.frame(), a secondary table is selected
 # with what =, and the return is always a base data.frame with >= 1 column
 # and no row names. Reaching into a result with $ is never required.
@@ -256,7 +256,7 @@ test_that("accessors reject unknown what = and bad filters", {
   ph <- persistent_homology(.ac_mat(), n_steps = 6L, max_dim = 2L)
   expect_error(
     as.data.frame(ph, what = "betti", sort_by = "persistence"),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
 
   pd <- path_dependence(.ac_wide(), order = 2L)

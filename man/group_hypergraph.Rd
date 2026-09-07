@@ -47,7 +47,7 @@ large, sparse event data such as the full GFCC citation-block corpus.}
 \code{actor} and \code{cooccur_by}.}
 
 \item{member, cooccur_by}{Deprecated names of \code{actor} and \code{group}; using
-them warns with a \code{honets_deprecated} condition.}
+them warns with a \code{hypernets_deprecated} condition.}
 }
 \value{
 A \code{net_hypergraph} object with the same structure produced by

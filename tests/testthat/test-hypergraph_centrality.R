@@ -186,7 +186,7 @@ test_that("power iteration is deterministic given same input", {
 # Integration with group_hypergraph + bundled data ------------------------
 
 test_that("runs on bundled human_long dataset without error", {
-  data("human_long", package = "honets")
+  data("human_long", package = "hypernets")
   # Use a small subset to keep the test fast
   sub <- head(human_long, 500)
   hg  <- group_hypergraph(sub, "code", "session_id")
@@ -211,7 +211,7 @@ test_that("pagerank matches a dense linear-system solve on EDVW walks", {
     hg <- window_hypergraph(
       list(sample(letters[1:5], 60, replace = TRUE)), window = 3L)
     pr <- hypergraph_centrality(hg, type = "pagerank", damping = 0.85, tol = 1e-12)
-    rw <- honets:::.hl_rw_transition(hg)
+    rw <- hypernets:::.hl_rw_transition(hg)
     n <- hg$n_nodes
     ref <- solve(diag(n) - 0.85 * t(rw$P), rep(0.15 / n, n))
     expect_equal(.hc_vec(pr, "pagerank"), ref, tolerance = 1e-7,
@@ -295,7 +295,7 @@ test_that("pagerank degenerate and error paths", {
                "edge_weights")
   expect_warning(
     hypergraph_centrality(hg, type = "pagerank", max_iter = 1L),
-    class = "honets_no_converge"
+    class = "hypernets_no_converge"
   )
 })
 

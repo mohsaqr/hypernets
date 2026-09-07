@@ -2,17 +2,17 @@
 % Please edit documentation in R/hypergraph_communities.R
 \name{hg_compare_communities}
 \alias{hg_compare_communities}
-\alias{print.honets_community_comparison}
-\alias{as.data.frame.honets_community_comparison}
-\alias{summary.honets_community_comparison}
-\alias{plot.honets_community_comparison}
+\alias{print.hypernets_community_comparison}
+\alias{as.data.frame.hypernets_community_comparison}
+\alias{summary.hypernets_community_comparison}
+\alias{plot.hypernets_community_comparison}
 \title{Compare community structure across representations}
 \usage{
 hg_compare_communities(..., hg = NULL, edge_source = NULL)
 
-\method{print}{honets_community_comparison}(x, ...)
+\method{print}{hypernets_community_comparison}(x, ...)
 
-\method{as.data.frame}{honets_community_comparison}(
+\method{as.data.frame}{hypernets_community_comparison}(
   x,
   row.names = NULL,
   optional = FALSE,
@@ -20,9 +20,9 @@ hg_compare_communities(..., hg = NULL, edge_source = NULL)
   ...
 )
 
-\method{summary}{honets_community_comparison}(object, ...)
+\method{summary}{hypernets_community_comparison}(object, ...)
 
-\method{plot}{honets_community_comparison}(x, what = c("sizes", "similarity"), ...)
+\method{plot}{hypernets_community_comparison}(x, what = c("sizes", "similarity"), ...)
 }
 \arguments{
 \item{...}{For \code{plot}, unused.}
@@ -35,7 +35,7 @@ projection its own fit used, and the scores are available as
 \item{edge_source}{Hyperedge sources for the citation and self-association
 projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
 
-\item{x}{A \code{honets_community_comparison} object.}
+\item{x}{A \code{hypernets_community_comparison} object.}
 
 \item{row.names, optional}{Unused; present for the base S3 contract.}
 
@@ -43,10 +43,10 @@ projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
 \code{"quality"}, or \code{"matrix"} for the similarity as a square matrix with
 AMI below and ARI above the diagonal (the layout of \code{plot()}).}
 
-\item{object}{A \code{honets_community_comparison} object.}
+\item{object}{A \code{hypernets_community_comparison} object.}
 }
 \value{
-A \code{honets_community_comparison} object. \code{as.data.frame()} returns
+A \code{hypernets_community_comparison} object. \code{as.data.frame()} returns
 its \code{"summary"} (default; one row per fit with \code{model}, \code{medoid_seed},
 \code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest}, \code{second}
 and \code{balance} = second / largest), \code{"similarity"} (one row per pair of

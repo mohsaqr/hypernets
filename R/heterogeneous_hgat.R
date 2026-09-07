@@ -152,7 +152,7 @@ heterogeneous_hgat <- function(
     validation = 0.1, seed = 1L, verbose = FALSE) {
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition("heterogeneous_hgat() needs the torch package",
-                        class = "honets_missing_torch", call = NULL))
+                        class = "hypernets_missing_torch", call = NULL))
   }
   input <- .thg_hgat_inputs(adjacency, node_types, features)
   labels <- .thg_labels_input(labels)
@@ -175,7 +175,7 @@ heterogeneous_hgat <- function(
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {
     stop(errorCondition("`labels` must contain at least two distinct classes.",
-                        class = "honets_bad_input", call = NULL))
+                        class = "hypernets_bad_input", call = NULL))
   }
   x <- lapply(input$features, function(value) {
     torch::torch_tensor(value, dtype = torch::torch_float())

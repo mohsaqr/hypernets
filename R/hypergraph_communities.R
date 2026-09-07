@@ -1,5 +1,5 @@
 # Repeated Infomap on the association projection, following the paper's
-# representation-comparison workflow. honets owns the hypergraph projection;
+# representation-comparison workflow. hypernets owns the hypergraph projection;
 # cograph owns the graph clustering and quality kernels.
 
 .thg_partition_vector <- function(partition, nodes) {
@@ -80,7 +80,7 @@ hg_communities <- function(hg, n_runs = 50L, trials = 100L, seeds = NULL,
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop(errorCondition(
       "`hg_communities()` needs the suggested package `igraph` for Infomap",
-      class = "honets_missing_dependency", call = NULL
+      class = "hypernets_missing_dependency", call = NULL
     ))
   }
   whole <- function(x, name) {
@@ -200,7 +200,7 @@ hg_communities <- function(hg, n_runs = 50L, trials = 100L, seeds = NULL,
 #'   `what = "quality"`.
 #' @param edge_source Hyperedge sources for the citation and self-association
 #'   projections when scoring, as in [hg_project()].
-#' @return A `honets_community_comparison` object. `as.data.frame()` returns
+#' @return A `hypernets_community_comparison` object. `as.data.frame()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 #'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest`, `second`
 #'   and `balance` = second / largest), `"similarity"` (one row per pair of
@@ -289,13 +289,13 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
     sizes = do.call(rbind, size_rows),
     similarity = do.call(rbind, similarity_rows),
     quality = quality
-  ), class = "honets_community_comparison")
+  ), class = "hypernets_community_comparison")
 }
 
 #' @rdname hg_compare_communities
-#' @param x A `honets_community_comparison` object.
+#' @param x A `hypernets_community_comparison` object.
 #' @export
-print.honets_community_comparison <- function(x, ...) {
+print.hypernets_community_comparison <- function(x, ...) {
   cat(sprintf("Community comparison across %d representations: %s\n",
               length(x$models), paste(x$models, collapse = ", ")))
   print(x$summary, row.names = FALSE)
@@ -308,7 +308,7 @@ print.honets_community_comparison <- function(x, ...) {
 #'   `"quality"`, or `"matrix"` for the similarity as a square matrix with
 #'   AMI below and ARI above the diagonal (the layout of `plot()`).
 #' @export
-as.data.frame.honets_community_comparison <- function(x, row.names = NULL,
+as.data.frame.hypernets_community_comparison <- function(x, row.names = NULL,
                                                       optional = FALSE,
                                                       what = c("summary",
                                                                "similarity",
@@ -326,9 +326,9 @@ as.data.frame.honets_community_comparison <- function(x, row.names = NULL,
 }
 
 #' @rdname hg_compare_communities
-#' @param object A `honets_community_comparison` object.
+#' @param object A `hypernets_community_comparison` object.
 #' @export
-summary.honets_community_comparison <- function(object, ...) {
+summary.hypernets_community_comparison <- function(object, ...) {
   as.data.frame(object, what = "summary")
 }
 
@@ -336,7 +336,7 @@ summary.honets_community_comparison <- function(object, ...) {
 #' @param ... For `plot`, unused.
 #' @return For `plot`, a ggplot object.
 #' @export
-plot.honets_community_comparison <- function(x, what = c("sizes", "similarity"),
+plot.hypernets_community_comparison <- function(x, what = c("sizes", "similarity"),
                                              ...) {
   what <- match.arg(what)
   if (identical(what, "sizes")) {

@@ -63,7 +63,7 @@ Places the nodes with a graph layout of the clique projection and draws
 every hyperedge as a smooth translucent blob around its members, through
 \code{\link[cograph:plot_simplicial]{cograph::plot_simplicial()}}. Blobs can be coloured by hyperedge size, by
 a column of the edge metadata, or by any value supplied per hyperedge, and
-outlined with a line type by the same kinds of selector; honets adds the
+outlined with a line type by the same kinds of selector; hypernets adds the
 legend for that mapping. This is the drawing convention used for the
 decision and tribunal figures of Coupette et al. (2024). A hyperedge with
 a single member is drawn as its node alone.

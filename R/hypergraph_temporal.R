@@ -1,17 +1,17 @@
-# Temporal hypergraphs as hyperedge spells. This is deliberately an honets
+# Temporal hypergraphs as hyperedge spells. This is deliberately an hypernets
 # object, not a Dynet adapter: hyperedges remain first-class throughout. The
 # vocabulary is Dynet's (`../temporal`): column aliases, time parsing,
 # observation bounds and the step/window measurement grid follow its
 # definitions so a co-presence log reads the same way in both packages.
 
 .thg_bad_input <- function(message, class = character()) {
-  stop(errorCondition(message, class = c(class, "honets_bad_input"), call = NULL))
+  stop(errorCondition(message, class = c(class, "hypernets_bad_input"), call = NULL))
 }
 
 .thg_deprecated <- function(old, new, fn) {
   warning(warningCondition(
     sprintf("`%s` is deprecated in %s(); use `%s` instead", old, fn, new),
-    class = c("honets_deprecated", "deprecatedWarning"), call = NULL
+    class = c("hypernets_deprecated", "deprecatedWarning"), call = NULL
   ))
 }
 
@@ -64,7 +64,7 @@
       .thg_bad_input(
         sprintf("column `%s` (given as `%s`) is not in the data; available: %s",
                 given, arg, paste(names(data), collapse = ", ")),
-        class = "honets_missing_column"
+        class = "hypernets_missing_column"
       )
     }
     return(given)
@@ -111,7 +111,7 @@
     .thg_bad_input(
       sprintf("could not parse time strings such as '%s'; supply numeric, Date or POSIXct times",
               x[present][1L]),
-      class = "honets_unparsed_time"
+      class = "hypernets_unparsed_time"
     )
   }
   trial[[best]]
@@ -297,7 +297,7 @@
 #' @param sparse Store every snapshot's incidence as a sparse `Matrix`?
 #'   Default `FALSE`.
 #' @param cooccur_by Deprecated name of `group`; using it warns with a
-#'   `honets_deprecated` condition.
+#'   `hypernets_deprecated` condition.
 #' @return A `net_temporal_hypergraph` holding the membership table (`node`,
 #'   `edge`, `start`, `end`, `weight`), the edge metadata (`edge`, `start`,
 #'   `end` and the hyperedge attributes), the node universe with entry
@@ -697,7 +697,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     query_end <- end %||% obs[["end"]]
     if (query_end < obs[["start"]] || query_start > obs[["end"]]) {
       .thg_bad_input("the requested measurement range does not intersect the observation window",
-                     class = "honets_outside_observation")
+                     class = "hypernets_outside_observation")
     }
     if (!is.null(start)) start <- max(start, obs[["start"]])
     if (!is.null(end)) end <- min(end, obs[["end"]])
@@ -710,7 +710,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     if (length(times) == 0L) .thg_bad_input("`at` contains no valid times")
     if (explicit && any(times < obs[["start"]] | times > obs[["end"]])) {
       .thg_bad_input("`at` lies outside the observation window",
-                     class = "honets_outside_observation")
+                     class = "hypernets_outside_observation")
     }
     times <- sort(unique(times))
     window <- if (whole) end - start else as.numeric(window %||% 0)
@@ -835,7 +835,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 #' @param multiedges Keep distinct edge identities with identical member sets?
 #'   `TRUE` matches a multi-hypergraph; `FALSE` collapses them to one edge and
 #'   records their counts in `edge_multiplicity`.
-#' @return A static `net_hypergraph` usable by every honets hypergraph verb;
+#' @return A static `net_hypergraph` usable by every hypernets hypergraph verb;
 #'   its `params` record `at`, `window`, `temporal_mode` and the clock.
 #' @export
 hypergraph_snapshot <- function(x, at = NULL, window = 0,

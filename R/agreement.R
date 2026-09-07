@@ -88,7 +88,7 @@
   if (!node %in% names(x)) {
     stop(errorCondition(
       sprintf("`%s` has no `%s` column", arg, node),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   column <- if (is.null(label)) {
@@ -106,7 +106,7 @@
       } else {
         sprintf("`%s` has no `%s` column", arg, label)
       },
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   data.frame(node = as.character(x[[node]]),
@@ -220,7 +220,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
   if (nrow(joined) == 0L) {
     stop(errorCondition(
       "`x` and `y` share no node names; nothing to compare",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   if (identical(what, "table")) {
@@ -267,7 +267,7 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
 #' the seed is not estimable from the data, whatever its eigengap looks
 #' like.
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`).
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
 #' @param k Vector of cluster counts to test, each at least 2.
 #' @param type `"zhou"` or `"random_walk"`, as in [hg_cluster()].
 #' @param seeds Two distinct k-means seeds (default `c(1L, 99L)`).

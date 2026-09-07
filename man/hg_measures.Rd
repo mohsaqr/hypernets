@@ -11,7 +11,7 @@ hg_measures(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any honets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
 
 \item{what}{Which table: \code{"nodes"} (default; one row per node with
 \code{hyperdegree}, \code{strength}, \code{max_edge_size} and \code{n_neighbors}, the
@@ -19,7 +19,7 @@ distinct nodes it shares a hyperedge with), \code{"edges"} (one row per
 hyperedge with its \code{size}), \code{"overlap"} (one row per hyperedge pair with
 \code{overlap}, \code{overlap_coefficient}, \code{jaccard}), \code{"summary"} (one row per
 scalar measure), \code{"distribution"} (the empirical distribution of
-\code{measure}, as a \code{honets_distribution} table whose \code{plot()} draws the
+\code{measure}, as a \code{hypernets_distribution} table whose \code{plot()} draws the
 CCDF), or \code{"components"} (one row per connected component through shared
 hyperedges, with its \code{n_nodes}, \code{n_edges}, \code{share} of nodes and
 \code{diameter}).}

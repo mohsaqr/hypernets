@@ -8,6 +8,6 @@
   from package documentation background — exact function surface not audited
   this session.
 - **Role for us**: an optional external embedding route. sbert is the native
-  honets-facing frontend; either package can supply a matrix to
-  `knn_hypergraph()`. PLM training remains outside honets.
+  hypernets-facing frontend; either package can supply a matrix to
+  `knn_hypergraph()`. PLM training remains outside hypernets.
 - **Links**: https://cran.r-project.org/package=text · https://r-text.org

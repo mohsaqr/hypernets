@@ -1,7 +1,7 @@
 # Growth of a temporal hypergraph over its event times, and the two small
 # result classes shared by the descriptive layer: a time series table
-# (`honets_series`) and an empirical distribution table
-# (`honets_distribution`). Both are plain data.frames with a plot method.
+# (`hypernets_series`) and an empirical distribution table
+# (`hypernets_distribution`). Both are plain data.frames with a plot method.
 
 #' Growth of a temporal hypergraph over time
 #'
@@ -28,7 +28,7 @@
 #'   in the largest, and its diameter (longest shortest path between two
 #'   nodes sharing a chain of hyperedges)? Default `FALSE`; the computation
 #'   is a breadth-first search per node and time.
-#' @return A base data.frame of class `honets_series`, one row per window,
+#' @return A base data.frame of class `hypernets_series`, one row per window,
 #'   with `time` (the window start on the hypergraph's clock), `n_nodes`,
 #'   `n_edges`, `n_edges_distinct`, `n_memberships`, and for
 #'   `mode = "active"` also `n_nodes_cumulative`, `n_edges_cumulative` and
@@ -143,7 +143,7 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
 
 # A series or distribution table remembers the clock it was measured on, so
 # its plot can label the axis with dates.
-.thg_series <- function(out, x, class = "honets_series") {
+.thg_series <- function(out, x, class = "hypernets_series") {
   class(out) <- c(class, "data.frame")
   attr(out, "time_unit") <- x$time_unit
   attr(out, "origin") <- x$origin
@@ -249,7 +249,7 @@ hypergraph_growth <- hg_growth
 }
 
 #' @rdname hg_growth
-#' @param x A `honets_series` table (for `plot`).
+#' @param x A `hypernets_series` table (for `plot`).
 #' @param columns Which numeric columns to draw; default all but `time`.
 #' @param facets Draw one panel per column (default `TRUE`, because node
 #'   and hyperedge counts live on different scales) or all columns in one
@@ -257,7 +257,7 @@ hypergraph_growth <- hg_growth
 #' @param ... Unused; for S3 consistency.
 #' @return For `plot`, a ggplot object.
 #' @export
-plot.honets_series <- function(x, columns = NULL, facets = TRUE, ...) {
+plot.hypernets_series <- function(x, columns = NULL, facets = TRUE, ...) {
   d <- as.data.frame(x)
   numeric_columns <- setdiff(names(d)[vapply(d, is.numeric, logical(1L))], "time")
   columns <- columns %||% numeric_columns
@@ -311,13 +311,13 @@ plot.honets_series <- function(x, columns = NULL, facets = TRUE, ...) {
 #' A grouping column (`time`, `s`) present in the table gives one curve per
 #' group.
 #'
-#' @param x A `honets_distribution` table.
+#' @param x A `hypernets_distribution` table.
 #' @param log Draw the CCDF on a logarithmic y axis (default `TRUE`).
 #' @param ... Unused; for S3 consistency.
 #' @return A ggplot object.
 #' @keywords internal
 #' @export
-plot.honets_distribution <- function(x, log = TRUE, ...) {
+plot.hypernets_distribution <- function(x, log = TRUE, ...) {
   d <- as.data.frame(x)
   group <- intersect(c("time", "s", "series"), names(d))
   d$series <- if (length(group)) {

@@ -1,6 +1,6 @@
 # The projection tier: hypergraph -> weighted graph, and hypergraph ->
 # s-line graph. Both are pure incidence algebra. Results expose graph-shaped
-# matrices and edge lists at the cograph boundary: honets owns these
+# matrices and edge lists at the cograph boundary: hypernets owns these
 # hypergraph transformations; cograph owns downstream graph analysis and
 # plotting.
 
@@ -71,7 +71,7 @@
 #' the binary graph (`bg`). `directed = TRUE` keeps the source-to-member
 #' orientation; the default symmetrises.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
 #'   `net_hypergraph`.
 #' @param method Weighting. `"clique"` (default) sums incidence products;
 #'   `"association"` applies the \eqn{1/(|e|-1)} normalisation above;
@@ -141,7 +141,7 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
   if (!identical(method, "clique") && !missing(weighted)) {
     stop(errorCondition(
       "`weighted` applies to `method = \"clique\"` only; the association and citation weightings are defined on membership, not on incidence weights",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   if (identical(method, "clique") && !identical(duplicate_edges, "count")) {
@@ -321,7 +321,7 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
 #' same graph as `hg_project(dual_hypergraph(hg), weighted = FALSE)`, which
 #' the tests assert.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
 #'   `net_hypergraph`.
 #' @param s Minimum number of shared vertices for two hyperedges to be
 #'   adjacent. A single integer of at least 1; `1` (default) is the ordinary

@@ -81,7 +81,7 @@
   if (any(d_v <= 0)) {
     stop(errorCondition(
       "every vertex must belong to at least one hyperedge",
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   scale_e <- w / delta
@@ -118,7 +118,7 @@
   warning(warningCondition(
     sprintf("stationary distribution not converged in %d iterations",
             max_iter),
-    class = "honets_no_converge"
+    class = "hypernets_no_converge"
   ))
   pi_vec
 }
@@ -133,7 +133,7 @@
       paste0("The hypergraph is not connected; the random walk has no ",
              "unique stationary distribution. Analyze components ",
              "separately."),
-      class = "honets_hypergraph_disconnected", call = NULL
+      class = "hypernets_hypergraph_disconnected", call = NULL
     ))
   }
   if (identical(type, "zhou")) {
@@ -184,7 +184,7 @@
   if (sqrt(rs) > tol) {
     warning(warningCondition(
       sprintf("conjugate gradient not converged in %d iterations", max_iter),
-      class = "honets_no_converge"
+      class = "hypernets_no_converge"
     ))
   }
   x
@@ -203,7 +203,7 @@
   if (length(eig$values) < k) {
     stop(errorCondition(
       "partial eigendecomposition did not converge; try the dense engine",
-      class = "honets_no_converge", call = NULL
+      class = "hypernets_no_converge", call = NULL
     ))
   }
   lap_values <- 1 - eig$values                 # increasing: smallest of L
@@ -332,7 +332,7 @@
           "the overlap table is quadratic in hyperedges (%d here); compute it on a subset",
           hg$n_hyperedges
         ),
-        class = "honets_sparse_too_large", call = NULL
+        class = "hypernets_sparse_too_large", call = NULL
       ))
     }
     co <- as.matrix(Matrix::crossprod(membership))

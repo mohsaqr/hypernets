@@ -41,5 +41,5 @@ test_that("duals of non-bag constructions drop the text layer", {
 })
 
 test_that("dual rejects non-hypergraphs with a classed error", {
-  expect_error(dual_hypergraph("x"), class = "honets_bad_input")
+  expect_error(dual_hypergraph("x"), class = "hypernets_bad_input")
 })

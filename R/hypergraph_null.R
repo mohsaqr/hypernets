@@ -76,7 +76,7 @@
   }
   stop(errorCondition(
     "the degree-ordered assignment stranded a node in every attempt",
-    class = "honets_no_converge", call = NULL
+    class = "hypernets_no_converge", call = NULL
   ))
 }
 
@@ -144,7 +144,7 @@
 #' are the 2.5% and 97.5% null quantiles -- report them with the observed
 #' value, not the p-value alone.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any honets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
 #'   `net_hypergraph`.
 #' @param statistic Statistics to test; any of `"pairwise_participation"`,
 #'   `"density"`, `"avg_edge_size"`, `"avg_jaccard"` (mean pairwise edge
@@ -174,8 +174,8 @@
 #' @return A base `data.frame`, one row per statistic: `statistic`,
 #'   `observed`, `null_mean`, `null_lo`, `null_hi`, `z`, `p_value`, `n`,
 #'   `method`.
-#' @section Conditions: Raises `honets_bad_input` for broken contracts.
-#'   `method = "configuration"` signals a `honets_configuration_collapse`
+#' @section Conditions: Raises `hypernets_bad_input` for broken contracts.
+#'   `method = "configuration"` signals a `hypernets_configuration_collapse`
 #'   warning when stub matching collapses more than 1% of memberships on
 #'   average, which happens whenever hyperedges are large relative to the
 #'   vertex set -- the usual case in the document orientation.
@@ -209,7 +209,7 @@ hg_null_test <- function(hg,
   if (.thg_is_sparse(hg)) {
     stop(errorCondition(
       "the null test needs the dense representation for now",
-      class = "honets_sparse_unsupported", call = NULL
+      class = "hypernets_sparse_unsupported", call = NULL
     ))
   }
   statistic <- match.arg(statistic, several.ok = TRUE)
@@ -268,7 +268,7 @@ hg_null_test <- function(hg,
                        "on average, so vertex degrees and hyperedge sizes are ",
                        "preserved only approximately; method = \"swap\" preserves ",
                        "both margins exactly"), 100 * lost),
-        class = "honets_configuration_collapse"
+        class = "hypernets_configuration_collapse"
       ))
     }
     stats

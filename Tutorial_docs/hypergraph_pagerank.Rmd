@@ -1,6 +1,6 @@
 ---
 title: "Hypergraph PageRank: where the interaction flow spends its time"
-author: "honets"
+author: "hypernets"
 date: "2026-08-25"
 output:
   html_document:
@@ -44,7 +44,7 @@ combinations — so the scores below use information a pairwise reduction
 would destroy.
 
 ```{r load}
-library(honets)
+library(hypernets)
 ```
 
 ## The flow scores

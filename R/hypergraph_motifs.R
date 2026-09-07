@@ -205,7 +205,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
     run = rep(seq_len(n), each = 3L), motif = rep(names(observed), n),
     count = as.numeric(null), row.names = NULL
   )
-  class(out) <- c("honets_motifs", "data.frame")
+  class(out) <- c("hypernets_motifs", "data.frame")
   out
 }
 
@@ -214,14 +214,14 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
 hypergraph_motifs <- hg_motifs
 
 #' @rdname hg_motifs
-#' @param x A `honets_motifs` test table.
+#' @param x A `hypernets_motifs` test table.
 #' @param row.names,optional Unused; present for the base S3 contract.
 #' @param ... Unused; for S3 consistency.
 #' @return For `as.data.frame`, the test table (`what = "test"`) or every null
 #'   count (`what = "draws"`, columns `run`, `motif`, `count`) as a plain
 #'   data.frame.
 #' @export
-as.data.frame.honets_motifs <- function(x, row.names = NULL, optional = FALSE,
+as.data.frame.hypernets_motifs <- function(x, row.names = NULL, optional = FALSE,
                                         what = c("test", "draws"), ...) {
   what <- match.arg(what)
   if (identical(what, "draws")) return(attr(x, "draws"))
@@ -237,7 +237,7 @@ as.data.frame.honets_motifs <- function(x, row.names = NULL, optional = FALSE,
 #'   count as a histogram with the observed count as a vertical line and the
 #'   z-score annotated (the paper's Figure 7).
 #' @export
-plot.honets_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
+plot.hypernets_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
   motif <- match.arg(motif)
   draws <- as.data.frame(x, what = "draws")
   test <- as.data.frame(x)

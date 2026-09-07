@@ -3,7 +3,7 @@
 # The shared layer under BOTH build_simplicial(type = "vr"), which
 # attaches a filtration to the complex it returns, and
 # persistent_homology(), which reduces that filtration's boundary
-# matrix over Z/2. Split out of simplicial.R in honets 0.2.0; the code
+# matrix over Z/2. Split out of simplicial.R in hypernets 0.2.0; the code
 # is unchanged.
 
 #' @noRd

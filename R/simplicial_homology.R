@@ -2,7 +2,7 @@
 #
 # Betti curves and persistence diagrams over a filtration. The
 # filtration and Z/2 reduction machinery it calls lives in
-# R/simplicial_filtration.R. Split out of simplicial.R in honets
+# R/simplicial_filtration.R. Split out of simplicial.R in hypernets
 # 0.2.0; the code is unchanged.
 
 #' Persistent Homology
@@ -328,7 +328,7 @@ as.data.frame.net_persistent_homology <- function(
     if (what == "betti") {
       stop(errorCondition(
         "`sort_by` applies only to what = \"persistence\"",
-        class = "honets_bad_input", call = NULL))
+        class = "hypernets_bad_input", call = NULL))
     }
     out <- out[order(-out$persistence, out$dimension, out$birth), ,
                drop = FALSE]

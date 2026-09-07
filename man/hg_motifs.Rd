@@ -3,8 +3,8 @@
 \name{hg_motifs}
 \alias{hg_motifs}
 \alias{hypergraph_motifs}
-\alias{as.data.frame.honets_motifs}
-\alias{plot.honets_motifs}
+\alias{as.data.frame.hypernets_motifs}
+\alias{plot.hypernets_motifs}
 \title{Y, T and O motif census with a hypergraph configuration null}
 \usage{
 hg_motifs(
@@ -37,7 +37,7 @@ hypergraph_motifs(
   multiedges = TRUE
 )
 
-\method{as.data.frame}{honets_motifs}(
+\method{as.data.frame}{hypernets_motifs}(
   x,
   row.names = NULL,
   optional = FALSE,
@@ -45,7 +45,7 @@ hypergraph_motifs(
   ...
 )
 
-\method{plot}{honets_motifs}(x, motif = c("Y", "T", "O"), ...)
+\method{plot}{hypernets_motifs}(x, motif = c("Y", "T", "O"), ...)
 }
 \arguments{
 \item{hg}{A 3-uniform \code{net_hypergraph} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
@@ -67,7 +67,7 @@ counts only, or \code{"draws"} for every null count.}
 \code{"cumulative"}) and multi-edge handling passed to
 \code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
 
-\item{x}{A \code{honets_motifs} test table.}
+\item{x}{A \code{hypernets_motifs} test table.}
 
 \item{row.names, optional}{Unused; present for the base S3 contract.}
 

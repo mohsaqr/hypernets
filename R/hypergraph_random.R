@@ -1,5 +1,5 @@
 # Random hypergraph generators. The model definitions follow HyperG's four
-# core samplers, but return honets' net_hypergraph representation and use
+# core samplers, but return hypernets' net_hypergraph representation and use
 # names that do not mask HyperG when both packages are loaded.
 
 #' Sample Bernoulli-Incidence Random Hypergraphs

@@ -1,7 +1,7 @@
 # Nestimate hypergraph module — historical source/oracle
 
-This note records the pre-consolidation implementation. honets now owns the
-methods and does not depend on Nestimate. No current honets work should edit
+This note records the pre-consolidation implementation. hypernets now owns the
+methods and does not depend on Nestimate. No current hypernets work should edit
 or call Nestimate; retained local identity tests treat it only as a frozen
 historical oracle. The original five exports were:
 CLAUDE.md and `R/hypergraph*.R`, `R/bipartite_groups.R`,
@@ -29,5 +29,5 @@ igraph, Z/H vs clean-room tensor iteration; TOL 1e-10, cosine 1e-6 for
 sign/rotation-ambiguous eigenvectors).
 
 All listed capabilities plus Laplacians, clustering, transduction, window and
-kNN construction, PageRank and duals now live natively in honets. Wasserstein
-distance remains open in honets.
+kNN construction, PageRank and duals now live natively in hypernets. Wasserstein
+distance remains open in hypernets.

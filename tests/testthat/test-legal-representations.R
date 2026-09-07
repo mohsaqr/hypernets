@@ -78,7 +78,7 @@ test_that("citation projection is the source-to-member graph", {
   # explicit sources override, and missing sources are an error
   bare <- .rep_citations()
   bare$edge_data <- NULL
-  expect_error(hg_project(bare, method = "citation"), class = "honets_bad_input")
+  expect_error(hg_project(bare, method = "citation"), class = "hypernets_bad_input")
   explicit <- hg_project(bare, method = "citation", what = "matrix",
                          edge_source = c(e1 = "a", e2 = "a", e3 = "b"))
   expect_equal(as.matrix(explicit), as.matrix(undirected))
@@ -88,11 +88,11 @@ test_that("citation projection is the source-to-member graph", {
   named_projection <- hg_project(named, method = "citation", what = "matrix",
                                  edge_source = "citing")
   expect_equal(as.matrix(named_projection), as.matrix(undirected))
-  expect_error(hg_project(named, method = "citation"), class = "honets_bad_input")
+  expect_error(hg_project(named, method = "citation"), class = "hypernets_bad_input")
   expect_error(hg_project(hg, method = "clique", directed = TRUE),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_project(hg, method = "citation", weighted = FALSE),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("hg_measures reports neighbours, distributions and components", {

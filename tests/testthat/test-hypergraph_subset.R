@@ -49,8 +49,8 @@ test_that("hg_subset by hyperedge attribute uses the edge metadata", {
   no_source <- group_hypergraph(
     data.frame(member = c("a", "b"), event = "e1"), "member", "event"
   )
-  expect_error(hg_subset(no_source, where = c(source = "s1")), class = "honets_bad_input")
-  expect_error(hg_subset(.subset_fixture(), where = "s1"), class = "honets_bad_input")
+  expect_error(hg_subset(no_source, where = c(source = "s1")), class = "hypernets_bad_input")
+  expect_error(hg_subset(.subset_fixture(), where = "s1"), class = "hypernets_bad_input")
 })
 
 test_that("INVARIANT: sparse and dense subsets agree", {
@@ -68,13 +68,13 @@ test_that("hg_subset takes a ranking table through its edge column", {
   from_table <- hg_subset(hg, edges = ranking)
   from_names <- hg_subset(hg, edges = ranking$edge)
   expect_identical(from_table, from_names)
-  expect_error(hg_subset(hg, edges = data.frame(x = 1)), class = "honets_bad_input")
+  expect_error(hg_subset(hg, edges = data.frame(x = 1)), class = "hypernets_bad_input")
 })
 
 test_that("hg_subset rejects unknown names and empty selectors", {
   hg <- .subset_fixture()
-  expect_error(hg_subset(hg), class = "honets_bad_input")
-  expect_error(hg_subset(hg, edges = "nope"), class = "honets_bad_input")
-  expect_error(hg_subset(hg, nodes = "nope"), class = "honets_bad_input")
-  expect_error(hg_subset(42, edges = "e1"), class = "honets_bad_input")
+  expect_error(hg_subset(hg), class = "hypernets_bad_input")
+  expect_error(hg_subset(hg, edges = "nope"), class = "hypernets_bad_input")
+  expect_error(hg_subset(hg, nodes = "nope"), class = "hypernets_bad_input")
+  expect_error(hg_subset(42, edges = "e1"), class = "hypernets_bad_input")
 })

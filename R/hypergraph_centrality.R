@@ -259,7 +259,7 @@ hypergraph_centrality <- function(hg,
         sprintf(
           "PageRank did not converge in %d iterations (L1 change > %g).",
           as.integer(max_iter), tol),
-        class = "honets_no_converge"
+        class = "hypernets_no_converge"
       ))
     }
     out$pagerank <- stats::setNames(x, nodes)

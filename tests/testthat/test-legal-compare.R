@@ -27,7 +27,7 @@ test_that("Infomap runs on the citation projection, directed or not", {
   expect_true(directed$params$directed)
   expect_false(isSymmetric(unname(directed$projection)))
   expect_error(hg_communities(hg, n_runs = 2, trials = 2, directed = TRUE),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("hg_compare_communities tabulates sizes, similarity and summaries", {
@@ -37,7 +37,7 @@ test_that("hg_compare_communities tabulates sizes, similarity and summaries", {
   bh <- hg_communities(hg, n_runs = 2, trials = 2, seeds = 1:2,
                        duplicate_edges = "collapse")
   cmp <- hg_compare_communities(mh = mh, bh = bh)
-  expect_s3_class(cmp, "honets_community_comparison")
+  expect_s3_class(cmp, "hypernets_community_comparison")
   expect_identical(cmp$models, c("mh", "bh"))
   s <- as.data.frame(cmp)
   expect_identical(names(s), c("model", "medoid_seed", "n_runs", "n_communities",
@@ -66,9 +66,9 @@ test_that("hg_compare_communities tabulates sizes, similarity and summaries", {
   # a list works too; one fit or unnamed fits do not
   from_list <- hg_compare_communities(list(mh = mh, bh = bh))
   expect_identical(from_list$summary, cmp$summary)
-  expect_error(hg_compare_communities(mh = mh), class = "honets_bad_input")
-  expect_error(hg_compare_communities(mh, bh), class = "honets_bad_input")
-  expect_error(as.data.frame(cmp, what = "quality"), class = "honets_bad_input")
+  expect_error(hg_compare_communities(mh = mh), class = "hypernets_bad_input")
+  expect_error(hg_compare_communities(mh, bh), class = "hypernets_bad_input")
+  expect_error(as.data.frame(cmp, what = "quality"), class = "hypernets_bad_input")
 })
 
 test_that("quality scores each medoid on its own projection", {

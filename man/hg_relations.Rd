@@ -37,7 +37,7 @@ For \code{what = "edges"}: a base \code{data.frame}, one row per pair of
 topics with a positive weight, columns \code{source}, \code{target}, \code{weight},
 pairs in the topics' natural order. For \code{what = "network"}: a
 \code{cograph_network} with one node per topic (\code{label}, \code{name}, \code{size})
-and one undirected weighted edge per pair. Raises \code{honets_bad_input}
+and one undirected weighted edge per pair. Raises \code{hypernets_bad_input}
 for unknown node names.
 }
 \description{

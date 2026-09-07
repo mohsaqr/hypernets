@@ -1,4 +1,4 @@
-# Walk-based hyperedge centralities from the paper. honets constructs the
+# Walk-based hyperedge centralities from the paper. hypernets constructs the
 # s-line graph; cograph supplies the ordinary graph centrality kernel.
 
 #' s-betweenness and s-closeness centrality of hyperedges

@@ -10,7 +10,7 @@ test_that("checkerboard swaps preserve both margins exactly", {
   hg <- text_hypergraph(blocky)
   m <- (hg$incidence > 0) * 1L
   set.seed(1)
-  swapped <- honets:::.thg_swap_chain(m, attempts = 5000L)
+  swapped <- hypernets:::.thg_swap_chain(m, attempts = 5000L)
   expect_identical(rowSums(swapped), rowSums(m))
   expect_identical(colSums(swapped), colSums(m))
   expect_true(all(swapped %in% c(0L, 1L)))
@@ -67,7 +67,7 @@ test_that("blatant block structure is detected against the null", {
 
 test_that("contract violations raise classed or plain errors", {
   hg <- text_hypergraph(blocky)
-  expect_error(hg_null_test(42), class = "honets_bad_input")
+  expect_error(hg_null_test(42), class = "hypernets_bad_input")
   expect_error(hg_null_test(hg, n = 5))
 })
 
@@ -159,7 +159,7 @@ test_that("collapse in the configuration null is warned about, not hidden", {
   expect_warning(
     hg_null_test(hg, statistic = "density", method = "configuration",
                  n = 29, seed = 3),
-    class = "honets_configuration_collapse"
+    class = "hypernets_configuration_collapse"
   )
   # The swap null preserves both margins exactly and never warns.
   expect_no_warning(

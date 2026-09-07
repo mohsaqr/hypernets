@@ -55,7 +55,7 @@ utils::globalVariables("self")
 #' between layers and a cross-entropy loss on the labeled vertices.
 #' Needs the suggested \pkg{torch} package.
 #'
-#' @param hg A [text_hypergraph()] (or any honets `net_hypergraph`),
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`),
 #'   dense or sparse.
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers, values class labels) or a tidy data.frame with a
@@ -113,7 +113,7 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
       "hg_neural() needs the torch package: install.packages(\"torch\")",
-      class = "honets_missing_torch", call = NULL
+      class = "hypernets_missing_torch", call = NULL
     ))
   }
   labels <- .thg_labels_input(labels)
@@ -142,7 +142,7 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
   classes <- sort(unique(as.character(labels)))
   if (length(classes) < 2L) {
     stop(errorCondition("`labels` must contain at least two distinct classes.",
-                        class = "honets_bad_input", call = NULL))
+                        class = "hypernets_bad_input", call = NULL))
   }
 
   # features: the incidence rows, or a caller matrix aligned by rownames

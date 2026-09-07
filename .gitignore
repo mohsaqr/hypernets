@@ -22,3 +22,4 @@ Tutorial_docs/*_cache/
 Tutorial_docs/*_files/
 *.Rcheck/
 benchmarks/.venv/
+docs/

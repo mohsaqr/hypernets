@@ -13,7 +13,7 @@
 #' several dates (the paper's Figure 4b) or the neighbourhood size of a
 #' tribunal over time (Figure 5c) come from one call.
 #'
-#' @param hg A [text_hypergraph()], [knn_hypergraph()], any honets
+#' @param hg A [text_hypergraph()], [knn_hypergraph()], any hypernets
 #'   `net_hypergraph`, or a [temporal_hypergraph()].
 #' @param what `"edges"` (default) for one row per hyperedge,
 #'   `"distribution"` for the empirical distribution of `measure` across
@@ -38,14 +38,14 @@
 #'   contains), `weight` (numeric, its incidence weights summed),
 #'   `n_incident_edges` (integer, other hyperedges sharing at least `s`
 #'   vertices) and `n_neighbors` (integer, vertices adjacent to a member
-#'   without being one). With `what = "distribution"`, a `honets_distribution`
+#'   without being one). With `what = "distribution"`, a `hypernets_distribution`
 #'   table with one row per distinct observed value of `measure`, ascending,
 #'   with columns `value`, `n`, `proportion` and `ccdf` — the complementary
 #'   cumulative distribution \eqn{P(X \ge value)}, so the first row's `ccdf`
 #'   is always 1; its `plot()` draws the CCDF. With `what = "summary"`, one
 #'   row with `n_edges`, `mean`, `sd`, `min`, `q25`, `median`, `q75` and
 #'   `max`. Several `s` values add an `s` column; temporal input adds a
-#'   leading `time` column, and the summary is then a `honets_series` whose
+#'   leading `time` column, and the summary is then a `hypernets_series` whose
 #'   `plot()` draws each statistic against time.
 #' @references
 #' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
@@ -151,10 +151,10 @@ hypergraph_edges <- hg_edges
 
 .thg_edges_class <- function(out, what, measure) {
   if (identical(what, "distribution")) {
-    class(out) <- c("honets_distribution", "data.frame")
+    class(out) <- c("hypernets_distribution", "data.frame")
     attr(out, "measure") <- measure
   } else if (identical(what, "summary") && "time" %in% names(out)) {
-    class(out) <- c("honets_series", "data.frame")
+    class(out) <- c("hypernets_series", "data.frame")
   }
   out
 }

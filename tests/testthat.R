@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(honets)
+library(hypernets)
 
-test_check("honets")
+test_check("hypernets")

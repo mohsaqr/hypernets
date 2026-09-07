@@ -107,10 +107,10 @@ test_that("constant-time data are untouched and snapshots do not move", {
 
 test_that("a relational table without ends is not mistaken for a sequence table", {
   no_ends <- data.frame(person = c("a", "b"), when = c(1, 2))
-  expect_error(temporal_hypergraph(no_ends), class = "honets_bad_input")
+  expect_error(temporal_hypergraph(no_ends), class = "hypernets_bad_input")
   categorical_with_clock <- data.frame(x = c("a", "b"), time = c("1", "2"))
-  expect_error(temporal_hypergraph(categorical_with_clock), class = "honets_bad_input")
-  expect_error(temporal_hypergraph(list(character(0))), class = "honets_bad_input")
+  expect_error(temporal_hypergraph(categorical_with_clock), class = "hypernets_bad_input")
+  expect_error(temporal_hypergraph(list(character(0))), class = "hypernets_bad_input")
 })
 
 test_that("print names the membership times", {

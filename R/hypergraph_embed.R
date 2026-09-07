@@ -1,11 +1,11 @@
 #' Low-Dimensional Hypergraph Embedding
 #'
-#' Returns the node coordinates computed by honets' existing hypergraph
+#' Returns the node coordinates computed by hypernets' existing hypergraph
 #' spectral or symmetric-NMF engine without exposing the incidental k-means
 #' assignments produced by [hg_cluster()]. This is the direct embedding verb;
 #' `hg_embed()` and `hypergraph_embed()` are identical names for it.
 #'
-#' @param hg Any honets `net_hypergraph`.
+#' @param hg Any hypernets `net_hypergraph`.
 #' @param dimensions Number of embedding coordinates, between 2 and
 #'   `n_nodes - 1`.
 #' @param type Laplacian type: `"zhou"` or `"random_walk"`.

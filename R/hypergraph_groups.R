@@ -34,7 +34,7 @@
 #' @param from,to Column names of a pairwise edge list, as an alternative to
 #'   `actor` and `cooccur_by`.
 #' @param member,cooccur_by Deprecated names of `actor` and `group`; using
-#'   them warns with a `honets_deprecated` condition.
+#'   them warns with a `hypernets_deprecated` condition.
 #'
 #' @return A `net_hypergraph` object with the same structure produced by
 #'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,

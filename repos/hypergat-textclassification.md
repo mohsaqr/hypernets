@@ -8,7 +8,7 @@
   hyperedge (word-row, sentence-column), LDA topic hyperedges appended as
   extra incidence columns when enabled (`generate_lda.py` precomputes
   keywords). **The paper's sliding-window alternative is NOT implemented** —
-  the honets sliding-window construction is our extension with no
+  the hypernets sliding-window construction is our extension with no
   upstream oracle.
 - **Stack**: PyTorch 1.4, Python 3.6 era; datasets 20NG/R8/R52/Ohsumed/MR.
   Benchmark numbers we quote are from its paper's Table 2 (read 2026-08-25).

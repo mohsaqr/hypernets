@@ -2,16 +2,16 @@
 
 Maintained 2026-09-02. Runtime dependencies are deliberately separated from
 equivalence oracles and research references. Oracles are local-test tools,
-never honets runtime dependencies.
+never hypernets runtime dependencies.
 
 ## Runtime and peer packages
 
-| Package | Relationship to honets | Note |
+| Package | Relationship to hypernets | Note |
 |---|---|---|
 | cograph | Imported graph/plot engine after a hypergraph is projected; no export collisions | [`cograph.md`](cograph.md) |
 | Dynet | Separate temporal-network peer; never a dependency | [`dynet.md`](dynet.md) |
 | sbert | Suggested native embedding frontend for kNN text hypergraphs | [`sbert.md`](sbert.md) |
-| Nestimate | Historical source and identity oracle only; honets has no runtime dependency | [`nestimate-hypergraph-module.md`](nestimate-hypergraph-module.md) |
+| Nestimate | Historical source and identity oracle only; hypernets has no runtime dependency | [`nestimate-hypergraph-module.md`](nestimate-hypergraph-module.md) |
 
 ## Equivalence oracles
 

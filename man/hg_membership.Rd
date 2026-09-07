@@ -2,7 +2,7 @@
 % Please edit documentation in R/text_topics.R
 \name{hg_membership}
 \alias{hg_membership}
-\alias{plot.honets_membership}
+\alias{plot.hypernets_membership}
 \alias{hypergraph_membership}
 \title{Soft topic membership from the spectral embedding}
 \usage{
@@ -13,7 +13,7 @@ hg_membership(
   edge_weights = NULL
 )
 
-\method{plot}{honets_membership}(x, ...)
+\method{plot}{hypernets_membership}(x, ...)
 
 hypergraph_membership(
   hg,
@@ -36,12 +36,12 @@ embedding the partition was cut in (defaults as there).}
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A base \code{data.frame} of class \code{honets_membership}, one row per
+A base \code{data.frame} of class \code{hypernets_membership}, one row per
 document and topic: \code{node}, \code{cluster} (the hard label), \code{topic},
 \code{membership} (rows of one document sum to one). \code{plot()} draws, per
 topic, the distribution of its documents' membership in it: a topic
 whose documents sit near 1 is compact, one whose documents spread
-towards 0.5 overlaps its neighbours. Raises \code{honets_bad_input} for
+towards 0.5 overlaps its neighbours. Raises \code{hypernets_bad_input} for
 unknown node names.
 }
 \description{

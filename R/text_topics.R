@@ -19,7 +19,7 @@
     stop(errorCondition(
       paste0("Unknown node names in `clusters`: ",
              paste(unknown, collapse = ", ")),
-      class = "honets_bad_input", call = NULL
+      class = "hypernets_bad_input", call = NULL
     ))
   }
   groups <- factor(as.character(assignment)[match(hg$nodes,
@@ -39,11 +39,11 @@
 #'   `node`, `cluster`), or a named vector of cluster labels.
 #' @param weights `NULL` (default), or a numeric vector named by document
 #'   giving each document's weight.
-#' @return A base `data.frame` of class `honets_topic_sizes`, one row per
+#' @return A base `data.frame` of class `hypernets_topic_sizes`, one row per
 #'   topic in natural order: `topic`, `n`, `share`, and with `weights`
 #'   also `weighted_n` and `weighted_share`. `plot()` draws the shares as
 #'   horizontal bars, weighted beside unweighted when both exist. Raises
-#'   `honets_bad_input` for unknown node names or weights that do not name
+#'   `hypernets_bad_input` for unknown node names or weights that do not name
 #'   every clustered document.
 #' @examples
 #' hg <- text_hypergraph(c(
@@ -72,7 +72,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
     if (!ok) {
       stop(errorCondition(
         "`weights` must be a numeric vector named by every clustered document",
-        class = "honets_bad_input", call = NULL
+        class = "hypernets_bad_input", call = NULL
       ))
     }
     weighted <- tapply(as.numeric(weights[assigned]), groups[!is.na(groups)],
@@ -81,7 +81,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
     out$weighted_share <- out$weighted_n / sum(out$weighted_n)
   }
   rownames(out) <- NULL
-  class(out) <- c("honets_topic_sizes", "data.frame")
+  class(out) <- c("hypernets_topic_sizes", "data.frame")
   out
 }
 
@@ -89,7 +89,7 @@ hg_topic_sizes <- function(hg, clusters, weights = NULL) {
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.honets_topic_sizes <- function(x, ...) {
+plot.hypernets_topic_sizes <- function(x, ...) {
   d <- as.data.frame(x)
   long <- data.frame(topic = d$topic, measure = "share", value = d$share,
                      stringsAsFactors = FALSE)
@@ -136,10 +136,10 @@ plot.honets_topic_sizes <- function(x, ...) {
 #'   `node`, `cluster`), or a named vector of cluster labels.
 #' @param n Top words per cluster to score (default `10`).
 #' @param min_docs Support floor passed to [hg_keywords()] (default `1`).
-#' @return A base `data.frame` of class `honets_topic_quality`, one row per
+#' @return A base `data.frame` of class `hypernets_topic_quality`, one row per
 #'   topic in natural order: `topic`, `size`, `n_words` (top words scored),
 #'   `coherence`, `exclusivity`. `plot()` draws exclusivity against
-#'   coherence with one labelled point per topic. Raises `honets_bad_input`
+#'   coherence with one labelled point per topic. Raises `hypernets_bad_input`
 #'   for unknown node names.
 #' @references
 #' Bouma, G. (2009). Normalized (pointwise) mutual information in
@@ -180,7 +180,7 @@ hg_topic_quality <- function(hg, clusters, n = 10L, min_docs = 1L) {
   })
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
-  class(out) <- c("honets_topic_quality", "data.frame")
+  class(out) <- c("hypernets_topic_quality", "data.frame")
   out
 }
 
@@ -210,7 +210,7 @@ hg_topic_quality <- function(hg, clusters, n = 10L, min_docs = 1L) {
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.honets_topic_quality <- function(x, ...) {
+plot.hypernets_topic_quality <- function(x, ...) {
   d <- as.data.frame(x)
   ggplot2::ggplot(d, ggplot2::aes(x = .data$coherence, y = .data$exclusivity)) +
     ggplot2::geom_point(ggplot2::aes(size = .data$size),
@@ -245,12 +245,12 @@ plot.honets_topic_quality <- function(x, ...) {
 #'   `node`, `cluster`), or a named vector of cluster labels.
 #' @param type,edge_weights Passed to [hg_cluster()] to reproduce the
 #'   embedding the partition was cut in (defaults as there).
-#' @return A base `data.frame` of class `honets_membership`, one row per
+#' @return A base `data.frame` of class `hypernets_membership`, one row per
 #'   document and topic: `node`, `cluster` (the hard label), `topic`,
 #'   `membership` (rows of one document sum to one). `plot()` draws, per
 #'   topic, the distribution of its documents' membership in it: a topic
 #'   whose documents sit near 1 is compact, one whose documents spread
-#'   towards 0.5 overlaps its neighbours. Raises `honets_bad_input` for
+#'   towards 0.5 overlaps its neighbours. Raises `hypernets_bad_input` for
 #'   unknown node names.
 #' @references
 #' Bezdek, J. C. (1981). *Pattern Recognition with Fuzzy Objective Function
@@ -300,7 +300,7 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
   out <- out[order(match(out$node, rownames(x)),
                    match(out$topic, levels(group_of))), , drop = FALSE]
   rownames(out) <- NULL
-  class(out) <- c("honets_membership", "data.frame")
+  class(out) <- c("hypernets_membership", "data.frame")
   out
 }
 
@@ -308,7 +308,7 @@ hg_membership <- function(hg, clusters, type = c("zhou", "random_walk"),
 #' @param x A table returned by the verb.
 #' @param ... Unused; for S3 consistency.
 #' @export
-plot.honets_membership <- function(x, ...) {
+plot.hypernets_membership <- function(x, ...) {
   d <- as.data.frame(x)
   own <- d[d$cluster == d$topic, , drop = FALSE]
   own$topic <- factor(own$topic, levels = rev(.thg_kw_natural(unique(own$topic))))

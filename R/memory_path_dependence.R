@@ -468,7 +468,7 @@ as.data.frame.net_path_dependence <- function(x, row.names = NULL,
     cnt <- intersect(c("count", "n"), names(out))
     if (!length(cnt)) {
       stop(errorCondition("no count column found on this result",
-                          class = "honets_bad_input", call = NULL))
+                          class = "hypernets_bad_input", call = NULL))
     }
     out <- out[out[[cnt[1L]]] >= min_count, , drop = FALSE]
   }

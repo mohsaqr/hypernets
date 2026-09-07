@@ -69,3 +69,17 @@ test_that("duplicate collapse works on sparse incidence and keeps metadata", {
   expect_identical(simple$edge_data$label, "x")
   expect_identical(simple$hyperedges, list(1:3))
 })
+
+test_that("hg_subset(size = ) keeps hyperedges by member count", {
+  hg <- group_hypergraph(data.frame(
+    member = c("a", "b", "c", "a", "b", "c", "d", "e"),
+    group = c("e1", "e1", "e1", "e2", "e2", "e3", "e3", "e3")
+  ), actor = "member", group = "group")
+  three <- hg_subset(hg, size = 3)
+  expect_identical(three$n_hyperedges, 2L)
+  expect_identical(sort(colnames(three$incidence)), c("e1", "e3"))
+  two_or_three <- hg_subset(hg, size = 2:3)
+  expect_identical(two_or_three$n_hyperedges, 3L)
+  expect_error(hg_subset(hg, size = 0), class = "hypernets_bad_input")
+  expect_error(hg_subset(hg), class = "hypernets_bad_input")
+})

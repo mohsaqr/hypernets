@@ -195,7 +195,7 @@ test_that("hg_hypergat argument contracts are enforced", {
   skip_if_not_installed("torch")
   expect_error(
     hg_hypergat(hypergat_docs, labels = c(cooking_1 = "x")),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   expect_error(
     hg_hypergat(hypergat_docs, labels = c(zz = "x", cooking_1 = "y")),
@@ -210,7 +210,7 @@ test_that("hg_hypergat argument contracts are enforced", {
     hg_hypergat(c(hypergat_docs, empty_1 = "the and of"),
                 labels = hypergat_labels, embed_dim = 8, hidden = 4,
                 epochs = 2, validation = 0),
-    class = "honets_dropped_documents"
+    class = "hypernets_dropped_documents"
   )
 })
 

@@ -183,7 +183,7 @@ test_that("print and summary work via shared net_hypergraph methods", {
 # Integration with bundled dataset ----------------------------------------
 
 test_that("works on bundled human_long dataset (long-format event data)", {
-  data("human_long", package = "honets")
+  data("human_long", package = "hypernets")
   hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
   expect_s3_class(hg, "net_hypergraph")
   expect_gt(hg$n_nodes, 0L)

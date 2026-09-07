@@ -10,7 +10,7 @@ output:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8,
                       fig.height = 5, cache = FALSE)
-library(honets)
+library(hypernets)
 okabe <- c("#E69F00", "#56B4E9", "#009E73", "#CC79A7",
            "#0072B2", "#D55E00", "#F0E442", "#999999")
 ```

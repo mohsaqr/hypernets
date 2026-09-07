@@ -90,14 +90,14 @@ test_that("sparse clustering recovers the same planted partition", {
   )
   dense_hg <- group_hypergraph(events, actor = "person",
                                           group = "meeting", weight = "w")
-  sparse_hg <- honets:::.thg_sparse_bipartite(
+  sparse_hg <- hypernets:::.thg_sparse_bipartite(
     events, actor = "person", group = "meeting", weight = "w"
   )
   dense_cl <- hg_cluster(dense_hg, k = 2, seed = 1)
   sparse_cl <- hg_cluster(sparse_hg, k = 2, seed = 1)
   expect_identical(sparse_cl, dense_cl)
 
-  fit <- honets:::.thg_sparse_cluster(
+  fit <- hypernets:::.thg_sparse_cluster(
     sparse_hg, k = 2, type = "zhou", edge_weights = NULL, nstart = 25L,
     seed = 1
   )
@@ -118,19 +118,19 @@ test_that("sparse duals round-trip and stay sparse", {
 
 test_that("unsupported sparse paths refuse with classed errors", {
   hg <- both()
-  expect_error(hg_centrality(hg$sparse), class = "honets_sparse_unsupported")
-  expect_error(hg_null_test(hg$sparse), class = "honets_sparse_unsupported")
+  expect_error(hg_centrality(hg$sparse), class = "hypernets_sparse_unsupported")
+  expect_error(hg_null_test(hg$sparse), class = "hypernets_sparse_unsupported")
   expect_error(
     text_hypergraph(sparse_corpus, construction = "window", sparse = TRUE),
-    class = "honets_bad_input"
+    class = "hypernets_bad_input"
   )
   big_long <- data.frame(v = rep(c("x", "y"), each = 2100),
                          e = paste0("e", c(seq_len(2100), seq_len(2100))),
                          w = 1)
-  big <- honets:::.thg_sparse_bipartite(big_long, actor = "v",
+  big <- hypernets:::.thg_sparse_bipartite(big_long, actor = "v",
                                                 group = "e", weight = "w")
   expect_error(hg_measures(big, what = "overlap"),
-               class = "honets_sparse_too_large")
+               class = "hypernets_sparse_too_large")
 })
 
 test_that("sparse scale: thousands of documents classify in seconds", {

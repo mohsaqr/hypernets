@@ -83,7 +83,7 @@ the null test currently require the dense representation.}
 }
 \value{
 An object of class \code{c("text_hypergraph", "net_hypergraph")} -- a
-\code{\link[=group_hypergraph]{group_hypergraph()}} hypergraph accepted by every honets
+\code{\link[=group_hypergraph]{group_hypergraph()}} hypergraph accepted by every hypernets
 hypergraph verb and by \code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_centrality]{hg_centrality()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, and \code{\link[=hg_classify]{hg_classify()}} -- with a \code{text} field recording the
 corpus tables. Use \code{\link[=as.data.frame.text_hypergraph]{as.data.frame.text_hypergraph()}} for the tidy
@@ -145,12 +145,12 @@ filtering happen before windowing, so removing a token closes the gap it
 leaves in the sequence.
 }
 \section{Conditions}{
- Raises \code{honets_bad_input} (broken argument contract,
+ Raises \code{hypernets_bad_input} (broken argument contract,
 including bag-only arguments passed to other constructions),
-\code{honets_empty_corpus} (no document survives tokenization and filtering),
-\code{honets_missing_embeddings} (\code{construction = "knn"} with neither
+\code{hypernets_empty_corpus} (no document survives tokenization and filtering),
+\code{hypernets_missing_embeddings} (\code{construction = "knn"} with neither
 \code{embeddings} nor the sbert package), and warns with
-\code{honets_dropped_documents} when some documents end up empty.
+\code{hypernets_dropped_documents} when some documents end up empty.
 }
 
 \examples{

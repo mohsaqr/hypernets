@@ -18,7 +18,7 @@ Three variants are scored per seed against the labelled classes:
   counts toward ``nr_topics``); outliers stay -1.
 * ``bertopic_k_assigned`` -- the ``bertopic_k`` model followed by
   ``BERTopic.reduce_outliers(strategy="embeddings")`` so every document is
-  assigned, the same completeness the honets spectral path has.
+  assigned, the same completeness the hypernets spectral path has.
 """
 
 import argparse
@@ -128,7 +128,7 @@ def main():
 
         # BERTopic's nr_topics counts the outlier topic (-1) toward the
         # total, so ask for one extra whenever HDBSCAN left outliers; the
-        # k arm then has exactly n_classes real topics, like the honets arms.
+        # k arm then has exactly n_classes real topics, like the hypernets arms.
         started = time.perf_counter()
         outliers = int(-1 in topics_default)
         default.reduce_topics(docs, nr_topics=n_classes + outliers)

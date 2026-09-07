@@ -381,7 +381,7 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
     if (any(mass <= 0)) {
       stop(errorCondition(
         "a class received zero total spread mass; class_mass normalization is undefined",
-        class = "honets_bad_input", call = NULL
+        class = "hypernets_bad_input", call = NULL
       ))
     }
     sweep(F_scores, 2L, mass, "/")
@@ -419,7 +419,7 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
       paste0("The hypergraph is not connected; the random walk has no ",
              "unique stationary distribution. Analyze components ",
              "separately."),
-      class = "honets_hypergraph_disconnected", call = NULL
+      class = "hypernets_hypergraph_disconnected", call = NULL
     ))
   }
   invisible(TRUE)

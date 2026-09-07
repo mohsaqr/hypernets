@@ -34,7 +34,7 @@ hypergraph_edges(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, any honets
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, any hypernets
 \code{net_hypergraph}, or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{what}{\code{"edges"} (default) for one row per hyperedge,
@@ -66,14 +66,14 @@ hyperedge and columns \code{edge} (name), \code{size} (integer, vertices it
 contains), \code{weight} (numeric, its incidence weights summed),
 \code{n_incident_edges} (integer, other hyperedges sharing at least \code{s}
 vertices) and \code{n_neighbors} (integer, vertices adjacent to a member
-without being one). With \code{what = "distribution"}, a \code{honets_distribution}
+without being one). With \code{what = "distribution"}, a \code{hypernets_distribution}
 table with one row per distinct observed value of \code{measure}, ascending,
 with columns \code{value}, \code{n}, \code{proportion} and \code{ccdf} — the complementary
 cumulative distribution \eqn{P(X \ge value)}, so the first row's \code{ccdf}
 is always 1; its \code{plot()} draws the CCDF. With \code{what = "summary"}, one
 row with \code{n_edges}, \code{mean}, \code{sd}, \code{min}, \code{q25}, \code{median}, \code{q75} and
 \code{max}. Several \code{s} values add an \code{s} column; temporal input adds a
-leading \code{time} column, and the summary is then a \code{honets_series} whose
+leading \code{time} column, and the summary is then a \code{hypernets_series} whose
 \code{plot()} draws each statistic against time.
 }
 \description{

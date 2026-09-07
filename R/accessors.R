@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Shared accessor plumbing
 #
-# Every honets accessor that can return many rows takes `top =`. It is
+# Every hypernets accessor that can return many rows takes `top =`. It is
 # applied LAST -- after `what`, after every filter (`order_min`, `min_count`,
 # `dim`, `k`, `dimension`, `significant`, ...) and after `sort_by` -- so
 # `sort_by` and `top` compose: `top = n` means "the first n rows of the table

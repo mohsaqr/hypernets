@@ -553,8 +553,8 @@ path_counts <- function(data, k = 2L, top = NULL) {
 # NOTE: state_frequencies() is deliberately NOT here. It is defined in
 # Nestimate's R/mogen.R, is on the htna downstream contract
 # (Nestimate/tests/testthat/test-contract-htna.R), and was carved out at the
-# honets T0 move on purpose -- see "Carve-out discovered during T0" in
-# Nestimate/HONETS-DELEGATION-PLAN.md. Exporting it here would mask
+# hypernets T0 move on purpose -- see "Carve-out discovered during T0" in
+# Nestimate/HYPERNETS-DELEGATION-PLAN.md. Exporting it here would mask
 # Nestimate's when both packages are attached. At T2, Nestimate relocates it
 # out of mogen.R rather than delegating it.
 

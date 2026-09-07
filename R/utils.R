@@ -2,8 +2,8 @@
 #
 # Shared by all three structure families (memory networks, simplicial
 # complexes, hypergraphs). Copied verbatim from Nestimate (R/utils.R,
-# R/estimate_network.R, R/mcml.R) as part of the honets delegation (see
-# Nestimate's HONETS-DELEGATION-PLAN.md). Nestimate keeps its own copies of
+# R/estimate_network.R, R/mcml.R) as part of the hypernets delegation (see
+# Nestimate's HYPERNETS-DELEGATION-PLAN.md). Nestimate keeps its own copies of
 # .coerce_sequence_input / .as_netobject / .extract_edges_from_matrix /
 # .validate_mcml_matrix / .wrap_netobject (used elsewhere there);
 # .ho_cograph_fields moves here outright (its only callers are the

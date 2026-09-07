@@ -111,7 +111,7 @@ test_that("personalization concentrates teleport mass", {
   by_name <- hg_pagerank(hg, personalized = "cooking_1")
   expect_equal(by_name$pagerank, focused$pagerank, tolerance = 1e-12)
   expect_error(hg_pagerank(hg, personalized = "no_such_node"),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
 })
 
 test_that("sort_by and n select without user-side subsetting", {
@@ -126,12 +126,12 @@ test_that("contract violations and non-convergence are classed", {
   expect_error(hg_pagerank(hg, damping = 0))
   expect_error(hg_pagerank(hg, damping = 1.2))
   expect_error(hg_pagerank(hg, personalized = c(nope = 1)),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_pagerank(hg, personalized = c(0.5)),
-               class = "honets_bad_input")
+               class = "hypernets_bad_input")
   expect_error(hg_pagerank(hg, edge_weights = c(1, 2)))
-  expect_error(hg_pagerank(42), class = "honets_bad_input")
-  expect_warning(hg_pagerank(hg, max_iter = 1L), class = "honets_no_converge")
+  expect_error(hg_pagerank(42), class = "hypernets_bad_input")
+  expect_warning(hg_pagerank(hg, max_iter = 1L), class = "hypernets_no_converge")
 })
 
 test_that("hg_pagerank equals hypergraph_centrality(type = \"pagerank\")", {
