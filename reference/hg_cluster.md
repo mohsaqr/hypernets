@@ -113,7 +113,7 @@ hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 #> 4   space_2 Cluster 2 0.25 0.8037070 -0.5950253
 hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues")
 #>   index         value        gap
-#> 1     1 -2.081668e-17 0.07162811
+#> 1     1 -5.551115e-17 0.07162811
 #> 2     2  7.162811e-02 0.17318608
 #> 3     3  2.448142e-01 0.23041019
 #> 4     4  4.752244e-01         NA

@@ -6,8 +6,8 @@ tribunal members and the dates are known, as released by Coupette,
 Hartung and Katz (2024): one row per seat, so a case has three rows.
 Arbitrators sharing a case are the co-occurrence data of a temporal
 hypergraph whose hyperedges are tribunals active from constitution to
-conclusion; see
-[`vignette("legal-hypergraphs")`](https://mohsaqr.github.io/hypernets/articles/legal-hypergraphs.md).
+conclusion; the worked analysis is `docs/legal-hypergraphs.Rmd` in the
+source repository.
 
 ## Usage
 

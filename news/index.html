@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,6 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
-    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -41,6 +40,10 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.9" id="honets-039">honets 0.3.9<a class="anchor" aria-label="anchor" href="#honets-039"></a></h2>
+<ul><li>The Legal hypergraphs workflow is a hand-knit document in <code>docs/</code>, not a vignette, so pkgdown no longer publishes it as an article. Its Figure 6d closeness now runs on the aggregate with duplicate tribunals collapsed, the paper’s representation, and every chunk does one step.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.8" id="honets-038">honets 0.3.8<a class="anchor" aria-label="anchor" href="#honets-038"></a></h2>
 <ul><li>The pkgdown workflow installs igraph and gridExtra like the check workflow does, so the legal vignette’s hyperedge betweenness (cograph -&gt; igraph) renders on the site.</li>
