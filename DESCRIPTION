@@ -1,6 +1,6 @@
 Package: honets
 Title: Higher-Order Network Analysis
-Version: 0.3.4
+Version: 0.3.5
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -44,8 +44,8 @@ Description: Build and analyze higher-order networks, in which a relation
     embedding nearest neighbours), analysed with tidy verbs for clustering,
     keyword extraction, few-label classification, and null testing.
 License: MIT + file LICENSE
-URL: https://github.com/mohsaqr/honets, https://mohsaqr.github.io/honets
-BugReports: https://github.com/mohsaqr/honets/issues
+URL: https://github.com/mohsaqr/hypernets, https://mohsaqr.github.io/hypernets
+BugReports: https://github.com/mohsaqr/hypernets/issues
 Language: en-US
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

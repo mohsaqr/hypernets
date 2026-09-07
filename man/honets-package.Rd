@@ -108,9 +108,9 @@ Bianconi, G. (2021). \emph{Higher-Order Networks}. Cambridge University Press.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/mohsaqr/honets}
-  \item \url{https://mohsaqr.github.io/honets}
-  \item Report bugs at \url{https://github.com/mohsaqr/honets/issues}
+  \item \url{https://github.com/mohsaqr/hypernets}
+  \item \url{https://mohsaqr.github.io/hypernets}
+  \item Report bugs at \url{https://github.com/mohsaqr/hypernets/issues}
 }
 
 }

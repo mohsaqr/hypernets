@@ -1,3 +1,9 @@
+# honets 0.3.5
+
+* The GitHub repository is `mohsaqr/hypernets`; `DESCRIPTION`, the README
+  install line and the pkgdown site URL now point there. The package name is
+  unchanged.
+
 # honets 0.3.4
 
 The temporal hypergraph speaks Dynet's vocabulary (`../temporal`), so a

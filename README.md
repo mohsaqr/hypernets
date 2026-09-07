@@ -199,7 +199,7 @@ NOT_CRAN=true HONETS_EQUIV_TESTS=true Rscript -e \
 
 ```r
 # development version
-devtools::install_github("mohsaqr/honets")
+devtools::install_github("mohsaqr/hypernets")
 ```
 
 ## References
