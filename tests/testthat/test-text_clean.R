@@ -96,3 +96,31 @@ test_that("clean_text `remove` patterns empty placeholders before the floor", {
   expect_identical(out2, "Data:.")
   expect_error(clean_text("x", remove = NA_character_), "remove")
 })
+
+# --- min_chars -------------------------------------------------------------
+
+test_that("clean_text(min_chars) drops short words and keeps longer ones", {
+  x <- "M. Wathelet and J. N. Cunha Rodrigues wrote on energy"
+  expect_identical(clean_text(x, min_chars = 3),
+                   "Wathelet and. Cunha Rodrigues wrote energy")
+  # default is a no-op: cleaning without min_chars is unchanged
+  expect_identical(clean_text(x), clean_text(x, min_chars = 0))
+  expect_identical(clean_text(x), clean_text(x, min_chars = 1))
+})
+
+test_that("clean_text(min_chars) never splits a word at an apostrophe", {
+  expect_identical(clean_text("children's views", min_chars = 3),
+                   "children's views")
+})
+
+test_that("clean_text(min_chars) is monotone in min_chars", {
+  x <- "a bo cat food plates"
+  kept <- vapply(1:6, \(k) length(strsplit(clean_text(x, min_chars = k),
+                                           " ")[[1]]), integer(1))
+  expect_false(is.unsorted(rev(kept)))
+})
+
+test_that("clean_text rejects a bad min_chars", {
+  expect_error(clean_text("text", min_chars = -1))
+  expect_error(clean_text("text", min_chars = c(2, 3)))
+})

@@ -11,6 +11,7 @@ group_hypergraph(
   weight = NULL,
   nodes = NULL,
   sparse = FALSE,
+  separator = NULL,
   from = NULL,
   to = NULL,
   member = NULL,
@@ -42,6 +43,14 @@ decision is a node but some decisions are never cited.}
 
 \item{sparse}{Logical. Store incidence as a sparse \code{Matrix}? Use this for
 large, sparse event data such as the full GFCC citation-block corpus.}
+
+\item{separator}{Split the \code{actor} column on this string, one row per
+member, before building. Bibliographic exports ship a hyperedge's members
+as a single delimited cell -- EUR-Lex \code{citationcelex} and \code{eurovoc},
+Scopus and Web of Science reference and keyword fields -- so
+\code{separator = ";"} replaces the caller's own split, trim and
+drop-empties. Members empty after trimming are dropped, and a row left
+with no member contributes no hyperedge.}
 
 \item{from, to}{Column names of a pairwise edge list, as an alternative to
 \code{actor} and \code{cooccur_by}.}

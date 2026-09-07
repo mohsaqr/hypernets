@@ -12,6 +12,10 @@
   linetype_by = NULL,
   labels = TRUE,
   label_size = 3,
+  edge_labels = FALSE,
+  edge_label_size = 3,
+  dismantled = FALSE,
+  ncol = NULL,
   node_size = 2.5,
   alpha = 0.45,
   padding = 0.06,
@@ -43,6 +47,29 @@ Okabe-Ito palette; numeric values a sequential scale built from it.}
 none, and a character vector named by node replaces the names shown.}
 
 \item{label_size, node_size}{Text and point sizes.}
+
+\item{edge_labels}{Name the hyperedges on the figure. \code{FALSE} (default)
+writes nothing, \code{TRUE} writes the hyperedge names, or pass a vector named
+by hyperedge to write something else. A figure of the highest-ranked
+hyperedges is otherwise anonymous -- the ranking table names them and the
+picture does not -- and there are as many labels as hyperedges, so they
+fit where node names would not. Each label sits just outside the member
+furthest from the centre of the layout, which keeps it clear of the
+crowded overlap where the blobs meet.}
+
+\item{edge_label_size}{Text size for \code{edge_labels} (default \code{3}).}
+
+\item{dismantled}{Draw one panel per hyperedge instead of one figure with
+every blob overlaid (default \code{FALSE}). All panels share the layout, so
+positions are comparable, and each is titled with its hyperedge name.
+Overlaid blobs mislead: a blob is a hull drawn around its members, so two
+hyperedges sharing nothing still overlap on the page wherever their hulls
+sweep past each other. One panel each shows membership as it is. Needs
+the suggested \code{gridExtra}; returns a \code{gtable}, not a \code{ggplot}, so no
+further layers can be added and \code{edge_labels} does not apply.}
+
+\item{ncol}{Columns in the panel grid when \code{dismantled = TRUE}
+(default: roughly square).}
 
 \item{alpha}{Fill transparency of the blobs (default \code{0.45}).}
 

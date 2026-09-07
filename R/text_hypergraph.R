@@ -26,6 +26,13 @@
   })
 }
 
+# Drop tokens shorter than `min_chars`. `min_chars = 1` is a no-op, so the
+# default costs nothing.
+.thg_drop_short <- function(tokens, min_chars) {
+  if (min_chars <= 1L) return(tokens)
+  lapply(tokens, \(x) x[nchar(x) >= min_chars])
+}
+
 # Window one token sequence: sliding (step 1, full windows; a sequence
 # shorter than the window is one whole-sequence window) or tumbling
 # (consecutive chunks of `window`, trailing partial chunk included). Each window becomes its sorted set of
@@ -116,6 +123,10 @@
 #'   [stop_words_en()]. Not applicable to `"knn"`.
 #' @param min_count Minimum total corpus count for a word to be kept
 #'   (default `1L`, keep everything). Not applicable to `"knn"`.
+#' @param min_chars Minimum number of characters for a word to be kept
+#'   (default `1L`, keep everything). Raise it to drop the single letters
+#'   and short fragments that initials, enumerations and hyphenated
+#'   line breaks leave behind. Not applicable to `"knn"`.
 #' @param lowercase Lowercase the text before tokenization (default `TRUE`).
 #' @param window Window size in tokens for `construction = "window"`
 #'   (default `3L`).
@@ -192,6 +203,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                             weight = c("n", "tfidf"),
                             stop_words = NULL,
                             min_count = 1L,
+                            min_chars = 1L,
                             lowercase = TRUE,
                             window = 3L,
                             window_mode = c("sliding", "tumbling"),
@@ -218,6 +230,8 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       is.null(stop_words) || is.character(stop_words),
     "`min_count` must be a single count >= 1" =
       length(min_count) == 1L && is.finite(min_count) && min_count >= 1,
+    "`min_chars` must be a single count >= 1" =
+      length(min_chars) == 1L && is.finite(min_chars) && min_chars >= 1,
     "`lowercase` must be TRUE or FALSE" =
       isTRUE(lowercase) || isFALSE(lowercase),
     "`window` must be a single count >= 2" =
@@ -267,7 +281,8 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   if (identical(construction, "knn")) {
     return(.thg_knn_text(text, doc_id, meta, k = k, embeddings = embeddings,
                          model = model, stop_words = stop_words,
-                         min_count = min_count, weight = weight))
+                         min_count = min_count, min_chars = min_chars,
+                         weight = weight))
   }
 
   sentence_tokens <- NULL
@@ -280,6 +295,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       if (!is.null(stop_words)) {
         toks <- lapply(toks, \(x) x[!x %in% stop_words])
       }
+      toks <- .thg_drop_short(toks, min_chars)
       toks[lengths(toks) > 0L]
     })
     tokens <- lapply(sentence_tokens,
@@ -289,6 +305,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     if (!is.null(stop_words)) {
       tokens <- lapply(tokens, \(x) x[!x %in% stop_words])
     }
+    tokens <- .thg_drop_short(tokens, min_chars)
   }
 
   words <- unlist(tokens, use.names = FALSE) %||% character(0)
@@ -475,10 +492,11 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
 # The knn construction: documents as vertices, each document plus its k
 # nearest embedding neighbors as one cosine-weighted hyperedge.
 .thg_knn_text <- function(text, doc_id, meta, k, embeddings, model,
-                          stop_words, min_count, weight) {
-  if (!is.null(stop_words) || min_count > 1L || identical(weight, "tfidf")) {
+                          stop_words, min_count, min_chars, weight) {
+  if (!is.null(stop_words) || min_count > 1L || min_chars > 1L ||
+      identical(weight, "tfidf")) {
     stop(errorCondition(
-      "`stop_words`, `min_count`, and `weight` apply to token-based constructions, not construction = \"knn\"",
+      "`stop_words`, `min_count`, `min_chars`, and `weight` apply to token-based constructions, not construction = \"knn\"",
       class = "hypernets_bad_input", call = NULL
     ))
   }

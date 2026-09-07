@@ -44,6 +44,10 @@
 #'   case-insensitive), applied after the repairs and before the content
 #'   floor: a database's placeholder for a missing abstract, a publisher's
 #'   own boilerplate. Default `NULL`.
+#' @param min_chars Minimum number of characters for a word to be kept
+#'   (default `0L`, keep everything). Raise it to drop the single letters and
+#'   short fragments left by initials, enumerations and hyphenated line
+#'   breaks; `min_chars = 3` keeps words of three characters or more.
 #' @param stop_words Words to remove, case-insensitively at word boundaries
 #'   (default `NULL`, none). Usually left to [text_hypergraph()]'s own
 #'   `stop_words`; use it here when the cleaned text itself is shown.
@@ -71,7 +75,8 @@
 clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
                        citations = TRUE, urls = TRUE, copyright = TRUE,
                        copyright_max = 300L, numbers = TRUE,
-                       remove = NULL, stop_words = NULL, min_content = 0) {
+                       remove = NULL, stop_words = NULL, min_chars = 0L,
+                       min_content = 0) {
   flags <- list(html = html, encoding = encoding, citations = citations,
                 urls = urls, copyright = copyright, numbers = numbers)
   bad_flag <- names(flags)[!vapply(flags, \(f) isTRUE(f) || isFALSE(f),
@@ -91,6 +96,8 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
       min_content >= 0 && min_content <= 1,
     "`stop_words` must be NULL or a character vector" =
       is.null(stop_words) || is.character(stop_words),
+    "`min_chars` must be a single number >= 0" =
+      length(min_chars) == 1L && is.finite(min_chars) && min_chars >= 0,
     "`remove` must be NULL or a character vector of patterns" =
       is.null(remove) || (is.character(remove) && !anyNA(remove))
   )
@@ -139,6 +146,7 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   if (!is.null(stop_words) && length(stop_words) > 0L) {
     text <- .thg_clean_stop_words(text, stop_words)
   }
+  if (min_chars > 1L) text <- .thg_clean_short(text, min_chars)
   text <- .thg_clean_tidy(text)
   text[!content_ok] <- ""
 
@@ -259,6 +267,17 @@ clean_text <- function(x, column = NULL, html = TRUE, encoding = TRUE,
   pattern <- sprintf("(?i)(?<![[:alpha:]'])(?:%s)(?![[:alpha:]'])",
                      paste(escaped, collapse = "|"))
   gsub(pattern, " ", text, perl = TRUE)
+}
+
+# Drop whole words shorter than `min_chars`, at the same word boundaries the
+# stop-word remover uses so an apostrophe never splits a word in half.
+.thg_clean_short <- function(text, min_chars) {
+  pattern <- sprintf("(?<![[:alpha:]'])[[:alpha:]']{1,%d}(?![[:alpha:]'])",
+                     as.integer(min_chars) - 1L)
+  text <- gsub(pattern, " ", text, perl = TRUE)
+  # Removing "J. N." leaves its periods behind; collapse the run. Scoped to
+  # this path so text cleaned without `min_chars` is unchanged.
+  gsub("(?:\\s*\\.){2,}", ".", text, perl = TRUE)
 }
 
 .thg_clean_tidy <- function(text) {

@@ -85,6 +85,7 @@ reference:
 - subtitle: Null models and neural networks
   contents:
   - hg_null_test
+  - hg_hypa
   - hg_neural
   - hg_hypergat
   - heterogeneous_hgat

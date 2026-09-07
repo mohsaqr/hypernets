@@ -95,7 +95,10 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
   }
 
   .thg_check_hg(hg)
-  blocks <- lapply(s, function(ss) .thg_edge_table(hg, ss))
+  # `n_neighbors` costs two products over the node-by-node adjacency, which
+  # densifies on a hub-heavy network; compute it only when it is asked for.
+  blocks <- .thg_edge_tables(hg, s, neighbors = identical(what, "edges") ||
+                                                identical(measure, "n_neighbors"))
   if (length(s) > 1L) {
     blocks <- lapply(seq_along(s), function(i) {
       data.frame(s = rep(s[i], nrow(blocks[[i]])), blocks[[i]],
@@ -122,31 +125,44 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
 hypergraph_edges <- hg_edges
 
 # One row per hyperedge for one intersection threshold `s`.
-.thg_edge_table <- function(hg, s) {
+# One edge table per value of `s`. Everything except `n_incident_edges` is
+# invariant in `s`, so the products are taken once and only the threshold is
+# swept -- an `s` sweep used to recompute them all per value.
+.thg_edge_tables <- function(hg, s, neighbors = TRUE) {
   incidence <- hg$incidence
   b <- .thg_binary(incidence)
   size <- as.integer(Matrix::colSums(b))
   overlap <- crossprod(b)
   diag(overlap) <- 0
-  n_incident <- as.integer(Matrix::colSums(overlap >= s))
+  weight <- as.numeric(Matrix::colSums(incidence))
 
-  # A vertex is a neighbour of hyperedge e when it shares some other
-  # hyperedge with a member of e without being a member itself. Members of a
-  # hyperedge of size >= 2 are adjacent to each other, so they always appear
-  # in the reach and are subtracted back out.
-  adjacency <- tcrossprod(b)
-  diag(adjacency) <- 0
-  reach <- as.integer(Matrix::colSums((adjacency %*% b) > 0))
-  n_neighbors <- reach - ifelse(size >= 2L, size, 0L)
+  n_neighbors <- if (isTRUE(neighbors)) {
+    # A vertex is a neighbour of hyperedge e when it shares some other
+    # hyperedge with a member of e without being a member itself. Members of a
+    # hyperedge of size >= 2 are adjacent to each other, so they always appear
+    # in the reach and are subtracted back out.
+    adjacency <- tcrossprod(b)
+    diag(adjacency) <- 0
+    reach <- as.integer(Matrix::colSums((adjacency %*% b) > 0))
+    as.integer(reach - ifelse(size >= 2L, size, 0L))
+  } else {
+    rep(NA_integer_, length(size))
+  }
 
-  data.frame(
-    edge = colnames(incidence),
-    size = size,
-    weight = as.numeric(Matrix::colSums(incidence)),
-    n_incident_edges = n_incident,
-    n_neighbors = as.integer(n_neighbors),
-    row.names = NULL
-  )
+  lapply(s, function(ss) {
+    data.frame(
+      edge = colnames(incidence),
+      size = size,
+      weight = weight,
+      n_incident_edges = as.integer(Matrix::colSums(overlap >= ss)),
+      n_neighbors = n_neighbors,
+      row.names = NULL
+    )
+  })
+}
+
+.thg_edge_table <- function(hg, s) {
+  .thg_edge_tables(hg, s, neighbors = TRUE)[[1L]]
 }
 
 .thg_edges_class <- function(out, what, measure) {

@@ -127,6 +127,25 @@
 #'   Okabe-Ito palette; numeric values a sequential scale built from it.
 #' @param linetype_by Outline line type of the blobs, resolved like
 #'   `color_by`; discrete only.
+#' @param dismantled Draw one panel per hyperedge instead of one figure with
+#'   every blob overlaid (default `FALSE`). All panels share the layout, so
+#'   positions are comparable, and each is titled with its hyperedge name.
+#'   Overlaid blobs mislead: a blob is a hull drawn around its members, so two
+#'   hyperedges sharing nothing still overlap on the page wherever their hulls
+#'   sweep past each other. One panel each shows membership as it is. Needs
+#'   the suggested `gridExtra`; returns a `gtable`, not a `ggplot`, so no
+#'   further layers can be added and `edge_labels` does not apply.
+#' @param ncol Columns in the panel grid when `dismantled = TRUE`
+#'   (default: roughly square).
+#' @param edge_labels Name the hyperedges on the figure. `FALSE` (default)
+#'   writes nothing, `TRUE` writes the hyperedge names, or pass a vector named
+#'   by hyperedge to write something else. A figure of the highest-ranked
+#'   hyperedges is otherwise anonymous -- the ranking table names them and the
+#'   picture does not -- and there are as many labels as hyperedges, so they
+#'   fit where node names would not. Each label sits just outside the member
+#'   furthest from the centre of the layout, which keeps it clear of the
+#'   crowded overlap where the blobs meet.
+#' @param edge_label_size Text size for `edge_labels` (default `3`).
 #' @param labels `TRUE` (default) writes the node names, `FALSE` writes
 #'   none, and a character vector named by node replaces the names shown.
 #' @param label_size,node_size Text and point sizes.
@@ -152,6 +171,8 @@
 plot.net_hypergraph <- function(x, layout = c("spring", "circle"), seed = 1L,
                                 color_by = NULL, linetype_by = NULL,
                                 labels = TRUE, label_size = 3,
+                                edge_labels = FALSE, edge_label_size = 3,
+                                dismantled = FALSE, ncol = NULL,
                                 node_size = 2.5, alpha = 0.45,
                                 padding = 0.06, legend_title = NULL, ...) {
   .thg_check_hg(x)
@@ -202,6 +223,52 @@ plot.net_hypergraph <- function(x, layout = c("spring", "circle"), seed = 1L,
   projection <- as.matrix(hg_project(x, method = "clique", weighted = FALSE,
                                      what = "matrix"))
   node_fill <- "#E2E0DD"
+  drawn_names <- edge_names[drawable]
+
+  if (isTRUE(dismantled)) {
+    if (!isFALSE(edge_labels)) {
+      .thg_bad_input(
+        "`edge_labels` does not apply when `dismantled = TRUE`: each panel is already titled with its hyperedge name"
+      )
+    }
+    if (!requireNamespace("gridExtra", quietly = TRUE)) {
+      stop(errorCondition(
+        "`dismantled = TRUE` needs the suggested package gridExtra",
+        class = "hypernets_missing_suggest", call = NULL
+      ))
+    }
+    panels <- lapply(seq_along(sets), function(k) {
+      grDevices::pdf(NULL)
+      panel <- tryCatch(
+        cograph::plot_simplicial(
+          projection, pathways = sets[k], layout = coords,
+          blob_colors = blob_colours[k], blob_linetype = blob_linetypes[k],
+          blob_alpha = alpha, node_color = node_fill, target_color = node_fill,
+          ring_color = node_fill, node_size = node_size,
+          label_size = label_size, labels = shown, label_color = "black",
+          shadow = FALSE, title = ""
+        ),
+        finally = grDevices::dev.off()
+      )
+      panel +
+        ggplot2::labs(title = drawn_names[k]) +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = edge_label_size * 3,
+                                             face = "bold", hjust = 0.5),
+          plot.margin = ggplot2::margin(2, 2, 2, 2)
+        )
+    })
+    columns <- ncol %||% ceiling(sqrt(length(panels)))
+    combined <- do.call(gridExtra::arrangeGrob,
+                        c(panels, list(ncol = as.integer(columns))))
+    # A gtable is not auto-printed the way a ggplot is, so draw it here and
+    # return it invisibly -- cograph::plot_simplicial() does the same for its
+    # own dismantled grid.
+    grid::grid.newpage()
+    grid::grid.draw(combined)
+    return(invisible(combined))
+  }
+
   # cograph::plot_simplicial() prints as it draws. Its print goes to a null
   # device here, and the legend is added before the caller prints once.
   grDevices::pdf(NULL)
@@ -216,11 +283,53 @@ plot.net_hypergraph <- function(x, layout = c("spring", "circle"), seed = 1L,
     finally = grDevices::dev.off()
   )
   p <- p + ggplot2::labs(title = NULL)
-  if (span > 2 * min(.thg_blob_canvas)) {
-    # A layout wider than cograph's canvas needs wider limits; ggplot2 says
-    # so with a message when a coordinate system replaces another, which is
-    # exactly what is intended here.
-    half <- span / 2 + 1
+
+  edge_label_data <- NULL
+  if (!isFALSE(edge_labels)) {
+    edge_shown <- if (isTRUE(edge_labels)) {
+      drawn_names
+    } else {
+      if (is.null(names(edge_labels))) {
+        .thg_bad_input("`edge_labels` must be TRUE, FALSE or a vector named by hyperedge")
+      }
+      replaced <- unname(edge_labels[drawn_names])
+      ifelse(is.na(replaced), drawn_names, as.character(replaced))
+    }
+    centre <- colMeans(coords)
+    # Anchor each label beyond the member furthest from the middle: blobs
+    # radiate outward from the overlap, so the far member is on a free edge
+    # while every centroid is pulled into the crowded core.
+    anchor_xy <- do.call(rbind, lapply(sets, function(members) {
+      m <- coords[members, , drop = FALSE]
+      away <- sqrt((m[, 1L] - centre[1L])^2 + (m[, 2L] - centre[2L])^2)
+      tip <- m[which.max(away), ]
+      v <- tip - centre
+      len <- sqrt(sum(v^2))
+      if (!is.finite(len) || len == 0) tip else tip + 0.12 * span * v / len
+    }))
+    edge_label_data <- data.frame(x = anchor_xy[, 1L], y = anchor_xy[, 2L],
+                                  label = edge_shown, stringsAsFactors = FALSE)
+    p <- p + ggplot2::geom_text(
+      data = edge_label_data,
+      mapping = ggplot2::aes(x = .data$x, y = .data$y, label = .data$label),
+      size = edge_label_size, colour = "black", fontface = "bold",
+      inherit.aes = FALSE
+    )
+  }
+
+  # A layout wider than cograph's canvas needs wider limits; ggplot2 says so
+  # with a message when a coordinate system replaces another, which is exactly
+  # what is intended here. Hyperedge labels sit outside the blobs and the text
+  # runs further out still, so the limits have to hold them too -- otherwise
+  # the label that is clipped is the one on the outermost blob, the very blob
+  # the anchor rule pushed furthest out.
+  half <- span / 2 + 1
+  if (!is.null(edge_label_data)) {
+    text_room <- 0.02 * span * max(nchar(edge_label_data$label))
+    half <- max(half,
+                max(abs(c(edge_label_data$x, edge_label_data$y))) + text_room)
+  }
+  if (span > 2 * min(.thg_blob_canvas) || !is.null(edge_label_data)) {
     p <- suppressMessages(
       p + ggplot2::coord_equal(clip = "off", xlim = c(-half, half),
                                ylim = c(-half, half))

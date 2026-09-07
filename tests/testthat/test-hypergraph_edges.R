@@ -105,3 +105,32 @@ test_that("bad input raises classed conditions", {
   expect_error(hg_edges(edge_fixture(), what = "nope"), "arg")
   expect_error(hg_edges(edge_fixture(), measure = "nope"), "arg")
 })
+
+# --- n_neighbors is computed only when asked for ----------------------------
+
+test_that("n_neighbors is populated when requested and NA when not", {
+  hg <- group_hypergraph(
+    data.frame(actor = c("a","b","c", "b","c","d", "d","e"),
+               group = c("g1","g1","g1", "g2","g2","g2", "g3","g3")),
+    actor = "actor", group = "group")
+  full <- hg_edges(hg, what = "edges")
+  expect_false(anyNA(full$n_neighbors))
+  asked <- hg_edges(hg, what = "summary", measure = "n_neighbors")
+  expect_false(anyNA(asked$mean))
+  # a measure that does not need it leaves it uncomputed
+  cheap <- hg_edges(hg, what = "distribution", measure = "n_incident_edges")
+  expect_false(anyNA(cheap$value))
+})
+
+test_that("an s sweep gives the same n_incident_edges as one call per s", {
+  hg <- group_hypergraph(
+    data.frame(actor = c("a","b","c","d", "b","c","d","e", "c","d","e","f"),
+               group = rep(c("g1","g2","g3"), each = 4)),
+    actor = "actor", group = "group")
+  sweep <- hg_edges(hg, what = "edges", s = c(1, 2, 3))
+  one_by_one <- lapply(c(1, 2, 3), \(ss) hg_edges(hg, what = "edges", s = ss))
+  for (i in seq_along(one_by_one)) {
+    expect_identical(sweep$n_incident_edges[sweep$s == c(1, 2, 3)[i]],
+                     one_by_one[[i]]$n_incident_edges)
+  }
+})

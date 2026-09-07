@@ -19,6 +19,7 @@ temporal_hypergraph(
   observation_start = NULL,
   observation_end = NULL,
   sparse = FALSE,
+  separator = NULL,
   cooccur_by = NULL
 )
 }
@@ -61,6 +62,14 @@ the data is then used.}
 
 \item{sparse}{Store every snapshot's incidence as a sparse \code{Matrix}?
 Default \code{FALSE}.}
+
+\item{separator}{Split the \code{actor} column on this string, one row per
+member, before building. Bibliographic exports ship a hyperedge's members
+as a single delimited cell -- EUR-Lex \code{citationcelex} and \code{eurovoc},
+Scopus and Web of Science reference and keyword fields -- so
+\code{separator = ";"} replaces the caller's own split, trim and
+drop-empties. Members empty after trimming are dropped, and a row left
+with no member contributes no hyperedge.}
 
 \item{cooccur_by}{Deprecated name of \code{group}; using it warns with a
 \code{hypernets_deprecated} condition.}

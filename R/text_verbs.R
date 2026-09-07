@@ -167,6 +167,11 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #'   default).
 #' @param type `"zhou"` or `"random_walk"`, as in
 #'   [hypergraph_cluster()].
+#' @param n For `what = "eigenvalues"`, how many rows to keep, leading first
+#'   (default `Inf`, all of them). The spectrum carries one eigenvalue per
+#'   node, so a corpus of a few thousand documents returns a few thousand
+#'   rows, and only the leading ones carry the gap that decides how many
+#'   groups the structure supports. Ignored for the other values of `what`.
 #' @param algorithm `"spectral"` (RDC-Spec) or `"symnmf"` (RDC-Sym), as in
 #'   [hypergraph_cluster()]. SymNMF currently requires a dense incidence
 #'   matrix because its paper objective factorizes a dense node similarity.
@@ -205,14 +210,18 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #' ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 #' hg_cluster(hg, k = 2, type = "random_walk", seed = 1)
 #' hg_cluster(hg, k = 2, seed = 1, what = "embedding")
-#' hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues")
+#' hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues", n = 5)
 #' @export
 hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
                        edge_weights = NULL, seed = NULL, nstart = 25L,
                        what = c("clusters", "embedding", "eigenvalues"),
-                       algorithm = c("spectral", "symnmf"),
+                       n = Inf, algorithm = c("spectral", "symnmf"),
                        max_iter = 500L, tol = 1e-6) {
   .thg_check_hg(hg)
+  stopifnot(
+    "`n` must be a single number >= 1" =
+      length(n) == 1L && !is.na(n) && n >= 1
+  )
   type <- match.arg(type)
   algorithm <- match.arg(algorithm)
   what <- match.arg(what)
@@ -234,8 +243,12 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
   }
   if (identical(what, "eigenvalues")) {
     values <- as.numeric(fit$eigenvalues)
-    return(data.frame(index = seq_along(values), value = values,
-                      gap = c(diff(values), NA_real_)))
+    out <- data.frame(index = seq_along(values), value = values,
+                      gap = c(diff(values), NA_real_))
+    # The spectrum has one eigenvalue per node, so a corpus of a few thousand
+    # documents returns a few thousand rows -- and only the leading ones carry
+    # the gap that decides how many groups the structure supports.
+    return(utils::head(out, n))
   }
   out <- if (identical(what, "embedding")) {
     as.data.frame(fit)

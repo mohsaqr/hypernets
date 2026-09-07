@@ -12,6 +12,7 @@ hg_cluster(
   seed = NULL,
   nstart = 25L,
   what = c("clusters", "embedding", "eigenvalues"),
+  n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
   tol = 1e-06
@@ -48,6 +49,12 @@ Laplacian spectrum (dense engines return all \code{n} values; the sparse
 engine returns the \code{k + 1} it computed -- raise \code{k} for an eigengap
 scan).}
 
+\item{n}{For \code{what = "eigenvalues"}, how many rows to keep, leading first
+(default \code{Inf}, all of them). The spectrum carries one eigenvalue per
+node, so a corpus of a few thousand documents returns a few thousand
+rows, and only the leading ones carry the gap that decides how many
+groups the structure supports. Ignored for the other values of \code{what}.}
+
 \item{algorithm}{\code{"spectral"} (RDC-Spec) or \code{"symnmf"} (RDC-Sym), as in
 \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}. SymNMF currently requires a dense incidence
 matrix because its paper objective factorizes a dense node similarity.}
@@ -78,5 +85,5 @@ hg <- text_hypergraph(c(
 ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 hg_cluster(hg, k = 2, type = "random_walk", seed = 1)
 hg_cluster(hg, k = 2, seed = 1, what = "embedding")
-hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues")
+hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues", n = 5)
 }

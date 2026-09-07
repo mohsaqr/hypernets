@@ -294,6 +294,13 @@
 #'   observation window, as numbers on the stored clock or as dates for a
 #'   calendar hypergraph. Either may be omitted; the corresponding limit of
 #'   the data is then used.
+#' @param separator Split the `actor` column on this string, one row per
+#'   member, before building. Bibliographic exports ship a hyperedge's members
+#'   as a single delimited cell -- EUR-Lex `citationcelex` and `eurovoc`,
+#'   Scopus and Web of Science reference and keyword fields -- so
+#'   `separator = ";"` replaces the caller's own split, trim and
+#'   drop-empties. Members empty after trimming are dropped, and a row left
+#'   with no member contributes no hyperedge.
 #' @param sparse Store every snapshot's incidence as a sparse `Matrix`?
 #'   Default `FALSE`.
 #' @param cooccur_by Deprecated name of `group`; using it warns with a
@@ -333,7 +340,8 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
                                 end = NULL, weight = NULL, nodes = NULL,
                                 time_unit = "auto",
                                 observation_start = NULL, observation_end = NULL,
-                                sparse = FALSE, cooccur_by = NULL) {
+                                sparse = FALSE, separator = NULL,
+                                cooccur_by = NULL) {
   if (.thg_is_sequence_input(data, from, to, actor, group, time, start, end)) {
     data <- .thg_sequence_memberships(data)
     actor <- "state"
@@ -342,6 +350,9 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
   }
   if (!is.data.frame(data) || nrow(data) == 0L) {
     .thg_bad_input("`data` must be a non-empty data.frame")
+  }
+  if (!is.null(separator)) {
+    data <- .thg_expand_delimited(data, actor %||% to, separator)
   }
   if (!is.logical(sparse) || length(sparse) != 1L || is.na(sparse)) {
     .thg_bad_input("`sparse` must be TRUE or FALSE")

@@ -166,3 +166,40 @@ test_that("sparse storage is chosen automatically above a million cells", {
   expect_false(inherits(big_dense$incidence, "dgCMatrix"))
   expect_error(text_hypergraph(docs, sparse = NA), "sparse")
 })
+
+# --- min_chars -------------------------------------------------------------
+
+test_that("text_hypergraph(min_chars) gates the vocabulary", {
+  x <- c("M. Wathelet and J. N. Cunha wrote on energy",
+         "a coal fired plant emits carbon dioxide")
+  vocab <- function(k) {
+    hg <- text_hypergraph(x, min_count = 1L, min_chars = k)
+    sort(as.data.frame(hg, what = "vocabulary")$word)
+  }
+  expect_true(all(c("a", "j", "m", "n") %in% vocab(1)))
+  expect_false(any(nchar(vocab(3)) < 3))
+  expect_true(all(c("energy", "carbon", "wathelet") %in% vocab(3)))
+  # the default keeps everything
+  expect_identical(vocab(1), sort(as.data.frame(
+    text_hypergraph(x, min_count = 1L), what = "vocabulary")$word))
+})
+
+test_that("text_hypergraph(min_chars) shrinks the vocabulary monotonically", {
+  x <- c("a bo cat food plates schools", "cat food and plates for schools")
+  sizes <- vapply(1:6, \(k) nrow(as.data.frame(
+    text_hypergraph(x, min_count = 1L, min_chars = k), what = "vocabulary")),
+    integer(1))
+  expect_false(is.unsorted(rev(sizes)))
+})
+
+test_that("text_hypergraph rejects a bad min_chars", {
+  expect_error(text_hypergraph("some text here", min_chars = 0))
+  expect_error(text_hypergraph("some text here", min_chars = c(2, 3)))
+})
+
+test_that("min_chars is refused for construction = 'knn'", {
+  expect_error(
+    text_hypergraph(c("a b", "c d"), construction = "knn", min_chars = 3L),
+    class = "hypernets_bad_input"
+  )
+})

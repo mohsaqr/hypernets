@@ -3,6 +3,37 @@
 # becomes a net_hypergraph where each group is a hyperedge spanning all
 # members that appeared in it.
 
+# Explode a delimited membership column into one row per member. Bibliographic
+# exports ship reference lists and descriptor sets as ";"-joined strings
+# (EUR-Lex `citationcelex` / `eurovoc`, Scopus and WoS reference fields), so
+# the split, the trim and the drop-empties belong here rather than in every
+# caller's preamble.
+.thg_expand_delimited <- function(data, column, separator) {
+  if (!is.character(separator) || length(separator) != 1L ||
+      is.na(separator) || !nzchar(separator)) {
+    .thg_bad_input("`separator` must be a single non-empty string")
+  }
+  if (!is.character(column) || length(column) != 1L ||
+      !column %in% names(data)) {
+    .thg_bad_input(
+      "`separator` needs `actor` to name a column of `data` to split"
+    )
+  }
+  parts <- strsplit(as.character(data[[column]]), separator, fixed = TRUE)
+  parts <- lapply(parts, \(x) {
+    x <- trimws(x)
+    x[nzchar(x)]
+  })
+  kept <- lengths(parts)
+  if (sum(kept) == 0L) {
+    .thg_bad_input("no member remains after splitting on `separator`")
+  }
+  out <- data[rep(seq_len(nrow(data)), kept), , drop = FALSE]
+  out[[column]] <- unlist(parts, use.names = FALSE)
+  rownames(out) <- NULL
+  out
+}
+
 #' Hypergraph from co-occurrence data or an edge list
 #'
 #' Constructs a [net_hypergraph][build_hypergraph] the way a network is
@@ -29,6 +60,13 @@
 #'   nodes with no observed group memberships as zero-incidence rows, which is
 #'   needed for representations such as citation hypergraphs where every
 #'   decision is a node but some decisions are never cited.
+#' @param separator Split the `actor` column on this string, one row per
+#'   member, before building. Bibliographic exports ship a hyperedge's members
+#'   as a single delimited cell -- EUR-Lex `citationcelex` and `eurovoc`,
+#'   Scopus and Web of Science reference and keyword fields -- so
+#'   `separator = ";"` replaces the caller's own split, trim and
+#'   drop-empties. Members empty after trimming are dropped, and a row left
+#'   with no member contributes no hyperedge.
 #' @param sparse Logical. Store incidence as a sparse `Matrix`? Use this for
 #'   large, sparse event data such as the full GFCC citation-block corpus.
 #' @param from,to Column names of a pairwise edge list, as an alternative to
@@ -99,9 +137,13 @@
 #'
 #' @export
 group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
-                             nodes = NULL, sparse = FALSE, from = NULL, to = NULL,
+                             nodes = NULL, sparse = FALSE, separator = NULL,
+                             from = NULL, to = NULL,
                              member = NULL, cooccur_by = NULL) {
   stopifnot(is.data.frame(data))
+  if (!is.null(separator)) {
+    data <- .thg_expand_delimited(data, actor %||% member, separator)
+  }
   if (!is.null(member)) {
     .thg_deprecated("member", "actor", "group_hypergraph")
     if (is.null(actor)) actor <- member

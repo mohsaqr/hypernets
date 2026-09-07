@@ -245,3 +245,48 @@ test_that("as.data.frame(what = 'memberships') lists every incidence cell", {
   binary_cells <- as.data.frame(binary, what = "memberships")
   expect_equal(binary_cells$weight, rep(1, 4))
 })
+
+# --- separator: a delimited membership column --------------------------------
+
+test_that("separator reproduces a hand-rolled explode exactly", {
+  wide <- data.frame(
+    group = c("g1", "g2", "g3"),
+    members = c("a;b;c", "b ; c ;d", "d;;e"),
+    stringsAsFactors = FALSE
+  )
+  parts <- lapply(strsplit(wide$members, ";"), \(x) {
+    x <- trimws(x)
+    x[nzchar(x)]
+  })
+  long <- wide[rep(seq_len(nrow(wide)), lengths(parts)), "group", drop = FALSE]
+  long$members <- unlist(parts, use.names = FALSE)
+  rownames(long) <- NULL
+
+  by_hand <- group_hypergraph(long, actor = "members", group = "group")
+  one_call <- group_hypergraph(wide, actor = "members", group = "group",
+                               separator = ";")
+  expect_identical(unname(as.matrix(one_call$incidence)),
+                   unname(as.matrix(by_hand$incidence)))
+  expect_identical(hg_edges(one_call), hg_edges(by_hand))
+})
+
+test_that("separator drops empty members and trims whitespace", {
+  hg <- group_hypergraph(
+    data.frame(group = "g1", members = " a ;; b ;  "),
+    actor = "members", group = "group", separator = ";")
+  expect_identical(sort(hg$nodes), c("a", "b"))
+})
+
+test_that("separator rejects bad input by class", {
+  wide <- data.frame(group = "g1", members = "a;b")
+  expect_error(group_hypergraph(wide, actor = "members", group = "group",
+                                separator = c(";", ",")),
+               class = "hypernets_bad_input")
+  expect_error(group_hypergraph(wide, actor = "nope", group = "group",
+                                separator = ";"),
+               class = "hypernets_bad_input")
+  expect_error(group_hypergraph(data.frame(group = "g1", members = ";;"),
+                                actor = "members", group = "group",
+                                separator = ";"),
+               class = "hypernets_bad_input")
+})

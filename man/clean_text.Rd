@@ -16,6 +16,7 @@ clean_text(
   numbers = TRUE,
   remove = NULL,
   stop_words = NULL,
+  min_chars = 0L,
   min_content = 0
 )
 }
@@ -59,6 +60,11 @@ own boilerplate. Default \code{NULL}.}
 \item{stop_words}{Words to remove, case-insensitively at word boundaries
 (default \code{NULL}, none). Usually left to \code{\link[=text_hypergraph]{text_hypergraph()}}'s own
 \code{stop_words}; use it here when the cleaned text itself is shown.}
+
+\item{min_chars}{Minimum number of characters for a word to be kept
+(default \code{0L}, keep everything). Raise it to drop the single letters and
+short fragments left by initials, enumerations and hyphenated line
+breaks; \code{min_chars = 3} keeps words of three characters or more.}
 
 \item{min_content}{Minimum share of alphabetic characters among
 non-space characters, judged on the repaired text before numbers are

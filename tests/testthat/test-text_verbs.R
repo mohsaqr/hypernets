@@ -560,3 +560,65 @@ test_that("hg_relations is the bibliometric co-occurrence of topics through word
                class = "hypernets_bad_input")
   expect_identical(hypergraph_relations, hg_relations)
 })
+
+# --- hg_cluster(n =) caps the eigenvalue table ------------------------------
+
+test_that("hg_cluster(what = 'eigenvalues') honours n", {
+  set.seed(1)
+  memberships <- data.frame(
+    actor = sample(letters[1:12], 200, TRUE),
+    group = paste0("g", sample(30, 200, TRUE))
+  )
+  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  full <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues")
+  capped <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues", n = 5)
+  expect_identical(nrow(capped), 5L)
+  expect_gt(nrow(full), nrow(capped))
+  # the kept rows are the leading ones, unchanged
+  expect_identical(capped, utils::head(full, 5))
+  # the default keeps everything
+  expect_identical(hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues",
+                              n = Inf), full)
+})
+
+test_that("hg_cluster rejects a bad n", {
+  set.seed(1)
+  memberships <- data.frame(
+    actor = sample(letters[1:8], 100, TRUE),
+    group = paste0("g", sample(20, 100, TRUE))
+  )
+  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = 0), "`n`")
+  expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = c(2, 3)), "`n`")
+})
+
+# --- hg_cluster(n =) caps the eigenvalue table ------------------------------
+
+test_that("hg_cluster(what = 'eigenvalues') honours n", {
+  set.seed(1)
+  memberships <- data.frame(
+    actor = sample(letters[1:12], 200, TRUE),
+    group = paste0("g", sample(30, 200, TRUE))
+  )
+  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  full <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues")
+  capped <- hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues", n = 5)
+  expect_identical(nrow(capped), 5L)
+  expect_gt(nrow(full), nrow(capped))
+  # the rows kept are the leading ones, unchanged
+  expect_identical(capped, utils::head(full, 5))
+  # the default keeps everything
+  expect_identical(hg_cluster(hg, k = 3, seed = 1, what = "eigenvalues",
+                              n = Inf), full)
+})
+
+test_that("hg_cluster rejects a bad n", {
+  set.seed(1)
+  memberships <- data.frame(
+    actor = sample(letters[1:8], 100, TRUE),
+    group = paste0("g", sample(20, 100, TRUE))
+  )
+  hg <- group_hypergraph(memberships, actor = "actor", group = "group")
+  expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = 0), "`n`")
+  expect_error(hg_cluster(hg, k = 2, what = "eigenvalues", n = c(2, 3)), "`n`")
+})
