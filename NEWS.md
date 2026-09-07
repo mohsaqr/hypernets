@@ -1,3 +1,10 @@
+# honets 0.3.9
+
+* The Legal hypergraphs workflow is a hand-knit document in `docs/`, not a
+  vignette, so pkgdown no longer publishes it as an article. Its Figure 6d
+  closeness now runs on the aggregate with duplicate tribunals collapsed,
+  the paper's representation, and every chunk does one step.
+
 # honets 0.3.8
 
 * The pkgdown workflow installs igraph and gridExtra like the check workflow

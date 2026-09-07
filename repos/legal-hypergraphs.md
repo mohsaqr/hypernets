@@ -17,7 +17,7 @@
   which an edge of size |e| contributes `1 / (|e| - 1)` to each incident
   pair; repeated seeded Infomap with AMI-medoid selection; ARI/AMI/NMI
   comparisons; and partition coverage, performance and modularity.
-- **Reproduced 2026-09-06 in the vignette** (`vignettes/legal-hypergraphs.Rmd`,
+- **Reproduced 2026-09-06 in the worked document** (`docs/legal-hypergraphs.Rmd`,
   on the released data, bundled as `icsid_tribunals`, `gfcc_decisions` and `gfcc_citations`): Table 1
   (`summary()`), Table 2 (`hg_representations()`), Figure 3 (`hg_subset()` +
   `plot()` hulls), Figures 4-5 (`hg_growth()`, `hg_edges()`, `hg_measures()`

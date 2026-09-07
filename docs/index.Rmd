@@ -75,11 +75,11 @@ that its subsets are relations too.*
 | [`hypergraph_centrality()`](hypergraphs.html#hypergraph_centrality) | Which nodes are central without projecting? |
 | [`hypergraph_laplacian()`, `hypergraph_cluster()`, `hypergraph_transduction()`](hypergraphs.html#hypergraph_laplacian) | Spectral clustering and label spreading on a hypergraph. |
 | [`clique_expansion()`](hypergraphs.html#clique_expansion) | How do I project back to a pairwise network, and what does it cost? |
-| [`hypergraph_project()` and `hypergraph_line_graph()`](../articles/legal-hypergraphs.html) | How do I create association and s-line projections? |
-| [`temporal_hypergraph()` and snapshot verbs](../articles/legal-hypergraphs.html) | How do higher-order relations enter, persist and leave over time? |
-| [`hypergraph_edges()` and `hypergraph_edge_centrality()`](../articles/legal-hypergraphs.html) | Which hyperedges are large, connected or structurally central? |
-| [`hypergraph_motifs()`](../articles/legal-hypergraphs.html) | Are Y/T/O patterns enriched against a configuration null? |
-| [`hypergraph_communities()` and `hypergraph_community_quality()`](../articles/legal-hypergraphs.html) | Which association-graph partition is stable, and how good is it? |
+| [`hypergraph_project()` and `hypergraph_line_graph()`](legal-hypergraphs.html) | How do I create association and s-line projections? |
+| [`temporal_hypergraph()` and snapshot verbs](legal-hypergraphs.html) | How do higher-order relations enter, persist and leave over time? |
+| [`hypergraph_edges()` and `hypergraph_edge_centrality()`](legal-hypergraphs.html) | Which hyperedges are large, connected or structurally central? |
+| [`hypergraph_motifs()`](legal-hypergraphs.html) | Are Y/T/O patterns enriched against a configuration null? |
+| [`hypergraph_communities()` and `hypergraph_community_quality()`](legal-hypergraphs.html) | Which association-graph partition is stable, and how good is it? |
 | [`hg_neural()` and `hg_hypergat()`](../articles/benchmarks.html) | How do the native neural models compare with closed-form methods? |
 
 ## Text hypergraphs

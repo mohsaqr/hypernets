@@ -132,7 +132,6 @@ articles:
   navbar: ~
   contents:
   - covid-topics
-  - legal-hypergraphs
   - text-hypergraphs
   - text-constructions
 - title: Benchmarks

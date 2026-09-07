@@ -1,20 +1,29 @@
 ---
 title: "Legal hypergraphs: the paper workflow in honets"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Legal hypergraphs: the paper workflow in honets}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+author: "honets"
+date: "2026-09-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+    self_contained: true
 ---
 
 ```{r setup, include = FALSE}
 library(honets)
+# igraph is a suggested package; the community section needs it.
 has_igraph <- requireNamespace("igraph", quietly = TRUE)
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       warning = FALSE,
                       fig.width = 7, fig.height = 5, out.width = "100%",
                       dpi = 200)
 ```
+
+> The sections run in order in a single R session; later ones reuse the
+> objects the earlier ones built. One step per chunk: each chunk saves one
+> object or draws one figure.
 
 Coupette, Hartung and Katz (2024) model legal relations as temporal
 hypergraphs: a citation block binds every decision it cites to the decision
@@ -66,13 +75,24 @@ data. Every other column that is constant within a case, such as the
 economic sector, is kept as an attribute of the hyperedge; the seat, which
 varies within a case, is not.
 
+The cut-off is used twice below, so it is one object.
+
+```{r observation-end}
+observation_end <- as.Date("2023-06-15")
+```
+
 ```{r icsid-build}
 tribunals <- temporal_hypergraph(
   icsid_tribunals, actor = "arbitrator", group = "case",
   start = "constituted", end = "concluded",
-  observation_end = as.Date("2023-06-15")
+  observation_end = observation_end
 )
 tribunals
+```
+
+`summary()` is the paper's Table 1 for this dataset.
+
+```{r icsid-summary}
 summary(tribunals)
 ```
 
@@ -94,6 +114,9 @@ blocks <- temporal_hypergraph(
   nodes = gfcc_decisions, sparse = TRUE
 )
 blocks
+```
+
+```{r gfcc-summary}
 summary(blocks)
 ```
 
@@ -109,9 +132,15 @@ pending case; here those cases have no end.
 static aggregate of a temporal hypergraph, every hyperedge begun by the end
 of observation, as a `net_hypergraph` that every static verb accepts.
 
-```{r aggregates}
+```{r aggregate-icsid}
 tribunals_all <- hypergraph_snapshot(tribunals, mode = "cumulative")
 tribunals_all
+```
+
+The same call on the citation blocks gives the aggregate citation
+hypergraph.
+
+```{r aggregate-gfcc}
 blocks_all <- hypergraph_snapshot(blocks, mode = "cumulative")
 blocks_all
 ```
@@ -170,9 +199,12 @@ plot(headscarf, color_by = "size", labels = FALSE, padding = 0.035,
 The decision 125-260 on data retention has the same structure with larger
 blocks.
 
-```{r decision-2, fig.width = 7, fig.height = 7}
+```{r decision-2}
 retention <- hg_subset(blocks_all, where = c(citing = "125-260"))
 retention
+```
+
+```{r decision-2-plot, fig.width = 7, fig.height = 7}
 plot(retention, color_by = "size", labels = FALSE, padding = 0.035,
      legend_title = "block size")
 ```
@@ -204,9 +236,12 @@ returns the empirical distribution of a hyperedge measure with its
 complementary cumulative share, one block of rows per date. The cumulative
 mode again gives the network as it stood on each date.
 
-```{r gfcc-sizes}
+```{r census-dates}
 census_dates <- as.Date(c("1960-12-31", "1975-12-31", "1990-12-31",
                           "2005-12-31", "2020-12-31"))
+```
+
+```{r gfcc-sizes}
 sizes_by_date <- hg_edges(blocks, what = "distribution", at = census_dates,
                           snapshot_mode = "cumulative")
 head(sizes_by_date)
@@ -223,19 +258,32 @@ The `s` argument counts, for each hyperedge, the other hyperedges that share
 at least `s` nodes with it. The paper's Figure 4c draws that count for
 `s = 2, 3, 4` on the multi-hypergraph.
 
-```{r gfcc-intersections, fig.height = 4}
+```{r gfcc-intersections}
 intersections <- hg_edges(blocks_all, s = 2:4, what = "distribution",
                           measure = "n_incident_edges")
+head(intersections)
+```
+
+```{r gfcc-intersections-plot, fig.height = 4}
 plot(intersections)
 ```
 
 `multiedges = FALSE` in the snapshot collapses repeated member sets, the
 binary hypergraph, on which the same counts are smaller.
 
-```{r gfcc-intersections-binary, fig.height = 4}
-blocks_binary <- hypergraph_snapshot(blocks, mode = "cumulative", multiedges = FALSE)
-intersections_binary <- hg_edges(blocks_binary, s = 2:4, what = "distribution",
+```{r gfcc-binary}
+blocks_binary <- hypergraph_snapshot(blocks, mode = "cumulative",
+                                     multiedges = FALSE)
+blocks_binary
+```
+
+```{r gfcc-intersections-binary}
+intersections_binary <- hg_edges(blocks_binary, s = 2:4,
+                                 what = "distribution",
                                  measure = "n_incident_edges")
+```
+
+```{r gfcc-intersections-binary-plot, fig.height = 4}
 plot(intersections_binary)
 ```
 
@@ -246,10 +294,13 @@ of the paper's Figure 5a. The number of tribunals an arbitrator sits on is
 the `hyperdegree`; one arbitrator, Brigitte Stern, sits on 94 tribunals and
 accounts for the tail.
 
-```{r icsid-degrees, fig.height = 4}
+```{r icsid-degrees}
 tribunal_counts <- hg_measures(tribunals_all, what = "distribution",
                                measure = "hyperdegree")
 tail(tribunal_counts, 3)
+```
+
+```{r icsid-degrees-plot, fig.height = 4}
 plot(tribunal_counts)
 ```
 
@@ -326,8 +377,7 @@ them, and `multiedges = FALSE` collapses two tribunals with the same three
 members into one hyperedge.
 
 ```{r icsid-active}
-observation_date <- as.Date("2023-06-15")
-active <- hypergraph_snapshot(tribunals, at = observation_date,
+active <- hypergraph_snapshot(tribunals, at = observation_end,
                               mode = "active", multiedges = FALSE)
 active
 ```
@@ -360,26 +410,49 @@ plot(central_tribunals, color_by = "economic_sector",
 
 Closeness ranks a different set of tribunals (Figure 6b).
 
-```{r icsid-closeness, fig.width = 8, fig.height = 7}
+```{r icsid-closeness}
 top_closeness <- hg_edge_centrality(active, s = 1, measure = "closeness",
                                     top = 10)
 top_closeness
+```
+
+```{r icsid-closeness-subset}
 close_tribunals <- hg_subset(active, edges = top_closeness)
+```
+
+```{r icsid-closeness-plot, fig.width = 8, fig.height = 7}
 plot(close_tribunals, color_by = "economic_sector",
      legend_title = "economic sector", label_size = 2.8)
 ```
 
-The static aggregate ranks tribunals that never overlapped in time. On the
-seven most central cases by closeness in the aggregate, `linetype_by`
-outlines the concluded cases differently from the pending ones, the
-distinction the paper's Figure 6d draws with dashed and solid lines.
+The static aggregate ranks tribunals that never overlapped in time. As for
+the active snapshot, `multiedges = FALSE` collapses the two tribunals with
+the same three members into one hyperedge; that binary aggregate is the
+representation of the paper's Figure 6d and of the reproduction runner.
 
-```{r icsid-aggregate, fig.width = 8, fig.height = 7}
-top_aggregate <- hg_edge_centrality(tribunals_all, s = 1, measure = "closeness",
-                                    top = 7)
+```{r icsid-aggregate-binary}
+tribunals_binary <- hypergraph_snapshot(tribunals, mode = "cumulative",
+                                        multiedges = FALSE)
+tribunals_binary
+```
+
+On its seven most central cases by closeness, `linetype_by` outlines the
+concluded cases differently from the pending ones, the distinction the
+paper draws with dashed and solid lines.
+
+```{r icsid-aggregate}
+top_aggregate <- hg_edge_centrality(tribunals_binary, s = 1,
+                                    measure = "closeness", top = 7)
 top_aggregate
-aggregate_tribunals <- hg_subset(tribunals_all, edges = top_aggregate)
-plot(aggregate_tribunals, color_by = "economic_sector", linetype_by = "is_concluded",
+```
+
+```{r icsid-aggregate-subset}
+aggregate_tribunals <- hg_subset(tribunals_binary, edges = top_aggregate)
+```
+
+```{r icsid-aggregate-plot, fig.width = 8, fig.height = 7}
+plot(aggregate_tribunals, color_by = "economic_sector",
+     linetype_by = "is_concluded",
      legend_title = "economic sector", label_size = 2.8)
 ```
 
@@ -414,9 +487,12 @@ plot(motifs_aggregate)
 The last snapshot of the temporal hypergraph has far fewer Y motifs, 48,
 and a smaller but still clear excess over its null (Figure 7b).
 
-```{r icsid-motifs-active, fig.height = 4}
+```{r icsid-motifs-active}
 motifs_active <- hg_motifs(active, n = 300, seed = 1)
 motifs_active
+```
+
+```{r icsid-motifs-active-plot, fig.height = 4}
 plot(motifs_active)
 ```
 
@@ -433,12 +509,20 @@ backward citations only, those whose citing decision is later than the
 cited one, so the temporal hypergraph is rebuilt from that subset of the
 citation table.
 
-```{r gfcc-backward}
+```{r gfcc-backward-citations}
 backward_citations <- subset(gfcc_citations, date_citing > date_cited)
+head(backward_citations)
+```
+
+```{r gfcc-backward}
 backward <- temporal_hypergraph(
   backward_citations, actor = "cited", group = "block",
   time = "date_citing", nodes = gfcc_decisions, sparse = TRUE
 )
+backward
+```
+
+```{r gfcc-backward-aggregate}
 backward_all <- hypergraph_snapshot(backward, mode = "cumulative")
 backward_all
 ```
@@ -447,9 +531,12 @@ backward_all
 compares every pair of partitions with adjusted mutual information and keeps
 the run with the largest summed AMI as the medoid. The paper uses 50 seeds
 with 100 trials each; five seeds with five trials are used here to keep the
-vignette quick. The eight calls differ only in the projection they ask for.
+document quick. The eight calls differ only in the projection they ask
+for. The four classic citation graphs first: `method = "citation"` with
+`edge_source` naming the citing decision, `duplicate_edges = "collapse"`
+for the binary graph, `directed = TRUE` for the directed one.
 
-```{r gfcc-communities, eval = has_igraph}
+```{r gfcc-communities-graphs, eval = has_igraph}
 communities_bg <- hg_communities(backward_all, n_runs = 5, trials = 5,
                                  method = "citation", edge_source = "citing",
                                  duplicate_edges = "collapse", directed = TRUE)
@@ -461,6 +548,13 @@ communities_mg <- hg_communities(backward_all, n_runs = 5, trials = 5,
                                  directed = TRUE)
 communities_mgu <- hg_communities(backward_all, n_runs = 5, trials = 5,
                                   method = "citation", edge_source = "citing")
+communities_bg
+```
+
+Then the four association graphs: the default projection, on the binary or
+the multi-hypergraph, with or without `self_association`.
+
+```{r gfcc-communities-hypergraphs, eval = has_igraph}
 communities_bh <- hg_communities(backward_all, n_runs = 5, trials = 5,
                                  duplicate_edges = "collapse")
 communities_bhs <- hg_communities(backward_all, n_runs = 5, trials = 5,

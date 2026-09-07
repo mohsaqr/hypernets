@@ -157,11 +157,12 @@ research abstracts and their sentence embeddings).
 
 ## Vignettes
 
-The package ships `vignette("legal-hypergraphs")`,
-`vignette("text-hypergraphs")` and `vignette("text-constructions")`, plus a benchmark article
+The package ships `vignette("text-hypergraphs")` and
+`vignette("text-constructions")`, plus a benchmark article
 (`vignettes/articles/benchmarks.Rmd`, R8/R52/MR/Ohsumed/20NG). The other
 three families have one worked document each in `docs/` — a worked analysis
-on real data, not a syntax reference. Start with **`docs/index.html`** for
+on real data, not a syntax reference — and the Legal hypergraphs paper
+workflow is `docs/legal-hypergraphs.html`. Start with **`docs/index.html`** for
 the map, or **`docs/overview.html`** to see the same dataset read all three
 ways. Rebuild them with `Rscript docs/_knit_all.R`. Longer tutorials live in
 `Tutorial_docs/`.
