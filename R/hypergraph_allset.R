@@ -1,6 +1,8 @@
 # ---- AllSet (Chien et al. 2022) ----------------------------------------
 
-.thg_deepset <- torch::nn_module(
+# Built on demand: torch is in Suggests, so no torch call may run when
+# the namespace is loaded.
+.thg_deepset_module <- function() torch::nn_module(
   initialize = function(in_dim, out_dim) {
     self$phi <- torch::nn_sequential(
       torch::nn_linear(in_dim, out_dim), torch::nn_relu(),
@@ -15,8 +17,11 @@
     self$rho(torch::torch_mm(incidence, self$phi(x)))
   }
 )
+.thg_deepset <- function(...) .thg_deepset_module()(...)
 
-.thg_pma <- torch::nn_module(
+# Built on demand: torch is in Suggests, so no torch call may run when
+# the namespace is loaded.
+.thg_pma_module <- function() torch::nn_module(
   initialize = function(dim, heads) {
     if (dim %% heads != 0L) stop("`hidden` must be divisible by `heads`.")
     self$dim <- dim
@@ -56,6 +61,7 @@
     torch::torch_cat(outputs, dim = 1L)
   }
 )
+.thg_pma <- function(...) .thg_pma_module()(...)
 
 .thg_allset_memberships <- function(hg) {
   H <- hg$incidence != 0

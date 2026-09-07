@@ -1,6 +1,8 @@
 # ---- Heterogeneous Graph Attention (Linmei et al. 2019) -----------------
 
-.thg_hgat_layer <- torch::nn_module(
+# Built on demand: torch is in Suggests, so no torch call may run when
+# the namespace is loaded.
+.thg_hgat_layer_module <- function() torch::nn_module(
   initialize = function(hidden, type_names, adjacency, type_index) {
     self$hidden <- hidden
     self$type_names <- type_names
@@ -70,6 +72,7 @@
     torch::torch_cat(rows, dim = 1L)
   }
 )
+.thg_hgat_layer <- function(...) .thg_hgat_layer_module()(...)
 
 .thg_hgat_inputs <- function(adjacency, node_types, features) {
   stopifnot(

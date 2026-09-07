@@ -1,3 +1,11 @@
+# honets 0.3.7
+
+* honets installs without torch again. Five `torch::nn_module()` classes
+  (HyperGAT layer and network, HGAT layer, AllSet DeepSets and PMA blocks)
+  were built at namespace load, so `R CMD INSTALL` failed wherever the
+  Suggests package torch was absent. They are now built on demand, and a
+  regression test forbids any top-level reference to a Suggests package.
+
 # honets 0.3.6
 
 * pkgdown CI builds into `pkgdown/` (`dest_dir`), not `docs/`, which holds

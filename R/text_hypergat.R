@@ -18,7 +18,9 @@
 
 # One dual-attention layer on a dense batch: x [B, N, F_in], adj
 # [B, E, N] binary. Returns [B, N, F_out].
-.thg_hypergat_layer <- torch::nn_module(
+# Built on demand: torch is in Suggests, so no torch call may run when
+# the namespace is loaded.
+.thg_hypergat_layer_module <- function() torch::nn_module(
   initialize = function(in_features, out_features, dropout, alpha,
                         transfer, concat) {
     self$out_features <- out_features
@@ -90,12 +92,15 @@
     node
   }
 )
+.thg_hypergat_layer <- function(...) .thg_hypergat_layer_module()(...)
 
 # The document classifier: embedding -> two dual-attention layers ->
 # masked mean pool -> LayerNorm -> linear. Mirrors DocumentGraph +
 # HGNN_ATT (embedding, norm and output layer initialized uniform with
 # stdv = 1/sqrt(hidden), the official reset_parameters quirk).
-.thg_hypergat_net <- torch::nn_module(
+# Built on demand: torch is in Suggests, so no torch call may run when
+# the namespace is loaded.
+.thg_hypergat_net_module <- function() torch::nn_module(
   initialize = function(vocab_size, embed_dim, hidden, n_class, dropout,
                         pretrained = NULL) {
     self$p_drop <- dropout
@@ -132,6 +137,7 @@
     self$out(self$norm(pooled))
   }
 )
+.thg_hypergat_net <- function(...) .thg_hypergat_net_module()(...)
 
 # Tokenize documents into sentences of word ids. Returns a list per doc:
 # integer-id sentences (pad id is 1; word ids start at 2), plus the vocab.
