@@ -102,7 +102,7 @@ the longer history changes the *modal* prediction, not just its
 confidence.
 
 Pair this with
-[`markov_order_test`](https://mohsaqr.github.io/honets/reference/markov_order_test.md)
+[`markov_order_test`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
 (which decides whether order-k is needed *globally*) to see the
 chain-level decision broken down per context.
 
@@ -113,8 +113,8 @@ ed., chapters 2 and 4. Wiley. (KL divergence and conditional entropy.)
 
 ## See also
 
-[`markov_order_test`](https://mohsaqr.github.io/honets/reference/markov_order_test.md),
-[`build_mogen`](https://mohsaqr.github.io/honets/reference/build_mogen.md)
+[`markov_order_test`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md),
+[`build_mogen`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md)
 
 ## Examples
 
@@ -131,7 +131,8 @@ seqs <- t(replicate(60, {
   }
   s
 }))
-pd <- path_dependence(as.data.frame(seqs), order = 2, min_count = 3)
+seqs <- as.data.frame(seqs)
+pd <- path_dependence(seqs, order = 2, min_count = 3)
 print(pd)
 #> Path Dependence (order 2 vs order 1, bits)
 #> 

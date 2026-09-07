@@ -25,6 +25,9 @@ The edge data.frame `object$edges` (columns `path`, `from`, `to`,
 `count`, `probability`, `from_order`, `to_order`), returned visibly; the
 summary text is printed as a side effect.
 
+Returned **invisibly**: `summary(x)` prints the summary and nothing
+else; assign the result to keep the table.
+
 ## Examples
 
 ``` r
@@ -38,12 +41,6 @@ summary(hon)
 #>   Min frequency: 1
 #>   Node order distribution:
 #>     Order 1: 4 nodes
-#>   from to    weight
-#> 1    3  1 0.3333333
-#> 2    4  1 1.0000000
-#> 3    1  2 1.0000000
-#> 4    2  3 1.0000000
-#> 5    3  4 0.6666667
 
 # \donttest{
 seqs <- data.frame(
@@ -60,9 +57,5 @@ summary(hon)
 #>   Min frequency: 1
 #>   Node order distribution:
 #>     Order 1: 3 nodes
-#>   from to weight
-#> 1    3  1      1
-#> 2    1  2      1
-#> 3    2  3      1
 # }
 ```

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,10 +16,19 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
+    <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/honets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/hypernets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -29,9 +38,245 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/mohsaqr/honets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.8" id="honets-038">honets 0.3.8<a class="anchor" aria-label="anchor" href="#honets-038"></a></h2>
+<ul><li>The pkgdown workflow installs igraph and gridExtra like the check workflow does, so the legal vignette’s hyperedge betweenness (cograph -&gt; igraph) renders on the site.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.7" id="honets-037">honets 0.3.7<a class="anchor" aria-label="anchor" href="#honets-037"></a></h2>
+<ul><li>honets installs without torch again. Five <code>torch::nn_module()</code> classes (HyperGAT layer and network, HGAT layer, AllSet DeepSets and PMA blocks) were built at namespace load, so <code>R CMD INSTALL</code> failed wherever the Suggests package torch was absent. They are now built on demand, and a regression test forbids any top-level reference to a Suggests package.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.6" id="honets-036">honets 0.3.6<a class="anchor" aria-label="anchor" href="#honets-036"></a></h2>
+<ul><li>pkgdown CI builds into <code>pkgdown/</code> (<code>dest_dir</code>), not <code>docs/</code>, which holds the hand-knit documents.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.5" id="honets-035">honets 0.3.5<a class="anchor" aria-label="anchor" href="#honets-035"></a></h2>
+<ul><li>The GitHub repository is <code>mohsaqr/hypernets</code>; <code>DESCRIPTION</code>, the README install line and the pkgdown site URL now point there. The package name is unchanged.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.4" id="honets-034">honets 0.3.4<a class="anchor" aria-label="anchor" href="#honets-034"></a></h2>
+<p>The temporal hypergraph speaks Dynet’s vocabulary (<code>../temporal</code>), so a relational log reads the same way in both packages.</p>
+<ul><li>
+<strong><code>group</code></strong> replaces <code>cooccur_by</code> in <code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> and <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> (Dynet’s co-presence format is <code>actor</code>/<code>group</code>). <code>cooccur_by</code> and <code>member</code> remain as deprecated aliases for one release and warn with a <code>honets_deprecated</code> condition.</li>
+<li>
+<strong>Column detection</strong> uses Dynet’s alias table, case-insensitively: <code>Sender</code>/<code>Receiver</code>, <code>source</code>/<code>target</code>, <code>onset</code>/<code>terminus</code>, <code>timestamp</code> are understood without being named; an explicit name must exist as written (<code>honets_missing_column</code>).</li>
+<li>
+<strong>Time parsing</strong> follows Dynet: numeric times stay as they are (unit <code>"step"</code>); <code>Date</code>, <code>POSIXct</code> and character date-times become elapsed time since the earliest time in a unit chosen for the span (<code>"days"</code> beyond three days) or given as <code>time_unit</code>. The object stores <code>time_unit</code> and <code>origin</code>, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> reports them, every <code>time</code> column of a result is on that clock, and dates passed to <code>at</code>, <code>start</code>, <code>end</code> or the observation bounds are converted (or refused on a numeric clock). Raw character dates are never compared.</li>
+<li>
+<strong><code>time</code> is a contact clock.</strong> A hyperedge with a <code>time</code> is an instantaneous event, as in Dynet’s contact format; the former “growing” reading is <code>mode = "cumulative"</code> in <code><a href="../reference/hypergraph_snapshot.html">hypergraph_snapshot()</a></code>, <code><a href="../reference/hypergraph_snapshots.html">hypergraph_snapshots()</a></code>, <code><a href="../reference/hg_growth.html">hg_growth()</a></code> and <code><a href="../reference/hg_edges.html">hg_edges()</a></code>, and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> says so. <code>mode = "all"</code> is deprecated: it is <code>"cumulative"</code> with <code>at</code> unset. <code>evolution</code> is replaced by <code>format</code> (<code>"interval"</code> or <code>"contact"</code>).</li>
+<li>
+<strong><code>observation_start</code> / <code>observation_end</code></strong> with Dynet’s meaning: they bound the snapshot times and the measurement grid (<code>honets_outside_observation</code>), an open-ended hyperedge is active through the end of observation, and the stored memberships are never rewritten.</li>
+<li>
+<strong>The measurement grid</strong>: <code>hypergraph_snapshots(x, start, end, step, window, mode)</code> – <code>step</code> is how often to look, <code>window</code> how much time each look covers (<code>0</code> a point, <code>"all"</code> the whole period), <code>at</code> names instants – and <code><a href="../reference/hg_growth.html">hg_growth()</a></code> and <code><a href="../reference/hg_edges.html">hg_edges()</a></code> take the same four. Without <code>step</code> and <code>at</code> the grid is the event times, as before.</li>
+<li>
+<code>as.data.frame(x, what = "memberships" | "edges" | "nodes")</code> for a temporal hypergraph; series plots draw the calendar when the hypergraph has one.</li>
+<li>Behaviour-neutral on the bundled legal data: Table 2, the component sweep and the motif counts of the Legal Hypergraphs vignette are unchanged.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.3" id="honets-033">honets 0.3.3<a class="anchor" aria-label="anchor" href="#honets-033"></a></h2>
+<p>Every line of code a user reads now follows the one-call-per-line rule: no verb nested inside another call, no <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> inside a call, no <code>$</code> reach into a <code>net_*</code> result – in the vignettes, the roxygen examples, the hand-knit <code>docs/</code> documents and the tests alike. Three small additions made the tidy versions possible:</p>
+<ul><li>
+<strong><code><a href="../reference/hg_agreement.html">hg_agreement()</a></code></strong> gains an <code>aligned</code> column in its summary (the nodes that stay with the majority of their <code>x</code> label in <code>y</code>; the sum of <code>overlap</code> over <code>what = "mapping"</code>) and <code>node</code> / <code>label</code> column selectors, one name for both labelings or two for <code>x</code> and <code>y</code>, so a classifier can be scored against a column of the corpus table directly: <code>hg_agreement(predictions, corpus, node = c("node", "doc"), label = c("predicted", "year"), what = "table")</code>.</li>
+<li>
+<strong><code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code></strong> keeps every column that is constant within a hyperedge as an attribute in <code>edge_data</code>, as <code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> does, so <code>hg_subset(where =)</code> and <code>edge_source =</code> work on it without assembling the table by hand. A plain member/group table keeps its original layout.</li>
+<li>
+<strong><code>as.data.frame(hg, what = "nodes")</code></strong> for any <code>net_hypergraph</code>: one row per node with <code>degree</code>, plus <code>block</code> for the stochastic block model generator; <code>sort_by = "degree"</code> and <code>top</code> apply.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.2" id="honets-032">honets 0.3.2<a class="anchor" aria-label="anchor" href="#honets-032"></a></h2>
+<p>The Legal Hypergraphs workflow (Coupette, Hartung &amp; Katz 2024) is now reproduced figure by figure on the authors’ released data, and the verbs that were missing for it are in the hypergraph family.</p>
+<ul><li>
+<strong><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> for <code>net_hypergraph</code></strong>: nodes on a spring (or circle) layout of the clique projection, every hyperedge as a smooth translucent blob around its members, drawn by <code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code>; honets maps <code>color_by</code> and <code>linetype_by</code> (<code>"size"</code>, a column of the edge metadata, or a value per hyperedge) to blob colours and line types and adds the legend; <code>labels</code> renames nodes; a <code>layout</code> table can be reused across panels.</li>
+<li>
+<strong><code><a href="../reference/hg_subset.html">hg_subset()</a></code></strong>: sub-hypergraph by hyperedge names, by a node set (the induced sub-hypergraph) or by hyperedge <code>source</code> (the hypergraph of one citing decision), keeping edge metadata and multiplicities, sparse or dense.</li>
+<li>
+<strong><code><a href="../reference/hg_growth.html">hg_growth()</a></code></strong>: node, hyperedge, distinct-set and membership counts at every event time of a temporal hypergraph, with cumulative columns for interval data and <code>components = TRUE</code> for the number of components, the share of the largest and its diameter; returns a <code>honets_series</code> table with a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method.</li>
+<li>
+<strong><code><a href="../reference/hg_representations.html">hg_representations()</a></code></strong>: the paper’s Table 2, the same data as binary graph, multi-graph, binary hypergraph and multi-hypergraph with edge counts and degree statistics, for the clique or the citation graph.</li>
+<li>
+<strong><code><a href="../reference/hg_compare_communities.html">hg_compare_communities()</a></code></strong>: several <code><a href="../reference/hg_communities.html">hg_communities()</a></code> fits side by side, with summaries, pairwise AMI/ARI/NMI, cluster-size distributions and, given the hypergraph, each medoid’s quality on its own projection; <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws Figure 8b and, through <code><a href="https://sonsoles.me/cograph/reference/plot_heatmap.html" class="external-link">cograph::plot_heatmap()</a></code>, the AMI/ARI matrix of Figure 8c (<code>as.data.frame(what = "matrix")</code>).</li>
+<li>
+<strong><code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> is defined like a network.</strong> It takes an edge list (<code>from</code>, <code>to</code>) or co-occurrence data (<code>actor</code>, <code>cooccur_by</code>), a clock (<code>time</code>, or <code>start</code> and <code>end</code>; the evolution follows), a node universe (<code>nodes</code>: names, or a table whose first column is the node and whose <code>start</code> column its entry time) and <code>sparse = TRUE</code>. Every other column constant within a hyperedge is kept as a hyperedge attribute (a <code>source</code> column feeds self-association). The former wide <code>member = c(...)</code>, <code>edge</code>, <code>source</code>, <code>attributes</code> and <code>evolution</code> arguments are gone. <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> takes the same <code>actor</code>, <code>cooccur_by</code>, <code>from</code> and <code>to</code> names (<code>member</code> and <code>group</code> still accepted). An empty snapshot keeps the universe; <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> reports the observation window.</li>
+<li>
+<code><a href="../reference/hg_edges.html">hg_edges()</a></code> evaluates temporal hypergraphs snapshot by snapshot (<code>at</code>, <code>snapshot_mode</code>, <code>multiedges</code>), takes several <code>s</code> thresholds, and adds <code>what = "summary"</code>; distribution tables are <code>honets_distribution</code> objects whose <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the CCDF, one curve per date or threshold.</li>
+<li>
+<code><a href="../reference/hg_measures.html">hg_measures()</a></code> adds <code>n_neighbors</code> to the node table and <code>what = "distribution"</code> and <code>what = "components"</code>.</li>
+<li>
+<code><a href="../reference/hg_project.html">hg_project()</a></code> adds <code>method = "citation"</code> (source-to-member graph, directed or not); <code><a href="../reference/hg_communities.html">hg_communities()</a></code> and <code><a href="../reference/hg_community_quality.html">hg_community_quality()</a></code> take <code>method = "citation"</code>, and Infomap can run with directed flow.</li>
+<li>
+<code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> adds the statistics <code>repeated_edges</code> and <code>repeated_pairs</code> and the paper’s degree-ordered <code>method = "assignment"</code>.</li>
+<li>
+<code><a href="../reference/hg_motifs.html">hg_motifs()</a></code> returns a <code>honets_motifs</code> table that keeps its null draws (<code>as.data.frame(what = "draws")</code>) and plots the null distribution with the observed count; the motif census is vectorised (about seven times faster per null draw, identical counts).</li>
+<li>
+<code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> reads sparse incidence in one pass, so the GFCC aggregate builds in under a second instead of twenty.</li>
+<li>
+<strong>Datasets</strong> <code>icsid_tribunals</code> (2,226 tribunal seats of 742 ICSID cases), <code>gfcc_decisions</code> (3,618 decisions) and <code>gfcc_citations</code> (77,284 citations in 46,257 blocks), rebuilt from the authors’ Zenodo archive by <code>data-raw/legal_hypergraphs.R</code> (CC BY-NC 4.0, attribution in the help pages). <code>hg_subset(where =)</code> selects hyperedges by any attribute, and <code>edge_source</code> may name an attribute column (<code>"citing"</code>).</li>
+<li>The <code>legal-hypergraphs</code> vignette is rewritten on those datasets: Tables 1 and 2, Figures 3 to 8 and the repeated-collaboration test.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.1" id="honets-031">honets 0.3.1<a class="anchor" aria-label="anchor" href="#honets-031"></a></h2>
+<ul><li><p><strong>Topic summaries with plots</strong>: <code><a href="../reference/hg_topic_sizes.html">hg_topic_sizes()</a></code> (document and weighted shares), <code><a href="../reference/hg_topic_quality.html">hg_topic_quality()</a></code> (NPMI coherence and share exclusivity of each topic’s top words) and <code><a href="../reference/hg_membership.html">hg_membership()</a></code> (fuzzy c-means membership of every document in every topic, from the spectral embedding). Each returns a data.frame with a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method.</p></li>
+<li><p><strong><code><a href="../reference/hg_relations.html">hg_relations()</a></code></strong>: the topic-by-topic co-occurrence network through shared vocabulary (full counting; <code>similarity =</code> association, cosine, jaccard, inclusion or equivalence), as a <code>source, target, weight</code> edge list or a <code>cograph_network</code>.</p></li>
+<li><p><code><a href="../reference/hg_keywords.html">hg_keywords()</a></code> takes an external score table through <code>scores =</code> and a sentence hypergraph as <code>hg</code> for sentence scope; the long form carries <code>size</code>; the print method is compact; centrality defaults to PageRank. <code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> chooses sparse storage automatically.</p></li>
+<li><p><code>hg_cluster(edge_weights =)</code>: hyperedge weights for either Laplacian, numeric or <code>"idf"</code> (each word weighted by its inverse document frequency). The default <code>type = "zhou"</code> cut reads only hyperedge membership, so <code>weight = "tfidf"</code> alone does not change it; this argument is how tf-idf reaches the clustering. Comparison: <code>docs/covid-weighting.html</code>.</p></li>
+<li><p><strong><code><a href="../reference/clean_text.html">clean_text()</a></code></strong>: corpus repair before <code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> – HTML, mojibake, citations and numbering, URLs and DOIs, copyright notices, numbers, custom <code>remove</code> patterns, a content floor – returning the same rows so nothing drops silently. Vignette: <code><a href="../articles/covid-topics.html">vignette("covid-topics")</a></code>, sixteen topics of the COVID-19 education literature in five calls.</p></li>
+<li><p><strong>Sentence hyperedges.</strong> <code>text_hypergraph(construction = "sentence")</code> binds the words of each sentence (HyperGAT’s construction over a whole corpus), with <code>as.data.frame(hg, what = "sentences")</code>. <code>hg_keywords(type = "sentence_centrality", sentences = )</code> ranks a topic’s words by centrality among the topic’s sentences.</p></li>
+<li><p><strong>Topic descriptions.</strong> <code><a href="../reference/hg_keywords.html">hg_keywords()</a></code> gains <code>type =</code>: <code>"mass"</code> (the previous score, default), <code>"frequency"</code> (raw counts), <code>"ctfidf"</code> (Grootendorst 2022 class-based tf-idf, matched to BERTopic’s <code>ClassTfidfTransformer</code> to 1e-12), <code>"centrality"</code> (the word’s <code><a href="../reference/hypergraph_centrality.html">hypergraph_centrality()</a></code> in the cluster’s own word hypergraph, measure chosen with <code>centrality =</code>) and <code>"attention"</code> (summed HyperGAT word attention). <code>hg_hypergat(what = "attention")</code> returns that per-document, per-word attention table. <code>type</code> takes several scores at once; the table (class <code>honets_keywords</code>, new leading <code>type</code> column) has a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method: one panel per topic and score, bars of the score per word (<code>value = "share"</code> to show shares). <code>sort_by = "share"</code> ranks a topic’s words by the fraction of their total score it holds (distinctive rather than heavy vocabulary) and <code>min_docs</code> is the support floor; the table gains an <code>n_docs</code> column, and the collapsed table a <code>size</code> column. <code>hg_agreement(what = "mapping")</code> maps each cluster of one partition to the cluster of another that holds most of it. Worked examples: <code>docs/levebee-topics.html</code> and <code>docs/covid-topics.html</code>.</p></li>
+<li><p><strong>BERTopic benchmark.</strong> <code>benchmarks/run_bertopic_benchmark.R</code> runs the actual <code>bertopic.BERTopic</code> package (ten seeds, three variants) against <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code> on R8, on both the tf-idf hypergraph and a kNN hypergraph built from the same sentence embeddings; paired effects with bootstrap CIs are reported in the benchmarks article. # honets 0.3.0</p></li>
+<li><p><strong>The complete Hayashi clustering family is implemented.</strong> <code>hypergraph_cluster(algorithm = "symnmf")</code> adds Algorithm 2, RDC-Sym, alongside the existing RDC-Spec implementation. New <code><a href="../reference/hypergraph_joint_cluster.html">hypergraph_joint_cluster()</a></code> implements the patent experiment’s J-NMF (Eq. 18) and JS-NMF (Eq. 19) objectives when an auxiliary node-relation matrix is available. All NMF paths expose their objective trace, convergence state, iteration count, chosen restart and fitted factors.</p></li>
+<li><p><strong>Full HyperGAT semantic hyperedges.</strong> <code>hg_hypergat(semantic = "lda")</code> now implements the Ding et al. (2020) LDA path in native R: online variational Bayes on labeled training documents, class-count topics, and per-document topic edges from the top words. Precomputed keyword lists are accepted for exact replay of official preprocessing artifacts; the default remains the backward-compatible sentence-only ablation.</p></li>
+<li><p><strong>The neural paper set is complete.</strong> New <code><a href="../reference/hypergraph_hypergcn.html">hypergraph_hypergcn()</a></code> provides dynamic, fast and one-edge HyperGCN; <code><a href="../reference/hypergraph_hnhn.html">hypergraph_hnhn()</a></code> exposes the HNHN alpha/beta normalization exponents; and <code><a href="../reference/hypergraph_allset.html">hypergraph_allset()</a></code> implements both AllDeepSets and AllSetTransformer. <code><a href="../reference/heterogeneous_hgat.html">heterogeneous_hgat()</a></code> implements Linmei et al.’s distinct heterogeneous document/topic/entity graph model with node- and type-level attention. Each method has direct equation or construction invariants plus end-to-end torch tests.</p></li>
+<li><p><strong>cograph is the shared graph and plotting engine.</strong> It is promoted from Suggests to Imports: honets owns hypergraph construction, incidence algebra and hypergraph-specific transformations, then uses cograph for ordinary graph algorithms and rendering. Dynet remains a separate peer and is not a dependency.</p></li>
+<li><p><strong>Dual hypergraph verb names.</strong> Descriptive names such as <code><a href="../reference/hg_edges.html">hypergraph_edges()</a></code>, <code><a href="../reference/hg_project.html">hypergraph_project()</a></code>, <code><a href="../reference/hg_pagerank.html">hypergraph_pagerank()</a></code> and <code><a href="../reference/hg_classify.html">hypergraph_classify()</a></code> are exported as direct bindings to their compact <code>hg_*()</code> forms; no implementation is duplicated. The raw-text attention model is also available as <code><a href="../reference/hg_hypergat.html">text_hypergat()</a></code>. Existing engine names <code><a href="../reference/hypergraph_measures.html">hypergraph_measures()</a></code>, <code><a href="../reference/hypergraph_centrality.html">hypergraph_centrality()</a></code> and <code><a href="../reference/hypergraph_cluster.html">hypergraph_cluster()</a></code> keep their established meanings.</p></li>
+<li><p><strong>The full <em>Legal hypergraphs</em> method layer is implemented.</strong> New temporal hypergraphs and snapshots; binary/multi and self-association projections; s-betweenness and s-closeness of hyperedges; log-subhypergraph centrality; induced Y/T/O motif censuses with the HypergraphX configuration MCMC; repeated Infomap with AMI-medoid selection; ARI/AMI/NMI agreement; and coverage, weighted coverage, performance and modularity. The authors’ released ICSID data reproduce the published aggregate motif counts exactly: Y = 478, T = 7, O = 0.</p></li>
+<li><p><strong>The full Legal Hypergraphs archive reproduction now passes.</strong> A standalone runner rebuilds the sparse 3,618-node GFCC citation-block hypergraph, verifies all four association projections and all eight archived Figure 8 medoids, and reproduces the active/aggregate ICSID Figure 6 centrality rankings and values. <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> now accepts an explicit node universe and sparse incidence, and normalized hyperedge centrality follows the exact NetworkX/HypergraphX convention on disconnected line graphs.</p></li>
+</ul><div class="section level3">
+<h3 id="the-text-family-texthypergraph-folds-into-honets-0-3-1">The text family: texthypergraph folds into honets<a class="anchor" aria-label="anchor" href="#the-text-family-texthypergraph-folds-into-honets-0-3-1"></a></h3>
+<p>The <code>texthypergraph</code> package is retired and its whole surface now lives here, with its history of tests intact (491 shipped expectations came across; the merged suite passes in full). honets gains a fourth family, <strong>text hypergraphs</strong>, and the hypergraph family gains every generic method that texthypergraph had built under its frozen-Nestimate contract.</p>
+<ul><li>
+<strong>New family — text hypergraphs.</strong> <code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> (bag of words with smoothed tf-idf, token windows, or embedding kNN; dense or sparse), <code><a href="../reference/stop_words_en.html">stop_words_en()</a></code>, and the tidy verbs <code><a href="../reference/hg_measures.html">hg_measures()</a></code>, <code><a href="../reference/hg_centrality.html">hg_centrality()</a></code>, <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code>, <code><a href="../reference/hg_keywords.html">hg_keywords()</a></code>, <code><a href="../reference/hg_classify.html">hg_classify()</a></code>, <code><a href="../reference/hg_stability.html">hg_stability()</a></code>, <code><a href="../reference/hg_agreement.html">hg_agreement()</a></code>, <code><a href="../reference/hg_seeds.html">hg_seeds()</a></code>. Data: <code>covid_abstracts</code>, <code>covid_embeddings</code>. Vignettes <code>text-hypergraphs</code> and <code>text-constructions</code>.</li>
+<li>
+<strong>Hypergraph family additions.</strong> <code><a href="../reference/knn_hypergraph.html">knn_hypergraph()</a></code>, <code><a href="../reference/dual_hypergraph.html">dual_hypergraph()</a></code>, <code><a href="../reference/hg_pagerank.html">hg_pagerank()</a></code> (personalized EDVW PageRank, sparse-capable), <code><a href="../reference/hg_project.html">hg_project()</a></code> (clique and association weightings), <code><a href="../reference/hg_line_graph.html">hg_line_graph()</a></code>, <code><a href="../reference/hg_edges.html">hg_edges()</a></code>, <code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> (swap and configuration nulls), and the neural tier <code><a href="../reference/hg_neural.html">hg_neural()</a></code> (HGNN) and <code><a href="../reference/hg_hypergat.html">hg_hypergat()</a></code> (HyperGAT) in native torch. Sparse <code>Matrix::dgCMatrix</code> incidences are supported end to end by <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code>, <code><a href="../reference/hg_classify.html">hg_classify()</a></code>, <code><a href="../reference/hg_pagerank.html">hg_pagerank()</a></code> and <code><a href="../reference/hg_measures.html">hg_measures()</a></code>.</li>
+<li>
+<strong><code>hypergraph_transduction(normalization = )</code>.</strong> New argument, default <code>"none"</code> (the raw Zhou 2006 argmax, unchanged behaviour). <code>"class_mass"</code> divides each class column by its total spread mass before the argmax (Zhu, Ghahramani &amp; Lafferty 2003); without it, class-imbalanced seeds collapse every prediction onto the majority class (on R8, every test document is predicted “earn”). The result object records <code>$normalization</code>.</li>
+<li>
+<strong>Nestimate dependency removed.</strong> texthypergraph delegated its incidence construction and measures to Nestimate; those engines already lived here, and <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> is <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> to <code>Nestimate::bipartite_groups()</code> up to the <code>member</code>/<code>player</code> argument name (tested). The package now imports only cograph, ggplot2, graphics, grid, Matrix, methods, parallel, RSpectra, stats and utils.</li>
+<li>
+<strong>Collisions resolved without a value change.</strong> texthypergraph carried a verbatim copy of the spectral trio; honets’ copies were kept (they carry the plot methods, <code>top =</code>, and scalar <code>edge_weights</code>), and only the normalization argument was ported. <code><a href="../reference/hg_pagerank.html">hg_pagerank()</a></code> agrees with <code>hypergraph_centrality(type = "pagerank")</code> to <code>1e-10</code> (tested); <code>hg_project(method = "clique")</code> equals <code><a href="../reference/clique_expansion.html">clique_expansion()</a></code> (tested); <code>text_hypergraph(construction = "window")</code> and <code><a href="../reference/window_hypergraph.html">window_hypergraph()</a></code> produce the same incidence matrix on their shared domain (tested).</li>
+<li>
+<strong>Condition classes</strong> of the incoming code are <code>honets_*</code> (<code>honets_bad_input</code>, <code>honets_no_converge</code>, <code>honets_hypergraph_disconnected</code>, <code>honets_empty_corpus</code>, <code>honets_dropped_documents</code>, <code>honets_missing_embeddings</code>, <code>honets_missing_torch</code>, <code>honets_nonpositive_similarity</code>, <code>honets_sparse_unsupported</code>, <code>honets_sparse_too_large</code>, <code>honets_configuration_collapse</code>).</li>
+<li>
+<strong>Infrastructure.</strong> GitHub Actions (<code>R-CMD-check</code>, <code>pkgdown</code>), a pkgdown reference index covering every topic, <code>VignetteBuilder: knitr</code>, the benchmark harness under <code>benchmarks/</code> (build-ignored), and the text-family equivalence suites (HyperNetX, HyperG, DHG, the official HyperGAT code) under <code>local_testing_and_equivalence/</code>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.1" id="honets-021">honets 0.2.1<a class="anchor" aria-label="anchor" href="#honets-021"></a></h2>
+<div class="section level3">
+<h3 id="every-accessor-takes-top--0-2-1">Every accessor takes <code>top =</code>
+<a class="anchor" aria-label="anchor" href="#every-accessor-takes-top--0-2-1"></a></h3>
+<p>Every verb that can return many rows now takes a <code>top =</code> argument, so a caller never has to write <code><a href="https://rdrr.io/r/utils/head.html" class="external-link">head()</a></code> around a result:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">mo</span>, what <span class="op">=</span> <span class="st">"transitions"</span>, order <span class="op">=</span> <span class="fl">2</span>, top <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>   <span class="co"># not head(..., 4)</span></span></code></pre></div>
+<p><code>top</code> is applied <strong>last</strong> - after <code>what</code>, after every filter (<code>order_min</code>, <code>min_count</code>, <code>dim</code>, <code>k</code>, <code>dimension</code>, <code>significant</code>), and after <code>sort_by</code> - so <code>sort_by</code> and <code>top</code> compose: <code>top = n</code> is the first <code>n</code> rows of the table as ordered. <code>top = NULL</code> (the default) returns everything, and the default return of every accessor is unchanged. Semantics match the <code>top</code> that already shipped on <code><a href="../reference/path_counts.html">path_counts()</a></code> and <code><a href="../reference/pathways.html">pathways()</a></code>.</p>
+<p>Added to: <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> for <code>net_hon</code>, <code>net_honem</code>, <code>net_hypa</code>, <code>net_mogen</code>, <code>net_markov_order</code>, <code>net_path_dependence</code>, <code>net_hon_boot</code>, <code>net_hon_compare</code>, <code>net_simplicial</code>, <code>net_q_analysis</code>, <code>net_persistent_homology</code>, <code>net_persistence_landscape</code>, <code>net_hypergraph</code>, <code>net_hypergraph_measures</code>, <code>net_hypergraph_cluster</code>, <code>net_hypergraph_transduction</code>; and to <code><a href="../reference/mogen_transitions.html">mogen_transitions()</a></code>, <code><a href="../reference/hon_centrality.html">hon_centrality()</a></code>, <code><a href="../reference/simplicial_degree.html">simplicial_degree()</a></code>, <code><a href="../reference/hypergraph_centrality.html">hypergraph_centrality()</a></code>.</p>
+<p><code>path_counts(top =)</code> now validates its argument like the rest of the family: a non-whole value such as <code>top = 2.5</code> is an error rather than a silent truncation to 2, matching how <code>k</code> already behaved.</p>
+</div>
+<div class="section level3">
+<h3 id="bug-fix-0-2-1">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-2-1"></a></h3>
+<ul><li>
+<code><a href="../reference/plot.net_path_dependence.html">plot.net_path_dependence()</a></code> clipped the label of its highest-KL context - the row the plot exists to show. The modal-flip labels are drawn to the right of each point, and the panel did not extend past the largest value, so ggplot cut the label off. The x scale now leaves room for it.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-2-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-1"></a></h3>
+<p><code>docs/</code> (build-ignored) is reorganised from 23 per-verb vignettes into <strong>four documents</strong>, one per structure family plus an overview: <code>overview</code>, <code>memory-networks</code>, <code>simplicial-complexes</code>, <code>hypergraphs</code>. Each section is one verb, worked end to end on the same data; the per-verb sources are archived under <code>docs/_sections/</code>.</p>
+<p>They gain <strong>37 figures</strong>, drawn with cograph. honets results are dual-classed <code>cograph_network</code>, so <code><a href="https://sonsoles.me/cograph/reference/splot.html" class="external-link">cograph::splot()</a></code> and <code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code> take them with no conversion step. <code>cograph</code> is added to <code>Suggests</code> and every plot chunk is guarded on it.</p>
+<p>The prose was also rewritten to remove 37 <code><a href="https://rdrr.io/r/utils/head.html" class="external-link">head()</a></code> and 12 <code><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset()</a></code> calls that subset a returned table on the public surface - the idiom <code>top =</code> now replaces.</p>
+</div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="honets-020">honets 0.2.0<a class="anchor" aria-label="anchor" href="#honets-020"></a></h2>
+<p>honets becomes <strong>the</strong> higher-order networks package: one package covering all three structure families of the higher-order literature (Battiston et al. 2020) — memory networks, simplicial complexes, and hypergraphs — under a single taxonomy.</p>
+<div class="section level3">
+<h3 id="absorbed-families-0-2-0">Absorbed families<a class="anchor" aria-label="anchor" href="#absorbed-families-0-2-0"></a></h3>
+<ul><li>
+<strong>Simplicial complexes and topological data analysis</strong>, moved verbatim from Nestimate 0.9.0: <code><a href="../reference/build_simplicial.html">build_simplicial()</a></code> (clique, Vietoris-Rips and pathway complexes), <code><a href="../reference/betti_numbers.html">betti_numbers()</a></code>, <code><a href="../reference/euler_characteristic.html">euler_characteristic()</a></code>, <code><a href="../reference/persistent_homology.html">persistent_homology()</a></code>, <code><a href="../reference/persistence_landscape.html">persistence_landscape()</a></code>, <code><a href="../reference/bottleneck_distance.html">bottleneck_distance()</a></code>, <code><a href="../reference/simplicial_degree.html">simplicial_degree()</a></code>, <code><a href="../reference/q_analysis.html">q_analysis()</a></code>, <code><a href="../reference/verify_simplicial.html">verify_simplicial()</a></code>.</li>
+<li>
+<strong>Hypergraphs</strong>, moved verbatim from Nestimate 0.9.0 by way of the short-lived <code>hypernets</code> package (0.1.2, never released), which is folded in and retired: <code><a href="../reference/build_hypergraph.html">build_hypergraph()</a></code>, <code><a href="../reference/window_hypergraph.html">window_hypergraph()</a></code>, <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code>, <code><a href="../reference/hypergraph_measures.html">hypergraph_measures()</a></code>, <code><a href="../reference/hypergraph_centrality.html">hypergraph_centrality()</a></code>, <code><a href="../reference/hypergraph_laplacian.html">hypergraph_laplacian()</a></code>, <code><a href="../reference/hypergraph_cluster.html">hypergraph_cluster()</a></code>, <code><a href="../reference/hypergraph_transduction.html">hypergraph_transduction()</a></code>, <code><a href="../reference/clique_expansion.html">clique_expansion()</a></code>.</li>
+<li>The consolidation <strong>deletes 223 lines of duplication</strong> from hypernets’ 323-line <code>utils.R</code> – 171 of them the clique-enumeration closure copied out of Nestimate’s <code>simplicial.R</code>, the rest a <code><a href="../reference/build_simplicial.html">build_simplicial()</a></code> shim and a second copy of honets’ own <code>.extract_edges_from_matrix()</code>. hypernets had to carry that closure because <code><a href="../reference/build_hypergraph.html">build_hypergraph()</a></code> needs clique enumeration; with both families in one package, <code><a href="../reference/build_hypergraph.html">build_hypergraph()</a></code> calls the real <code><a href="../reference/build_simplicial.html">build_simplicial()</a></code> again. The seven copied helpers were verified byte-identical to Nestimate’s originals before the copy was removed.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="taxonomy-renames-0-2-0">Taxonomy: renames<a class="anchor" aria-label="anchor" href="#taxonomy-renames-0-2-0"></a></h3>
+<p>All renames are to the <strong>surface only</strong>. No computed value changed anywhere — the <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> contracts against Nestimate 0.9.0 still hold for both absorbed families, with only these names normalised away (<code>local_testing_and_equivalence/test-identity-nestimate-{hypergraph,simplicial}.R</code>).</p>
+<p>Every result class now carries a <code>net_*</code> class:</p>
+<table class="table"><thead><tr><th>Was</th>
+<th>Is</th>
+</tr></thead><tbody><tr><td><code>simplicial_complex</code></td>
+<td><code>net_simplicial</code></td>
+</tr><tr><td>
+<code>persistent_homology</code> (class)</td>
+<td><code>net_persistent_homology</code></td>
+</tr><tr><td>
+<code>q_analysis</code> (class)</td>
+<td><code>net_q_analysis</code></td>
+</tr><tr><td>
+<code>persistence_landscape</code> (class)</td>
+<td><code>net_persistence_landscape</code></td>
+</tr><tr><td>
+<code>hypergraph_measures</code> (class)</td>
+<td><code>net_hypergraph_measures</code></td>
+</tr></tbody></table><p>Constructors and arguments:</p>
+<table class="table"><colgroup><col width="33%"><col width="33%"><col width="33%"></colgroup><thead><tr><th>Was</th>
+<th>Is</th>
+<th>Why</th>
+</tr></thead><tbody><tr><td><code>bipartite_groups()</code></td>
+<td><code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code></td>
+<td>it returns a hypergraph, not bipartite groups; now matches <code><a href="../reference/window_hypergraph.html">window_hypergraph()</a></code>
+</td>
+</tr><tr><td><code>bipartite_groups(player =)</code></td>
+<td><code>group_hypergraph(member =)</code></td>
+<td>the column names hypergraph nodes, which need not be people</td>
+</tr><tr><td><code>build_hypergraph(method =)</code></td>
+<td><code>build_hypergraph(type =)</code></td>
+<td>same construction axis as <code>build_simplicial(type =)</code>
+</td>
+</tr><tr><td><code>params$method</code></td>
+<td>
+<code>params$type</code>, plus <code>params$source</code>
+</td>
+<td>every hypergraph constructor now records <code>source</code>, so a result says how it was built</td>
+</tr></tbody></table><p>Classed conditions are now uniformly <code>honets_*</code>: <code>hypernets_no_converge</code> and <code>nestimate_hypergraph_disconnected</code> became <code>honets_no_converge</code> (shared with the memory family’s power iteration) and <code>honets_hypergraph_disconnected</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="taxonomy-complete-tidy-accessor-coverage-0-2-0">Taxonomy: complete tidy-accessor coverage<a class="anchor" aria-label="anchor" href="#taxonomy-complete-tidy-accessor-coverage-0-2-0"></a></h3>
+<p>Every <code>net_*</code> result class now has an <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> method, so no result object requires reaching in with <code>$</code>. Eleven are new, each with a <code>what =</code> argument for its secondary table:</p>
+<ul><li>
+<code>net_hon</code> (<code>"rules"</code> / <code>"nodes"</code>, plus <code>order_min</code> and <code>sort_by</code>)</li>
+<li>
+<code>net_honem</code> (<code>"embeddings"</code> / <code>"variance"</code>)</li>
+<li>
+<code>net_hypa</code> (<code>"scores"</code> / <code>"over"</code> / <code>"under"</code>, plus <code>sort_by</code>)</li>
+<li>
+<code>net_mogen</code> (<code>"orders"</code> / <code>"transitions"</code>)</li>
+<li>
+<code>net_markov_order</code> (<code>"orders"</code> / <code>"null"</code>)</li>
+<li>
+<code>net_path_dependence</code> (plus <code>min_count</code>, <code>sort_by</code>)</li>
+<li>
+<code>net_simplicial</code> (<code>"simplices"</code> / <code>"f_vector"</code>, plus <code>dim</code>)</li>
+<li>
+<code>net_q_analysis</code> (<code>"q_levels"</code> / <code>"nodes"</code>)</li>
+<li>
+<code>net_persistent_homology</code> (<code>"persistence"</code> / <code>"betti"</code>, plus <code>dimension</code>, <code>sort_by</code>)</li>
+<li>
+<code>net_persistence_landscape</code> (plus <code>k</code>)</li>
+<li>
+<code>net_hypergraph_measures</code> (<code>"nodes"</code> / <code>"edges"</code> / <code>"global"</code>, plus <code>sort_by</code>)</li>
+</ul><p>A regression test asserts the coverage, so a future <code>net_*</code> class without an accessor fails the suite.</p>
+</div>
+<div class="section level3">
+<h3 id="structure-0-2-0">Structure<a class="anchor" aria-label="anchor" href="#structure-0-2-0"></a></h3>
+<ul><li>
+<code>R/</code> is organised by family: <code>memory_*.R</code> (8 files), <code>simplicial_*.R</code> (4), <code>hypergraph_*.R</code> (7), plus shared <code>utils.R</code>, <code>pathways.R</code>, <code>data.R</code> and the package doc. Test files follow the same names.</li>
+<li>Nestimate’s 1,561-line <code>simplicial.R</code> was split along its real dependency seams into <code>simplicial.R</code> (construction and structural measures), <code>simplicial_filtration.R</code> (the filtration and Z/2 boundary-reduction layer that both <code>build_simplicial(type = "vr")</code> and <code><a href="../reference/persistent_homology.html">persistent_homology()</a></code> sit on) and <code>simplicial_homology.R</code>. Code unchanged; the split was verified line-for-line content-preserving.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="other-0-2-0">Other<a class="anchor" aria-label="anchor" href="#other-0-2-0"></a></h3>
+<ul><li>
+<code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code>’s weighted branch and <code><a href="../reference/build_hypergraph.html">build_hypergraph()</a></code>’s incidence fill are vectorised (they were <code>for</code> loops accumulating into a matrix). Duplicate <code>(member, group)</code> cells are summed before assignment, which index assignment alone would not do.</li>
+<li>Package-level documentation (<code><a href="../reference/honets-package.html">?honets</a></code>) now states the three-family taxonomy, the verb grammar, and how the families cross into one another.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.5" id="honets-015">honets 0.1.5<a class="anchor" aria-label="anchor" href="#honets-015"></a></h2>
+<ul><li>New verb <code><a href="../reference/hon_centrality.html">hon_centrality()</a></code> (roadmap item A2): PageRank, betweenness and closeness computed on the higher-order topology and projected back onto first-order states (Scholtes, Wider &amp; Garas 2016). Semantics follow pathpy 2.2.0 - that paper’s reference implementation - generalized from fixed-order to the variable-order networks <code><a href="../reference/build_hon.html">build_hon()</a></code> produces, and verified against it: betweenness and closeness match exactly (&lt; 1e-10) on second- and third-order topologies, PageRank to pathpy’s own <code>tol = 1e-6</code>. The underlying kernels additionally match <code>igraph</code> on the same topologies. <code>project = FALSE</code> reports the centralities of the memory contexts themselves; <code>projection =</code> chooses how a higher-order node’s PageRank is distributed (“scaled”, “last”, “first”, “all”); <code>sort_by =</code> returns the table ranked.</li>
+<li>
+<code><a href="../reference/build_hon.html">build_hon()</a></code> gained the long-format interface already used by the inference verbs: <code>action</code>, <code>actor</code> and <code>time</code> column names, so an event table needs no manual splitting. Existing calls are unaffected (the arguments default to <code>NULL</code>) and produce byte-identical networks.</li>
+<li>New tutorial <code>Tutorial_docs/hon_centrality.html</code>: why the first-order network of a dense corpus cannot rank its states at all (complete digraph, uniform PageRank), what the higher-order ranking recovers, which contexts carry the flow, and when betweenness and closeness are saturated.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.4" id="honets-014">honets 0.1.4<a class="anchor" aria-label="anchor" href="#honets-014"></a></h2>
 <ul><li>New inference verbs for higher-order rules (roadmap item A1): <code><a href="../reference/bootstrap_hon.html">bootstrap_hon()</a></code> — sequence bootstrap with percentile CIs for rule probabilities and per-rule extraction <em>support</em>; <code><a href="../reference/compare_hon.html">compare_hon()</a></code> — two-sample permutation comparison with per-edge BH adjustment and a pooled-count-weighted global test. Both precompute per-sequence counts once and rebuild replicates from reweighted counts (proven identical to re-counting the resampled multiset), draw all randomness serially (parallel runs reproduce serial results under a seed), accept long format (<code>action</code>/<code>actor</code>/<code>time</code>), and ship with <code>print</code>/<code>summary</code>/ <code>plot</code>/<code>as.data.frame</code> methods (accessor filters <code>min_support</code>, <code>order_min</code>, <code>significant</code>, <code>sort_by</code>).</li>

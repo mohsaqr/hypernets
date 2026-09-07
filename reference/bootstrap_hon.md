@@ -2,7 +2,7 @@
 
 Nonparametric bootstrap over sequences for the rules of a higher-order
 network (see
-[`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md)):
+[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)):
 sequences are resampled with replacement, and for every rule edge of the
 observed network the replicate distribution yields a percentile
 confidence interval for its conditional probability and a *support* -
@@ -49,7 +49,7 @@ bootstrap_hon(
 - max_order, min_freq, collapse_repeats:
 
   As in
-  [`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md).
+  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md).
 
 - action, actor, time:
 
@@ -104,9 +104,9 @@ Bootstrap*. Chapman & Hall.
 
 ## See also
 
-[`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md),
-[`compare_hon()`](https://mohsaqr.github.io/honets/reference/compare_hon.md),
-[`markov_order_test()`](https://mohsaqr.github.io/honets/reference/markov_order_test.md)
+[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
+[`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md),
+[`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
 
 ## Examples
 
@@ -123,7 +123,8 @@ bs
 #>   50 replicates, 95% percentile CIs
 #>   Higher-order rule support: min 0.54, median 0.58, max 0.62
 #>   Tidy table: as.data.frame(x); higher-order only: as.data.frame(x, order_min = 2)
-head(as.data.frame(bs))
+rules <- as.data.frame(bs)
+head(rules)
 #>   from to order count probability ci_lower ci_upper support n_boot_used
 #> 1    a  b     1     4         1.0  1.00000  1.00000    0.94          47
 #> 2    b  c     1     4         0.5  0.00000  0.94375    1.00          50

@@ -63,9 +63,7 @@ seqs <- lapply(1:30, function(.) {
   s
 })
 res <- markov_order_test(seqs, max_order = 3, n_perm = 300, seed = 1)
-res$optimal_order
-#> [1] 1
-summary(res)
+as.data.frame(res)
 #>   order    loglik      AIC      BIC  df        g2 p_permutation p_asymptotic
 #> 1     0 -2011.025 4028.050 4043.990  NA        NA            NA           NA
 #> 2     1 -1805.112 3640.224 3719.922   9 411.78019   0.003322259 4.193315e-83
@@ -76,6 +74,7 @@ summary(res)
 #> 2        TRUE
 #> 3       FALSE
 #> 4       FALSE
+summary(res)
 plot(res)
 
 # }

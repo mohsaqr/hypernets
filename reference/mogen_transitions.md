@@ -8,7 +8,7 @@ probability.
 ## Usage
 
 ``` r
-mogen_transitions(x, order = NULL, min_count = 1L)
+mogen_transitions(x, order = NULL, min_count = 1L, top = NULL)
 ```
 
 ## Arguments
@@ -16,7 +16,7 @@ mogen_transitions(x, order = NULL, min_count = 1L)
 - x:
 
   A `net_mogen` object from
-  [`build_mogen()`](https://mohsaqr.github.io/honets/reference/build_mogen.md).
+  [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md).
 
 - order:
 
@@ -28,6 +28,12 @@ mogen_transitions(x, order = NULL, min_count = 1L)
 
   Integer. Minimum observed count to include (default 1). Use this to
   filter out rare transitions that have unreliable probabilities.
+
+- top:
+
+  Integer or `NULL`. Return only the first `top` rows, applied after any
+  filter and after `sort_by`, so `sort_by` and `top` compose. Default
+  `NULL` returns every row.
 
 ## Value
 

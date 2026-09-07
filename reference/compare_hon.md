@@ -2,7 +2,7 @@
 
 Tests whether two cohorts of sequences differ in their higher-order rule
 probabilities. The rule set is extracted from the pooled data (see
-[`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md));
+[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md));
 for every pooled rule edge the statistic is the absolute difference of
 the two cohorts' conditional probabilities, and its null distribution
 comes from permuting cohort labels over sequences. Per-edge p-values are
@@ -35,7 +35,7 @@ compare_hon(
 - x, y:
 
   The two cohorts of sequence data, each in any input format accepted by
-  [`bootstrap_hon()`](https://mohsaqr.github.io/honets/reference/bootstrap_hon.md)
+  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
   (wide data.frame, list, `tna`/`netobject`, or long data.frame with
   `action`/`actor`/`time`).
 
@@ -51,7 +51,7 @@ compare_hon(
 - max_order, min_freq, collapse_repeats:
 
   As in
-  [`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md).
+  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md).
 
 - action, actor, time:
 
@@ -66,7 +66,7 @@ compare_hon(
 - parallel, n_cores, seed:
 
   As in
-  [`bootstrap_hon()`](https://mohsaqr.github.io/honets/reference/bootstrap_hon.md).
+  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md).
 
 ## Value
 
@@ -84,7 +84,7 @@ the edge table (`significant = TRUE` restricts it).
 ## Details
 
 As in
-[`bootstrap_hon()`](https://mohsaqr.github.io/honets/reference/bootstrap_hon.md),
+[`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md),
 per-sequence counts are precomputed once and every permutation is a
 weighted aggregation; permutations are drawn before any parallel work,
 so `parallel = TRUE` reproduces the serial result under the same `seed`.
@@ -103,9 +103,9 @@ Hypotheses* (3rd ed.). Springer.
 
 ## See also
 
-[`bootstrap_hon()`](https://mohsaqr.github.io/honets/reference/bootstrap_hon.md),
-[`build_hon()`](https://mohsaqr.github.io/honets/reference/build_hon.md),
-[`markov_order_test()`](https://mohsaqr.github.io/honets/reference/markov_order_test.md)
+[`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md),
+[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
+[`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
 
 ## Examples
 
@@ -118,23 +118,23 @@ cmp <- compare_hon(first_order, second_order, n_perm = 99,
                    max_order = 2, seed = 1)
 cmp
 #> HON comparison: x (6 sequences) vs y (6 sequences)
-#>   17 pooled rule edges, 99 permutations
-#>   Global weighted |diff|: 0.4994, p = 0.01
-#>   Significant edges (BH, alpha = 0.05): 11
+#>   15 pooled rule edges, 99 permutations
+#>   Global weighted |diff|: 0.3711, p = 0.01
+#>   Significant edges (BH, alpha = 0.05): 7
 #>   Tidy table: as.data.frame(x); significant only: as.data.frame(x, significant = TRUE)
 head(as.data.frame(cmp))
-#>   from to order count count_x count_y    prob_x prob_y       diff p_value
-#> 1    a  a     1    12      12       0 0.4800000    0.0  0.4800000    0.01
-#> 2    a  b     1    26       8      18 0.3200000    1.0 -0.6800000    0.01
-#> 3    a  c     1     5       5       0 0.2000000    0.0  0.2000000    0.03
-#> 4    b  a     1    19       7      12 0.2692308    0.4 -0.1307692    0.15
-#> 5    b  b     1    14      14       0 0.5384615    0.0  0.5384615    0.01
-#> 6    b  c     1    23       5      18 0.1923077    0.6 -0.4076923    0.01
+#>   from to order count count_x count_y    prob_x prob_y        diff p_value
+#> 1    a  a     1     8       8       0 0.3809524    0.0  0.38095238    0.02
+#> 2    a  b     1    24       6      18 0.2857143    1.0 -0.71428571    0.01
+#> 3    a  c     1     7       7       0 0.3333333    0.0  0.33333333    0.01
+#> 4    b  a     1    20       8      12 0.3333333    0.4 -0.06666667    0.56
+#> 5    b  b     1     9       9       0 0.3750000    0.0  0.37500000    0.01
+#> 6    b  c     1    25       7      18 0.2916667    0.6 -0.30833333    0.01
 #>        p_adj significant n_perm_used
-#> 1 0.01300000        TRUE          99
-#> 2 0.01300000        TRUE          99
-#> 3 0.03545455        TRUE          99
-#> 4 0.16250000       FALSE          99
-#> 5 0.01300000        TRUE          99
-#> 6 0.01300000        TRUE          99
+#> 1 0.02571429        TRUE          99
+#> 2 0.01500000        TRUE          99
+#> 3 0.01500000        TRUE          99
+#> 4 0.56000000       FALSE          99
+#> 5 0.01500000        TRUE          99
+#> 6 0.01500000        TRUE          99
 ```

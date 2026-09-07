@@ -25,7 +25,7 @@ For net_mogen: extracts all transitions at the optimal order
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,10 +34,19 @@ For net_mogen: extracts all transitions at the optimal order
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
+    <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/honets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/hypernets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -47,13 +56,13 @@ For net_mogen: extracts all transitions at the optimal order
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Extract Pathways from Higher-Order Network Objects</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/honets/blob/main/R/pathways.R" class="external-link"><code>R/pathways.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/R/pathways.R" class="external-link"><code>R/pathways.R</code></a></small>
       <div class="d-none name"><code>pathways.Rd</code></div>
     </div>
 
     <div class="ref-description section level2">
     <p>Extracts higher-order pathway strings suitable for
-<code>cograph::plot_simplicial()</code>. Each pathway represents a
+<code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code>. Each pathway represents a
 multi-step dependency: source states lead to a target state.</p>
 <p>For <code>net_hon</code>: extracts edges where the source node is
 higher-order (order &gt; 1), i.e., the transitions that differ from
@@ -120,7 +129,7 @@ optimal order from model selection.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A character vector of pathway strings in arrow notation
 (e.g. <code>"A B -&gt; C"</code>), suitable for
-<code>cograph::plot_simplicial()</code>.</p>
+<code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code>.</p>
 <p>A character vector of pathway strings.</p>
 <p>A character vector of pathway strings.</p>
 <p>A character vector of pathway strings.</p>

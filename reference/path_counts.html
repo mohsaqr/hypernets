@@ -11,7 +11,7 @@ formal models."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,10 +20,19 @@ formal models."></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
+    <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/honets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/hypernets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -33,7 +42,7 @@ formal models."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Count Path Frequencies in Trajectory Data</h1>
-      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/honets/blob/main/R/mogen.R" class="external-link"><code>R/mogen.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/R/memory_mogen.R" class="external-link"><code>R/memory_mogen.R</code></a></small>
       <div class="d-none name"><code>path_counts.Rd</code></div>
     </div>
 
@@ -65,8 +74,8 @@ silently truncated.</p></dd>
 
 
 <dt id="arg-top">top<a class="anchor" aria-label="anchor" href="#arg-top"></a></dt>
-<dd><p>Integer or NULL. If set, returns only the top N most frequent
-paths (default NULL = all).</p></dd>
+<dd><p>Integer or <code>NULL</code>. Return only the first <code>top</code> rows of the
+count-sorted table (default <code>NULL</code> returns every path).</p></dd>
 
 </dl></div>
     <div class="section level2">

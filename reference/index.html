@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,10 +16,19 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
+    <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
+    <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/honets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/hypernets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -32,7 +41,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="package">Package<a class="anchor" aria-label="anchor" href="#package"></a></h2>
 
 
 
@@ -43,26 +52,21 @@
 
       <dl><dt>
 
-          <code><a href="as.data.frame.net_hon_boot.html">as.data.frame(<i>&lt;net_hon_boot&gt;</i>)</a></code>
+          <code><a href="honets-package.html">honets</a></code> <code><a href="honets-package.html">honets-package</a></code>
 
         </dt>
-        <dd>Coerce a net_hon_boot to its tidy inference table</dd>
+        <dd>honets: Higher-Order Network Analysis</dd>
+      </dl></div><div class="section level2">
+      <h2 id="memory-networks">Memory networks<a class="anchor" aria-label="anchor" href="#memory-networks"></a></h2>
 
-        <dt>
+      <div class="section-desc"><p>A node is a state plus the memory of how it was reached.</p></div>
 
-          <code><a href="as.data.frame.net_hon_compare.html">as.data.frame(<i>&lt;net_hon_compare&gt;</i>)</a></code>
+      <dl></dl></div><div class="section level2">
 
-        </dt>
-        <dd>Coerce a net_hon_compare to its tidy edge table</dd>
 
-        <dt>
 
-          <code><a href="bootstrap_hon.html">bootstrap_hon()</a></code>
 
-        </dt>
-        <dd>Bootstrap inference for higher-order network rules</dd>
-
-        <dt>
+      <dl><dt>
 
           <code><a href="build_hon.html">build_hon()</a></code>
 
@@ -92,6 +96,20 @@
 
         <dt>
 
+          <code><a href="hon_centrality.html">hon_centrality()</a></code>
+
+        </dt>
+        <dd>Higher-order centralities with first-order projection</dd>
+
+        <dt>
+
+          <code><a href="bootstrap_hon.html">bootstrap_hon()</a></code>
+
+        </dt>
+        <dd>Bootstrap inference for higher-order network rules</dd>
+
+        <dt>
+
           <code><a href="compare_hon.html">compare_hon()</a></code>
 
         </dt>
@@ -99,17 +117,17 @@
 
         <dt>
 
-          <code><a href="long-data.html">human_long</a></code> <code><a href="long-data.html">ai_long</a></code>
-
-        </dt>
-        <dd>Human-AI Vibe Coding Interaction Data (Long Format)</dd>
-
-        <dt>
-
           <code><a href="markov_order_test.html">markov_order_test()</a></code>
 
         </dt>
         <dd>Test the Markov order of a sequential process</dd>
+
+        <dt>
+
+          <code><a href="path_dependence.html">path_dependence()</a></code>
+
+        </dt>
+        <dd>Per-Context Path Dependence at Order k</dd>
 
         <dt>
 
@@ -127,59 +145,572 @@
 
         <dt>
 
-          <code><a href="path_dependence.html">path_dependence()</a></code>
-
-        </dt>
-        <dd>Per-Context Path Dependence at Order k</dd>
-
-        <dt>
-
           <code><a href="pathways.html">pathways()</a></code>
 
         </dt>
         <dd>Extract Pathways from Higher-Order Network Objects</dd>
+      </dl></div><div class="section level2">
+      <h2 id="simplicial-complexes">Simplicial complexes<a class="anchor" aria-label="anchor" href="#simplicial-complexes"></a></h2>
+
+      <div class="section-desc"><p>A set of mutually related nodes together with every subset.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="build_simplicial.html">build_simplicial()</a></code>
+
+        </dt>
+        <dd>Build a Simplicial Complex</dd>
 
         <dt>
 
-          <code><a href="plot.net_hon_boot.html">plot(<i>&lt;net_hon_boot&gt;</i>)</a></code>
+          <code><a href="betti_numbers.html">betti_numbers()</a></code>
 
         </dt>
-        <dd>Plot method for net_hon_boot</dd>
+        <dd>Betti Numbers</dd>
 
         <dt>
 
-          <code><a href="plot.net_hon_compare.html">plot(<i>&lt;net_hon_compare&gt;</i>)</a></code>
+          <code><a href="euler_characteristic.html">euler_characteristic()</a></code>
 
         </dt>
-        <dd>Plot method for net_hon_compare</dd>
+        <dd>Euler Characteristic</dd>
 
         <dt>
 
-          <code><a href="plot.net_honem.html">plot(<i>&lt;net_honem&gt;</i>)</a></code>
+          <code><a href="simplicial_degree.html">simplicial_degree()</a></code>
 
         </dt>
-        <dd>Plot Method for net_honem</dd>
+        <dd>Simplicial Degree</dd>
 
         <dt>
 
-          <code><a href="plot.net_markov_order.html">plot(<i>&lt;net_markov_order&gt;</i>)</a></code>
+          <code><a href="q_analysis.html">q_analysis()</a></code>
 
         </dt>
-        <dd>Plot Method for net_markov_order</dd>
+        <dd>Q-Analysis</dd>
 
         <dt>
 
-          <code><a href="plot.net_mogen.html">plot(<i>&lt;net_mogen&gt;</i>)</a></code>
+          <code><a href="persistent_homology.html">persistent_homology()</a></code>
 
         </dt>
-        <dd>Plot Method for net_mogen</dd>
+        <dd>Persistent Homology</dd>
 
         <dt>
 
-          <code><a href="plot.net_path_dependence.html">plot(<i>&lt;net_path_dependence&gt;</i>)</a></code>
+          <code><a href="persistence_landscape.html">persistence_landscape()</a></code>
 
         </dt>
-        <dd>Plot method for <code>net_path_dependence</code></dd>
+        <dd>Persistence Landscape</dd>
+
+        <dt>
+
+          <code><a href="bottleneck_distance.html">bottleneck_distance()</a></code>
+
+        </dt>
+        <dd>Bottleneck Distance Between Persistence Diagrams</dd>
+
+        <dt>
+
+          <code><a href="wasserstein_distance.html">wasserstein_distance()</a></code>
+
+        </dt>
+        <dd>Wasserstein Distance Between Persistence Diagrams</dd>
+
+        <dt>
+
+          <code><a href="verify_simplicial.html">verify_simplicial()</a></code>
+
+        </dt>
+        <dd>Verify Simplicial Complex Against igraph</dd>
+      </dl></div><div class="section level2">
+      <h2 id="hypergraphs">Hypergraphs<a class="anchor" aria-label="anchor" href="#hypergraphs"></a></h2>
+
+      <div class="section-desc"><p>An arbitrary set of nodes bound as a unit.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="constructors">Constructors<a class="anchor" aria-label="anchor" href="#constructors"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="build_hypergraph.html">build_hypergraph()</a></code> <code><a href="build_hypergraph.html">print(<i>&lt;net_hypergraph&gt;</i>)</a></code> <code><a href="build_hypergraph.html">summary(<i>&lt;net_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Higher-order hypergraph from a network's clique structure</dd>
+
+        <dt>
+
+          <code><a href="window_hypergraph.html">window_hypergraph()</a></code>
+
+        </dt>
+        <dd>Windowed Sequence Hyperedges</dd>
+
+        <dt>
+
+          <code><a href="group_hypergraph.html">group_hypergraph()</a></code>
+
+        </dt>
+        <dd>Hypergraph from co-occurrence data or an edge list</dd>
+
+        <dt>
+
+          <code><a href="knn_hypergraph.html">knn_hypergraph()</a></code>
+
+        </dt>
+        <dd>Build a k-nearest-neighbor hypergraph from embeddings</dd>
+
+        <dt>
+
+          <code><a href="dual_hypergraph.html">dual_hypergraph()</a></code>
+
+        </dt>
+        <dd>Dual of a hypergraph</dd>
+
+        <dt>
+
+          <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code>
+
+        </dt>
+        <dd>Temporal hypergraph from an edge list or co-occurrence data</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_snapshot.html">hypergraph_snapshot()</a></code> <code><a href="hypergraph_snapshot.html">hg_snapshot()</a></code>
+
+        </dt>
+        <dd>Extract one snapshot from a temporal hypergraph</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_snapshots.html">hypergraph_snapshots()</a></code> <code><a href="hypergraph_snapshots.html">hg_snapshots()</a></code>
+
+        </dt>
+        <dd>Extract a sequence of temporal-hypergraph snapshots</dd>
+
+        <dt>
+
+          <code><a href="hg_subset.html">hg_subset()</a></code> <code><a href="hg_subset.html">hypergraph_subset()</a></code>
+
+        </dt>
+        <dd>Sub-hypergraph by hyperedges, nodes or hyperedge attributes</dd>
+
+        <dt>
+
+          <code><a href="hg_sample_gnp.html">hg_sample_gnp()</a></code> <code><a href="hg_sample_gnp.html">hypergraph_sample_gnp()</a></code>
+
+        </dt>
+        <dd>Sample Bernoulli-Incidence Random Hypergraphs</dd>
+
+        <dt>
+
+          <code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code> <code><a href="hg_sample_sbm.html">hypergraph_sample_sbm()</a></code>
+
+        </dt>
+        <dd>Sample Stochastic-Block-Model Hypergraphs</dd>
+
+        <dt>
+
+          <code><a href="hg_sample_uniform.html">hg_sample_uniform()</a></code> <code><a href="hg_sample_uniform.html">hg_sample_regular()</a></code> <code><a href="hg_sample_uniform.html">hypergraph_sample_uniform()</a></code> <code><a href="hg_sample_uniform.html">hypergraph_sample_regular()</a></code>
+
+        </dt>
+        <dd>Sample Uniform or Regular Random Hypergraphs</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="measures-and-centralities">Measures and centralities<a class="anchor" aria-label="anchor" href="#measures-and-centralities"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="hypergraph_measures.html">hypergraph_measures()</a></code> <code><a href="hypergraph_measures.html">print(<i>&lt;net_hypergraph_measures&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Structural measures for a hypergraph</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_centrality.html">hypergraph_centrality()</a></code>
+
+        </dt>
+        <dd>Hypergraph eigenvector centralities</dd>
+
+        <dt>
+
+          <code><a href="hg_pagerank.html">hg_pagerank()</a></code> <code><a href="hg_pagerank.html">hypergraph_pagerank()</a></code>
+
+        </dt>
+        <dd>Hypergraph PageRank with edge-dependent vertex weights</dd>
+
+        <dt>
+
+          <code><a href="hg_edges.html">hg_edges()</a></code> <code><a href="hg_edges.html">hypergraph_edges()</a></code>
+
+        </dt>
+        <dd>Hyperedge-level measures, as a tidy table</dd>
+
+        <dt>
+
+          <code><a href="hg_edge_centrality.html">hg_edge_centrality()</a></code> <code><a href="hg_edge_centrality.html">hypergraph_edge_centrality()</a></code>
+
+        </dt>
+        <dd>s-betweenness and s-closeness centrality of hyperedges</dd>
+
+        <dt>
+
+          <code><a href="hg_growth.html">hg_growth()</a></code> <code><a href="hg_growth.html">hypergraph_growth()</a></code> <code><a href="hg_growth.html">plot(<i>&lt;honets_series&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Growth of a temporal hypergraph over time</dd>
+
+        <dt>
+
+          <code><a href="hg_representations.html">hg_representations()</a></code> <code><a href="hg_representations.html">hypergraph_representations()</a></code>
+
+        </dt>
+        <dd>Graph and hypergraph representations of the same data</dd>
+
+        <dt>
+
+          <code><a href="hg_motifs.html">hg_motifs()</a></code> <code><a href="hg_motifs.html">hypergraph_motifs()</a></code> <code><a href="hg_motifs.html">as.data.frame(<i>&lt;honets_motifs&gt;</i>)</a></code> <code><a href="hg_motifs.html">plot(<i>&lt;honets_motifs&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Y, T and O motif census with a hypergraph configuration null</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="spectral-methods">Spectral methods<a class="anchor" aria-label="anchor" href="#spectral-methods"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></code>
+
+        </dt>
+        <dd>Normalized hypergraph Laplacian</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>
+
+        </dt>
+        <dd>Spectral or symmetric-NMF clustering of hypergraph vertices</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_joint_cluster.html">hypergraph_joint_cluster()</a></code>
+
+        </dt>
+        <dd>Joint NMF clustering with an auxiliary vertex relation</dd>
+
+        <dt>
+
+          <code><a href="hg_embed.html">hg_embed()</a></code> <code><a href="hg_embed.html">hypergraph_embed()</a></code>
+
+        </dt>
+        <dd>Low-Dimensional Hypergraph Embedding</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_transduction.html">hypergraph_transduction()</a></code>
+
+        </dt>
+        <dd>Transductive label spreading on a hypergraph</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="projections">Projections<a class="anchor" aria-label="anchor" href="#projections"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="clique_expansion.html">clique_expansion()</a></code>
+
+        </dt>
+        <dd>Clique expansion of a hypergraph</dd>
+
+        <dt>
+
+          <code><a href="hg_project.html">hg_project()</a></code> <code><a href="hg_project.html">hypergraph_project()</a></code>
+
+        </dt>
+        <dd>Project a hypergraph onto a weighted graph</dd>
+
+        <dt>
+
+          <code><a href="hg_line_graph.html">hg_line_graph()</a></code> <code><a href="hg_line_graph.html">hypergraph_line_graph()</a></code>
+
+        </dt>
+        <dd>The s-line graph of a hypergraph</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="communities">Communities<a class="anchor" aria-label="anchor" href="#communities"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="hg_communities.html">hg_communities()</a></code> <code><a href="hg_communities.html">print(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">as.data.frame(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">plot(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">hypergraph_communities()</a></code>
+
+        </dt>
+        <dd>Stable Infomap communities of a hypergraph projection</dd>
+
+        <dt>
+
+          <code><a href="hg_community_quality.html">hg_community_quality()</a></code> <code><a href="hg_community_quality.html">hypergraph_community_quality()</a></code>
+
+        </dt>
+        <dd>Quality of a projected-hypergraph partition</dd>
+
+        <dt>
+
+          <code><a href="hg_compare_communities.html">hg_compare_communities()</a></code> <code><a href="hg_compare_communities.html">print(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">as.data.frame(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">summary(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">plot(<i>&lt;honets_community_comparison&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Compare community structure across representations</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="null-models-and-neural-networks">Null models and neural networks<a class="anchor" aria-label="anchor" href="#null-models-and-neural-networks"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="hg_null_test.html">hg_null_test()</a></code> <code><a href="hg_null_test.html">hypergraph_null_test()</a></code>
+
+        </dt>
+        <dd>Degree-preserving null-model test of hypergraph structure</dd>
+
+        <dt>
+
+          <code><a href="hg_neural.html">hg_neural()</a></code> <code><a href="hg_neural.html">hypergraph_neural()</a></code>
+
+        </dt>
+        <dd>Hypergraph neural network classifier (HGNN)</dd>
+
+        <dt>
+
+          <code><a href="hg_hypergat.html">hg_hypergat()</a></code> <code><a href="hg_hypergat.html">text_hypergat()</a></code>
+
+        </dt>
+        <dd>HyperGAT document classifier</dd>
+
+        <dt>
+
+          <code><a href="heterogeneous_hgat.html">heterogeneous_hgat()</a></code>
+
+        </dt>
+        <dd>Heterogeneous graph attention classifier (HGAT)</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_hypergcn.html">hypergraph_hypergcn()</a></code> <code><a href="hypergraph_hypergcn.html">hg_hypergcn()</a></code>
+
+        </dt>
+        <dd>HyperGCN node classifier</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_hnhn.html">hypergraph_hnhn()</a></code> <code><a href="hypergraph_hnhn.html">hg_hnhn()</a></code>
+
+        </dt>
+        <dd>HNHN node classifier</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_allset.html">hypergraph_allset()</a></code> <code><a href="hypergraph_allset.html">hg_allset()</a></code> <code><a href="hypergraph_allset.html">hypergraph_alldeepsets()</a></code> <code><a href="hypergraph_allset.html">hypergraph_allset_transformer()</a></code>
+
+        </dt>
+        <dd>AllSet hypergraph node classifier</dd>
+      </dl></div><div class="section level2">
+      <h2 id="text-hypergraphs">Text hypergraphs<a class="anchor" aria-label="anchor" href="#text-hypergraphs"></a></h2>
+
+      <div class="section-desc"><p>A corpus as a weighted document-word hypergraph, analysed with tidy verbs.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="clean_text.html">clean_text()</a></code>
+
+        </dt>
+        <dd>Clean a corpus before building a text hypergraph</dd>
+
+        <dt>
+
+          <code><a href="text_hypergraph.html">text_hypergraph()</a></code>
+
+        </dt>
+        <dd>Build a weighted hypergraph from a text corpus</dd>
+
+        <dt>
+
+          <code><a href="stop_words_en.html">stop_words_en()</a></code>
+
+        </dt>
+        <dd>English function-word stop list</dd>
+
+        <dt>
+
+          <code><a href="hg_measures.html">hg_measures()</a></code>
+
+        </dt>
+        <dd>Structural measures of a hypergraph, as tidy tables</dd>
+
+        <dt>
+
+          <code><a href="hg_centrality.html">hg_centrality()</a></code>
+
+        </dt>
+        <dd>Hypergraph node centralities, as a tidy table</dd>
+
+        <dt>
+
+          <code><a href="hg_cluster.html">hg_cluster()</a></code>
+
+        </dt>
+        <dd>Spectral clustering of a hypergraph, as a tidy table</dd>
+
+        <dt>
+
+          <code><a href="hg_keywords.html">hg_keywords()</a></code> <code><a href="hg_keywords.html">print(<i>&lt;honets_keywords&gt;</i>)</a></code> <code><a href="hg_keywords.html">plot(<i>&lt;honets_keywords&gt;</i>)</a></code> <code><a href="hg_keywords.html">hypergraph_keywords()</a></code>
+
+        </dt>
+        <dd>Characteristic words (keywords) per cluster</dd>
+
+        <dt>
+
+          <code><a href="hg_relations.html">hg_relations()</a></code> <code><a href="hg_relations.html">hypergraph_relations()</a></code>
+
+        </dt>
+        <dd>Relations between topics: a weighted network of shared vocabulary</dd>
+
+        <dt>
+
+          <code><a href="hg_topic_sizes.html">hg_topic_sizes()</a></code> <code><a href="hg_topic_sizes.html">plot(<i>&lt;honets_topic_sizes&gt;</i>)</a></code> <code><a href="hg_topic_sizes.html">hypergraph_topic_sizes()</a></code>
+
+        </dt>
+        <dd>Topic sizes</dd>
+
+        <dt>
+
+          <code><a href="hg_topic_quality.html">hg_topic_quality()</a></code> <code><a href="hg_topic_quality.html">plot(<i>&lt;honets_topic_quality&gt;</i>)</a></code> <code><a href="hg_topic_quality.html">hypergraph_topic_quality()</a></code>
+
+        </dt>
+        <dd>Topic coherence and exclusivity</dd>
+
+        <dt>
+
+          <code><a href="hg_membership.html">hg_membership()</a></code> <code><a href="hg_membership.html">plot(<i>&lt;honets_membership&gt;</i>)</a></code> <code><a href="hg_membership.html">hypergraph_membership()</a></code>
+
+        </dt>
+        <dd>Soft topic membership from the spectral embedding</dd>
+
+        <dt>
+
+          <code><a href="hg_stability.html">hg_stability()</a></code> <code><a href="hg_stability.html">hypergraph_stability()</a></code>
+
+        </dt>
+        <dd>Seed stability of a hypergraph clustering across resolutions</dd>
+
+        <dt>
+
+          <code><a href="hg_agreement.html">hg_agreement()</a></code> <code><a href="hg_agreement.html">hypergraph_agreement()</a></code>
+
+        </dt>
+        <dd>Agreement between two labelings of the same nodes</dd>
+
+        <dt>
+
+          <code><a href="hg_seeds.html">hg_seeds()</a></code> <code><a href="hg_seeds.html">hypergraph_seeds()</a></code>
+
+        </dt>
+        <dd>Seed labels from a clustering, for spreading or training</dd>
+
+        <dt>
+
+          <code><a href="hg_classify.html">hg_classify()</a></code> <code><a href="hg_classify.html">hypergraph_classify()</a></code>
+
+        </dt>
+        <dd>Transductive label spreading on a hypergraph, as a tidy table</dd>
+      </dl></div><div class="section level2">
+      <h2 id="methods-and-accessors">Methods and accessors<a class="anchor" aria-label="anchor" href="#methods-and-accessors"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="build_hypergraph.html">build_hypergraph()</a></code> <code><a href="build_hypergraph.html">print(<i>&lt;net_hypergraph&gt;</i>)</a></code> <code><a href="build_hypergraph.html">summary(<i>&lt;net_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Higher-order hypergraph from a network's clique structure</dd>
+
+        <dt>
+
+          <code><a href="hg_communities.html">hg_communities()</a></code> <code><a href="hg_communities.html">print(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">as.data.frame(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">plot(<i>&lt;hg_communities&gt;</i>)</a></code> <code><a href="hg_communities.html">hypergraph_communities()</a></code>
+
+        </dt>
+        <dd>Stable Infomap communities of a hypergraph projection</dd>
+
+        <dt>
+
+          <code><a href="hg_compare_communities.html">hg_compare_communities()</a></code> <code><a href="hg_compare_communities.html">print(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">as.data.frame(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">summary(<i>&lt;honets_community_comparison&gt;</i>)</a></code> <code><a href="hg_compare_communities.html">plot(<i>&lt;honets_community_comparison&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Compare community structure across representations</dd>
+
+        <dt>
+
+          <code><a href="hg_keywords.html">hg_keywords()</a></code> <code><a href="hg_keywords.html">print(<i>&lt;honets_keywords&gt;</i>)</a></code> <code><a href="hg_keywords.html">plot(<i>&lt;honets_keywords&gt;</i>)</a></code> <code><a href="hg_keywords.html">hypergraph_keywords()</a></code>
+
+        </dt>
+        <dd>Characteristic words (keywords) per cluster</dd>
+
+        <dt>
+
+          <code><a href="hypergraph_measures.html">hypergraph_measures()</a></code> <code><a href="hypergraph_measures.html">print(<i>&lt;net_hypergraph_measures&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Structural measures for a hypergraph</dd>
 
         <dt>
 
@@ -218,6 +749,20 @@
 
         <dt>
 
+          <code><a href="print.net_hypergraph_cluster.html">print(<i>&lt;net_hypergraph_cluster&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for net_hypergraph_cluster</dd>
+
+        <dt>
+
+          <code><a href="print.net_hypergraph_transduction.html">print(<i>&lt;net_hypergraph_transduction&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for net_hypergraph_transduction</dd>
+
+        <dt>
+
           <code><a href="print.net_markov_order.html">print(<i>&lt;net_markov_order&gt;</i>)</a></code>
 
         </dt>
@@ -246,10 +791,45 @@
 
         <dt>
 
+          <code><a href="print.net_persistence_landscape.html">print(<i>&lt;net_persistence_landscape&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print Persistence Landscape</dd>
+
+        <dt>
+
+          <code><a href="print.net_persistent_homology.html">print(<i>&lt;net_persistent_homology&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print persistent homology results</dd>
+
+        <dt>
+
+          <code><a href="print.net_q_analysis.html">print(<i>&lt;net_q_analysis&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print Q-analysis results</dd>
+
+        <dt>
+
+          <code><a href="print.net_simplicial.html">print(<i>&lt;net_simplicial&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a simplicial complex</dd>
+
+        <dt>
+
           <code><a href="print.summary.net_path_dependence.html">print(<i>&lt;summary.net_path_dependence&gt;</i>)</a></code>
 
         </dt>
         <dd>Print method for <code>summary.net_path_dependence</code></dd>
+
+        <dt>
+
+          <code><a href="print.text_hypergraph.html">print(<i>&lt;text_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a text hypergraph</dd>
 
         <dt>
 
@@ -288,6 +868,20 @@
 
         <dt>
 
+          <code><a href="summary.net_hypergraph_cluster.html">summary(<i>&lt;net_hypergraph_cluster&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary method for net_hypergraph_cluster</dd>
+
+        <dt>
+
+          <code><a href="summary.net_hypergraph_transduction.html">summary(<i>&lt;net_hypergraph_transduction&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary method for net_hypergraph_transduction</dd>
+
+        <dt>
+
           <code><a href="summary.net_markov_order.html">summary(<i>&lt;net_markov_order&gt;</i>)</a></code>
 
         </dt>
@@ -306,8 +900,319 @@
 
         </dt>
         <dd>Summary method for <code>net_path_dependence</code></dd>
+
+        <dt>
+
+          <code><a href="hg_growth.html">hg_growth()</a></code> <code><a href="hg_growth.html">hypergraph_growth()</a></code> <code><a href="hg_growth.html">plot(<i>&lt;honets_series&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Growth of a temporal hypergraph over time</dd>
+
+        <dt>
+
+          <code><a href="hg_membership.html">hg_membership()</a></code> <code><a href="hg_membership.html">plot(<i>&lt;honets_membership&gt;</i>)</a></code> <code><a href="hg_membership.html">hypergraph_membership()</a></code>
+
+        </dt>
+        <dd>Soft topic membership from the spectral embedding</dd>
+
+        <dt>
+
+          <code><a href="hg_motifs.html">hg_motifs()</a></code> <code><a href="hg_motifs.html">hypergraph_motifs()</a></code> <code><a href="hg_motifs.html">as.data.frame(<i>&lt;honets_motifs&gt;</i>)</a></code> <code><a href="hg_motifs.html">plot(<i>&lt;honets_motifs&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Y, T and O motif census with a hypergraph configuration null</dd>
+
+        <dt>
+
+          <code><a href="hg_topic_quality.html">hg_topic_quality()</a></code> <code><a href="hg_topic_quality.html">plot(<i>&lt;honets_topic_quality&gt;</i>)</a></code> <code><a href="hg_topic_quality.html">hypergraph_topic_quality()</a></code>
+
+        </dt>
+        <dd>Topic coherence and exclusivity</dd>
+
+        <dt>
+
+          <code><a href="hg_topic_sizes.html">hg_topic_sizes()</a></code> <code><a href="hg_topic_sizes.html">plot(<i>&lt;honets_topic_sizes&gt;</i>)</a></code> <code><a href="hg_topic_sizes.html">hypergraph_topic_sizes()</a></code>
+
+        </dt>
+        <dd>Topic sizes</dd>
+
+        <dt>
+
+          <code><a href="plot.net_hon_boot.html">plot(<i>&lt;net_hon_boot&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for net_hon_boot</dd>
+
+        <dt>
+
+          <code><a href="plot.net_hon_compare.html">plot(<i>&lt;net_hon_compare&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for net_hon_compare</dd>
+
+        <dt>
+
+          <code><a href="plot.net_honem.html">plot(<i>&lt;net_honem&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Method for net_honem</dd>
+
+        <dt>
+
+          <code><a href="plot.net_hypergraph.html">plot(<i>&lt;net_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot a hypergraph with hyperedges as blobs</dd>
+
+        <dt>
+
+          <code><a href="plot.net_hypergraph_cluster.html">plot(<i>&lt;net_hypergraph_cluster&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for net_hypergraph_cluster</dd>
+
+        <dt>
+
+          <code><a href="plot.net_hypergraph_transduction.html">plot(<i>&lt;net_hypergraph_transduction&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for net_hypergraph_transduction</dd>
+
+        <dt>
+
+          <code><a href="plot.net_markov_order.html">plot(<i>&lt;net_markov_order&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Method for net_markov_order</dd>
+
+        <dt>
+
+          <code><a href="plot.net_mogen.html">plot(<i>&lt;net_mogen&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Method for net_mogen</dd>
+
+        <dt>
+
+          <code><a href="plot.net_path_dependence.html">plot(<i>&lt;net_path_dependence&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for <code>net_path_dependence</code></dd>
+
+        <dt>
+
+          <code><a href="plot.net_persistence_landscape.html">plot(<i>&lt;net_persistence_landscape&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Persistence Landscape</dd>
+
+        <dt>
+
+          <code><a href="plot.net_persistent_homology.html">plot(<i>&lt;net_persistent_homology&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Persistent Homology</dd>
+
+        <dt>
+
+          <code><a href="plot.net_q_analysis.html">plot(<i>&lt;net_q_analysis&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot Q-Analysis</dd>
+
+        <dt>
+
+          <code><a href="plot.net_simplicial.html">plot(<i>&lt;net_simplicial&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot a Simplicial Complex</dd>
+
+        <dt>
+
+          <code><a href="plot.net_temporal_hypergraph.html">plot(<i>&lt;net_temporal_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot a temporal-hypergraph snapshot through cograph</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hon.html">as.data.frame(<i>&lt;net_hon&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hon to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hon_boot.html">as.data.frame(<i>&lt;net_hon_boot&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hon_boot to its tidy inference table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hon_compare.html">as.data.frame(<i>&lt;net_hon_compare&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hon_compare to its tidy edge table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_honem.html">as.data.frame(<i>&lt;net_honem&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_honem to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hypa.html">as.data.frame(<i>&lt;net_hypa&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hypa to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hypergraph.html">as.data.frame(<i>&lt;net_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hypergraph to a tidy hyperedge table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hypergraph_cluster.html">as.data.frame(<i>&lt;net_hypergraph_cluster&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hypergraph_cluster to a data.frame</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hypergraph_measures.html">as.data.frame(<i>&lt;net_hypergraph_measures&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hypergraph_measures to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_hypergraph_transduction.html">as.data.frame(<i>&lt;net_hypergraph_transduction&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_hypergraph_transduction to a data.frame</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_markov_order.html">as.data.frame(<i>&lt;net_markov_order&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_markov_order to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_mogen.html">as.data.frame(<i>&lt;net_mogen&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_mogen to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_path_dependence.html">as.data.frame(<i>&lt;net_path_dependence&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_path_dependence to its tidy per-context table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_persistence_landscape.html">as.data.frame(<i>&lt;net_persistence_landscape&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_persistence_landscape to its tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_persistent_homology.html">as.data.frame(<i>&lt;net_persistent_homology&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_persistent_homology to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_q_analysis.html">as.data.frame(<i>&lt;net_q_analysis&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_q_analysis to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_simplicial.html">as.data.frame(<i>&lt;net_simplicial&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coerce a net_simplicial to a tidy table</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.net_temporal_hypergraph.html">as.data.frame(<i>&lt;net_temporal_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Tidy tables of a temporal hypergraph</dd>
+
+        <dt>
+
+          <code><a href="as.data.frame.text_hypergraph.html">as.data.frame(<i>&lt;text_hypergraph&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Tidy tables of a text hypergraph</dd>
+      </dl></div><div class="section level2">
+      <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="long-data.html">human_long</a></code> <code><a href="long-data.html">ai_long</a></code>
+
+        </dt>
+        <dd>Human-AI Vibe Coding Interaction Data (Long Format)</dd>
+
+        <dt>
+
+          <code><a href="covid_abstracts.html">covid_abstracts</a></code>
+
+        </dt>
+        <dd>COVID-19 education research abstracts</dd>
+
+        <dt>
+
+          <code><a href="covid_embeddings.html">covid_embeddings</a></code>
+
+        </dt>
+        <dd>Sentence embeddings of the COVID-19 abstracts</dd>
+
+        <dt>
+
+          <code><a href="icsid_tribunals.html">icsid_tribunals</a></code>
+
+        </dt>
+        <dd>ICSID arbitration tribunals, one row per seat</dd>
+
+        <dt>
+
+          <code><a href="gfcc_decisions.html">gfcc_decisions</a></code>
+
+        </dt>
+        <dd>Decisions of the German Federal Constitutional Court</dd>
+
+        <dt>
+
+          <code><a href="gfcc_citations.html">gfcc_citations</a></code>
+
+        </dt>
+        <dd>Citation blocks of the German Federal Constitutional Court</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Higher-Order Network Analysis from Sequence Data • honets</title>
+<title>Higher-Order Network Analysis • honets</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Higher-Order Network Analysis from Sequence Data">
-<meta name="description" content="Build and analyze higher-order networks from categorical sequence data. Implements higher-order networks (HON) with rule extraction Xu, Wickramarathne, and Chawla (2016) &lt;doi:10.1126/sciadv.1600028&gt;, higher-order network embedding (HONEM) Saebi et al. (2020) &lt;doi:10.1089/big.2019.0169&gt;, hypergeometric path anomaly detection (HYPA) LaRock et al. (2020) &lt;doi:10.1137/1.9781611976236.52&gt;, and the multi-order generative model (MOGen) Scholtes (2017) &lt;doi:10.1145/3097983.3098145&gt;. Includes a permutation-based Markov order test and a per-context path-dependence diagnostic based on conditional Kullback-Leibler divergence.">
-<meta property="og:description" content="Build and analyze higher-order networks from categorical sequence data. Implements higher-order networks (HON) with rule extraction Xu, Wickramarathne, and Chawla (2016) &lt;doi:10.1126/sciadv.1600028&gt;, higher-order network embedding (HONEM) Saebi et al. (2020) &lt;doi:10.1089/big.2019.0169&gt;, hypergeometric path anomaly detection (HYPA) LaRock et al. (2020) &lt;doi:10.1137/1.9781611976236.52&gt;, and the multi-order generative model (MOGen) Scholtes (2017) &lt;doi:10.1145/3097983.3098145&gt;. Includes a permutation-based Markov order test and a per-context path-dependence diagnostic based on conditional Kullback-Leibler divergence.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Higher-Order Network Analysis">
+<meta name="description" content="Build and analyze higher-order networks, in which a relation can involve more than two nodes or can depend on more than the current node. Covers the three structure families of the higher-order network literature Battiston et al. (2020) &lt;doi:10.1016/j.physrep.2020.05.004&gt;, plus a text family that reads a corpus as a hypergraph. Memory networks from categorical sequences: higher-order networks with rule extraction Xu, Wickramarathne, and Chawla (2016) &lt;doi:10.1126/sciadv.1600028&gt;, higher-order network embedding Saebi et al. (2020) &lt;doi:10.1089/big.2019.0169&gt;, hypergeometric path anomaly detection LaRock et al. (2020) &lt;doi:10.1137/1.9781611976236.52&gt;, the multi-order generative model Scholtes (2017) &lt;doi:10.1145/3097983.3098145&gt;, higher-order centralities Scholtes, Wider, and Garas (2016) &lt;doi:10.1140/epjb/e2016-60663-0&gt;, a permutation-based Markov order test, a path-dependence diagnostic, and bootstrap and permutation inference for extracted rules. Simplicial complexes: clique, Vietoris-Rips and pathway complexes, Betti numbers, persistent homology, persistence landscapes, bottleneck and Wasserstein distances, and q-analysis. Hypergraphs: construction from network cliques, sliding windows over sequences, bipartite group membership, or embedding nearest neighbours; structural measures; tensor eigenvector centralities Benson (2019) &lt;doi:10.1137/18M1203031&gt;; PageRank with edge-dependent vertex weights Chitra and Raphael (2019) &lt;doi:10.48550/arXiv.1905.08287&gt;; the weighted normalized hypergraph Laplacian of Zhou, Huang, and Scholkopf (2006) with spectral, symmetric-NMF, and joint-NMF clustering Hayashi et al. (2020) &lt;doi:10.1145/3340531.3412034&gt; and transductive label spreading; projections to weighted graphs and s-line graphs; Bernoulli-incidence, stochastic-block, uniform and regular random generators; temporal snapshots; hyperedge betweenness and closeness; Infomap ensembles with adjusted- mutual-information medoid selection; Y/T/O motif profiles and null models by degree-preserving swaps and the configuration model; and hypergraph neural networks (HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer) in native torch. Text hypergraphs: a corpus becomes a weighted document-word hypergraph in either orientation (bag of words with smoothed tf-idf, token windows, or embedding nearest neighbours), analysed with tidy verbs for clustering, keyword extraction, few-label classification, and null testing.">
+<meta property="og:description" content="Build and analyze higher-order networks, in which a relation can involve more than two nodes or can depend on more than the current node. Covers the three structure families of the higher-order network literature Battiston et al. (2020) &lt;doi:10.1016/j.physrep.2020.05.004&gt;, plus a text family that reads a corpus as a hypergraph. Memory networks from categorical sequences: higher-order networks with rule extraction Xu, Wickramarathne, and Chawla (2016) &lt;doi:10.1126/sciadv.1600028&gt;, higher-order network embedding Saebi et al. (2020) &lt;doi:10.1089/big.2019.0169&gt;, hypergeometric path anomaly detection LaRock et al. (2020) &lt;doi:10.1137/1.9781611976236.52&gt;, the multi-order generative model Scholtes (2017) &lt;doi:10.1145/3097983.3098145&gt;, higher-order centralities Scholtes, Wider, and Garas (2016) &lt;doi:10.1140/epjb/e2016-60663-0&gt;, a permutation-based Markov order test, a path-dependence diagnostic, and bootstrap and permutation inference for extracted rules. Simplicial complexes: clique, Vietoris-Rips and pathway complexes, Betti numbers, persistent homology, persistence landscapes, bottleneck and Wasserstein distances, and q-analysis. Hypergraphs: construction from network cliques, sliding windows over sequences, bipartite group membership, or embedding nearest neighbours; structural measures; tensor eigenvector centralities Benson (2019) &lt;doi:10.1137/18M1203031&gt;; PageRank with edge-dependent vertex weights Chitra and Raphael (2019) &lt;doi:10.48550/arXiv.1905.08287&gt;; the weighted normalized hypergraph Laplacian of Zhou, Huang, and Scholkopf (2006) with spectral, symmetric-NMF, and joint-NMF clustering Hayashi et al. (2020) &lt;doi:10.1145/3340531.3412034&gt; and transductive label spreading; projections to weighted graphs and s-line graphs; Bernoulli-incidence, stochastic-block, uniform and regular random generators; temporal snapshots; hyperedge betweenness and closeness; Infomap ensembles with adjusted- mutual-information medoid selection; Y/T/O motif profiles and null models by degree-preserving swaps and the configuration model; and hypergraph neural networks (HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer) in native torch. Text hypergraphs: a corpus becomes a weighted document-word hypergraph in either orientation (bag of words with smoothed tf-idf, token windows, or embedding nearest neighbours), analysed with tidy verbs for clustering, keyword extraction, few-label classification, and null testing.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">honets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,13 +32,24 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/legal-hypergraphs.html">Legal hypergraphs: the paper workflow in honets</a></li>
+    <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
+    <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/honets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/hypernets/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -49,11 +60,50 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="honets">honets<a class="anchor" aria-label="anchor" href="#honets"></a>
 </h1></div>
-<p>Higher-order network analysis from categorical sequence data.</p>
-<p>honets is the home package for the variable-order Markov / path-statistics paradigm in the <a href="https://github.com/mohsaqr/Nestimate" class="external-link">Nestimate</a> family — the third delegation sibling after <a href="https://github.com/mohsaqr/psychnets" class="external-link">psychnets</a> (cross-sectional psychometric networks) and <a href="https://github.com/mohsaqr/idiographic" class="external-link">idiographic</a> (person-specific temporal models).</p>
+<p>Higher-order network analysis in R.</p>
+<p>A network is <em>higher-order</em> when a relation reaches beyond a single pair of nodes at a single moment — either it binds <strong>more than two nodes at once</strong>, or it depends on <strong>more than the current node</strong>. The literature (Battiston et al. 2020; Bianconi 2021) organises that idea into three structure families. honets implements all three behind one taxonomy, plus a text family that reads a corpus as a hypergraph.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Family</th>
+<th>A relation is…</th>
+<th>Built from</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Memory networks</strong></td>
+<td>a state <em>plus the memory of how it was reached</em>
+</td>
+<td>categorical sequences</td>
+</tr>
+<tr>
+<td><strong>Simplicial complexes</strong></td>
+<td>a set of nodes that are <em>all</em> mutually related, plus every subset</td>
+<td>a network, a distance matrix, or a memory network</td>
+</tr>
+<tr>
+<td><strong>Hypergraphs</strong></td>
+<td>an arbitrary set of nodes bound as a unit</td>
+<td>network cliques, sliding windows over sequences, group membership, or embedding neighbours</td>
+</tr>
+<tr>
+<td><strong>Text hypergraphs</strong></td>
+<td>a document bound to the words it contains (or a word to its documents)</td>
+<td>a corpus: bag of words, token windows, or sentence embeddings</td>
+</tr>
+</tbody>
+</table>
+<p>Base R, ggplot2 and Matrix (with RSpectra for the sparse spectral paths). No Python, no NLP dependencies; the neural tier needs <code>torch</code>, the sentence embeddings <code>sbert</code>, both optional.</p>
 <div class="section level2">
-<h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a>
+<h2 id="verbs">Verbs<a class="anchor" aria-label="anchor" href="#verbs"></a>
 </h2>
+<div class="section level3">
+<h3 id="memory-networks">Memory networks<a class="anchor" aria-label="anchor" href="#memory-networks"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -87,6 +137,21 @@
 <td>Scholtes (2017)</td>
 </tr>
 <tr>
+<td><code><a href="reference/hon_centrality.html">hon_centrality()</a></code></td>
+<td>PageRank / betweenness / closeness on the higher-order topology, projected to states</td>
+<td>Scholtes, Wider &amp; Garas (2016)</td>
+</tr>
+<tr>
+<td><code><a href="reference/bootstrap_hon.html">bootstrap_hon()</a></code></td>
+<td>Bootstrap CIs + rule support</td>
+<td>Efron &amp; Tibshirani (1993)</td>
+</tr>
+<tr>
+<td><code><a href="reference/compare_hon.html">compare_hon()</a></code></td>
+<td>Two-sample permutation comparison of rules</td>
+<td>Good (2005)</td>
+</tr>
+<tr>
 <td><code><a href="reference/markov_order_test.html">markov_order_test()</a></code></td>
 <td>Permutation-based Markov order test</td>
 <td>—</td>
@@ -96,45 +161,318 @@
 <td>Per-context order-k vs order-1 KL diagnostic</td>
 <td>Cover &amp; Thomas (2006)</td>
 </tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="simplicial-complexes">Simplicial complexes<a class="anchor" aria-label="anchor" href="#simplicial-complexes"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Verb</th>
+<th>Method</th>
+<th>Reference</th>
+</tr></thead>
+<tbody>
 <tr>
-<td><code><a href="reference/pathways.html">pathways()</a></code></td>
-<td>Pathway strings for simplicial visualization</td>
+<td><code><a href="reference/build_simplicial.html">build_simplicial()</a></code></td>
+<td>Clique, Vietoris-Rips, or pathway complex</td>
 <td>—</td>
 </tr>
 <tr>
-<td><code><a href="reference/bootstrap_hon.html">bootstrap_hon()</a></code></td>
-<td>Bootstrap CIs + rule support for HON rules</td>
-<td>Efron &amp; Tibshirani (1993)</td>
+<td>
+<code><a href="reference/betti_numbers.html">betti_numbers()</a></code>, <code><a href="reference/euler_characteristic.html">euler_characteristic()</a></code>
+</td>
+<td>Homology ranks and the Euler characteristic</td>
+<td>—</td>
 </tr>
 <tr>
-<td><code><a href="reference/compare_hon.html">compare_hon()</a></code></td>
-<td>Two-sample permutation comparison of HON rules</td>
-<td>Good (2005)</td>
+<td><code><a href="reference/persistent_homology.html">persistent_homology()</a></code></td>
+<td>Betti curves and persistence diagrams over a filtration</td>
+<td>Edelsbrunner &amp; Harer (2010)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/persistence_landscape.html">persistence_landscape()</a></code>, <code><a href="reference/bottleneck_distance.html">bottleneck_distance()</a></code>
+</td>
+<td>Comparable summaries of persistence diagrams</td>
+<td>Bubenik (2015)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/simplicial_degree.html">simplicial_degree()</a></code>, <code><a href="reference/q_analysis.html">q_analysis()</a></code>
+</td>
+<td>Higher-order degree and q-connectivity</td>
+<td>Atkin (1974)</td>
+</tr>
+<tr>
+<td><code><a href="reference/verify_simplicial.html">verify_simplicial()</a></code></td>
+<td>Independent check of the clique enumeration</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<p>Accessors: <code><a href="reference/mogen_transitions.html">mogen_transitions()</a></code>, <code><a href="reference/path_counts.html">path_counts()</a></code>. Bundled data: <code>human_long</code>, <code>ai_long</code> (coded human-AI pair-programming sessions). Tutorials: <code>Tutorial_docs/</code> (Rmd + rendered HTML).</p>
+</div>
+<div class="section level3">
+<h3 id="hypergraphs">Hypergraphs<a class="anchor" aria-label="anchor" href="#hypergraphs"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Verb</th>
+<th>Method</th>
+<th>Reference</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/build_hypergraph.html">build_hypergraph()</a></code></td>
+<td>Hyperedges from a network’s cliques</td>
+<td>Burgio et al. (2020)</td>
+</tr>
+<tr>
+<td><code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code></td>
+<td>Hyperedges from sliding windows over sequences</td>
+<td>Ding et al. (2020)</td>
+</tr>
+<tr>
+<td><code><a href="reference/group_hypergraph.html">group_hypergraph()</a></code></td>
+<td>Hyperedges from bipartite group membership</td>
+<td>Perc et al. (2013)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hypergraph_centrality.html">hypergraph_centrality()</a></code></td>
+<td>Tensor eigenvector centralities (clique, Z, H) and EDVW PageRank</td>
+<td>Benson (2019); Chitra &amp; Raphael (2019)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hypergraph_measures.html">hypergraph_measures()</a></code></td>
+<td>Structural measures (hyperdegree, overlap, density)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hypergraph_laplacian.html">hypergraph_laplacian()</a></code>, <code><a href="reference/hypergraph_cluster.html">hypergraph_cluster()</a></code>, <code><a href="reference/hypergraph_joint_cluster.html">hypergraph_joint_cluster()</a></code>, <code><a href="reference/hypergraph_transduction.html">hypergraph_transduction()</a></code>
+</td>
+<td>Weighted normalised Laplacian; RDC-Spec, RDC-SymNMF, J-NMF and JS-NMF clustering; label spreading</td>
+<td>Zhou, Huang &amp; Schölkopf (2006); Hayashi et al. (2020)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hg_pagerank.html">hypergraph_pagerank()</a></code></td>
+<td>EDVW PageRank with personalization, sparse-capable</td>
+<td>Chitra &amp; Raphael (2019); Page et al. (1999)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/knn_hypergraph.html">knn_hypergraph()</a></code>, <code><a href="reference/dual_hypergraph.html">dual_hypergraph()</a></code>
+</td>
+<td>Embedding nearest-neighbour hyperedges; vertex/hyperedge role swap</td>
+<td>—</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/clique_expansion.html">clique_expansion()</a></code>, <code><a href="reference/hg_project.html">hypergraph_project()</a></code>, <code><a href="reference/hg_line_graph.html">hypergraph_line_graph()</a></code>
+</td>
+<td>Projections: weighted pairwise network, association-weighted graph, s-line graph</td>
+<td>
+<a href="https://doi.org/10.1098/rsta.2023.0141" class="external-link">Coupette, Hartung &amp; Katz (2024)</a>; Aksoy et al. (2020)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/temporal_hypergraph.html">temporal_hypergraph()</a></code>, <code><a href="reference/hypergraph_snapshot.html">hypergraph_snapshot()</a></code>, <code><a href="reference/hypergraph_snapshots.html">hypergraph_snapshots()</a></code>
+</td>
+<td>Interval and contact hypergraphs in Dynet’s vocabulary (<code>actor</code>/<code>group</code>, alias detection, calendar clocks, observation bounds); active and cumulative snapshots on a <code>step</code>/<code>window</code> grid</td>
+<td>Coupette, Hartung &amp; Katz (2024)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_edges.html">hypergraph_edges()</a></code>, <code><a href="reference/hg_edge_centrality.html">hypergraph_edge_centrality()</a></code>
+</td>
+<td>Hyperedge distributions and s-betweenness/s-closeness</td>
+<td>Coupette, Hartung &amp; Katz (2024); Aksoy et al. (2020)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hg_motifs.html">hypergraph_motifs()</a></code></td>
+<td>Induced Y/T/O census and configuration-model null profile</td>
+<td>Coupette, Hartung &amp; Katz (2024)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_communities.html">hypergraph_communities()</a></code>, <code><a href="reference/hg_community_quality.html">hypergraph_community_quality()</a></code>
+</td>
+<td>Repeated Infomap, AMI-medoid selection, coverage/performance/modularity/conductance</td>
+<td>Coupette, Hartung &amp; Katz (2024)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_embed.html">hg_embed()</a></code>, <code><a href="reference/hg_embed.html">hypergraph_embed()</a></code>
+</td>
+<td>Spectral or symmetric-NMF node coordinates</td>
+<td>Zhou et al. (2006); Hayashi et al. (2020)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hg_null_test.html">hypergraph_null_test()</a></code></td>
+<td>Degree-preserving swap and configuration-model nulls</td>
+<td>Chodrow (2020)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_neural.html">hypergraph_neural()</a></code>, <code><a href="reference/hg_hypergat.html">text_hypergat()</a></code>, <code><a href="reference/heterogeneous_hgat.html">heterogeneous_hgat()</a></code>, <code><a href="reference/hypergraph_hypergcn.html">hypergraph_hypergcn()</a></code>, <code><a href="reference/hypergraph_hnhn.html">hypergraph_hnhn()</a></code>, <code><a href="reference/hypergraph_allset.html">hypergraph_allset()</a></code>
+</td>
+<td>HGNN, HyperGAT, heterogeneous HGAT, HyperGCN, HNHN, AllDeepSets and AllSetTransformer in native torch</td>
+<td>Feng et al. (2019); Linmei et al. (2019); Yadati et al. (2019); Ding et al. (2020); Dong et al. (2020); Chien et al. (2022)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="text-hypergraphs">Text hypergraphs<a class="anchor" aria-label="anchor" href="#text-hypergraphs"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Verb</th>
+<th>Method</th>
+<th>Reference</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/text_hypergraph.html">text_hypergraph()</a></code></td>
+<td>Corpus to weighted document-word hypergraph: bag of words with smoothed tf-idf, token windows, or embedding kNN</td>
+<td>Hayashi et al. (2020); Ding et al. (2020); Manning, Raghavan &amp; Schütze (2008)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_measures.html">hg_measures()</a></code>, <code><a href="reference/hg_centrality.html">hg_centrality()</a></code>
+</td>
+<td>Structural measures and tensor centralities as tidy tables</td>
+<td>Benson (2019)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_cluster.html">hg_cluster()</a></code>, <code><a href="reference/hg_keywords.html">hypergraph_keywords()</a></code>
+</td>
+<td>Spectral or symmetric-NMF topic clustering and per-cluster keywords</td>
+<td>Zhou, Huang &amp; Schölkopf (2006); Hayashi et al. (2020)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/hg_stability.html">hypergraph_stability()</a></code>, <code><a href="reference/hg_agreement.html">hypergraph_agreement()</a></code>, <code><a href="reference/hg_seeds.html">hypergraph_seeds()</a></code>
+</td>
+<td>Seed stability, partition agreement (ARI/AMI/NMI), seed selection</td>
+<td>Hubert &amp; Arabie (1985); Vinh et al. (2010)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hg_classify.html">hypergraph_classify()</a></code></td>
+<td>Few-label transductive classification, with class-mass normalization</td>
+<td>Zhou et al. (2006); Zhu, Ghahramani &amp; Lafferty (2003)</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>text_hypergraph</code> <em>is</em> a <code>net_hypergraph</code>, so every hypergraph verb takes it. Long-form verbs have direct compact aliases (<code><a href="reference/hg_edges.html">hypergraph_edges()</a></code> and <code><a href="reference/hg_edges.html">hg_edges()</a></code>, for example): both names are the same function, not wrappers. The three existing engine names <code><a href="reference/hypergraph_measures.html">hypergraph_measures()</a></code>, <code><a href="reference/hypergraph_centrality.html">hypergraph_centrality()</a></code> and <code><a href="reference/hypergraph_cluster.html">hypergraph_cluster()</a></code> remain distinct from their tidy <code>hg_*()</code> views. Bundled data: <code>covid_abstracts</code> (165 abstracts) and <code>covid_embeddings</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="research-sources">Research sources<a class="anchor" aria-label="anchor" href="#research-sources"></a>
+</h3>
+<p>The source repository includes an indexed <a href="papers/">research paper library</a> and <a href="repos/">method/repository reference notes</a>. For the projection tier, see the local <a href="papers/2024-PhilTrans-LegalHypergraphs-Coupette.pdf"><em>Legal hypergraphs</em> paper</a> and its <a href="repos/legal-hypergraphs.html">method mapping and reproducibility links</a>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="the-taxonomy">The taxonomy<a class="anchor" aria-label="anchor" href="#the-taxonomy"></a>
+</h2>
+<p>The same naming rules hold in every family, so a verb from one reads like a verb from another:</p>
+<ul>
+<li>
+<strong><code>build_*()</code></strong> constructors always return a <code>net_*</code> object. Where a family admits several construction routes, they are selected with <code>type =</code>.</li>
+<li>
+<strong><code>*_centrality()</code>, <code>*_measures()</code>, <code>*_degree()</code></strong> always return a tidy <code>data.frame</code>, one row per node or per structure.</li>
+<li>
+<strong><code>bootstrap_*()</code>, <code>compare_*()</code>, <code>*_test()</code></strong> return a <code>net_*</code> result carrying estimates, intervals and p-values.</li>
+<li>
+<strong>Every <code>net_*</code> result supports <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code>.</strong> The tidy accessor is the supported way in — reaching into a result with <code>$</code> is never required, and a secondary table is selected with <code>what =</code>:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">hon</span><span class="op">)</span>                       <span class="co"># the rules</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">hon</span>, what <span class="op">=</span> <span class="st">"nodes"</span><span class="op">)</span>       <span class="co"># the higher-order nodes</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">ph</span>,  what <span class="op">=</span> <span class="st">"betti"</span><span class="op">)</span>       <span class="co"># Betti curves, not the diagram</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">hm</span>,  what <span class="op">=</span> <span class="st">"global"</span><span class="op">)</span>      <span class="co"># whole-hypergraph summary</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="crossing-between-families">Crossing between families<a class="anchor" aria-label="anchor" href="#crossing-between-families"></a>
+</h2>
+<p>The families are entry points into one another, not islands. The same coded sessions can be read all three ways:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mohsaqr/hypernets" class="external-link">honets</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># memory network: what follows what, given how you got here</span></span>
+<span><span class="va">hon</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/build_hon.html">build_hon</a></span><span class="op">(</span><span class="va">human_long</span>, action <span class="op">=</span> <span class="st">"code"</span>, actor <span class="op">=</span> <span class="st">"session_id"</span>,</span>
+<span>                 time <span class="op">=</span> <span class="st">"timestamp"</span>, max_order <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hon_centrality.html">hon_centrality</a></span><span class="op">(</span><span class="va">hon</span>, sort_by <span class="op">=</span> <span class="st">"pagerank"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># simplicial complex: the same sessions as a pathway complex</span></span>
+<span><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/build_simplicial.html">build_simplicial</a></span><span class="op">(</span><span class="va">hon</span>, type <span class="op">=</span> <span class="st">"pathway"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/betti_numbers.html">betti_numbers</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># hypergraph: each session as one multi-way interaction over its codes</span></span>
+<span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span><span class="va">human_long</span>, actor <span class="op">=</span> <span class="st">"code"</span>, group <span class="op">=</span> <span class="st">"session_id"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hypergraph_centrality.html">hypergraph_centrality</a></span><span class="op">(</span><span class="va">hg</span>, type <span class="op">=</span> <span class="st">"pagerank"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># text: a corpus as a document-word hypergraph, clustered into topics</span></span>
+<span><span class="va">thg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/text_hypergraph.html">text_hypergraph</a></span><span class="op">(</span><span class="va">covid_abstracts</span>, column <span class="op">=</span> <span class="st">"abstract"</span>, id <span class="op">=</span> <span class="st">"doc"</span>,</span>
+<span>                       weight <span class="op">=</span> <span class="st">"tfidf"</span>, stop_words <span class="op">=</span> <span class="fu"><a href="reference/stop_words_en.html">stop_words_en</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>                       min_count <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="va">topics</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">thg</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>                    <span class="co"># tf-idf mass</span></span>
+<span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"ctfidf"</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># BERTopic's c-TF-IDF</span></span>
+<span><span class="fu"><a href="reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">thg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"centrality"</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="reference/clique_expansion.html">clique_expansion()</a></code> projects a hypergraph back to a pairwise network that any first-order tool accepts; <code><a href="reference/pathways.html">pathways()</a></code> hands sequence-derived path strings from the memory family to the other two.</p>
+<p>Bundled data: <code>human_long</code>, <code>ai_long</code> (coded human-AI pair-programming sessions); <code>covid_abstracts</code>, <code>covid_embeddings</code> (COVID-19 education research abstracts and their sentence embeddings).</p>
+</div>
+<div class="section level2">
+<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
+</h2>
+<p>The package ships <code><a href="articles/legal-hypergraphs.html">vignette("legal-hypergraphs")</a></code>, <code><a href="articles/text-hypergraphs.html">vignette("text-hypergraphs")</a></code> and <code><a href="articles/text-constructions.html">vignette("text-constructions")</a></code>, plus a benchmark article (<code>vignettes/articles/benchmarks.Rmd</code>, R8/R52/MR/Ohsumed/20NG). The other three families have one worked document each in <code>docs/</code> — a worked analysis on real data, not a syntax reference. Start with <strong><code>docs/index.html</code></strong> for the map, or <strong><code>docs/overview.html</code></strong> to see the same dataset read all three ways. Rebuild them with <code>Rscript docs/_knit_all.R</code>. Longer tutorials live in <code>Tutorial_docs/</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="provenance">Provenance<a class="anchor" aria-label="anchor" href="#provenance"></a>
 </h2>
-<p>Code moved verbatim from Nestimate 0.9.0 (delegation T0, 2026-08-24). Cross-package identity is proven by Nestimate’s <code>local_testing_and_equivalence/test-equiv-honets.R</code> (exact <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> match on every verb, seeded permutation paths included). The inherited Python-parity equivalence suite (pyHON, pathpy multi-order models, Wallenius/Monte-Carlo HYPA references) lives in <code>local_testing_and_equivalence/</code> (build-ignored):</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="va">NOT_CRAN</span><span class="op">=</span>true <span class="va">HONETS_EQUIV_TESTS</span><span class="op">=</span>true <span class="ex">Rscript</span> <span class="at">-e</span> <span class="dt">\</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="st">'library(honets); testthat::test_dir("local_testing_and_equivalence")'</span></span></code></pre></div>
+<p>honets is the home package for higher-order structure in the <a href="https://github.com/mohsaqr/Nestimate" class="external-link">Nestimate</a> family, alongside <a href="https://github.com/mohsaqr/psychnets" class="external-link">psychnets</a> (cross-sectional psychometric networks) and <a href="https://github.com/mohsaqr/idiographic" class="external-link">idiographic</a> (person-specific temporal models).</p>
+<p>The code was moved verbatim from Nestimate 0.9.0 in two steps — the memory family in 0.1.0 (2026-08-24), the simplicial and hypergraph families in 0.2.0 (2026-08-26, the latter by way of the short-lived <code>hypernets</code> package, now folded in). The text family arrived in 0.3.0 (2026-09-01) from the <code>texthypergraph</code> package, which is retired; its generic hypergraph methods (PageRank, projections, null models, sparse engines, neural tier) joined the hypergraph family, and the merge removed the Nestimate dependency. Cross-package identity is proven by exact <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> tests in <code>local_testing_and_equivalence/</code>, including the seeded permutation and clique-sampling RNG paths. The 0.2.0 consolidation renamed part of the <em>surface</em> to put all three families under one taxonomy — never a computed value; see <code>NEWS.md</code> for the full mapping.</p>
+<p>The inherited external-equivalence suites (pyHON, pathpy multi-order models, Wallenius / Monte-Carlo HYPA references, igraph, HyperNetX) live in <code>local_testing_and_equivalence/</code>, which is build-ignored and gated:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="va">NOT_CRAN</span><span class="op">=</span>true <span class="va">HONETS_EQUIV_TESTS</span><span class="op">=</span>true <span class="ex">Rscript</span> <span class="at">-e</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="st">'library(honets); testthat::test_dir("local_testing_and_equivalence")'</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># development version</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mohsaqr/hypernets"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Battiston, F., Cencetti, G., Iacopini, I., Latora, V., Lucas, M., Patania, A., Young, J.-G., &amp; Petri, G. (2020). Networks beyond pairwise interactions: Structure and dynamics. <em>Physics Reports</em>, 874, 1-92.</p>
+<p>Bianconi, G. (2021). <em>Higher-Order Networks</em>. Cambridge University Press.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/mohsaqr/honets/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/mohsaqr/honets/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/mohsaqr/hypernets/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/mohsaqr/hypernets/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -158,7 +496,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Mohammed Saqr <br><small class="roles"> Author, maintainer, copyright holder </small>   </li>
+<li>Mohammed Saqr <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0001-5881-3109" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 

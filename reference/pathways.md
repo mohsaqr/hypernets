@@ -1,8 +1,9 @@
 # Extract Pathways from Higher-Order Network Objects
 
 Extracts higher-order pathway strings suitable for
-`cograph::plot_simplicial()`. Each pathway represents a multi-step
-dependency: source states lead to a target state.
+[`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html).
+Each pathway represents a multi-step dependency: source states lead to a
+target state.
 
 For `net_hon`: extracts edges where the source node is higher-order
 (order \> 1), i.e., the transitions that differ from first-order Markov.
@@ -64,7 +65,8 @@ pathways(x, order = NULL, min_count = 1L, min_prob = 0, top = NULL, ...)
 ## Value
 
 A character vector of pathway strings in arrow notation (e.g.
-`"A B -> C"`), suitable for `cograph::plot_simplicial()`.
+`"A B -> C"`), suitable for
+[`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html).
 
 A character vector of pathway strings.
 

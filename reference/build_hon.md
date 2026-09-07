@@ -16,7 +16,10 @@ build_hon(
   max_order = 5L,
   min_freq = 1L,
   collapse_repeats = FALSE,
-  method = "hon+"
+  method = "hon+",
+  action = NULL,
+  actor = NULL,
+  time = NULL
 )
 ```
 
@@ -37,6 +40,9 @@ build_hon(
     automatically converted to label names.
 
   - `netobject`: a netobject with sequence data.
+
+  - long `data.frame`: one event per row, together with `action` (and
+    optionally `actor` and `time`).
 
 - max_order:
 
@@ -59,6 +65,15 @@ build_hon(
   Character. Algorithm to use: `"hon+"` (default, parameter-free
   BuildHON+ with lazy observation building and MaxDivergence pruning) or
   `"hon"` (original BuildHON with eager observation building).
+
+- action, actor, time:
+
+  Long-format column names: `action` holds the categorical state of each
+  event, `actor` groups events into trajectories (one per actor; `NULL`
+  treats all rows as one), and `time` orders events within an actor (row
+  order when `NULL`). Leave all three `NULL` for wide, list, or model
+  input. Same interface as
+  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md).
 
 ## Value
 
@@ -174,14 +189,6 @@ summary(hon)
 #>   Min frequency: 1
 #>   Node order distribution:
 #>     Order 1: 4 nodes
-#>   from to    weight
-#> 1    3  1 0.3333333
-#> 2    4  1 0.6666667
-#> 3    1  2 1.0000000
-#> 4    2  3 0.6666667
-#> 5    4  3 0.3333333
-#> 6    2  4 0.3333333
-#> 7    3  4 0.6666667
 
 # From data.frame (rows = trajectories)
 df <- data.frame(T1 = c("A", "A"), T2 = c("B", "B"),

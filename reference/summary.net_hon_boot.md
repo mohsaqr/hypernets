@@ -22,4 +22,6 @@ summary(object, ...)
 ## Value
 
 A data.frame, one row per rule order: `order`, `n_edges`,
-`mean_support`, `min_support`, `mean_ci_width`.
+`mean_support`, `min_support`, `mean_ci_width`. Returned **invisibly**:
+`summary(x)` prints the summary and nothing else; assign the result to
+keep the table.

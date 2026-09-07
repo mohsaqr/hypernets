@@ -46,6 +46,9 @@ summary(
 A data frame with path, observed, expected, ratio, p_tail, and direction
 columns.
 
+Returned **invisibly**: `summary(x)` prints the summary and nothing
+else; assign the result to keep the table.
+
 ## Examples
 
 ``` r
@@ -60,8 +63,6 @@ summary(hyp)
 #>   Anomalous: 0 (over: 0, under: 0) | order_by: sig
 #> 
 #>   No anomalous paths detected.
-#> [1] path      observed  expected  ratio     p_tail    direction
-#> <0 rows> (or 0-length row.names)
 
 # \donttest{
 seqs <- data.frame(
@@ -80,8 +81,6 @@ summary(hypa)
 #>   Anomalous: 0 (over: 0, under: 0) | order_by: sig
 #> 
 #>   No anomalous paths detected.
-#> [1] path      observed  expected  ratio     p_tail    direction
-#> <0 rows> (or 0-length row.names)
 summary(hypa, type = "over", n = 5)
 #> HYPA Summary
 #> 
@@ -90,7 +89,5 @@ summary(hypa, type = "over", n = 5)
 #>   Anomalous: 0 (over: 0, under: 0) | order_by: sig
 #> 
 #>   No anomalous paths detected.
-#> [1] path      observed  expected  ratio     p_tail    direction
-#> <0 rows> (or 0-length row.names)
 # }
 ```

@@ -26,8 +26,8 @@ path_counts(data, k = 2L, top = NULL)
 
 - top:
 
-  Integer or NULL. If set, returns only the top N most frequent paths
-  (default NULL = all).
+  Integer or `NULL`. Return only the first `top` rows of the
+  count-sorted table (default `NULL` returns every path).
 
 ## Value
 

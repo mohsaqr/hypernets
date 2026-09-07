@@ -15,7 +15,7 @@ build_honem(hon, dim = 32L, max_power = 10L)
 - hon:
 
   A `net_hon` object from
-  [`build_hon`](https://mohsaqr.github.io/honets/reference/build_hon.md),
+  [`build_hon`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
   or a square weighted adjacency matrix.
 
 - dim:
@@ -75,7 +75,8 @@ HONEM: Learning Embedding for Higher Order Networks. *Big Data*, 8(4),
 
 ``` r
 seqs <- list(c("A","B","C","D"), c("A","B","C","A"), c("B","C","D","A"))
-hem <- build_honem(build_hon(seqs, max_order = 2), dim = 2)
+hon_2 <- build_hon(seqs, max_order = 2)
+hem <- build_honem(hon_2, dim = 2)
 
 # \donttest{
 trajs <- list(c("A","B","C","D"), c("A","B","D","C"),

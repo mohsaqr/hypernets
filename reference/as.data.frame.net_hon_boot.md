@@ -13,7 +13,8 @@ as.data.frame(
   ...,
   min_support = NULL,
   order_min = NULL,
-  sort_by = NULL
+  sort_by = NULL,
+  top = NULL
 )
 ```
 
@@ -50,6 +51,12 @@ as.data.frame(
   `NULL` (order/from/to, default), `"count"`, `"probability"`, or
   `"support"` - sort the table by that column, largest first (ties
   broken by from/to so the order is deterministic).
+
+- top:
+
+  Integer or `NULL`. Return only the first `top` rows, applied after any
+  filter and after `sort_by`, so `sort_by` and `top` compose. Default
+  `NULL` returns every row.
 
 ## Value
 

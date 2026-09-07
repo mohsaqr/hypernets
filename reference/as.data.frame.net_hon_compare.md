@@ -12,7 +12,8 @@ as.data.frame(
   optional = FALSE,
   ...,
   significant = FALSE,
-  sort_by = NULL
+  sort_by = NULL,
+  top = NULL
 )
 ```
 
@@ -45,8 +46,14 @@ as.data.frame(
   `"p_adj"` - sort by absolute difference or count (largest first) or
   adjusted p-value (smallest first), ties broken by from/to.
 
+- top:
+
+  Integer or `NULL`. Return only the first `top` rows, applied after any
+  filter and after `sort_by`, so `sort_by` and `top` compose. Default
+  `NULL` returns every row.
+
 ## Value
 
 A data.frame, one row per pooled rule edge (see
-[`compare_hon()`](https://mohsaqr.github.io/honets/reference/compare_hon.md)
+[`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
 for the columns).
