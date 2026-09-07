@@ -1,3 +1,9 @@
+# honets 0.3.8
+
+* The pkgdown workflow installs igraph and gridExtra like the check workflow
+  does, so the legal vignette's hyperedge betweenness (cograph -> igraph)
+  renders on the site.
+
 # honets 0.3.7
 
 * honets installs without torch again. Five `torch::nn_module()` classes
