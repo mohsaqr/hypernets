@@ -1,3 +1,8 @@
+# honets 0.3.6
+
+* pkgdown CI builds into `pkgdown/` (`dest_dir`), not `docs/`, which holds
+  the hand-knit documents.
+
 # honets 0.3.5
 
 * The GitHub repository is `mohsaqr/hypernets`; `DESCRIPTION`, the README
