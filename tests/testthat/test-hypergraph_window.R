@@ -241,7 +241,7 @@ test_that("downstream verbs consume windowed hypergraphs", {
 })
 
 test_that("works on the bundled human_long dataset (long format)", {
-  data("human_long", package = "hypernets")
+  data("human_long", package = "honets")
   hg <- window_hypergraph(human_long, action = "code", actor = "session_id",
                           time = "timestamp", window = 3L)
   expect_s3_class(hg, "net_hypergraph")
