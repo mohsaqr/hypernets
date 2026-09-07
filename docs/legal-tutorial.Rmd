@@ -1,0 +1,552 @@
+---
+title: "Legal hypergraphs on toy data: the whole workflow, step by step"
+author: "honets"
+date: "2026-09-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+library(honets)
+# igraph is a suggested package; the community section needs it.
+has_igraph <- requireNamespace("igraph", quietly = TRUE)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
+                      warning = FALSE,
+                      fig.width = 7, fig.height = 5, out.width = "100%",
+                      dpi = 150)
+```
+
+> This is the legal-hypergraphs workflow (Coupette, Hartung and Katz
+> 2024) on data small enough to read by eye. Every step is one call. The
+> real analysis, on the authors' released data, is `legal-hypergraphs.html`;
+> the verbs are the same, only the data change.
+
+## The two kinds of data
+
+The paper uses two datasets. **Tribunals**: a case is decided by three
+arbitrators, from the day the tribunal is constituted to the day the case
+concludes. The three arbitrators are bound together for that interval.
+**Citations**: a decision cites earlier decisions in blocks. The decisions
+cited together in one block are bound together on the day of the citing
+decision.
+
+We make both up with base R. A seed makes the data the same every time.
+
+```{r seed}
+set.seed(2024)
+```
+
+### Fake tribunals
+
+Twenty arbitrators and forty cases. Every case has three seats. A few
+arbitrators are much busier than the rest, as in the real data, so some
+pairs and even trios sit together more than once.
+
+```{r arbitrators}
+arbitrators <- sprintf("arbitrator_%02d", 1:20)
+```
+
+```{r cases}
+cases <- sprintf("case_%02d", 1:40)
+```
+
+```{r seats}
+seats <- unlist(lapply(cases, function(case) {
+  sample(arbitrators, size = 3, prob = 1 / seq_along(arbitrators))
+}))
+```
+
+Each case is constituted on a random day between 2010 and 2019 and
+concludes one to four years later. Eight cases are still pending, so their
+conclusion date is missing.
+
+```{r dates-tribunals}
+constituted <- as.Date("2010-01-01") + sort(sample(0:3650, size = 40))
+concluded <- constituted + sample(365:1460, size = 40)
+concluded[33:40] <- NA
+```
+
+Each case belongs to an economic sector, a property of the case, not of a
+seat.
+
+```{r sector}
+sector <- sample(c("energy", "mining", "finance", "construction"),
+                 size = 40, replace = TRUE)
+```
+
+One row per seat: the case, the arbitrator, the two dates, the sector and
+whether the case has concluded. This is the shape of `icsid_tribunals`.
+
+```{r tribunal-table}
+toy_tribunals <- data.frame(
+  case = rep(cases, each = 3),
+  arbitrator = seats,
+  constituted = rep(constituted, each = 3),
+  concluded = rep(concluded, each = 3),
+  sector = rep(sector, each = 3),
+  is_concluded = rep(!is.na(concluded), each = 3),
+  stringsAsFactors = FALSE
+)
+head(toy_tribunals, 6)
+```
+
+### Fake citations
+
+Sixty decisions, one per quarter from 2005. Each decision after the fifth
+cites between four and eight earlier decisions, spread over one or two blocks.
+Later decisions are cited more often, as in a growing court.
+
+```{r decisions}
+decisions <- sprintf("decision_%02d", 1:60)
+decided <- as.Date("2005-01-01") + seq(0, by = 91, length.out = 60)
+toy_decisions <- data.frame(decision = decisions, date = decided,
+                            stringsAsFactors = FALSE)
+head(toy_decisions, 3)
+```
+
+```{r citation-counts}
+n_cites <- c(rep(0, 5), sample(4:8, size = 55, replace = TRUE))
+citing_index <- rep(seq_along(decisions), n_cites)
+```
+
+```{r cited}
+cited_index <- vapply(citing_index, function(i) {
+  sample(seq_len(i - 1), size = 1, prob = seq_len(i - 1))
+}, integer(1))
+```
+
+```{r blocks}
+block_number <- sample(1:2, size = length(citing_index), replace = TRUE)
+```
+
+One row per citation: the citing decision, the cited decision, the block
+the citation sits in, and both dates. A decision cited twice in the same
+block is one citation. This is the shape of `gfcc_citations`.
+
+```{r citation-table}
+toy_citations <- unique(data.frame(
+  citing = decisions[citing_index],
+  cited = decisions[cited_index],
+  block = sprintf("%s_block_%d", decisions[citing_index], block_number),
+  date_citing = decided[citing_index],
+  date_cited = decided[cited_index],
+  stringsAsFactors = FALSE
+))
+head(toy_citations, 6)
+```
+
+## Models
+
+`temporal_hypergraph()` reads co-presence data: `actor` is the node, `group`
+the column whose shared value binds actors into one hyperedge. `start` and
+`end` give the interval. A missing end stays active through the end of
+observation, which we declare as the end of 2020.
+
+```{r observation-end}
+observation_end <- as.Date("2020-12-31")
+```
+
+```{r tribunals-build}
+tribunals <- temporal_hypergraph(
+  toy_tribunals, actor = "arbitrator", group = "case",
+  start = "constituted", end = "concluded",
+  observation_end = observation_end
+)
+tribunals
+```
+
+`summary()` is the paper's Table 1 for this dataset.
+
+```{r tribunals-summary}
+summary(tribunals)
+```
+
+The citations are the same shape with `time` instead of an interval: a block
+is a contact on the citing date. The decision table is the node universe,
+so a decision exists from its own date even before anyone cites it.
+
+```{r blocks-build}
+blocks <- temporal_hypergraph(
+  toy_citations, actor = "cited", group = "block", time = "date_citing",
+  nodes = toy_decisions
+)
+blocks
+```
+
+```{r blocks-summary}
+summary(blocks)
+```
+
+### Four representations of the same data
+
+`hypergraph_snapshot()` with `mode = "cumulative"` and no `at` is the static
+aggregate: every hyperedge that ever appeared, as an ordinary hypergraph.
+
+```{r aggregate-tribunals}
+tribunals_all <- hypergraph_snapshot(tribunals, mode = "cumulative")
+tribunals_all
+```
+
+```{r aggregate-blocks}
+blocks_all <- hypergraph_snapshot(blocks, mode = "cumulative")
+blocks_all
+```
+
+`hg_representations()` reads an aggregate the four ways of the paper's Table
+2: the multi-hypergraph (`mh`), the binary hypergraph of distinct member sets
+(`bh`), and the graph it reduces to with (`mg`) or without (`bg`) edge
+multiplicities.
+
+```{r tribunals-representations}
+hg_representations(tribunals_all)
+```
+
+For citations the graph is the citation graph: `graph = "citation"` with
+`edge_source` naming the attribute that holds the citing decision.
+
+```{r blocks-representations}
+hg_representations(blocks_all, graph = "citation", edge_source = "citing")
+```
+
+### One decision as a hypergraph
+
+`hg_subset()` with `where =` keeps the hyperedges whose attribute takes a
+value: the two blocks of decision 56, four cited decisions each.
+
+```{r decision}
+one_decision <- hg_subset(blocks_all, where = c(citing = "decision_56"))
+one_decision
+```
+
+`plot()` draws every block as a blob around the decisions it cites,
+coloured by block size.
+
+```{r decision-plot, fig.width = 6, fig.height = 6}
+plot(one_decision, color_by = "size", padding = 0.05,
+     legend_title = "block size")
+```
+
+## Growth
+
+`hg_growth()` counts, at every event time, the nodes and hyperedges present.
+With `mode = "cumulative"` the counts accumulate and a decision enters at its
+own date.
+
+```{r blocks-growth}
+growth_blocks <- hg_growth(blocks, mode = "cumulative")
+tail(growth_blocks, 3)
+```
+
+```{r blocks-growth-plot, fig.height = 5}
+plot(growth_blocks,
+     columns = c("n_nodes", "n_edges", "n_edges_distinct", "n_memberships"))
+```
+
+`hg_edges()` with `what = "distribution"` gives the distribution of block
+sizes as the network stood on chosen dates.
+
+```{r census-dates}
+census_dates <- as.Date(c("2008-12-31", "2012-12-31", "2016-12-31",
+                          "2019-12-31"))
+```
+
+```{r blocks-sizes}
+sizes_by_date <- hg_edges(blocks, what = "distribution", at = census_dates,
+                          snapshot_mode = "cumulative")
+head(sizes_by_date)
+```
+
+```{r blocks-sizes-plot}
+plot(sizes_by_date)
+```
+
+The `s` argument counts, for each block, the other blocks sharing at least
+`s` decisions with it.
+
+```{r blocks-intersections}
+intersections <- hg_edges(blocks_all, s = 1:3, what = "distribution",
+                          measure = "n_incident_edges")
+head(intersections)
+```
+
+```{r blocks-intersections-plot, fig.height = 4}
+plot(intersections)
+```
+
+## Arbitrators and tribunals over time
+
+`hg_measures()` with `what = "distribution"` gives the degree distribution.
+The `hyperdegree` of an arbitrator is the number of tribunals sat on.
+
+```{r tribunals-degrees}
+tribunal_counts <- hg_measures(tribunals_all, what = "distribution",
+                               measure = "hyperdegree")
+tail(tribunal_counts, 3)
+```
+
+```{r tribunals-degrees-plot, fig.height = 4}
+plot(tribunal_counts)
+```
+
+For interval data `hg_growth()` reports the active counts and, in the
+`_cumulative` columns, the counts of a model that never retires a tribunal.
+
+```{r tribunals-growth}
+growth_tribunals <- hg_growth(tribunals)
+tail(growth_tribunals, 3)
+```
+
+```{r tribunals-growth-plot, fig.height = 4}
+plot(growth_tribunals,
+     columns = c("n_nodes", "n_edges", "n_nodes_cumulative", "n_edges_cumulative"),
+     facets = FALSE)
+```
+
+`hg_edges()` with `what = "summary"` gives, per snapshot, the mean and
+quartiles of a hyperedge measure; `n_neighbors` is the number of
+arbitrators within one hop of a tribunal.
+
+```{r tribunals-neighbourhood}
+neighbourhood <- hg_edges(tribunals, what = "summary", measure = "n_neighbors")
+tail(neighbourhood, 3)
+```
+
+```{r tribunals-neighbourhood-plot, fig.height = 4}
+plot(neighbourhood, columns = c("mean", "q25", "median", "q75"), facets = FALSE)
+```
+
+`components = TRUE` adds the connectivity of the active hypergraph at each
+time.
+
+```{r tribunals-components}
+connectivity <- hg_growth(tribunals, components = TRUE)
+tail(connectivity, 3)
+```
+
+## Repeated collaborations
+
+`hg_null_test()` compares a statistic with its distribution under a null that
+keeps every arbitrator's number of seats and every tribunal's size.
+`repeated_edges` counts tribunals whose trio already occurred,
+`repeated_pairs` the pairs that sat together more than once. Our seats were
+drawn at random, so the repeats are only what busy arbitrators produce by
+chance, and the test says so: the observed counts sit inside the null
+range. On the real data they lie far above it.
+
+```{r tribunals-repeats}
+hg_null_test(tribunals_all, statistic = c("repeated_pairs", "repeated_edges"),
+             method = "assignment", n = 199, seed = 1)
+```
+
+## Hyperedge centralities
+
+The centrality analysis runs on the tribunals active on the last observed
+date. `multiedges = FALSE` collapses two tribunals with the same three
+members into one hyperedge.
+
+```{r active}
+active <- hypergraph_snapshot(tribunals, at = observation_end,
+                              mode = "active", multiedges = FALSE)
+active
+```
+
+`hg_edge_centrality()` builds the s-line graph, in which two tribunals are
+adjacent when they share at least `s` arbitrators, and ranks the tribunals
+by betweenness on it. `top = 5` keeps the five most central.
+
+```{r betweenness}
+top_betweenness <- hg_edge_centrality(active, s = 1, measure = "betweenness",
+                                      top = 5)
+top_betweenness
+```
+
+`hg_subset()` takes that table and cuts the snapshot down to those cases.
+
+```{r betweenness-subset}
+central_tribunals <- hg_subset(active, edges = top_betweenness)
+central_tribunals
+```
+
+`plot()` draws them coloured by sector.
+
+```{r betweenness-plot, fig.width = 7, fig.height = 6}
+plot(central_tribunals, color_by = "sector", legend_title = "sector",
+     label_size = 3)
+```
+
+Closeness ranks a different set.
+
+```{r closeness}
+top_closeness <- hg_edge_centrality(active, s = 1, measure = "closeness",
+                                    top = 5)
+top_closeness
+```
+
+```{r closeness-subset}
+close_tribunals <- hg_subset(active, edges = top_closeness)
+```
+
+```{r closeness-plot, fig.width = 7, fig.height = 6}
+plot(close_tribunals, color_by = "sector", legend_title = "sector",
+     label_size = 3)
+```
+
+The static aggregate ranks tribunals that never overlapped in time. As for
+the active snapshot, duplicate trios are collapsed first.
+
+```{r aggregate-binary}
+tribunals_binary <- hypergraph_snapshot(tribunals, mode = "cumulative",
+                                        multiedges = FALSE)
+tribunals_binary
+```
+
+```{r aggregate-closeness}
+top_aggregate <- hg_edge_centrality(tribunals_binary, s = 1,
+                                    measure = "closeness", top = 5)
+top_aggregate
+```
+
+```{r aggregate-subset}
+aggregate_tribunals <- hg_subset(tribunals_binary, edges = top_aggregate)
+```
+
+`linetype_by` outlines the concluded cases differently from the pending
+ones.
+
+```{r aggregate-plot, fig.width = 7, fig.height = 6}
+plot(aggregate_tribunals, color_by = "sector", linetype_by = "is_concluded",
+     legend_title = "sector", label_size = 3)
+```
+
+## Motifs
+
+`hg_motifs()` counts the three four-node motifs of a 3-uniform hypergraph,
+Y (two of the four possible triples), T (three) and O (all four), against
+configuration-model nulls that keep degrees and sizes. Random seats give
+counts close to their null means; the real tribunals show a clear excess.
+
+```{r motifs}
+motifs_aggregate <- hg_motifs(tribunals_all, n = 200, seed = 1)
+motifs_aggregate
+```
+
+```{r motifs-plot, fig.height = 4}
+plot(motifs_aggregate)
+```
+
+The active snapshot is smaller and has its own census.
+
+```{r motifs-active}
+motifs_active <- hg_motifs(active, n = 200, seed = 1)
+motifs_active
+```
+
+```{r motifs-active-plot, fig.height = 4}
+plot(motifs_active)
+```
+
+## Communities across representations
+
+The paper clusters the citation data eight ways: the association graph of
+`hg_project()`, in which a block of size |e| gives each pair of its members
+the weight 1 / (|e| - 1), on the binary (`bh`) or multi (`mh`) hypergraph,
+with (`bhs`, `mhs`) or without self-association, the term that joins the
+citing decision to the decisions it cites; and the citation graph, binary
+(`bg`) or multi (`mg`), directed or undirected (`bgu`, `mgu`). Our fake
+decisions only ever cite earlier ones, so every citation is backward already.
+
+`hg_communities()` runs Infomap repeatedly on the chosen projection and keeps
+the run most similar to all the others as the medoid. The four classic
+citation graphs first.
+
+```{r communities-graphs, eval = has_igraph}
+communities_bg <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                 method = "citation", edge_source = "citing",
+                                 duplicate_edges = "collapse", directed = TRUE)
+communities_bgu <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                  method = "citation", edge_source = "citing",
+                                  duplicate_edges = "collapse")
+communities_mg <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                 method = "citation", edge_source = "citing",
+                                 directed = TRUE)
+communities_mgu <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                  method = "citation", edge_source = "citing")
+communities_bg
+```
+
+Then the four association graphs.
+
+```{r communities-hypergraphs, eval = has_igraph}
+communities_bh <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                 duplicate_edges = "collapse")
+communities_bhs <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                  duplicate_edges = "collapse",
+                                  self_association = TRUE, edge_source = "citing")
+communities_mh <- hg_communities(blocks_all, n_runs = 5, trials = 5)
+communities_mhs <- hg_communities(blocks_all, n_runs = 5, trials = 5,
+                                  self_association = TRUE, edge_source = "citing")
+communities_mhs
+```
+
+`hg_compare_communities()` sets the eight fits side by side and scores each
+medoid on its own projection. Sixty random decisions have no community
+structure to find, so the citation graphs come back as one community and
+the association graphs split off a few singletons; the table reports that
+faithfully. The real data separate into dozens of communities.
+
+```{r compare, eval = has_igraph}
+comparison <- hg_compare_communities(
+  bg = communities_bg, bgu = communities_bgu, mg = communities_mg,
+  mgu = communities_mgu, bh = communities_bh, bhs = communities_bhs,
+  mh = communities_mh, mhs = communities_mhs, hg = blocks_all,
+  edge_source = "citing"
+)
+comparison
+```
+
+```{r compare-plot, eval = has_igraph, fig.height = 4}
+plot(comparison)
+```
+
+The similarity table holds the AMI, ARI and NMI between every pair of
+medoids.
+
+```{r similarity-table, eval = has_igraph}
+similarity <- as.data.frame(comparison, what = "similarity")
+head(similarity)
+```
+
+```{r similarity-plot, eval = has_igraph, fig.width = 6, fig.height = 5}
+plot(comparison, what = "similarity")
+```
+
+The quality table holds coverage, performance, modularity and the worst
+community conductance of each medoid on its own projection.
+
+```{r quality, eval = has_igraph}
+quality <- as.data.frame(comparison, what = "quality")
+quality
+```
+
+## What you have seen
+
+Two fake tables, one row per seat and one row per citation, went through
+the whole workflow of the paper: Table 1 by `summary()`, Table 2 by
+`hg_representations()`, a decision's hypergraph by `hg_subset()` and
+`plot()`, growth and size distributions by `hg_growth()`, `hg_edges()` and
+`hg_measures()`, repeated collaborations by `hg_null_test()`, hyperedge
+centralities by `hg_edge_centrality()`, motifs by `hg_motifs()`, and
+communities by `hg_communities()` and `hg_compare_communities()`. Replace
+the two tables with your own and nothing else changes. What changes is the
+answers: made-up data give null results everywhere, which is exactly what
+the tests are for.
+
+## References
+
+Coupette, C., Hartung, D., and Katz, D. M. (2024). Legal hypergraphs.
+Philosophical Transactions of the Royal Society A, 382(2270), 20230141.

@@ -23,7 +23,9 @@ temporal_hypergraph(
 )
 }
 \arguments{
-\item{data}{A data frame with one row per relation.}
+\item{data}{A data frame with one row per relation, or a sequence table
+(a wide data frame of states, a list of character vectors, or a \code{tna} /
+\code{netobject} model); see Details.}
 
 \item{from, to}{Column names of a pairwise edge list. Detected from the
 alias table when neither is given and \code{actor}/\code{group} are not named.}
@@ -95,6 +97,24 @@ Coupette et al. 2024) is a snapshot \code{mode}, not a property of the
 data: ask for it with \code{mode = "cumulative"} in \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}},
 \code{\link[=hg_growth]{hg_growth()}} and \code{\link[=hg_edges]{hg_edges()}}.}
 }
+
+A third shape is a \strong{sequence table}: one row per session and one column
+per position holding the state at that step (the wide format of tna and
+TraMineR), a list of character vectors, or a \code{tna} / \code{netobject} model
+built from one. It is recognised when no relational column is named or
+detected and every column is categorical. Each session is one hyperedge
+whose members are the states it contains, and a state's membership is a
+contact at its position, \code{1} to the session's length, on a \code{"step"}
+clock: the simple co-occurrence reading in which time is order.
+
+In any shape a membership may carry its own time, as when a log has one
+row per attendance rather than one time per group. The hyperedge then
+spans from its first to its last membership, each membership is present
+on its own spell only, and a snapshot keeps the memberships present in
+its window: \code{mode = "cumulative"} at step \code{t} is what each session had
+shown by \code{t}, and \code{window = 3} at \code{t} is what it showed on steps \code{t} to
+\code{t + 2}. When every membership carries its hyperedge's time, as a
+tribunal or a citation block does, nothing changes.
 
 Column names are resolved case-insensitively from the same alias table
 Dynet uses, so \code{Sender}/\code{Receiver}, \code{source}/\code{target}, \code{onset}/\code{terminus}

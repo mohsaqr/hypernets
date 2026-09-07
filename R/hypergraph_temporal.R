@@ -223,6 +223,24 @@
 #'     [hg_growth()] and [hg_edges()].}
 #' }
 #'
+#' A third shape is a **sequence table**: one row per session and one column
+#' per position holding the state at that step (the wide format of tna and
+#' TraMineR), a list of character vectors, or a `tna` / `netobject` model
+#' built from one. It is recognised when no relational column is named or
+#' detected and every column is categorical. Each session is one hyperedge
+#' whose members are the states it contains, and a state's membership is a
+#' contact at its position, `1` to the session's length, on a `"step"`
+#' clock: the simple co-occurrence reading in which time is order.
+#'
+#' In any shape a membership may carry its own time, as when a log has one
+#' row per attendance rather than one time per group. The hyperedge then
+#' spans from its first to its last membership, each membership is present
+#' on its own spell only, and a snapshot keeps the memberships present in
+#' its window: `mode = "cumulative"` at step `t` is what each session had
+#' shown by `t`, and `window = 3` at `t` is what it showed on steps `t` to
+#' `t + 2`. When every membership carries its hyperedge's time, as a
+#' tribunal or a citation block does, nothing changes.
+#'
 #' Column names are resolved case-insensitively from the same alias table
 #' Dynet uses, so `Sender`/`Receiver`, `source`/`target`, `onset`/`terminus`
 #' and `timestamp` are understood without being spelled out; a name you give
@@ -249,7 +267,9 @@
 #' Columns that vary within a hyperedge, such as the seat an arbitrator held,
 #' are not attributes of the hyperedge and are left out.
 #'
-#' @param data A data frame with one row per relation.
+#' @param data A data frame with one row per relation, or a sequence table
+#'   (a wide data frame of states, a list of character vectors, or a `tna` /
+#'   `netobject` model); see Details.
 #' @param from,to Column names of a pairwise edge list. Detected from the
 #'   alias table when neither is given and `actor`/`group` are not named.
 #' @param actor,group Column names of co-presence data: the node, and the
@@ -314,6 +334,12 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
                                 time_unit = "auto",
                                 observation_start = NULL, observation_end = NULL,
                                 sparse = FALSE, cooccur_by = NULL) {
+  if (.thg_is_sequence_input(data, from, to, actor, group, time, start, end)) {
+    data <- .thg_sequence_memberships(data)
+    actor <- "state"
+    group <- "sequence"
+    time <- "position"
+  }
   if (!is.data.frame(data) || nrow(data) == 0L) {
     .thg_bad_input("`data` must be a non-empty data.frame")
   }
@@ -391,9 +417,17 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
       length(unique(x)) > 1L
     }, logical(1L)))
   }
-  if (!constant_within_edge("start")) .thg_bad_input("`start`/`time` must be constant within each hyperedge")
-  if (!is.null(end) && !constant_within_edge("end", allow_na = TRUE)) {
-    .thg_bad_input("`end` must be constant within each hyperedge")
+  # A hyperedge's time is the hull of its memberships. When every membership
+  # carries the hyperedge's time (a tribunal, a citation block) the hull is
+  # that time and nothing below changes. When memberships carry their own
+  # times (a session read as a sequence, a log with one row per attendance)
+  # the hyperedge spans its first to its last membership and each membership
+  # is present on its own spell only; a contact is present at its instant.
+  membership_times <- !constant_within_edge("start") ||
+    (!is.null(end) && !constant_within_edge("end", allow_na = TRUE))
+  if (membership_times && identical(format, "contact")) {
+    memberships$end <- memberships$start
+    format <- "interval"
   }
   attributes <- Filter(function(column) constant_within_edge(column, allow_na = TRUE),
                        candidates)
@@ -402,13 +436,21 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
   first <- match(edge_names, memberships$edge)
   edge_data <- memberships[first, c("edge", "start", "end", attributes), drop = FALSE]
   rownames(edge_data) <- NULL
+  if (membership_times) {
+    by_edge <- factor(memberships$edge, levels = edge_names)
+    edge_data$start <- as.numeric(tapply(memberships$start, by_edge, min))
+    edge_data$end <- as.numeric(tapply(memberships$end, by_edge, function(e) {
+      if (anyNA(e)) NA_real_ else max(e)
+    }))
+  }
   if (identical(format, "interval")) {
     bad_interval <- !is.na(edge_data$end) & edge_data$end < edge_data$start
     if (any(bad_interval)) .thg_bad_input("every interval must satisfy `end >= start`")
   }
   memberships <- memberships[, c("member", "edge", "start", "end", "weight"), drop = FALSE]
 
-  times <- sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)])))
+  times <- sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)],
+                         memberships$start, memberships$end[!is.na(memberships$end)])))
   span <- range(c(times, node_data$start[!is.na(node_data$start)]))
 
   x <- structure(
@@ -426,6 +468,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
       params = list(from = from, to = to, actor = actor, group = group,
                     time = clock, end = end, weight = weight,
                     attributes = attributes, sparse = sparse,
+                    membership_times = membership_times,
                     nodes_given = !is.null(nodes),
                     observation_explicit = !is.null(observation_start) ||
                       !is.null(observation_end))
@@ -441,6 +484,47 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     .thg_bad_input("`observation_end` is earlier than `observation_start`")
   }
   x
+}
+
+# A sequence table is states only: no relational column is named or detected,
+# no clock column is detected, and every column is categorical. Anything
+# else takes the relational route, where a table without ends still fails
+# with the message that names them.
+.thg_is_sequence_input <- function(data, from, to, actor, group, time, start, end) {
+  named <- !is.null(from) || !is.null(to) || !is.null(actor) || !is.null(group) ||
+    !is.null(time) || !is.null(start) || !is.null(end)
+  if (named) return(FALSE)
+  if (inherits(data, c("tna", "netobject", "cograph_network"))) return(TRUE)
+  if (is.matrix(data)) return(!is.numeric(data))
+  if (!is.data.frame(data)) return(is.list(data))
+  if (ncol(data) == 0L) return(FALSE)
+  categorical <- vapply(data, function(column) {
+    is.character(column) || is.factor(column) || all(is.na(column))
+  }, logical(1L))
+  if (!all(categorical)) return(FALSE)
+  detected <- function(role) !is.null(.thg_match_column(data, role))
+  relational <- (detected("from") && detected("to")) ||
+    (detected("actor") && detected("group"))
+  !relational && !detected("time") && !detected("start")
+}
+
+# One row per state occurrence: the session is the hyperedge, the state the
+# member, and the position 1..n its contact time. Sessions are named as
+# window_hypergraph() names them, so the two readings of one table agree.
+.thg_sequence_memberships <- function(data) {
+  if (inherits(data, c("tna", "netobject", "cograph_network"))) {
+    data <- .coerce_sequence_input(data)
+  }
+  trajectories <- .wh_parse_input(data, action = NULL, actor = NULL, time = NULL)
+  trajectories <- trajectories[lengths(trajectories) > 0L]
+  if (!length(trajectories)) .thg_bad_input("`data` holds no non-empty sequence")
+  n <- lengths(trajectories)
+  data.frame(
+    state = unlist(trajectories, use.names = FALSE),
+    sequence = rep(names(trajectories), n),
+    position = unlist(lapply(n, seq_len), use.names = FALSE),
+    stringsAsFactors = FALSE
+  )
 }
 
 # Which columns play which role, and therefore the input shape and the clock.
@@ -648,13 +732,36 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 # measures. A point (window 0) is closed: an interval ending exactly at `t`
 # is still active, a contact at `t` is present. A positive window covers
 # [t, t + window), closed on the right only for the whole-period window.
+# Which spells [start, end] (end NA = open) are in the window [t, t + window)
+# -- closed on the right for a point or a closed grid -- or, cumulatively,
+# have begun by its end.
+.thg_spells_in_window <- function(start, end, t, window, mode, closed = FALSE) {
+  upper <- t + window
+  begun <- if (window > 0 && !closed) start < upper else start <= upper
+  if (identical(mode, "cumulative")) return(begun)
+  begun & (is.na(end) | end >= t)
+}
+
 .thg_edges_in_window <- function(x, t, window, mode, closed = FALSE) {
   ed <- x$edge_data
-  upper <- t + window
-  begun <- if (window > 0 && !closed) ed$start < upper else ed$start <= upper
-  if (identical(mode, "cumulative")) return(begun)
-  if (identical(x$format, "contact")) return(begun & ed$start >= t)
-  begun & (is.na(ed$end) | ed$end >= t)
+  if (identical(x$format, "contact") && !identical(mode, "cumulative")) {
+    upper <- t + window
+    begun <- if (window > 0 && !closed) ed$start < upper else ed$start <= upper
+    return(begun & ed$start >= t)
+  }
+  .thg_spells_in_window(ed$start, ed$end, t, window, mode, closed)
+}
+
+# The memberships of the active hyperedges; when memberships carry their own
+# times, only those present in the window.
+.thg_memberships_in_window <- function(x, t, window, mode, closed = FALSE) {
+  keep <- .thg_edges_in_window(x, t, window, mode, closed)
+  mem <- x$memberships
+  present <- mem$edge %in% x$edge_data$edge[keep]
+  if (isTRUE(x$params$membership_times)) {
+    present <- present & .thg_spells_in_window(mem$start, mem$end, t, window, mode, closed)
+  }
+  present
 }
 
 # Node universe of a snapshot. Without a universe, the nodes are the members
@@ -671,9 +778,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 
 .thg_snapshot_at <- function(x, t, window, mode, multiedges, closed = FALSE) {
   ed <- x$edge_data
-  keep <- .thg_edges_in_window(x, t, window, mode, closed)
-  active_edges <- ed$edge[keep]
-  d <- x$memberships[x$memberships$edge %in% active_edges, , drop = FALSE]
+  d <- x$memberships[.thg_memberships_in_window(x, t, window, mode, closed), , drop = FALSE]
   sparse <- isTRUE(x$params$sparse)
   universe <- .thg_snapshot_nodes(x, t + window, d$member)
   if (nrow(d) == 0L) {
@@ -804,7 +909,10 @@ hypergraph_snapshots <- function(x, start = NULL, end = NULL, step = NULL,
 print.net_temporal_hypergraph <- function(x, ...) {
   cat(sprintf("Temporal hypergraph: %d nodes, %d hyperedges, %d event times\n",
               length(x$nodes), length(x$edges), length(x$times)))
-  cat(if (identical(x$format, "interval")) {
+  cat(if (isTRUE(x$params$membership_times)) {
+    paste0("Format: interval; memberships carry their own times ",
+           "(a hyperedge spans its first to its last membership)\n")
+  } else if (identical(x$format, "interval")) {
     "Format: interval (a hyperedge is active from its start to its end)\n"
   } else {
     paste0("Format: contact (a hyperedge is an instantaneous event; ",

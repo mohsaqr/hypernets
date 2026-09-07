@@ -1955,9 +1955,59 @@ combinations is unchanged. The conclusion — directive combinations
 anchored by Specify dominate, corrective actions form their own block —
 does not depend on the choice of three versus four.</p>
 </div>
+<div id="the-same-sessions-as-a-temporal-hypergraph" class="section level3">
+<h3>The same sessions as a temporal hypergraph</h3>
+<p><code>window_hypergraph()</code> answers which combinations recur,
+and forgets <em>when</em> in a session they occurred.
+<code>temporal_hypergraph()</code> keeps that: read the same log with
+the session as the hyperedge, the code as the member and the turn’s
+position as its time, and every session becomes one hyperedge whose
+members enter at their step. The clock is order. Here
+<code>order_in_session</code> counts every turn of the session, the
+partner’s included, so a human turn’s step is its place among all turns.
+A wide table of states, one row per session and one column per position,
+needs no column names at all.</p>
+<pre class="r"><code>sessions &lt;- temporal_hypergraph(human_long, actor = &quot;code&quot;,
+                                group = &quot;session_id&quot;,
+                                time = &quot;order_in_session&quot;)
+sessions</code></pre>
+<pre><code>Temporal hypergraph: 9 nodes, 429 hyperedges, 285 event times
+Format: interval; memberships carry their own times (a hyperedge spans its first to its last membership)
+Time: time (numeric steps); observed from 1 to 287</code></pre>
+<p>A snapshot with <code>window = 3</code> at step 5 is the
+co-occurrence hypergraph of steps 5 to 7: one hyperedge per session
+still running, over the codes of its human turns among those three
+turns. Most sessions show one or two codes there, because the partner
+holds some of the three turns; <code>window_hypergraph()</code> above
+windows over consecutive human turns instead, which is why its sets are
+larger.</p>
+<pre class="r"><code>steps_five_to_seven &lt;- hypergraph_snapshot(sessions, at = 5, window = 3)
+steps_five_to_seven</code></pre>
+<pre><code>Hypergraph: 9 nodes, 417 hyperedges
+Size distribution:
+  size_1   : 326
+  size_2   : 87
+  size_3   : 4
+Source: group membership (member = member, group = edge)</code></pre>
+<p><code>mode = &quot;cumulative&quot;</code> at a step is what each session had
+shown by then, and <code>hg_growth()</code> follows the memberships as
+they enter.</p>
+<pre class="r"><code>growth_sessions &lt;- hg_growth(sessions, mode = &quot;cumulative&quot;)
+head(growth_sessions, 5)</code></pre>
+<pre><code>  time n_nodes n_edges n_edges_distinct n_memberships
+1    1       6     429                6           429
+2    2       8     429               10           803
+3    3       8     429               14          1192
+4    4       9     429               25          1525
+5    5       9     429               32          1721</code></pre>
+</div>
 <div id="when-to-use-which" class="section level3">
 <h3>When to use which</h3>
 <ul>
+<li><strong><code>temporal_hypergraph()</code></strong> — sequences, and
+the question is about <em>when</em> combinations occur: what a session
+had shown by a step, or on a span of steps, with the session kept intact
+as one hyperedge.</li>
 <li><strong><code>window_hypergraph()</code></strong> — sequences, and
 the question is about combinations <em>local in time</em>.
 <code>step = 1</code> (sliding) weights every span;

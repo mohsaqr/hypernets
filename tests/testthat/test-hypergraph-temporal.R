@@ -79,18 +79,22 @@ test_that("snapshot duplicate handling records multiplicity", {
   expect_equal(simple$edge_multiplicity, 2L)
 })
 
-test_that("temporal constructors reject inconsistent or invalid spells", {
-  bad <- data.frame(member = c("a", "b"), event = "e1", time = c(1, 2))
-  expect_error(temporal_hypergraph(bad, actor = "member", group = "event",
-                                   time = "time"),
-               class = "honets_bad_input")
+test_that("temporal constructors reject invalid spells and read per-row times as membership times", {
+  # since 0.3.11 a time that varies within a hyperedge is a membership time:
+  # the hyperedge spans the hull and each membership is a contact
+  spread <- data.frame(member = c("a", "b"), event = "e1", time = c(1, 2))
+  th <- temporal_hypergraph(spread, actor = "member", group = "event", time = "time")
+  expect_true(th$params$membership_times)
+  expect_identical(th$edge_data$start, 1)
+  expect_identical(th$edge_data$end, 2)
+  expect_identical(th$memberships$end, c(1, 2))
+  detected <- temporal_hypergraph(spread, actor = "member", group = "event")
+  expect_identical(as.data.frame(detected), as.data.frame(th))
   interval <- data.frame(member = "a", event = "e1", start = 2, end = 1)
   expect_error(temporal_hypergraph(interval, actor = "member", group = "event",
                                    start = "start", end = "end"),
                class = "honets_bad_input")
-  expect_error(temporal_hypergraph(bad, actor = "member", group = "event"),
-               class = "honets_bad_input")
-  expect_error(temporal_hypergraph(bad, actor = "member", group = "event",
+  expect_error(temporal_hypergraph(spread, actor = "member", group = "event",
                                    time = "time", start = "time"),
                class = "honets_bad_input")
 })

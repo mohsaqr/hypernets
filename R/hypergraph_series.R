@@ -73,25 +73,37 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
                       character(1L))
   size <- lengths(members_by_edge)
   # Node entry: the node table's own start when given, else first membership.
-  first_membership <- tapply(ed$start[edge_index], mem$member, min)
+  first_membership <- tapply(mem$start, mem$member, min)
   node_start <- first_membership[x$nodes]
   if (!is.null(x$node_data) && any(!is.na(x$node_data$start))) {
     given <- !is.na(x$node_data$start)
     node_start[given] <- x$node_data$start[given]
   }
-  count <- function(keep) {
-    c(n_nodes = length(unique(mem$member[keep[edge_index]])),
-      n_edges = sum(keep),
-      n_edges_distinct = length(unique(signature[keep])),
-      n_memberships = sum(size[keep]))
+  membership_times <- isTRUE(x$params$membership_times)
+  # Counts at one time. With one time per hyperedge, the memberships present
+  # are those of the active hyperedges; with membership times, a hyperedge
+  # counts through the memberships present in the window.
+  count <- function(t, mode_here) {
+    if (!membership_times) {
+      keep <- .thg_edges_in_window(x, t, grid$window, mode_here, grid$closed)
+      return(c(n_nodes = length(unique(mem$member[keep[edge_index]])),
+               n_edges = sum(keep),
+               n_edges_distinct = length(unique(signature[keep])),
+               n_memberships = sum(size[keep])))
+    }
+    present <- .thg_memberships_in_window(x, t, grid$window, mode_here, grid$closed)
+    present_signature <- tapply(mem$member[present], edge_index[present], function(v) {
+      paste(sort(unique(v)), collapse = "\r")
+    })
+    c(n_nodes = length(unique(mem$member[present])),
+      n_edges = length(unique(edge_index[present])),
+      n_edges_distinct = length(unique(present_signature)),
+      n_memberships = sum(present))
   }
   window_end <- function(t) t + grid$window
 
   if (identical(mode, "cumulative")) {
-    start_first_signature <- tapply(ed$start, signature, min)
-    begun <- t(vapply(at, function(t) {
-      count(.thg_edges_in_window(x, t, grid$window, "cumulative", grid$closed))
-    }, numeric(4L)))
+    begun <- t(vapply(at, function(t) count(t, "cumulative"), numeric(4L)))
     counts <- data.frame(
       time = at,
       n_nodes = vapply(at, function(t) sum(node_start <= window_end(t), na.rm = TRUE),
@@ -101,12 +113,8 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
       n_memberships = begun[, "n_memberships"]
     )
   } else {
-    active <- t(vapply(at, function(t) {
-      count(.thg_edges_in_window(x, t, grid$window, "active", grid$closed))
-    }, numeric(4L)))
-    begun <- t(vapply(at, function(t) {
-      count(.thg_edges_in_window(x, t, grid$window, "cumulative", grid$closed))
-    }, numeric(4L)))
+    active <- t(vapply(at, function(t) count(t, "active"), numeric(4L)))
+    begun <- t(vapply(at, function(t) count(t, "cumulative"), numeric(4L)))
     counts <- data.frame(
       time = at,
       n_nodes = active[, "n_nodes"], n_edges = active[, "n_edges"],
