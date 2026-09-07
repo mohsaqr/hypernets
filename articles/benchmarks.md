@@ -292,14 +292,14 @@ the next section.
 unsupervised_effects <- read.csv("benchmark-umap-hdbscan-effects.csv")
 knitr::kable(
   subset(unsupervised_effects,
-         select = c(comparator, metric, honets_mean, baseline_mean,
+         select = c(comparator, metric, hypernets_mean, baseline_mean,
                     mean_difference, difference_ci_low,
                     difference_ci_high, paired_dz)),
   digits = 4
 )
 ```
 
-| comparator | metric | honets_mean | baseline_mean | mean_difference | difference_ci_low | difference_ci_high | paired_dz |
+| comparator | metric | hypernets_mean | baseline_mean | mean_difference | difference_ci_low | difference_ci_high | paired_dz |
 |:---|:---|---:|---:|---:|---:|---:|---:|
 | umap_hdbscan | ari | 0.4306 | 0.0366 | 0.3940 | 0.3855 | 0.4013 | 29.9417 |
 | umap_hdbscan | ami | 0.5416 | 0.3320 | 0.2096 | 0.2024 | 0.2157 | 18.2523 |
@@ -309,8 +309,8 @@ knitr::kable(
 | umap_kmeans_k8 | nmi | 0.5425 | 0.5644 | -0.0219 | -0.0341 | -0.0087 | -0.9825 |
 
 Default HDBSCAN over-splits R8 (142–170 clusters and 17.5–23.0%
-outliers), so honets leads all three external metrics. At matched
-cluster count, honets leads ARI by 0.0372 (95% paired bootstrap CI
+outliers), so hypernets leads all three external metrics. At matched
+cluster count, hypernets leads ARI by 0.0372 (95% paired bootstrap CI
 0.0270–0.0478), while the UMAP+k-means baseline leads AMI and NMI by
 about 0.0219. Both sides of the result are reported.
 
@@ -323,7 +323,7 @@ variants are scored: the package as shipped (HDBSCAN picks the topic
 count and leaves outliers as -1), the fitted model reduced with
 `reduce_topics()` to eight real topics, and that model with
 `reduce_outliers(strategy = "embeddings")` so every document is
-assigned. Two honets arms cluster with the same k = 8 through
+assigned. Two hypernets arms cluster with the same k = 8 through
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md) +
 k-means: the tf-idf document–word hypergraph and a kNN hypergraph
 (`text_hypergraph(construction = "knn")`) built on the identical MiniLM
@@ -339,13 +339,13 @@ knitr::kable(
 )
 ```
 
-| method              |    ari |    ami |    nmi | n_clusters | outlier_fraction |
-|:--------------------|-------:|-------:|-------:|-----------:|-----------------:|
-| bertopic_default    | 0.0478 | 0.3326 | 0.3490 |      130.7 |           0.3328 |
-| bertopic_k          | 0.2320 | 0.3578 | 0.3597 |        8.0 |           0.3328 |
-| bertopic_k_assigned | 0.4099 | 0.5328 | 0.5342 |        8.0 |           0.0000 |
-| honets_hypergraph   | 0.4306 | 0.5416 | 0.5425 |        8.0 |           0.0000 |
-| honets_knn_sbert    | 0.5124 | 0.6107 | 0.6115 |        8.0 |           0.0000 |
+| method               |    ari |    ami |    nmi | n_clusters | outlier_fraction |
+|:---------------------|-------:|-------:|-------:|-----------:|-----------------:|
+| bertopic_default     | 0.0478 | 0.3326 | 0.3490 |      130.7 |           0.3328 |
+| bertopic_k           | 0.2320 | 0.3578 | 0.3597 |        8.0 |           0.3328 |
+| bertopic_k_assigned  | 0.4099 | 0.5328 | 0.5342 |        8.0 |           0.0000 |
+| hypernets_hypergraph | 0.4306 | 0.5416 | 0.5425 |        8.0 |           0.0000 |
+| hypernets_knn_sbert  | 0.5124 | 0.6107 | 0.6115 |        8.0 |           0.0000 |
 
 Means over ten seeds {.table}
 
@@ -354,21 +354,21 @@ Means over ten seeds {.table}
 bertopic_effects <- read.csv("benchmark-bertopic-effects.csv")
 knitr::kable(
   subset(bertopic_effects, comparator == "bertopic_k_assigned",
-         select = c(reference, metric, honets_mean, baseline_mean,
+         select = c(reference, metric, hypernets_mean, baseline_mean,
                     mean_difference, difference_ci_low,
                     difference_ci_high)),
   digits = 4, caption = "Paired effects against the fully assigned eight-topic BERTopic"
 )
 ```
 
-|  | reference | metric | honets_mean | baseline_mean | mean_difference | difference_ci_low | difference_ci_high |
+|  | reference | metric | hypernets_mean | baseline_mean | mean_difference | difference_ci_low | difference_ci_high |
 |:---|:---|:---|---:|---:|---:|---:|---:|
-| 5 | honets_hypergraph | ari | 0.4306 | 0.4099 | 0.0207 | 0.0176 | 0.0230 |
-| 6 | honets_knn_sbert | ari | 0.5124 | 0.4099 | 0.1026 | 0.0992 | 0.1050 |
-| 11 | honets_hypergraph | ami | 0.5416 | 0.5328 | 0.0087 | 0.0011 | 0.0153 |
-| 12 | honets_knn_sbert | ami | 0.6107 | 0.5328 | 0.0778 | 0.0703 | 0.0845 |
-| 17 | honets_hypergraph | nmi | 0.5425 | 0.5342 | 0.0082 | 0.0001 | 0.0148 |
-| 18 | honets_knn_sbert | nmi | 0.6115 | 0.5342 | 0.0772 | 0.0694 | 0.0839 |
+| 5 | hypernets_hypergraph | ari | 0.4306 | 0.4099 | 0.0207 | 0.0176 | 0.0230 |
+| 6 | hypernets_knn_sbert | ari | 0.5124 | 0.4099 | 0.1026 | 0.0992 | 0.1050 |
+| 11 | hypernets_hypergraph | ami | 0.5416 | 0.5328 | 0.0087 | 0.0011 | 0.0153 |
+| 12 | hypernets_knn_sbert | ami | 0.6107 | 0.5328 | 0.0778 | 0.0703 | 0.0845 |
+| 17 | hypernets_hypergraph | nmi | 0.5425 | 0.5342 | 0.0082 | 0.0001 | 0.0148 |
+| 18 | hypernets_knn_sbert | nmi | 0.6115 | 0.5342 | 0.0772 | 0.0694 | 0.0839 |
 
 Paired effects against the fully assigned eight-topic BERTopic {.table}
 
@@ -378,7 +378,7 @@ every document assigned, the tf-idf hypergraph leads ARI by 0.0207 (95%
 paired bootstrap CI 0.0176–0.0230) and AMI/NMI by under 0.01 with
 intervals that narrowly exclude zero. On the same sentence embeddings,
 the kNN hypergraph leads ARI by 0.1026 (0.0992–0.1050) and AMI/NMI by
-about 0.077. The honets arms have essentially no seed variance (the
+about 0.077. The hypernets arms have essentially no seed variance (the
 spectral embedding is deterministic), so the intervals reflect
 BERTopic’s UMAP seed variance. Only cluster assignments are scored;
 BERTopic’s topic representations are not part of this comparison.

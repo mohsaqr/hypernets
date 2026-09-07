@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Benchmarks: R8, R52, MR, Ohsumed, 20NG • honets</title>
+<title>Benchmarks: R8, R52, MR, Ohsumed, 20NG • hypernets</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -18,9 +18,9 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">honets</a>
+    <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1036,7 +1036,7 @@ the actual BERTopic run follows in the next section.</p>
 <code class="sourceCode R"><span><span class="va">unsupervised_effects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"benchmark-umap-hdbscan-effects.csv"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">unsupervised_effects</span>,</span>
-<span>         select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">comparator</span>, <span class="va">metric</span>, <span class="va">honets_mean</span>, <span class="va">baseline_mean</span>,</span>
+<span>         select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">comparator</span>, <span class="va">metric</span>, <span class="va">hypernets_mean</span>, <span class="va">baseline_mean</span>,</span>
 <span>                    <span class="va">mean_difference</span>, <span class="va">difference_ci_low</span>,</span>
 <span>                    <span class="va">difference_ci_high</span>, <span class="va">paired_dz</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">4</span></span>
@@ -1045,17 +1045,17 @@ the actual BERTopic run follows in the next section.</p>
 <colgroup>
 <col width="13%">
 <col width="6%">
-<col width="10%">
+<col width="13%">
 <col width="12%">
 <col width="14%">
+<col width="15%">
 <col width="16%">
-<col width="17%">
-<col width="9%">
+<col width="8%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">comparator</th>
 <th align="left">metric</th>
-<th align="right">honets_mean</th>
+<th align="right">hypernets_mean</th>
 <th align="right">baseline_mean</th>
 <th align="right">mean_difference</th>
 <th align="right">difference_ci_low</th>
@@ -1126,8 +1126,8 @@ the actual BERTopic run follows in the next section.</p>
 </tbody>
 </table>
 <p>Default HDBSCAN over-splits R8 (142–170 clusters and 17.5–23.0%
-outliers), so honets leads all three external metrics. At matched
-cluster count, honets leads ARI by 0.0372 (95% paired bootstrap CI
+outliers), so hypernets leads all three external metrics. At matched
+cluster count, hypernets leads ARI by 0.0372 (95% paired bootstrap CI
 0.0270–0.0478), while the UMAP+k-means baseline leads AMI and NMI by
 about 0.0219. Both sides of the result are reported.</p>
 </div>
@@ -1142,7 +1142,7 @@ the package as shipped (HDBSCAN picks the topic count and leaves
 outliers as -1), the fitted model reduced with
 <code>reduce_topics()</code> to eight real topics, and that model with
 <code>reduce_outliers(strategy = "embeddings")</code> so every document
-is assigned. Two honets arms cluster with the same k = 8 through
+is assigned. Two hypernets arms cluster with the same k = 8 through
 <code><a href="../reference/hg_cluster.html">hg_cluster()</a></code> + k-means: the tf-idf document–word hypergraph
 and a kNN hypergraph
 (<code>text_hypergraph(construction = "knn")</code>) built on the
@@ -1158,7 +1158,7 @@ the embedding.</p>
 <table class="table">
 <caption>Means over ten seeds</caption>
 <colgroup>
-<col width="28%">
+<col width="30%">
 <col width="10%">
 <col width="10%">
 <col width="10%">
@@ -1199,7 +1199,7 @@ the embedding.</p>
 <td align="right">0.0000</td>
 </tr>
 <tr class="even">
-<td align="left">honets_hypergraph</td>
+<td align="left">hypernets_hypergraph</td>
 <td align="right">0.4306</td>
 <td align="right">0.5416</td>
 <td align="right">0.5425</td>
@@ -1207,7 +1207,7 @@ the embedding.</p>
 <td align="right">0.0000</td>
 </tr>
 <tr class="odd">
-<td align="left">honets_knn_sbert</td>
+<td align="left">hypernets_knn_sbert</td>
 <td align="right">0.5124</td>
 <td align="right">0.6107</td>
 <td align="right">0.6115</td>
@@ -1220,7 +1220,7 @@ the embedding.</p>
 <code class="sourceCode R"><span><span class="va">bertopic_effects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"benchmark-bertopic-effects.csv"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">bertopic_effects</span>, <span class="va">comparator</span> <span class="op">==</span> <span class="st">"bertopic_k_assigned"</span>,</span>
-<span>         select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">reference</span>, <span class="va">metric</span>, <span class="va">honets_mean</span>, <span class="va">baseline_mean</span>,</span>
+<span>         select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">reference</span>, <span class="va">metric</span>, <span class="va">hypernets_mean</span>, <span class="va">baseline_mean</span>,</span>
 <span>                    <span class="va">mean_difference</span>, <span class="va">difference_ci_low</span>,</span>
 <span>                    <span class="va">difference_ci_high</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Paired effects against the fully assigned eight-topic BERTopic"</span></span>
@@ -1230,19 +1230,19 @@ the embedding.</p>
 BERTopic</caption>
 <colgroup>
 <col width="2%">
-<col width="16%">
+<col width="18%">
 <col width="6%">
-<col width="11%">
 <col width="13%">
+<col width="12%">
 <col width="14%">
+<col width="15%">
 <col width="16%">
-<col width="17%">
 </colgroup>
 <thead><tr class="header">
 <th align="left"></th>
 <th align="left">reference</th>
 <th align="left">metric</th>
-<th align="right">honets_mean</th>
+<th align="right">hypernets_mean</th>
 <th align="right">baseline_mean</th>
 <th align="right">mean_difference</th>
 <th align="right">difference_ci_low</th>
@@ -1251,7 +1251,7 @@ BERTopic</caption>
 <tbody>
 <tr class="odd">
 <td align="left">5</td>
-<td align="left">honets_hypergraph</td>
+<td align="left">hypernets_hypergraph</td>
 <td align="left">ari</td>
 <td align="right">0.4306</td>
 <td align="right">0.4099</td>
@@ -1261,7 +1261,7 @@ BERTopic</caption>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="left">honets_knn_sbert</td>
+<td align="left">hypernets_knn_sbert</td>
 <td align="left">ari</td>
 <td align="right">0.5124</td>
 <td align="right">0.4099</td>
@@ -1271,7 +1271,7 @@ BERTopic</caption>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="left">honets_hypergraph</td>
+<td align="left">hypernets_hypergraph</td>
 <td align="left">ami</td>
 <td align="right">0.5416</td>
 <td align="right">0.5328</td>
@@ -1281,7 +1281,7 @@ BERTopic</caption>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="left">honets_knn_sbert</td>
+<td align="left">hypernets_knn_sbert</td>
 <td align="left">ami</td>
 <td align="right">0.6107</td>
 <td align="right">0.5328</td>
@@ -1291,7 +1291,7 @@ BERTopic</caption>
 </tr>
 <tr class="odd">
 <td align="left">17</td>
-<td align="left">honets_hypergraph</td>
+<td align="left">hypernets_hypergraph</td>
 <td align="left">nmi</td>
 <td align="right">0.5425</td>
 <td align="right">0.5342</td>
@@ -1301,7 +1301,7 @@ BERTopic</caption>
 </tr>
 <tr class="even">
 <td align="left">18</td>
-<td align="left">honets_knn_sbert</td>
+<td align="left">hypernets_knn_sbert</td>
 <td align="left">nmi</td>
 <td align="right">0.6115</td>
 <td align="right">0.5342</td>
@@ -1317,7 +1317,7 @@ every document assigned, the tf-idf hypergraph leads ARI by 0.0207 (95%
 paired bootstrap CI 0.0176–0.0230) and AMI/NMI by under 0.01 with
 intervals that narrowly exclude zero. On the same sentence embeddings,
 the kNN hypergraph leads ARI by 0.1026 (0.0992–0.1050) and AMI/NMI by
-about 0.077. The honets arms have essentially no seed variance (the
+about 0.077. The hypernets arms have essentially no seed variance (the
 spectral embedding is deterministic), so the intervals reflect
 BERTopic’s UMAP seed variance. Only cluster assignments are scored;
 BERTopic’s topic representations are not part of this comparison.</p>

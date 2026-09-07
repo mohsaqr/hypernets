@@ -8,8 +8,8 @@ Each step is a switch. The result has the same length (or the same rows)
 as the input; a text that falls below `min_content` becomes the empty
 string, which
 [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-then drops with a `honets_dropped_documents` warning, so nothing leaves
-the corpus silently.
+then drops with a `hypernets_dropped_documents` warning, so nothing
+leaves the corpus silently.
 
 ## Usage
 
@@ -104,8 +104,8 @@ clean_text(
 
 `x` with the text cleaned: a character vector of the same length (names
 kept), or the same data.frame with `column` replaced. `NA` and
-low-content texts become `""`. Raises `honets_bad_input` for a malformed
-`x`, `column` or switch.
+low-content texts become `""`. Raises `hypernets_bad_input` for a
+malformed `x`, `column` or switch.
 
 ## Examples
 

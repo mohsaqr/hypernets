@@ -1,6 +1,6 @@
 # Topic structure of the COVID-19 education literature as a document-word hypergraph
 
-The text hypergraph pipeline in honets represents a corpus as a
+The text hypergraph pipeline in hypernets represents a corpus as a
 document-word hypergraph and partitions it with a spectral method. This
 vignette applies the pipeline to the `covid` corpus of the sbert
 package, a Scopus export of 4,170 records on COVID-19 and education

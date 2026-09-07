@@ -32,7 +32,7 @@ hypergraph_growth(
   components = FALSE
 )
 
-# S3 method for class 'honets_series'
+# S3 method for class 'hypernets_series'
 plot(x, columns = NULL, facets = TRUE, ...)
 ```
 
@@ -40,7 +40,7 @@ plot(x, columns = NULL, facets = TRUE, ...)
 
 - x:
 
-  A `honets_series` table (for `plot`).
+  A `hypernets_series` table (for `plot`).
 
 - start, end:
 
@@ -92,7 +92,7 @@ plot(x, columns = NULL, facets = TRUE, ...)
 
 ## Value
 
-A base data.frame of class `honets_series`, one row per window, with
+A base data.frame of class `hypernets_series`, one row per window, with
 `time` (the window start on the hypergraph's clock), `n_nodes`,
 `n_edges`, `n_edges_distinct`, `n_memberships`, and for
 `mode = "active"` also `n_nodes_cumulative`, `n_edges_cumulative` and

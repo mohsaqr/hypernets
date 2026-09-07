@@ -10,7 +10,7 @@ and share as well.
 ``` r
 hg_topic_sizes(hg, clusters, weights = NULL)
 
-# S3 method for class 'honets_topic_sizes'
+# S3 method for class 'hypernets_topic_sizes'
 plot(x, ...)
 
 hypergraph_topic_sizes(hg, clusters, weights = NULL)
@@ -43,13 +43,13 @@ hypergraph_topic_sizes(hg, clusters, weights = NULL)
 
 ## Value
 
-A base `data.frame` of class `honets_topic_sizes`, one row per topic in
-natural order: `topic`, `n`, `share`, and with `weights` also
+A base `data.frame` of class `hypernets_topic_sizes`, one row per topic
+in natural order: `topic`, `n`, `share`, and with `weights` also
 `weighted_n` and `weighted_share`.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 shares as horizontal bars, weighted beside unweighted when both exist.
-Raises `honets_bad_input` for unknown node names or weights that do not
-name every clustered document.
+Raises `hypernets_bad_input` for unknown node names or weights that do
+not name every clustered document.
 
 ## Examples
 

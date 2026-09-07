@@ -58,5 +58,5 @@ hg_snapshot(
 
 ## Value
 
-A static `net_hypergraph` usable by every honets hypergraph verb; its
+A static `net_hypergraph` usable by every hypernets hypergraph verb; its
 `params` record `at`, `window`, `temporal_mode` and the clock.

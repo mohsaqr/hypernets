@@ -74,7 +74,7 @@ hon_centrality(
 - max_paths:
 
   Integer cap on the shortest paths enumerated for betweenness.
-  Exceeding it raises a `honets_too_many_paths` error rather than
+  Exceeding it raises a `hypernets_too_many_paths` error rather than
   silently truncating. Default `1e6`.
 
 - sort_by:

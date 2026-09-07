@@ -10,13 +10,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/mohsaqr/hypernets/blob/main/DESCRIPTION)
 
-Saqr M (2026). *honets: Higher-Order Network Analysis*. R package
-version 0.3.11, <https://github.com/mohsaqr/hypernets>.
+Saqr M (2026). *hypernets: Higher-Order Network Analysis*. R package
+version 0.4.0, <https://github.com/mohsaqr/hypernets>.
 
     @Manual{,
-      title = {honets: Higher-Order Network Analysis},
+      title = {hypernets: Higher-Order Network Analysis},
       author = {Mohammed Saqr},
       year = {2026},
-      note = {R package version 0.3.11},
+      note = {R package version 0.4.0},
       url = {https://github.com/mohsaqr/hypernets},
     }

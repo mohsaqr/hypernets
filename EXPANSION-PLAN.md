@@ -12,7 +12,7 @@ next day**. They are kept here with the evidence that overturned them,
 because the reasoning is the useful part.
 
 > ~~1. **hypernets is the fourth delegation sibling**, scaffolded now.~~
-> ~~2. **honets stays sequence/path only.** No hypergraph code here —
+> ~~2. **hypernets stays sequence/path only.** No hypergraph code here —
 > the two paradigms share no infrastructure (ordered k-grams vs
 > unordered multi-way co-membership).~~
 
@@ -30,25 +30,26 @@ because the reasoning is the useful part.
   `action`/`actor`/`time` sequence input as
   [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)**.
   It is a sequence verb that emits hyperedges, and it had no natural
-  home: it went into hypernets, but honets had an equal claim.
+  home: it went into hypernets, but hypernets had an equal claim.
 - Nestimate has **zero internal consumers** of its own 1,956-line
   simplicial /TDA family once `hypergraph.R` departs — while
-  `build_simplicial(type = "pathway")` dispatches on honets’ `net_hon`,
-  `net_hypa` and `net_mogen`. The TDA layer already read honets classes.
+  `build_simplicial(type = "pathway")` dispatches on hypernets’
+  `net_hon`, `net_hypa` and `net_mogen`. The TDA layer already read
+  hypernets classes.
 - The literature the plan itself cites (Battiston et al. 2020; Bianconi
   2021; Tian & Zafarani 2024) treats memory networks, simplicial
   complexes and hypergraphs as **one field**, called higher-order
   networks.
-- `honets` and `hypernets` are three characters apart, both ending in
+- `hypernets` and `hypernets` are three characters apart, both ending in
   `nets`, both higher-order packages by the same author. That is a
   usability defect independent of the architecture.
 
 The split had put a boundary through the middle of a field rather than
 between fields.
 
-**Decision now in force:** honets is *the* higher-order networks
+**Decision now in force:** hypernets is *the* higher-order networks
 package, covering all three structure families under one taxonomy (see
-[`?honets`](https://mohsaqr.github.io/hypernets/reference/honets-package.md)
+[`?hypernets`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md)
 and `CLAUDE.md`). hypernets 0.1.2 is folded in and retired — nothing was
 thrown away: its ten R files, tests, equivalence suite and both
 tutorials moved across, and 223 lines of duplication were **deleted**
@@ -61,10 +62,10 @@ rather than maintained. Nestimate imports one sibling instead of two.
 | Nestimate | estimation hub; re-exports delegated verbs | 0.9.0, untouched |
 | psychnets | cross-sectional psychometric networks | delegated |
 | idiographic | person-specific temporal models | delegated |
-| **honets** | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
-| ~~hypernets~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into honets** |
+| **hypernets** | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
+| ~~hypernets~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into hypernets** |
 
-## Track A — honets (higher-order / sequence paradigm)
+## Track A — hypernets (higher-order / sequence paradigm)
 
 New verbs stay in the existing one-file-per-method layout, each with
 shipped tests + an entry in `local_testing_and_equivalence/` where an
@@ -81,12 +82,12 @@ Suggested order: A1 first (pure house paradigm, no new theory, highest
 research value), then A2 (small, oracle exists), A3, A4.
 
 **CRAN sequencing:** hold the T1 CRAN submission until A1–A2 land, then
-submit as honets 0.2.0 — one submission instead of two.
+submit as hypernets 0.2.0 — one submission instead of two.
 
 ## Track B — hypergraph family (was: hypernets)
 
-All Track B work now lands in honets under the `hypergraph_*.R` files.
-The “hypernets” labels below are historical.
+All Track B work now lands in hypernets under the `hypergraph_*.R`
+files. The “hypernets” labels below are historical.
 
 | \# | Feature | Verb sketch | Oracle / validation | Reference |
 |----|----|----|----|----|
@@ -98,13 +99,13 @@ The “hypernets” labels below are historical.
 
 Small carried-over items:
 [`dual_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/dual_hypergraph.md)
-(honets, when a use-case appears), XGI second oracle for shipped
-centralities (honets equiv suite),
+(hypernets, when a use-case appears), XGI second oracle for shipped
+centralities (hypernets equiv suite),
 [`wasserstein_distance()`](https://mohsaqr.github.io/hypernets/reference/wasserstein_distance.md)
-(**done 2026-09-02** in honets’ simplicial family), random hypergraph
-samplers (**done 2026-09-02** with HyperG parity; honets owns simulation
-as part of its hypergraph family), per the simulation/computation
-split).
+(**done 2026-09-02** in hypernets’ simplicial family), random hypergraph
+samplers (**done 2026-09-02** with HyperG parity; hypernets owns
+simulation as part of its hypergraph family), per the
+simulation/computation split).
 
 Suggested order: B0 → B1 → B2 (all done) → B3 → B4.
 
@@ -121,33 +122,33 @@ identity-tested. Carried-over items from `Nestimate/TODO.md`:
 
 ## Delegation tiers
 
-1.  **T0 — DONE.** Memory family 2026-08-24 (honets 0.1.0); simplicial
-    and hypergraph families 2026-08-26 (honets 0.2.0, the latter via
-    hypernets 0.1.2). All three identity-tested against Nestimate 0.9.0.
-    Nestimate untouched.
-2.  **T1 — CRAN submission of honets 0.2.0.** `--as-cran` is already
+1.  **T0 — DONE.** Memory family 2026-08-24 (hypernets 0.1.0);
+    simplicial and hypergraph families 2026-08-26 (hypernets 0.2.0, the
+    latter via hypernets 0.1.2). All three identity-tested against
+    Nestimate 0.9.0. Nestimate untouched.
+2.  **T1 — CRAN submission of hypernets 0.2.0.** `--as-cran` is already
     clean (0 errors, 0 warnings). Remaining: `cran-comments.md`, a
     decision on whether the pre-existing `test-hypa.R` warnings are
     worth clearing first.
 3.  **T2 (Nestimate delegation release):** delete the memory, simplicial
     and hypergraph R files + moved helpers where unused elsewhere;
-    `Imports: honets`; thin forwarders (gimme pattern), mapping the
+    `Imports: hypernets`; thin forwarders (gimme pattern), mapping the
     renamed surface — `bipartite_groups()` →
-    [`honets::group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
+    [`hypernets::group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
     `build_hypergraph(method =)` → `type =`, and the `net_*` result
     classes; move equivalence suites; htna gate + `--as-cran`.
 
 ## Bookkeeping done / to do
 
-`Nestimate/HONETS-DELEGATION-PLAN.md` §6b — annotate: revisited
+`Nestimate/HYPERNETS-DELEGATION-PLAN.md` §6b — annotate: revisited
 2026-08-25 (hypernets scaffolded), **reversed 2026-08-26** (folded into
-honets); pointer here.
+hypernets); pointer here.
 
 `Nestimate/todo/COVERAGE-CATCHUP.md` + `../texthypergraph/TODO.md` —
-retarget the hypergraph and TDA items’ repo labels Nestimate → honets at
-T2 (not before; until T2 the shipping copies are Nestimate’s).
+retarget the hypergraph and TDA items’ repo labels Nestimate → hypernets
+at T2 (not before; until T2 the shipping copies are Nestimate’s).
 
-Add honets to the `saqr_AR` skill family list
+Add hypernets to the `saqr_AR` skill family list
 (`../Writing/saqr_Coding conventions.md`); remove hypernets.
 
-Archive the `hypernets` GitHub repo with a README pointing at honets.
+Archive the `hypernets` GitHub repo with a README pointing at hypernets.

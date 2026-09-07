@@ -94,8 +94,8 @@ temporal_hypergraph(
 
 - cooccur_by:
 
-  Deprecated name of `group`; using it warns with a `honets_deprecated`
-  condition.
+  Deprecated name of `group`; using it warns with a
+  `hypernets_deprecated` condition.
 
 ## Value
 

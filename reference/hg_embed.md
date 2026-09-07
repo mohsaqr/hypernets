@@ -1,6 +1,6 @@
 # Low-Dimensional Hypergraph Embedding
 
-Returns the node coordinates computed by honets' existing hypergraph
+Returns the node coordinates computed by hypernets' existing hypergraph
 spectral or symmetric-NMF engine without exposing the incidental k-means
 assignments produced by
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md).
@@ -37,7 +37,7 @@ hypergraph_embed(
 
 - hg:
 
-  Any honets `net_hypergraph`.
+  Any hypernets `net_hypergraph`.
 
 - dimensions:
 

@@ -49,8 +49,8 @@ L2-normalized embeddings, so normalized encoder output (the default of
 
 ## Conditions
 
-Raises `honets_bad_input` for broken contracts, and
-`honets_nonpositive_similarity` when `weight = "cosine"` selects a
+Raises `hypernets_bad_input` for broken contracts, and
+`hypernets_nonpositive_similarity` when `weight = "cosine"` selects a
 neighbor with similarity \<= 0 – a non-positive incidence weight would
 invalidate the random-walk machinery downstream; use `weight = "binary"`
 or a smaller `k` instead.

@@ -42,7 +42,7 @@ hypergraph_project(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any honets `net_hypergraph`.
+  or any hypernets `net_hypergraph`.
 
 - method:
 

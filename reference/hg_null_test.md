@@ -41,7 +41,7 @@ hypergraph_null_test(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any honets `net_hypergraph`.
+  or any hypernets `net_hypergraph`.
 
 - statistic:
 
@@ -96,8 +96,8 @@ value, not the p-value alone.
 
 ## Conditions
 
-Raises `honets_bad_input` for broken contracts.
-`method = "configuration"` signals a `honets_configuration_collapse`
+Raises `hypernets_bad_input` for broken contracts.
+`method = "configuration"` signals a `hypernets_configuration_collapse`
 warning when stub matching collapses more than 1% of memberships on
 average, which happens whenever hyperedges are large relative to the
 vertex set – the usual case in the document orientation.

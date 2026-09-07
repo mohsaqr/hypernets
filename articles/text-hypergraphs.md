@@ -12,7 +12,7 @@ labeled abstracts classify the rest?
 
 The methods are Zhou, Huang & Schölkopf’s (2006) hypergraph Laplacian
 and Hayashi et al.’s (2020) random-walk Laplacian with edge-dependent
-vertex weights, the spectral engines of honets’ hypergraph family
+vertex weights, the spectral engines of hypernets’ hypergraph family
 (HyperNetX-parity verified), applied to a text hypergraph built by
 [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md).
 

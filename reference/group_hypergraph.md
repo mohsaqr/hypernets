@@ -72,7 +72,7 @@ group_hypergraph(
 - member, cooccur_by:
 
   Deprecated names of `actor` and `group`; using them warns with a
-  `honets_deprecated` condition.
+  `hypernets_deprecated` condition.
 
 ## Value
 

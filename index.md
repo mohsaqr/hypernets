@@ -1,4 +1,4 @@
-# honets
+# hypernets
 
 Higher-order network analysis in R.
 
@@ -6,7 +6,7 @@ A network is *higher-order* when a relation reaches beyond a single pair
 of nodes at a single moment — either it binds **more than two nodes at
 once**, or it depends on **more than the current node**. The literature
 (Battiston et al. 2020; Bianconi 2021) organises that idea into three
-structure families. honets implements all three behind one taxonomy,
+structure families. hypernets implements all three behind one taxonomy,
 plus a text family that reads a corpus as a hypergraph.
 
 | Family | A relation is… | Built from |
@@ -139,7 +139,7 @@ coded sessions can be read all three ways:
 
 ``` r
 
-library(honets)
+library(hypernets)
 
 # memory network: what follows what, given how you got here
 hon <- build_hon(human_long, action = "code", actor = "session_id",
@@ -182,17 +182,13 @@ The package ships
 and
 [`vignette("text-constructions")`](https://mohsaqr.github.io/hypernets/articles/text-constructions.md),
 plus a benchmark article (`vignettes/articles/benchmarks.Rmd`,
-R8/R52/MR/Ohsumed/20NG). The other three families have one worked
-document each in `docs/` — a worked analysis on real data, not a syntax
-reference — and the Legal hypergraphs paper workflow is
-`docs/legal-hypergraphs.html`. Start with **`docs/index.html`** for the
-map, or **`docs/overview.html`** to see the same dataset read all three
-ways. Rebuild them with `Rscript docs/_knit_all.R`. Longer tutorials
-live in `Tutorial_docs/`.
+R8/R52/MR/Ohsumed/20NG). Family-level worked analyses, including the
+Legal hypergraphs paper workflow, are hand-knit reports kept outside the
+repository. Longer tutorials live in `Tutorial_docs/`.
 
 ## Provenance
 
-honets is the home package for higher-order structure in the
+hypernets is the home package for higher-order structure in the
 [Nestimate](https://github.com/mohsaqr/Nestimate) family, alongside
 [psychnets](https://github.com/mohsaqr/psychnets) (cross-sectional
 psychometric networks) and
@@ -202,10 +198,10 @@ temporal models).
 The code was moved verbatim from Nestimate 0.9.0 in two steps — the
 memory family in 0.1.0 (2026-08-24), the simplicial and hypergraph
 families in 0.2.0 (2026-08-26, the latter by way of the short-lived
-`hypernets` package, now folded in). The text family arrived in 0.3.0
-(2026-09-01) from the `texthypergraph` package, which is retired; its
-generic hypergraph methods (PageRank, projections, null models, sparse
-engines, neural tier) joined the hypergraph family, and the merge
+earlier `hypernets` scaffold, now folded in). The text family arrived in
+0.3.0 (2026-09-01) from the `texthypergraph` package, which is retired;
+its generic hypergraph methods (PageRank, projections, null models,
+sparse engines, neural tier) joined the hypergraph family, and the merge
 removed the Nestimate dependency. Cross-package identity is proven by
 exact [`identical()`](https://rdrr.io/r/base/identical.html) tests in
 `local_testing_and_equivalence/`, including the seeded permutation and
@@ -218,8 +214,8 @@ models, Wallenius / Monte-Carlo HYPA references, igraph, HyperNetX) live
 in `local_testing_and_equivalence/`, which is build-ignored and gated:
 
 ``` sh
-NOT_CRAN=true HONETS_EQUIV_TESTS=true Rscript -e \
-  'library(honets); testthat::test_dir("local_testing_and_equivalence")'
+NOT_CRAN=true HYPERNETS_EQUIV_TESTS=true Rscript -e \
+  'library(hypernets); testthat::test_dir("local_testing_and_equivalence")'
 ```
 
 ## Installation

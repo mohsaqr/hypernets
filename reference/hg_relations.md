@@ -58,7 +58,7 @@ For `what = "edges"`: a base `data.frame`, one row per pair of topics
 with a positive weight, columns `source`, `target`, `weight`, pairs in
 the topics' natural order. For `what = "network"`: a `cograph_network`
 with one node per topic (`label`, `name`, `size`) and one undirected
-weighted edge per pair. Raises `honets_bad_input` for unknown node
+weighted edge per pair. Raises `hypernets_bad_input` for unknown node
 names.
 
 ## Details

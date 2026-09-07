@@ -20,7 +20,7 @@ hg_measures(
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any honets `net_hypergraph`).
+  (or any hypernets `net_hypergraph`).
 
 - what:
 
@@ -30,7 +30,7 @@ hg_measures(
   `size`), `"overlap"` (one row per hyperedge pair with `overlap`,
   `overlap_coefficient`, `jaccard`), `"summary"` (one row per scalar
   measure), `"distribution"` (the empirical distribution of `measure`,
-  as a `honets_distribution` table whose
+  as a `hypernets_distribution` table whose
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
   CCDF), or `"components"` (one row per connected component through
   shared hyperedges, with its `n_nodes`, `n_edges`, `share` of nodes and

@@ -50,7 +50,7 @@ hg_hypergcn(
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any honets `net_hypergraph`), dense or sparse.
+  (or any hypernets `net_hypergraph`), dense or sparse.
 
 - labels:
 

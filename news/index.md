@@ -1,6 +1,23 @@
 # Changelog
 
-## honets 0.3.11
+## hypernets 0.4.0
+
+- The package is named **hypernets**, matching its repository and site.
+  Every `honets_*` condition class is now `hypernets_*`, the package
+  documentation is
+  [`?hypernets`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md),
+  and [`library(hypernets)`](https://github.com/mohsaqr/hypernets)
+  replaces [`library(honets)`](https://rdrr.io/r/base/library.html). No
+  function, argument or result changed.
+
+## hypernets 0.3.12
+
+- [`hg_subset()`](https://mohsaqr.github.io/hypernets/reference/hg_subset.md)
+  gains `size =`, keeping hyperedges by member count, so a window
+  snapshot can be cut to its three-code sets for
+  [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md).
+
+## hypernets 0.3.11
 
 - [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md)
   reads a sequence table – a wide data frame of states, a list of
@@ -16,46 +33,46 @@
   counts the memberships present. Constant-time data are unchanged:
   every legal-hypergraphs number is identical.
 
-## honets 0.3.10
+## hypernets 0.3.10
 
 - Two tests loaded `human_long` from the retired hypernets package
-  instead of honets’ own bundled copy (identical data), failing R CMD
+  instead of hypernets’ own bundled copy (identical data), failing R CMD
   check on any machine without that package.
 
-## honets 0.3.9
+## hypernets 0.3.9
 
 - The Legal hypergraphs workflow is a hand-knit document in `docs/`, not
   a vignette, so pkgdown no longer publishes it as an article. Its
   Figure 6d closeness now runs on the aggregate with duplicate tribunals
   collapsed, the paper’s representation, and every chunk does one step.
 
-## honets 0.3.8
+## hypernets 0.3.8
 
 - The pkgdown workflow installs igraph and gridExtra like the check
   workflow does, so the legal vignette’s hyperedge betweenness (cograph
   -\> igraph) renders on the site.
 
-## honets 0.3.7
+## hypernets 0.3.7
 
-- honets installs without torch again. Five `torch::nn_module()` classes
-  (HyperGAT layer and network, HGAT layer, AllSet DeepSets and PMA
-  blocks) were built at namespace load, so `R CMD INSTALL` failed
+- hypernets installs without torch again. Five `torch::nn_module()`
+  classes (HyperGAT layer and network, HGAT layer, AllSet DeepSets and
+  PMA blocks) were built at namespace load, so `R CMD INSTALL` failed
   wherever the Suggests package torch was absent. They are now built on
   demand, and a regression test forbids any top-level reference to a
   Suggests package.
 
-## honets 0.3.6
+## hypernets 0.3.6
 
 - pkgdown CI builds into `pkgdown/` (`dest_dir`), not `docs/`, which
   holds the hand-knit documents.
 
-## honets 0.3.5
+## hypernets 0.3.5
 
 - The GitHub repository is `mohsaqr/hypernets`; `DESCRIPTION`, the
   README install line and the pkgdown site URL now point there. The
   package name is unchanged.
 
-## honets 0.3.4
+## hypernets 0.3.4
 
 The temporal hypergraph speaks Dynet’s vocabulary (`../temporal`), so a
 relational log reads the same way in both packages.
@@ -66,11 +83,11 @@ relational log reads the same way in both packages.
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
   (Dynet’s co-presence format is `actor`/`group`). `cooccur_by` and
   `member` remain as deprecated aliases for one release and warn with a
-  `honets_deprecated` condition.
+  `hypernets_deprecated` condition.
 - **Column detection** uses Dynet’s alias table, case-insensitively:
   `Sender`/`Receiver`, `source`/`target`, `onset`/`terminus`,
   `timestamp` are understood without being named; an explicit name must
-  exist as written (`honets_missing_column`).
+  exist as written (`hypernets_missing_column`).
 - **Time parsing** follows Dynet: numeric times stay as they are (unit
   `"step"`); `Date`, `POSIXct` and character date-times become elapsed
   time since the earliest time in a unit chosen for the span (`"days"`
@@ -93,7 +110,7 @@ relational log reads the same way in both packages.
   `evolution` is replaced by `format` (`"interval"` or `"contact"`).
 - **`observation_start` / `observation_end`** with Dynet’s meaning: they
   bound the snapshot times and the measurement grid
-  (`honets_outside_observation`), an open-ended hyperedge is active
+  (`hypernets_outside_observation`), an open-ended hyperedge is active
   through the end of observation, and the stored memberships are never
   rewritten.
 - **The measurement grid**:
@@ -112,7 +129,7 @@ relational log reads the same way in both packages.
   sweep and the motif counts of the Legal Hypergraphs vignette are
   unchanged.
 
-## honets 0.3.3
+## hypernets 0.3.3
 
 Every line of code a user reads now follows the one-call-per-line rule:
 no verb nested inside another call, no
@@ -139,7 +156,7 @@ small additions made the tidy versions possible:
   row per node with `degree`, plus `block` for the stochastic block
   model generator; `sort_by = "degree"` and `top` apply.
 
-## honets 0.3.2
+## hypernets 0.3.2
 
 The Legal Hypergraphs workflow (Coupette, Hartung & Katz 2024) is now
 reproduced figure by figure on the authors’ released data, and the verbs
@@ -150,7 +167,7 @@ that were missing for it are in the hypergraph family.
   projection, every hyperedge as a smooth translucent blob around its
   members, drawn by
   [`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html);
-  honets maps `color_by` and `linetype_by` (`"size"`, a column of the
+  hypernets maps `color_by` and `linetype_by` (`"size"`, a column of the
   edge metadata, or a value per hyperedge) to blob colours and line
   types and adds the legend; `labels` renames nodes; a `layout` table
   can be reused across panels.
@@ -162,8 +179,9 @@ that were missing for it are in the hypergraph family.
   node, hyperedge, distinct-set and membership counts at every event
   time of a temporal hypergraph, with cumulative columns for interval
   data and `components = TRUE` for the number of components, the share
-  of the largest and its diameter; returns a `honets_series` table with
-  a [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method.
+  of the largest and its diameter; returns a `hypernets_series` table
+  with a [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
+  method.
 - **[`hg_representations()`](https://mohsaqr.github.io/hypernets/reference/hg_representations.md)**:
   the paper’s Table 2, the same data as binary graph, multi-graph,
   binary hypergraph and multi-hypergraph with edge counts and degree
@@ -196,7 +214,7 @@ that were missing for it are in the hypergraph family.
 - [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
   evaluates temporal hypergraphs snapshot by snapshot (`at`,
   `snapshot_mode`, `multiedges`), takes several `s` thresholds, and adds
-  `what = "summary"`; distribution tables are `honets_distribution`
+  `what = "summary"`; distribution tables are `hypernets_distribution`
   objects whose [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
   draws the CCDF, one curve per date or threshold.
 - [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md)
@@ -212,7 +230,7 @@ that were missing for it are in the hypergraph family.
   adds the statistics `repeated_edges` and `repeated_pairs` and the
   paper’s degree-ordered `method = "assignment"`.
 - [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
-  returns a `honets_motifs` table that keeps its null draws
+  returns a `hypernets_motifs` table that keeps its null draws
   (`as.data.frame(what = "draws")`) and plots the null distribution with
   the observed count; the motif census is vectorised (about seven times
   faster per null draw, identical counts).
@@ -229,7 +247,7 @@ that were missing for it are in the hypergraph family.
 - The `legal-hypergraphs` vignette is rewritten on those datasets:
   Tables 1 and 2, Figures 3 to 8 and the repeated-collaboration test.
 
-## honets 0.3.1
+## hypernets 0.3.1
 
 - **Topic summaries with plots**:
   [`hg_topic_sizes()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
@@ -287,7 +305,7 @@ that were missing for it are in the hypergraph family.
   `centrality =`) and `"attention"` (summed HyperGAT word attention).
   `hg_hypergat(what = "attention")` returns that per-document, per-word
   attention table. `type` takes several scores at once; the table (class
-  `honets_keywords`, new leading `type` column) has a
+  `hypernets_keywords`, new leading `type` column) has a
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method: one
   panel per topic and score, bars of the score per word
   (`value = "share"` to show shares). `sort_by = "share"` ranks a
@@ -304,7 +322,7 @@ that were missing for it are in the hypergraph family.
   [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
   on R8, on both the tf-idf hypergraph and a kNN hypergraph built from
   the same sentence embeddings; paired effects with bootstrap CIs are
-  reported in the benchmarks article. \# honets 0.3.0
+  reported in the benchmarks article. \# hypernets 0.3.0
 
 - **The complete Hayashi clustering family is implemented.**
   `hypergraph_cluster(algorithm = "symnmf")` adds Algorithm 2, RDC-Sym,
@@ -337,7 +355,7 @@ that were missing for it are in the hypergraph family.
   end-to-end torch tests.
 
 - **cograph is the shared graph and plotting engine.** It is promoted
-  from Suggests to Imports: honets owns hypergraph construction,
+  from Suggests to Imports: hypernets owns hypergraph construction,
   incidence algebra and hypergraph-specific transformations, then uses
   cograph for ordinary graph algorithms and rendering. Dynet remains a
   separate peer and is not a dependency.
@@ -378,13 +396,13 @@ that were missing for it are in the hypergraph family.
   normalized hyperedge centrality follows the exact NetworkX/HypergraphX
   convention on disconnected line graphs.
 
-### The text family: texthypergraph folds into honets
+### The text family: texthypergraph folds into hypernets
 
 The `texthypergraph` package is retired and its whole surface now lives
 here, with its history of tests intact (491 shipped expectations came
-across; the merged suite passes in full). honets gains a fourth family,
-**text hypergraphs**, and the hypergraph family gains every generic
-method that texthypergraph had built under its frozen-Nestimate
+across; the merged suite passes in full). hypernets gains a fourth
+family, **text hypergraphs**, and the hypergraph family gains every
+generic method that texthypergraph had built under its frozen-Nestimate
 contract.
 
 - **New family — text hypergraphs.**
@@ -440,9 +458,9 @@ contract.
   name (tested). The package now imports only cograph, ggplot2,
   graphics, grid, Matrix, methods, parallel, RSpectra, stats and utils.
 - **Collisions resolved without a value change.** texthypergraph carried
-  a verbatim copy of the spectral trio; honets’ copies were kept (they
-  carry the plot methods, `top =`, and scalar `edge_weights`), and only
-  the normalization argument was ported.
+  a verbatim copy of the spectral trio; hypernets’ copies were kept
+  (they carry the plot methods, `top =`, and scalar `edge_weights`), and
+  only the normalization argument was ported.
   [`hg_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md)
   agrees with `hypergraph_centrality(type = "pagerank")` to `1e-10`
   (tested); `hg_project(method = "clique")` equals
@@ -450,13 +468,13 @@ contract.
   (tested); `text_hypergraph(construction = "window")` and
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
   produce the same incidence matrix on their shared domain (tested).
-- **Condition classes** of the incoming code are `honets_*`
-  (`honets_bad_input`, `honets_no_converge`,
-  `honets_hypergraph_disconnected`, `honets_empty_corpus`,
-  `honets_dropped_documents`, `honets_missing_embeddings`,
-  `honets_missing_torch`, `honets_nonpositive_similarity`,
-  `honets_sparse_unsupported`, `honets_sparse_too_large`,
-  `honets_configuration_collapse`).
+- **Condition classes** of the incoming code are `hypernets_*`
+  (`hypernets_bad_input`, `hypernets_no_converge`,
+  `hypernets_hypergraph_disconnected`, `hypernets_empty_corpus`,
+  `hypernets_dropped_documents`, `hypernets_missing_embeddings`,
+  `hypernets_missing_torch`, `hypernets_nonpositive_similarity`,
+  `hypernets_sparse_unsupported`, `hypernets_sparse_too_large`,
+  `hypernets_configuration_collapse`).
 - **Infrastructure.** GitHub Actions (`R-CMD-check`, `pkgdown`), a
   pkgdown reference index covering every topic,
   `VignetteBuilder: knitr`, the benchmark harness under `benchmarks/`
@@ -464,7 +482,7 @@ contract.
   HyperG, DHG, the official HyperGAT code) under
   `local_testing_and_equivalence/`.
 
-## honets 0.2.1
+## hypernets 0.2.1
 
 ### Every accessor takes `top =`
 
@@ -519,7 +537,7 @@ silent truncation to 2, matching how `k` already behaved.
 Each section is one verb, worked end to end on the same data; the
 per-verb sources are archived under `docs/_sections/`.
 
-They gain **37 figures**, drawn with cograph. honets results are
+They gain **37 figures**, drawn with cograph. hypernets results are
 dual-classed `cograph_network`, so
 [`cograph::splot()`](https://sonsoles.me/cograph/reference/splot.html)
 and
@@ -532,9 +550,9 @@ The prose was also rewritten to remove 37
 [`subset()`](https://rdrr.io/r/base/subset.html) calls that subset a
 returned table on the public surface - the idiom `top =` now replaces.
 
-## honets 0.2.0
+## hypernets 0.2.0
 
-honets becomes **the** higher-order networks package: one package
+hypernets becomes **the** higher-order networks package: one package
 covering all three structure families of the higher-order literature
 (Battiston et al. 2020) — memory networks, simplicial complexes, and
 hypergraphs — under a single taxonomy.
@@ -554,8 +572,8 @@ hypergraphs — under a single taxonomy.
   [`q_analysis()`](https://mohsaqr.github.io/hypernets/reference/q_analysis.md),
   [`verify_simplicial()`](https://mohsaqr.github.io/hypernets/reference/verify_simplicial.md).
 - **Hypergraphs**, moved verbatim from Nestimate 0.9.0 by way of the
-  short-lived `hypernets` package (0.1.2, never released), which is
-  folded in and retired:
+  short-lived earlier `hypernets` scaffold (0.1.2, never released),
+  which is folded in and retired:
   [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md),
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md),
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
@@ -569,8 +587,9 @@ hypergraphs — under a single taxonomy.
   323-line `utils.R` – 171 of them the clique-enumeration closure copied
   out of Nestimate’s `simplicial.R`, the rest a
   [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
-  shim and a second copy of honets’ own `.extract_edges_from_matrix()`.
-  hypernets had to carry that closure because
+  shim and a second copy of hypernets’ own
+  `.extract_edges_from_matrix()`. hypernets had to carry that closure
+  because
   [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
   needs clique enumeration; with both families in one package,
   [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
@@ -606,10 +625,10 @@ Constructors and arguments:
 | `build_hypergraph(method =)` | `build_hypergraph(type =)` | same construction axis as `build_simplicial(type =)` |
 | `params$method` | `params$type`, plus `params$source` | every hypergraph constructor now records `source`, so a result says how it was built |
 
-Classed conditions are now uniformly `honets_*`: `hypernets_no_converge`
-and `nestimate_hypergraph_disconnected` became `honets_no_converge`
-(shared with the memory family’s power iteration) and
-`honets_hypergraph_disconnected`.
+Classed conditions are now uniformly `hypernets_*`:
+`hypernets_no_converge` and `nestimate_hypergraph_disconnected` became
+`hypernets_no_converge` (shared with the memory family’s power
+iteration) and `hypernets_hypergraph_disconnected`.
 
 ### Taxonomy: complete tidy-accessor coverage
 
@@ -657,11 +676,11 @@ without an accessor fails the suite.
   a matrix). Duplicate `(member, group)` cells are summed before
   assignment, which index assignment alone would not do.
 - Package-level documentation
-  ([`?honets`](https://mohsaqr.github.io/hypernets/reference/honets-package.md))
+  ([`?hypernets`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md))
   now states the three-family taxonomy, the verb grammar, and how the
   families cross into one another.
 
-## honets 0.1.5
+## hypernets 0.1.5
 
 - New verb
   [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
@@ -689,7 +708,7 @@ without an accessor fails the suite.
   which contexts carry the flow, and when betweenness and closeness are
   saturated.
 
-## honets 0.1.4
+## hypernets 0.1.4
 
 - New inference verbs for higher-order rules (roadmap item A1):
   [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
@@ -713,24 +732,25 @@ without an accessor fails the suite.
   (`.hon_extract_rules_count()`); behavior unchanged (full equivalence
   suite re-verified).
 
-## honets 0.1.3
+## hypernets 0.1.3
 
 - Roadmap: hypernets B2 (EDVW hypergraph PageRank) marked done in
   `EXPANSION-PLAN.md`. No package code changed.
 
-## honets 0.1.2
+## hypernets 0.1.2
 
 - Roadmap: hypernets B1 (windowed sequence hyperedges) marked done in
   `EXPANSION-PLAN.md` with the shipped design recorded. No package code
   changed.
 
-## honets 0.1.1
+## hypernets 0.1.1
 
 - Added the consolidated family expansion roadmap (`EXPANSION-PLAN.md`,
-  build-ignored): honets higher-order features A1–A4 and the hypernets
-  hypergraph sibling (scaffolded 2026-08-25). No package code changed.
+  build-ignored): hypernets higher-order features A1–A4 and the
+  hypernets hypergraph sibling (scaffolded 2026-08-25). No package code
+  changed.
 
-## honets 0.1.0
+## hypernets 0.1.0
 
 - Initial release. Code moved from Nestimate 0.9.0 (delegation T0):
   [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),

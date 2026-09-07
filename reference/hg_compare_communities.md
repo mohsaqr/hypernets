@@ -13,10 +13,10 @@ balance between the two largest clusters).
 ``` r
 hg_compare_communities(..., hg = NULL, edge_source = NULL)
 
-# S3 method for class 'honets_community_comparison'
+# S3 method for class 'hypernets_community_comparison'
 print(x, ...)
 
-# S3 method for class 'honets_community_comparison'
+# S3 method for class 'hypernets_community_comparison'
 as.data.frame(
   x,
   row.names = NULL,
@@ -25,10 +25,10 @@ as.data.frame(
   ...
 )
 
-# S3 method for class 'honets_community_comparison'
+# S3 method for class 'hypernets_community_comparison'
 summary(object, ...)
 
-# S3 method for class 'honets_community_comparison'
+# S3 method for class 'hypernets_community_comparison'
 plot(x, what = c("sizes", "similarity"), ...)
 ```
 
@@ -54,7 +54,7 @@ plot(x, what = c("sizes", "similarity"), ...)
 
 - x:
 
-  A `honets_community_comparison` object.
+  A `hypernets_community_comparison` object.
 
 - row.names, optional:
 
@@ -69,11 +69,11 @@ plot(x, what = c("sizes", "similarity"), ...)
 
 - object:
 
-  A `honets_community_comparison` object.
+  A `hypernets_community_comparison` object.
 
 ## Value
 
-A `honets_community_comparison` object.
+A `hypernets_community_comparison` object.
 [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) returns
 its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
 `n_communities`, `n_singletons`, `n_nontrivial`, `largest`, `second` and

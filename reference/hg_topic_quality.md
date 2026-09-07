@@ -17,7 +17,7 @@ the vocabulary a reader is shown.
 ``` r
 hg_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
 
-# S3 method for class 'honets_topic_quality'
+# S3 method for class 'hypernets_topic_quality'
 plot(x, ...)
 
 hypergraph_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
@@ -56,12 +56,12 @@ hypergraph_topic_quality(hg, clusters, n = 10L, min_docs = 1L)
 
 ## Value
 
-A base `data.frame` of class `honets_topic_quality`, one row per topic
-in natural order: `topic`, `size`, `n_words` (top words scored),
+A base `data.frame` of class `hypernets_topic_quality`, one row per
+topic in natural order: `topic`, `size`, `n_words` (top words scored),
 `coherence`, `exclusivity`.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws
 exclusivity against coherence with one labelled point per topic. Raises
-`honets_bad_input` for unknown node names.
+`hypernets_bad_input` for unknown node names.
 
 ## References
 

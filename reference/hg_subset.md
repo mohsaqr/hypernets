@@ -12,13 +12,21 @@ on a citation-block hypergraph is the hypergraph of one citing decision
 ## Usage
 
 ``` r
-hg_subset(hg, edges = NULL, nodes = NULL, where = NULL, drop_isolated = TRUE)
+hg_subset(
+  hg,
+  edges = NULL,
+  nodes = NULL,
+  where = NULL,
+  size = NULL,
+  drop_isolated = TRUE
+)
 
 hypergraph_subset(
   hg,
   edges = NULL,
   nodes = NULL,
   where = NULL,
+  size = NULL,
   drop_isolated = TRUE
 )
 ```
@@ -54,6 +62,14 @@ hypergraph_subset(
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md)
   keeps because they are constant within a hyperedge), each holding the
   value or values to keep.
+
+- size:
+
+  Hyperedge sizes to keep, as a vector of member counts (distinct
+  members): `size = 3` keeps the hyperedges with exactly three members,
+  the 3-uniform hypergraph that
+  [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+  needs.
 
 - drop_isolated:
 

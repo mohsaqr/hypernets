@@ -121,7 +121,7 @@ text_hypergraph(
 
 An object of class `c("text_hypergraph", "net_hypergraph")` – a
 [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
-hypergraph accepted by every honets hypergraph verb and by
+hypergraph accepted by every hypernets hypergraph verb and by
 [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md),
 [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md),
@@ -189,12 +189,12 @@ closes the gap it leaves in the sequence.
 
 ## Conditions
 
-Raises `honets_bad_input` (broken argument contract, including bag-only
-arguments passed to other constructions), `honets_empty_corpus` (no
-document survives tokenization and filtering),
-`honets_missing_embeddings` (`construction = "knn"` with neither
-`embeddings` nor the sbert package), and warns with
-`honets_dropped_documents` when some documents end up empty.
+Raises `hypernets_bad_input` (broken argument contract, including
+bag-only arguments passed to other constructions),
+`hypernets_empty_corpus` (no document survives tokenization and
+filtering), `hypernets_missing_embeddings` (`construction = "knn"` with
+neither `embeddings` nor the sbert package), and warns with
+`hypernets_dropped_documents` when some documents end up empty.
 
 ## References
 

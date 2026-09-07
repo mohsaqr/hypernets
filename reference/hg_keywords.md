@@ -24,10 +24,10 @@ hg_keywords(
   collapse = FALSE
 )
 
-# S3 method for class 'honets_keywords'
+# S3 method for class 'hypernets_keywords'
 print(x, ...)
 
-# S3 method for class 'honets_keywords'
+# S3 method for class 'hypernets_keywords'
 plot(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
 
 hypergraph_keywords(
@@ -129,7 +129,7 @@ hypergraph_keywords(
 
 ## Value
 
-A base `data.frame` of class `honets_keywords`, one row per
+A base `data.frame` of class `hypernets_keywords`, one row per
 type-cluster-keyword triple, columns `type`, `cluster`, `size` (the
 cluster's documents), `rank`, `word`, `score` (the selected score),
 `share` (`score` divided by the word's summed score over all clusters)
@@ -139,14 +139,14 @@ at least `min_docs` documents appear. With `collapse = TRUE`: one row
 per type and cluster, columns `type`, `cluster`, `size` and `words`. The
 print method shows the collapsed view, truncated to the console width;
 [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) is the
-long form. Raises `honets_bad_input` for unknown node names, a `type`
+long form. Raises `hypernets_bad_input` for unknown node names, a `type`
 that needs the token layer on a hypergraph without one, or a malformed
 `scores` table.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) returns a
 ggplot: one panel per cluster (rows) and score type (columns), each with
 its own word axis, horizontal bars of `value` per word, Okabe-Ito fill
-by type. It needs the long form and raises `honets_bad_input` on a
+by type. It needs the long form and raises `hypernets_bad_input` on a
 collapsed table.
 
 ## Details
@@ -172,7 +172,7 @@ collapsed table.
 
 `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer
 of a bag-of-words document hypergraph (`construction = "bag"`,
-`nodes = "doc"`); other hypergraphs raise `honets_bad_input`.
+`nodes = "doc"`); other hypergraphs raise `hypernets_bad_input`.
 
 **Sentence scope.** When `hg` is a
 `text_hypergraph(construction = "sentence")` of the documents,

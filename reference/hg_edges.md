@@ -49,7 +49,7 @@ hypergraph_edges(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  any honets `net_hypergraph`, or a
+  any hypernets `net_hypergraph`, or a
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md).
 
 - what:
@@ -93,15 +93,15 @@ columns `edge` (name), `size` (integer, vertices it contains), `weight`
 (numeric, its incidence weights summed), `n_incident_edges` (integer,
 other hyperedges sharing at least `s` vertices) and `n_neighbors`
 (integer, vertices adjacent to a member without being one). With
-`what = "distribution"`, a `honets_distribution` table with one row per
-distinct observed value of `measure`, ascending, with columns `value`,
-`n`, `proportion` and `ccdf` — the complementary cumulative distribution
-\\P(X \ge value)\\, so the first row's `ccdf` is always 1; its
-[`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the CCDF.
-With `what = "summary"`, one row with `n_edges`, `mean`, `sd`, `min`,
-`q25`, `median`, `q75` and `max`. Several `s` values add an `s` column;
-temporal input adds a leading `time` column, and the summary is then a
-`honets_series` whose
+`what = "distribution"`, a `hypernets_distribution` table with one row
+per distinct observed value of `measure`, ascending, with columns
+`value`, `n`, `proportion` and `ccdf` — the complementary cumulative
+distribution \\P(X \ge value)\\, so the first row's `ccdf` is always 1;
+its [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
+CCDF. With `what = "summary"`, one row with `n_edges`, `mean`, `sd`,
+`min`, `q25`, `median`, `q75` and `max`. Several `s` values add an `s`
+column; temporal input adds a leading `time` column, and the summary is
+then a `hypernets_series` whose
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws each
 statistic against time.
 

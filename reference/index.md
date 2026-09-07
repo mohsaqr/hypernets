@@ -2,9 +2,9 @@
 
 ## Package
 
-- [`honets`](https://mohsaqr.github.io/hypernets/reference/honets-package.md)
-  [`honets-package`](https://mohsaqr.github.io/hypernets/reference/honets-package.md)
-  : honets: Higher-Order Network Analysis
+- [`hypernets`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md)
+  [`hypernets-package`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md)
+  : hypernets: Higher-Order Network Analysis
 
 ## Memory networks
 
@@ -119,15 +119,15 @@ An arbitrary set of nodes bound as a unit.
   : s-betweenness and s-closeness centrality of hyperedges
 - [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   [`hypergraph_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
-  [`plot(`*`<honets_series>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
+  [`plot(`*`<hypernets_series>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   : Growth of a temporal hypergraph over time
 - [`hg_representations()`](https://mohsaqr.github.io/hypernets/reference/hg_representations.md)
   [`hypergraph_representations()`](https://mohsaqr.github.io/hypernets/reference/hg_representations.md)
   : Graph and hypergraph representations of the same data
 - [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
   [`hypergraph_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
-  [`as.data.frame(`*`<honets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
-  [`plot(`*`<honets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+  [`as.data.frame(`*`<hypernets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+  [`plot(`*`<hypernets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
   : Y, T and O motif census with a hypergraph configuration null
 
 ### Spectral methods
@@ -167,10 +167,10 @@ An arbitrary set of nodes bound as a unit.
   [`hypergraph_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md)
   : Quality of a projected-hypergraph partition
 - [`hg_compare_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`print(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`as.data.frame(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`summary(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`plot(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`print(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`as.data.frame(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`summary(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`plot(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
   : Compare community structure across representations
 
 ### Null models and neural networks
@@ -216,23 +216,23 @@ verbs.
 - [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
   : Spectral clustering of a hypergraph, as a tidy table
 - [`hg_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
-  [`print(`*`<honets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
-  [`plot(`*`<honets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+  [`print(`*`<hypernets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+  [`plot(`*`<hypernets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   [`hypergraph_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   : Characteristic words (keywords) per cluster
 - [`hg_relations()`](https://mohsaqr.github.io/hypernets/reference/hg_relations.md)
   [`hypergraph_relations()`](https://mohsaqr.github.io/hypernets/reference/hg_relations.md)
   : Relations between topics: a weighted network of shared vocabulary
 - [`hg_topic_sizes()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
-  [`plot(`*`<honets_topic_sizes>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
+  [`plot(`*`<hypernets_topic_sizes>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
   [`hypergraph_topic_sizes()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
   : Topic sizes
 - [`hg_topic_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
-  [`plot(`*`<honets_topic_quality>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
+  [`plot(`*`<hypernets_topic_quality>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
   [`hypergraph_topic_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
   : Topic coherence and exclusivity
 - [`hg_membership()`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
-  [`plot(`*`<honets_membership>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
+  [`plot(`*`<hypernets_membership>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
   [`hypergraph_membership()`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
   : Soft topic membership from the spectral embedding
 - [`hg_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_stability.md)
@@ -263,15 +263,15 @@ verbs.
   : Stable Infomap communities of a hypergraph projection
 
 - [`hg_compare_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`print(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`as.data.frame(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`summary(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
-  [`plot(`*`<honets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`print(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`as.data.frame(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`summary(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+  [`plot(`*`<hypernets_community_comparison>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
   : Compare community structure across representations
 
 - [`hg_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
-  [`print(`*`<honets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
-  [`plot(`*`<honets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+  [`print(`*`<hypernets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+  [`plot(`*`<hypernets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   [`hypergraph_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   : Characteristic words (keywords) per cluster
 
@@ -370,27 +370,27 @@ verbs.
 
 - [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   [`hypergraph_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
-  [`plot(`*`<honets_series>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
+  [`plot(`*`<hypernets_series>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   : Growth of a temporal hypergraph over time
 
 - [`hg_membership()`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
-  [`plot(`*`<honets_membership>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
+  [`plot(`*`<hypernets_membership>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
   [`hypergraph_membership()`](https://mohsaqr.github.io/hypernets/reference/hg_membership.md)
   : Soft topic membership from the spectral embedding
 
 - [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
   [`hypergraph_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
-  [`as.data.frame(`*`<honets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
-  [`plot(`*`<honets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+  [`as.data.frame(`*`<hypernets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+  [`plot(`*`<hypernets_motifs>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
   : Y, T and O motif census with a hypergraph configuration null
 
 - [`hg_topic_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
-  [`plot(`*`<honets_topic_quality>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
+  [`plot(`*`<hypernets_topic_quality>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
   [`hypergraph_topic_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
   : Topic coherence and exclusivity
 
 - [`hg_topic_sizes()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
-  [`plot(`*`<honets_topic_sizes>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
+  [`plot(`*`<hypernets_topic_sizes>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
   [`hypergraph_topic_sizes()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.md)
   : Topic sizes
 

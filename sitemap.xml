@@ -83,7 +83,6 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hon_centrality.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypernets/reference/honets-package.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_allset.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.html</loc></url>
@@ -95,6 +94,7 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/hypernets-package.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/icsid_tribunals.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/index.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.html</loc></url>
@@ -106,7 +106,7 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/pathways.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/persistence_landscape.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/persistent_homology.html</loc></url>
-<url><loc>https://mohsaqr.github.io/hypernets/reference/plot.honets_distribution.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/plot.hypernets_distribution.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_hon_boot.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_hon_compare.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_honem.html</loc></url>

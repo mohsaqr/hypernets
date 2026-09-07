@@ -40,7 +40,7 @@ hypergraph_motifs(
   multiedges = TRUE
 )
 
-# S3 method for class 'honets_motifs'
+# S3 method for class 'hypernets_motifs'
 as.data.frame(
   x,
   row.names = NULL,
@@ -49,7 +49,7 @@ as.data.frame(
   ...
 )
 
-# S3 method for class 'honets_motifs'
+# S3 method for class 'hypernets_motifs'
 plot(x, motif = c("Y", "T", "O"), ...)
 ```
 
@@ -93,7 +93,7 @@ plot(x, motif = c("Y", "T", "O"), ...)
 
 - x:
 
-  A `honets_motifs` test table.
+  A `hypernets_motifs` test table.
 
 - row.names, optional:
 

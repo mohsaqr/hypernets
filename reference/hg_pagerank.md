@@ -43,7 +43,7 @@ hypergraph_pagerank(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any honets `net_hypergraph` (connected when `damping = 1`).
+  or any hypernets `net_hypergraph` (connected when `damping = 1`).
 
 - damping:
 
@@ -102,8 +102,8 @@ and with uniform teleportation it equals
 
 ## Conditions
 
-Raises `honets_bad_input` for broken contracts and warns with
-`honets_no_converge` (returning the last iterate) when `max_iter` is
+Raises `hypernets_bad_input` for broken contracts and warns with
+`hypernets_no_converge` (returning the last iterate) when `max_iter` is
 reached before `tol`.
 
 ## References

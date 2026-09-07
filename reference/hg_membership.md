@@ -26,7 +26,7 @@ hg_membership(
   edge_weights = NULL
 )
 
-# S3 method for class 'honets_membership'
+# S3 method for class 'hypernets_membership'
 plot(x, ...)
 
 hypergraph_membership(
@@ -66,13 +66,13 @@ hypergraph_membership(
 
 ## Value
 
-A base `data.frame` of class `honets_membership`, one row per document
-and topic: `node`, `cluster` (the hard label), `topic`, `membership`
-(rows of one document sum to one).
+A base `data.frame` of class `hypernets_membership`, one row per
+document and topic: `node`, `cluster` (the hard label), `topic`,
+`membership` (rows of one document sum to one).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws, per
 topic, the distribution of its documents' membership in it: a topic
 whose documents sit near 1 is compact, one whose documents spread
-towards 0.5 overlaps its neighbours. Raises `honets_bad_input` for
+towards 0.5 overlaps its neighbours. Raises `hypernets_bad_input` for
 unknown node names.
 
 ## References
