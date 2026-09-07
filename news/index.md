@@ -1,5 +1,11 @@
 # Changelog
 
+## honets 0.3.10
+
+- Two tests loaded `human_long` from the retired hypernets package
+  instead of honets’ own bundled copy (identical data), failing R CMD
+  check on any machine without that package.
+
 ## honets 0.3.9
 
 - The Legal hypergraphs workflow is a hand-knit document in `docs/`, not
