@@ -415,6 +415,8 @@ An arbitrary set of nodes bound as a unit.
 - [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md)
   [`hypergraph_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md)
   : Degree-preserving null-model test of hypergraph structure
+- [`hg_hypa()`](https://mohsaqr.github.io/hypernets/reference/hg_hypa.md)
+  : Hypergeometric anomaly detection for co-occurring node pairs
 - [`hg_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md)
   [`hypergraph_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md)
   : Hypergraph neural network classifier (HGNN)

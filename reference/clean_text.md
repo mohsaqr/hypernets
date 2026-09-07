@@ -26,6 +26,7 @@ clean_text(
   numbers = TRUE,
   remove = NULL,
   stop_words = NULL,
+  min_chars = 0L,
   min_content = 0
 )
 ```
@@ -92,6 +93,13 @@ clean_text(
   `NULL`, none). Usually left to
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)'s
   own `stop_words`; use it here when the cleaned text itself is shown.
+
+- min_chars:
+
+  Minimum number of characters for a word to be kept (default `0L`, keep
+  everything). Raise it to drop the single letters and short fragments
+  left by initials, enumerations and hyphenated line breaks;
+  `min_chars = 3` keeps words of three characters or more.
 
 - min_content:
 

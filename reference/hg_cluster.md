@@ -17,6 +17,7 @@ hg_cluster(
   seed = NULL,
   nstart = 25L,
   what = c("clusters", "embedding", "eigenvalues"),
+  n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
   tol = 1e-06
@@ -69,6 +70,14 @@ hg_cluster(
   engine returns the `k + 1` it computed – raise `k` for an eigengap
   scan).
 
+- n:
+
+  For `what = "eigenvalues"`, how many rows to keep, leading first
+  (default `Inf`, all of them). The spectrum carries one eigenvalue per
+  node, so a corpus of a few thousand documents returns a few thousand
+  rows, and only the leading ones carry the gap that decides how many
+  groups the structure supports. Ignored for the other values of `what`.
+
 - algorithm:
 
   `"spectral"` (RDC-Spec) or `"symnmf"` (RDC-Sym), as in
@@ -111,9 +120,9 @@ hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 #> 2 cooking_2 Cluster 1 0.30 0.8513708  0.5245643
 #> 3   space_1 Cluster 2 0.25 0.6550598 -0.7555770
 #> 4   space_2 Cluster 2 0.25 0.8037070 -0.5950253
-hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues")
+hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues", n = 5)
 #>   index         value        gap
-#> 1     1 -5.551115e-17 0.07162811
+#> 1     1 -2.081668e-17 0.07162811
 #> 2     2  7.162811e-02 0.17318608
 #> 3     3  2.448142e-01 0.23041019
 #> 4     4  4.752244e-01         NA

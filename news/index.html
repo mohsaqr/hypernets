@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,34 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.5" id="hypernets-045">hypernets 0.4.5<a class="anchor" aria-label="anchor" href="#hypernets-045"></a></h2>
+<ul><li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a hypergraph gains <code>dismantled</code> and <code>ncol</code>, drawing one panel per hyperedge on a shared layout, each titled with its hyperedge name. Overlaid blobs mislead: a blob is a hull around its members, so two hyperedges sharing nothing still overlap on the page wherever their hulls sweep past each other. Needs the suggested <code>gridExtra</code> and returns a <code>gtable</code>, so <code>edge_labels</code> does not apply. <strong>This one has no unit tests yet.</strong></p></li>
+<li><p><code>hg_cluster(what = "eigenvalues")</code> gains <code>n</code>, the number of leading rows to keep (default <code>Inf</code>, all of them), matching the argument <code><a href="../reference/hg_centrality.html">hg_centrality()</a></code> and <code><a href="../reference/hg_pagerank.html">hg_pagerank()</a></code> already take. The spectrum carries one eigenvalue per node, so a corpus of a few thousand documents returned a few thousand rows when only the leading gaps decide how many groups the structure supports.</p></li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.4" id="hypernets-044">hypernets 0.4.4<a class="anchor" aria-label="anchor" href="#hypernets-044"></a></h2>
+<ul><li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a hypergraph gains <code>edge_labels</code> and <code>edge_label_size</code>, naming the hyperedges on the figure. A plot of the highest-ranked citation blocks was otherwise anonymous – the ranking table names them and the picture did not – and <code>labels</code>, which writes node names, is no help: a figure with seven hyperedges can carry three hundred nodes. Each label sits just outside the member furthest from the centre of the layout, clear of the overlap where the blobs meet, and the panel limits now expand to hold the labels so the outermost blob’s label is not clipped away.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.3" id="hypernets-043">hypernets 0.4.3<a class="anchor" aria-label="anchor" href="#hypernets-043"></a></h2>
+<ul><li>
+<p>New <code><a href="../reference/hg_hypa.html">hg_hypa()</a></code>: hypergeometric anomaly detection for co-occurring node pairs, the hypergraph counterpart of [build_hypa()]. A pair’s propensity to share hyperedges is the product of the two hyperdegrees, and the observed co-occurrence count is referred to a hypergeometric law, so the test is analytic and needs no resampling. It returns one row per pair, where <code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> returns one row for the whole hypergraph.</p>
+<p>Two things make it usable at a scale <code><a href="../reference/build_hypa.html">build_hypa()</a></code> cannot reach. Only co-occurring pairs are scored, so the propensity stays sparse instead of the dense n-by-n outer product the memory family materialises; and <code>min_count</code> keeps pairs that cannot reach significance out of the multiplicity correction, chosen by count and never by p-value. On an EU citation hypergraph of 117,633 nodes and 181,364 hyperedges it scores 435,784 pairs in 1.5 s, where <code><a href="../reference/build_hypa.html">build_hypa()</a></code> on the same data exhausts 32 GB.</p>
+<p>Results are ordered by adjusted significance rather than by <code>ratio</code>: ratio is maximised by the rarest pairs sitting just above <code>min_count</code>, which buries the heavily-cited pairs that actually depart from the null.</p>
+</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.2" id="hypernets-042">hypernets 0.4.2<a class="anchor" aria-label="anchor" href="#hypernets-042"></a></h2>
+<ul><li><p><code><a href="../reference/hg_edges.html">hg_edges()</a></code> no longer computes <code>n_neighbors</code> unless it is asked for. That measure takes two products over the node-by-node adjacency, which densifies on a hub-heavy network such as a citation graph; every other measure paid for it silently. On a temporal hypergraph, where <code><a href="../reference/hg_edges.html">hg_edges()</a></code> loops over the event-time grid, the cost was paid once per snapshot: a directive co-citation hypergraph with 1,609 grid points now returns <code>measure = "n_incident_edges"</code> in 1.6 s. The parts of the edge table that do not depend on <code>s</code> are also computed once instead of once per value, so an <code>s</code> sweep no longer repeats them.</p></li>
+<li><p><code><a href="../reference/temporal_hypergraph.html">temporal_hypergraph()</a></code> and <code><a href="../reference/group_hypergraph.html">group_hypergraph()</a></code> gain <code>separator</code>, which splits the <code>actor</code> column into one row per member before building. Bibliographic exports ship a hyperedge’s members as a single delimited cell – EUR-Lex <code>citationcelex</code> and <code>eurovoc</code>, Scopus and Web of Science reference and keyword fields – and every caller was writing the same split, trim and drop-empties preamble. The incidence and edge tables are identical to the hand-rolled explode.</p></li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.1" id="hypernets-041">hypernets 0.4.1<a class="anchor" aria-label="anchor" href="#hypernets-041"></a></h2>
+<ul><li>
+<code><a href="../reference/clean_text.html">clean_text()</a></code> and <code><a href="../reference/text_hypergraph.html">text_hypergraph()</a></code> gain <code>min_chars</code>, a minimum word length. Corpora extracted from PDFs carry single letters and short fragments – the initials in “J.-P. Puissochet”, enumeration markers, and the halves of words split by a hyphenated line break – which survive stop lists and document-frequency floors because they are neither stop words nor rare. <code>text_hypergraph(min_chars = 3L)</code> gates the vocabulary itself, so no short token reaches a keyword table; <code>clean_text(min_chars = 3L)</code> does the same to the text and collapses the periods that removing initials leaves behind. Both default to keeping everything, so no existing result moves. <code>min_chars</code> joins <code>stop_words</code>, <code>min_count</code> and <code>weight</code> as an argument <code>construction = "knn"</code> refuses.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="hypernets-040">hypernets 0.4.0<a class="anchor" aria-label="anchor" href="#hypernets-040"></a></h2>
 <ul><li>The package is named <strong>hypernets</strong>, matching its repository and site. Every <code>honets_*</code> condition class is now <code>hypernets_*</code>, the package documentation is <code><a href="../reference/hypernets-package.html">?hypernets</a></code>, and <code><a href="https://github.com/mohsaqr/hypernets" class="external-link">library(hypernets)</a></code> replaces <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(honets)</a></code>. No function, argument or result changed.</li>

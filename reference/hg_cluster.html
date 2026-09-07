@@ -13,7 +13,7 @@ text hypergraphs)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,6 +64,7 @@ text hypergraphs).</p>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nstart <span class="op">=</span> <span class="fl">25L</span>,</span>
 <span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusters"</span>, <span class="st">"embedding"</span>, <span class="st">"eigenvalues"</span><span class="op">)</span>,</span>
+<span>  n <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spectral"</span>, <span class="st">"symnmf"</span><span class="op">)</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">500L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-06</span></span>
@@ -118,6 +119,14 @@ engine returns the <code>k + 1</code> it computed – raise <code>k</code> for a
 scan).</p></dd>
 
 
+<dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
+<dd><p>For <code>what = "eigenvalues"</code>, how many rows to keep, leading first
+(default <code>Inf</code>, all of them). The spectrum carries one eigenvalue per
+node, so a corpus of a few thousand documents returns a few thousand
+rows, and only the leading ones carry the gap that decides how many
+groups the structure supports. Ignored for the other values of <code>what</code>.</p></dd>
+
+
 <dt id="arg-algorithm">algorithm<a class="anchor" aria-label="anchor" href="#arg-algorithm"></a></dt>
 <dd><p><code>"spectral"</code> (RDC-Spec) or <code>"symnmf"</code> (RDC-Sym), as in
 <code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>. SymNMF currently requires a dense incidence
@@ -159,9 +168,9 @@ cluster counts; <code>NA</code> on the last row).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 cooking_2 Cluster 1 0.30 0.8513708  0.5245643</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3   space_1 Cluster 2 0.25 0.6550598 -0.7555770</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4   space_2 Cluster 2 0.25 0.8037070 -0.5950253</span>
-<span class="r-in"><span><span class="fu">hg_cluster</span><span class="op">(</span><span class="va">hg</span>, k <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, what <span class="op">=</span> <span class="st">"eigenvalues"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">hg_cluster</span><span class="op">(</span><span class="va">hg</span>, k <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, what <span class="op">=</span> <span class="st">"eigenvalues"</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   index         value        gap</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1 -5.551115e-17 0.07162811</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1 -2.081668e-17 0.07162811</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2     2  7.162811e-02 0.17318608</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3     3  2.448142e-01 0.23041019</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4     4  4.752244e-01         NA</span>

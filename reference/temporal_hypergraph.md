@@ -28,6 +28,7 @@ temporal_hypergraph(
   observation_start = NULL,
   observation_end = NULL,
   sparse = FALSE,
+  separator = NULL,
   cooccur_by = NULL
 )
 ```
@@ -91,6 +92,16 @@ temporal_hypergraph(
 
   Store every snapshot's incidence as a sparse `Matrix`? Default
   `FALSE`.
+
+- separator:
+
+  Split the `actor` column on this string, one row per member, before
+  building. Bibliographic exports ship a hyperedge's members as a single
+  delimited cell – EUR-Lex `citationcelex` and `eurovoc`, Scopus and Web
+  of Science reference and keyword fields – so `separator = ";"`
+  replaces the caller's own split, trim and drop-empties. Members empty
+  after trimming are dropped, and a row left with no member contributes
+  no hyperedge.
 
 - cooccur_by:
 

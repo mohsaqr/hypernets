@@ -17,6 +17,7 @@ text_hypergraph(
   weight = c("n", "tfidf"),
   stop_words = NULL,
   min_count = 1L,
+  min_chars = 1L,
   lowercase = TRUE,
   window = 3L,
   window_mode = c("sliding", "tumbling"),
@@ -73,6 +74,13 @@ text_hypergraph(
 
   Minimum total corpus count for a word to be kept (default `1L`, keep
   everything). Not applicable to `"knn"`.
+
+- min_chars:
+
+  Minimum number of characters for a word to be kept (default `1L`, keep
+  everything). Raise it to drop the single letters and short fragments
+  that initials, enumerations and hyphenated line breaks leave behind.
+  Not applicable to `"knn"`.
 
 - lowercase:
 

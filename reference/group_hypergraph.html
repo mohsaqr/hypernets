@@ -17,7 +17,7 @@ An optional weight column produces a weighted incidence matrix."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,6 +69,7 @@ An optional <code>weight</code> column produces a weighted incidence matrix.</p>
 <span>  weight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nodes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sparse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  separator <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  member <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -115,6 +116,16 @@ decision is a node but some decisions are never cited.</p></dd>
 <dt id="arg-sparse">sparse<a class="anchor" aria-label="anchor" href="#arg-sparse"></a></dt>
 <dd><p>Logical. Store incidence as a sparse <code>Matrix</code>? Use this for
 large, sparse event data such as the full GFCC citation-block corpus.</p></dd>
+
+
+<dt id="arg-separator">separator<a class="anchor" aria-label="anchor" href="#arg-separator"></a></dt>
+<dd><p>Split the <code>actor</code> column on this string, one row per
+member, before building. Bibliographic exports ship a hyperedge's members
+as a single delimited cell – EUR-Lex <code>citationcelex</code> and <code>eurovoc</code>,
+Scopus and Web of Science reference and keyword fields – so
+<code>separator = ";"</code> replaces the caller's own split, trim and
+drop-empties. Members empty after trimming are dropped, and a row left
+with no member contributes no hyperedge.</p></dd>
 
 
 <dt id="arg-from-to">from, to<a class="anchor" aria-label="anchor" href="#arg-from-to"></a></dt>

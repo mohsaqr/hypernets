@@ -1,5 +1,109 @@
 # Changelog
 
+## hypernets 0.4.5
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  hypergraph gains `dismantled` and `ncol`, drawing one panel per
+  hyperedge on a shared layout, each titled with its hyperedge name.
+  Overlaid blobs mislead: a blob is a hull around its members, so two
+  hyperedges sharing nothing still overlap on the page wherever their
+  hulls sweep past each other. Needs the suggested `gridExtra` and
+  returns a `gtable`, so `edge_labels` does not apply. **This one has no
+  unit tests yet.**
+
+- `hg_cluster(what = "eigenvalues")` gains `n`, the number of leading
+  rows to keep (default `Inf`, all of them), matching the argument
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md)
+  and
+  [`hg_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md)
+  already take. The spectrum carries one eigenvalue per node, so a
+  corpus of a few thousand documents returned a few thousand rows when
+  only the leading gaps decide how many groups the structure supports.
+
+## hypernets 0.4.4
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  hypergraph gains `edge_labels` and `edge_label_size`, naming the
+  hyperedges on the figure. A plot of the highest-ranked citation blocks
+  was otherwise anonymous – the ranking table names them and the picture
+  did not – and `labels`, which writes node names, is no help: a figure
+  with seven hyperedges can carry three hundred nodes. Each label sits
+  just outside the member furthest from the centre of the layout, clear
+  of the overlap where the blobs meet, and the panel limits now expand
+  to hold the labels so the outermost blob’s label is not clipped away.
+
+## hypernets 0.4.3
+
+- New
+  [`hg_hypa()`](https://mohsaqr.github.io/hypernets/reference/hg_hypa.md):
+  hypergeometric anomaly detection for co-occurring node pairs, the
+  hypergraph counterpart of \[build_hypa()\]. A pair’s propensity to
+  share hyperedges is the product of the two hyperdegrees, and the
+  observed co-occurrence count is referred to a hypergeometric law, so
+  the test is analytic and needs no resampling. It returns one row per
+  pair, where
+  [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md)
+  returns one row for the whole hypergraph.
+
+  Two things make it usable at a scale
+  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md)
+  cannot reach. Only co-occurring pairs are scored, so the propensity
+  stays sparse instead of the dense n-by-n outer product the memory
+  family materialises; and `min_count` keeps pairs that cannot reach
+  significance out of the multiplicity correction, chosen by count and
+  never by p-value. On an EU citation hypergraph of 117,633 nodes and
+  181,364 hyperedges it scores 435,784 pairs in 1.5 s, where
+  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md)
+  on the same data exhausts 32 GB.
+
+  Results are ordered by adjusted significance rather than by `ratio`:
+  ratio is maximised by the rarest pairs sitting just above `min_count`,
+  which buries the heavily-cited pairs that actually depart from the
+  null.
+
+## hypernets 0.4.2
+
+- [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
+  no longer computes `n_neighbors` unless it is asked for. That measure
+  takes two products over the node-by-node adjacency, which densifies on
+  a hub-heavy network such as a citation graph; every other measure paid
+  for it silently. On a temporal hypergraph, where
+  [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
+  loops over the event-time grid, the cost was paid once per snapshot: a
+  directive co-citation hypergraph with 1,609 grid points now returns
+  `measure = "n_incident_edges"` in 1.6 s. The parts of the edge table
+  that do not depend on `s` are also computed once instead of once per
+  value, so an `s` sweep no longer repeats them.
+
+- [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md)
+  and
+  [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
+  gain `separator`, which splits the `actor` column into one row per
+  member before building. Bibliographic exports ship a hyperedge’s
+  members as a single delimited cell – EUR-Lex `citationcelex` and
+  `eurovoc`, Scopus and Web of Science reference and keyword fields –
+  and every caller was writing the same split, trim and drop-empties
+  preamble. The incidence and edge tables are identical to the
+  hand-rolled explode.
+
+## hypernets 0.4.1
+
+- [`clean_text()`](https://mohsaqr.github.io/hypernets/reference/clean_text.md)
+  and
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
+  gain `min_chars`, a minimum word length. Corpora extracted from PDFs
+  carry single letters and short fragments – the initials in “J.-P.
+  Puissochet”, enumeration markers, and the halves of words split by a
+  hyphenated line break – which survive stop lists and
+  document-frequency floors because they are neither stop words nor
+  rare. `text_hypergraph(min_chars = 3L)` gates the vocabulary itself,
+  so no short token reaches a keyword table;
+  `clean_text(min_chars = 3L)` does the same to the text and collapses
+  the periods that removing initials leaves behind. Both default to
+  keeping everything, so no existing result moves. `min_chars` joins
+  `stop_words`, `min_count` and `weight` as an argument
+  `construction = "knn"` refuses.
+
 ## hypernets 0.4.0
 
 - The package is named **hypernets**, matching its repository and site.

@@ -21,7 +21,7 @@ warning, so nothing leaves the corpus silently."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,6 +80,7 @@ warning, so nothing leaves the corpus silently.</p>
 <span>  numbers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  remove <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stop_words <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_chars <span class="op">=</span> <span class="fl">0L</span>,</span>
 <span>  min_content <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -148,6 +149,13 @@ own boilerplate. Default <code>NULL</code>.</p></dd>
 <dd><p>Words to remove, case-insensitively at word boundaries
 (default <code>NULL</code>, none). Usually left to <code><a href="text_hypergraph.html">text_hypergraph()</a></code>'s own
 <code>stop_words</code>; use it here when the cleaned text itself is shown.</p></dd>
+
+
+<dt id="arg-min-chars">min_chars<a class="anchor" aria-label="anchor" href="#arg-min-chars"></a></dt>
+<dd><p>Minimum number of characters for a word to be kept
+(default <code>0L</code>, keep everything). Raise it to drop the single letters and
+short fragments left by initials, enumerations and hyphenated line
+breaks; <code>min_chars = 3</code> keeps words of three characters or more.</p></dd>
 
 
 <dt id="arg-min-content">min_content<a class="anchor" aria-label="anchor" href="#arg-min-content"></a></dt>

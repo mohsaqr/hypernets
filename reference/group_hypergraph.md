@@ -18,6 +18,7 @@ group_hypergraph(
   weight = NULL,
   nodes = NULL,
   sparse = FALSE,
+  separator = NULL,
   from = NULL,
   to = NULL,
   member = NULL,
@@ -63,6 +64,16 @@ group_hypergraph(
 
   Logical. Store incidence as a sparse `Matrix`? Use this for large,
   sparse event data such as the full GFCC citation-block corpus.
+
+- separator:
+
+  Split the `actor` column on this string, one row per member, before
+  building. Bibliographic exports ship a hyperedge's members as a single
+  delimited cell – EUR-Lex `citationcelex` and `eurovoc`, Scopus and Web
+  of Science reference and keyword fields – so `separator = ";"`
+  replaces the caller's own split, trim and drop-empties. Members empty
+  after trimming are dropped, and a row left with no member contributes
+  no hyperedge.
 
 - from, to:
 

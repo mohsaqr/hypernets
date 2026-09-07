@@ -21,7 +21,7 @@ a single member is drawn as its node alone."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,6 +77,10 @@ a single member is drawn as its node alone.</p>
 <span>  linetype_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  edge_labels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  edge_label_size <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  dismantled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  node_size <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.45</span>,</span>
 <span>  padding <span class="op">=</span> <span class="fl">0.06</span>,</span>
@@ -125,6 +129,37 @@ none, and a character vector named by node replaces the names shown.</p></dd>
 
 <dt id="arg-label-size-node-size">label_size, node_size<a class="anchor" aria-label="anchor" href="#arg-label-size-node-size"></a></dt>
 <dd><p>Text and point sizes.</p></dd>
+
+
+<dt id="arg-edge-labels">edge_labels<a class="anchor" aria-label="anchor" href="#arg-edge-labels"></a></dt>
+<dd><p>Name the hyperedges on the figure. <code>FALSE</code> (default)
+writes nothing, <code>TRUE</code> writes the hyperedge names, or pass a vector named
+by hyperedge to write something else. A figure of the highest-ranked
+hyperedges is otherwise anonymous – the ranking table names them and the
+picture does not – and there are as many labels as hyperedges, so they
+fit where node names would not. Each label sits just outside the member
+furthest from the centre of the layout, which keeps it clear of the
+crowded overlap where the blobs meet.</p></dd>
+
+
+<dt id="arg-edge-label-size">edge_label_size<a class="anchor" aria-label="anchor" href="#arg-edge-label-size"></a></dt>
+<dd><p>Text size for <code>edge_labels</code> (default <code>3</code>).</p></dd>
+
+
+<dt id="arg-dismantled">dismantled<a class="anchor" aria-label="anchor" href="#arg-dismantled"></a></dt>
+<dd><p>Draw one panel per hyperedge instead of one figure with
+every blob overlaid (default <code>FALSE</code>). All panels share the layout, so
+positions are comparable, and each is titled with its hyperedge name.
+Overlaid blobs mislead: a blob is a hull drawn around its members, so two
+hyperedges sharing nothing still overlap on the page wherever their hulls
+sweep past each other. One panel each shows membership as it is. Needs
+the suggested <code>gridExtra</code>; returns a <code>gtable</code>, not a <code>ggplot</code>, so no
+further layers can be added and <code>edge_labels</code> does not apply.</p></dd>
+
+
+<dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
+<dd><p>Columns in the panel grid when <code>dismantled = TRUE</code>
+(default: roughly square).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>

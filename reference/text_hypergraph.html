@@ -11,7 +11,7 @@ three constructions:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,7 @@ three constructions:</p>
 <span>  weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"tfidf"</span><span class="op">)</span>,</span>
 <span>  stop_words <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_count <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  min_chars <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  lowercase <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  window <span class="op">=</span> <span class="fl">3L</span>,</span>
 <span>  window_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sliding"</span>, <span class="st">"tumbling"</span><span class="op">)</span>,</span>
@@ -120,6 +121,13 @@ tokenization (compared after lowercasing when <code>lowercase = TRUE</code>); se
 <dt id="arg-min-count">min_count<a class="anchor" aria-label="anchor" href="#arg-min-count"></a></dt>
 <dd><p>Minimum total corpus count for a word to be kept
 (default <code>1L</code>, keep everything). Not applicable to <code>"knn"</code>.</p></dd>
+
+
+<dt id="arg-min-chars">min_chars<a class="anchor" aria-label="anchor" href="#arg-min-chars"></a></dt>
+<dd><p>Minimum number of characters for a word to be kept
+(default <code>1L</code>, keep everything). Raise it to drop the single letters
+and short fragments that initials, enumerations and hyphenated
+line breaks leave behind. Not applicable to <code>"knn"</code>.</p></dd>
 
 
 <dt id="arg-lowercase">lowercase<a class="anchor" aria-label="anchor" href="#arg-lowercase"></a></dt>
