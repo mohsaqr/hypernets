@@ -135,6 +135,11 @@
 #'   Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
 #'   77,187 nonzero incidences).
 #'
+#'   A dense incidence with more than `.Machine$integer.max` cells cannot be
+#'   addressed by the flat cell index, and would exhaust memory well before
+#'   that. It raises the classed error `hypernets_dense_too_large` rather than
+#'   attempting the allocation; pass `sparse = TRUE` for data at that scale.
+#'
 #' @export
 group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
                              nodes = NULL, sparse = FALSE, separator = NULL,
@@ -245,6 +250,19 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
     if (is.null(weight) && length(incidence@x)) incidence@x[] <- 1
     incidence <- Matrix::drop0(incidence)
   } else {
+    # The flat cell index is integer arithmetic, so a dense incidence with more
+    # than .Machine$integer.max cells cannot be addressed at all -- and would
+    # need >16 Gb before it got that far. Refuse with a pointer to the sparse
+    # path rather than overflow to NA indices or exhaust memory.
+    if (as.double(n_members) * n_groups > .Machine$integer.max) {
+      stop(errorCondition(
+        sprintf(
+          "a dense incidence of %d members x %d groups (%.3g cells) cannot be built; use `sparse = TRUE`",
+          n_members, n_groups, as.double(n_members) * n_groups
+        ),
+        class = "hypernets_dense_too_large", call = NULL
+      ))
+    }
     cell <- (gj - 1L) * n_members + mi
     if (is.null(weight)) {
       counts <- tabulate(cell, nbins = n_members * n_groups)

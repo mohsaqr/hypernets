@@ -13,6 +13,8 @@ text_hypergraph(
   weight = c("n", "tfidf"),
   stop_words = NULL,
   min_count = 1L,
+  max_words = Inf,
+  coverage = 1,
   min_chars = 1L,
   lowercase = TRUE,
   window = 3L,
@@ -53,6 +55,19 @@ tokenization (compared after lowercasing when \code{lowercase = TRUE}); see
 
 \item{min_count}{Minimum total corpus count for a word to be kept
 (default \code{1L}, keep everything). Not applicable to \code{"knn"}.}
+
+\item{max_words}{Keep at most this many words, the most frequent first
+(ties broken alphabetically). \code{Inf}, the default, keeps every word.
+Pruning the long tail is the usual way to make a large corpus tractable:
+the rare words carry little signal but dominate the vocabulary, and the
+incidence has one hyperedge per word.}
+
+\item{coverage}{Keep the fewest most-frequent words whose combined corpus
+count reaches this share of all tokens, a number in \verb{(0, 1]}. \code{1}, the
+default, keeps every word; \code{0.99} keeps the words carrying 99\% of the
+tokens. Applied together with \code{max_words} and \code{min_count}, the strictest
+wins. Documents left with no tokens are dropped with a
+\code{hypernets_dropped_documents} warning.}
 
 \item{min_chars}{Minimum number of characters for a word to be kept
 (default \code{1L}, keep everything). Raise it to drop the single letters

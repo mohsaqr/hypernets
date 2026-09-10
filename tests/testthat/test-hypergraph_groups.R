@@ -237,3 +237,17 @@ test_that("an edge list carries its attributes onto the size-2 hyperedges", {
                    data.frame(edge = c("e1", "e2"), kind = c("call", "mail"),
                               stringsAsFactors = FALSE))
 })
+
+test_that("an unaddressable dense incidence is refused, not attempted", {
+  skip_on_cran()
+  # 50000 members x 50000 groups = 2.5e9 cells: past the integer cell index,
+  # and ~20 Gb if it were allocated.
+  n <- 50000L
+  d <- data.frame(member = sprintf("m%d", seq_len(n)),
+                  group = sprintf("g%d", seq_len(n)))
+  expect_error(group_hypergraph(d, actor = "member", group = "group"),
+               class = "hypernets_dense_too_large")
+  expect_s3_class(group_hypergraph(d, actor = "member", group = "group",
+                                   sparse = TRUE),
+                  "net_hypergraph")
+})

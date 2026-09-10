@@ -203,3 +203,131 @@ test_that("min_chars is refused for construction = 'knn'", {
     class = "hypernets_bad_input"
   )
 })
+
+test_that("the storage rule does not overflow on a large corpus", {
+  skip_on_cran()
+  # 60000 docs x 70000 words = 4.2e9 cells: the integer product overflows to
+  # NA, which `isTRUE()` would read as "dense" and try to allocate ~34 Gb.
+  expect_true(hypernets:::.thg_choose_sparse(60000L, 70000L, "bag"))
+  expect_true(hypernets:::.thg_choose_sparse(46341L, 46341L, "sentence"))
+  expect_false(hypernets:::.thg_choose_sparse(10L, 10L, "bag"))
+  expect_false(hypernets:::.thg_choose_sparse(60000L, 70000L, "window"))
+  # the decision is never NA, whatever the scale
+  sizes <- c(1L, 1000L, 46341L, 60000L, .Machine$integer.max)
+  decisions <- vapply(sizes,
+                      \(n) hypernets:::.thg_choose_sparse(n, n, "bag"),
+                      logical(1))
+  expect_false(anyNA(decisions))
+})
+
+test_that("the storage rule turns sparse exactly at the threshold", {
+  skip_on_cran()
+  expect_false(hypernets:::.thg_choose_sparse(1000L, 999L, "bag"))
+  expect_true(hypernets:::.thg_choose_sparse(1000L, 1000L, "bag"))
+})
+
+test_that("the vocabulary filter is one deterministic ranking", {
+  skip_on_cran()
+  total <- c(rare = 1L, common = 10L, mid = 5L, tie_b = 5L)
+  # min_count alone reproduces the pre-0.4.6 rule exactly
+  expect_identical(
+    hypernets:::.thg_keep_vocabulary(total, min_count = 5L),
+    sort(names(total)[total >= 5L])
+  )
+  # max_words caps the head; ties (mid, tie_b at 5) break alphabetically
+  expect_identical(hypernets:::.thg_keep_vocabulary(total, max_words = 1L),
+                   "common")
+  expect_identical(hypernets:::.thg_keep_vocabulary(total, max_words = 2L),
+                   sort(c("common", "mid")))
+  # the whole vocabulary survives the defaults
+  expect_identical(hypernets:::.thg_keep_vocabulary(total), sort(names(total)))
+  expect_identical(hypernets:::.thg_keep_vocabulary(total, coverage = 1),
+                   sort(names(total)))
+})
+
+test_that("coverage retains at least the share of tokens it promises", {
+  skip_on_cran()
+  set.seed(11)
+  total <- stats::setNames(as.integer(stats::rpois(400, 8) + 1L),
+                           sprintf("w%03d", seq_len(400)))
+  shares <- c(0.5, 0.75, 0.9, 0.95, 0.99, 1)
+  kept <- lapply(shares, \(s) hypernets:::.thg_keep_vocabulary(total,
+                                                               coverage = s))
+  retained <- vapply(kept,
+                     \(k) sum(total[k]) / sum(total),
+                     numeric(1))
+  expect_true(all(retained >= shares - sqrt(.Machine$double.eps)))
+  # and it is the FEWEST such words: drop the rarest kept word and the share
+  # falls below the target (the full vocabulary at coverage = 1 excepted)
+  minimal <- vapply(seq_along(shares), \(i) {
+    k <- kept[[i]]
+    # coverage = 1 must keep everything, so there is no word to drop
+    if (isTRUE(all.equal(shares[[i]], 1))) return(length(k) == length(total))
+    rarest <- k[[which.min(total[k])]]
+    sum(total[setdiff(k, rarest)]) / sum(total) < shares[[i]]
+  }, logical(1))
+  expect_true(all(minimal))
+  # smaller coverage never keeps more words
+  expect_false(is.unsorted(vapply(kept, length, integer(1))))
+  # and the filters compose: the strictest wins
+  both <- hypernets:::.thg_keep_vocabulary(total, coverage = 0.9,
+                                           max_words = 10L)
+  expect_length(both, 10L)
+})
+
+test_that("max_words and coverage prune the constructor's vocabulary", {
+  skip_on_cran()
+  set.seed(3)
+  words <- sprintf("%s%s", rep(letters, each = 26), rep(letters, 26))
+  p <- 1 / seq_along(words)
+  docs <- vapply(seq_len(120L),
+                 \(i) paste(sample(words, 60, replace = TRUE, prob = p),
+                            collapse = " "),
+                 character(1))
+  corpus <- data.frame(id = sprintf("d%03d", seq_len(120L)), text = docs)
+
+  full <- suppressMessages(
+    text_hypergraph(corpus, column = "text", id = "id", nodes = "doc"))
+  capped <- suppressMessages(
+    text_hypergraph(corpus, column = "text", id = "id", nodes = "doc",
+                    max_words = 50L))
+  covered <- suppressMessages(
+    text_hypergraph(corpus, column = "text", id = "id", nodes = "doc",
+                    coverage = 0.9))
+
+  expect_identical(capped$n_hyperedges, 50L)
+  expect_lt(covered$n_hyperedges, full$n_hyperedges)
+  expect_gte(covered$text$token_share, 0.9)
+  expect_identical(full$text$token_share, 1)
+  # the kept vocabulary is exactly the surviving hyperedges
+  expect_setequal(as.data.frame(capped, what = "vocabulary")$word,
+                  colnames(capped$incidence))
+  # pruning announces itself
+  expect_message(
+    text_hypergraph(corpus, column = "text", id = "id", nodes = "doc",
+                    max_words = 50L),
+    "vocabulary pruned to 50"
+  )
+})
+
+test_that("the vocabulary filters reject bad input", {
+  skip_on_cran()
+  corpus <- data.frame(id = c("a", "b"),
+                       text = c("night owl sings", "night crow calls"))
+  expect_error(
+    text_hypergraph(corpus, column = "text", id = "id", coverage = 0),
+    "`coverage` must be a single share"
+  )
+  expect_error(
+    text_hypergraph(corpus, column = "text", id = "id", coverage = 1.5),
+    "`coverage` must be a single share"
+  )
+  expect_error(
+    text_hypergraph(corpus, column = "text", id = "id", max_words = 0),
+    "`max_words` must be a single count"
+  )
+  expect_error(
+    text_hypergraph(corpus, column = "text", id = "id", min_count = 99L),
+    class = "hypernets_empty_corpus"
+  )
+})

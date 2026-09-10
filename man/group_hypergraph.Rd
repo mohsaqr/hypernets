@@ -105,6 +105,11 @@ Dense and sparse paths are tested for exact equality. The sparse
 path is additionally exercised by the full GFCC reproduction from the
 Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
 77,187 nonzero incidences).
+
+A dense incidence with more than \code{.Machine$integer.max} cells cannot be
+addressed by the flat cell index, and would exhaust memory well before
+that. It raises the classed error \code{hypernets_dense_too_large} rather than
+attempting the allocation; pass \code{sparse = TRUE} for data at that scale.
 }
 \examples{
 df <- data.frame(

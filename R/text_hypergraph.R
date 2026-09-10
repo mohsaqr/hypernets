@@ -1,5 +1,22 @@
 # Constructor: corpus -> weighted text hypergraph, in four constructions.
 .thg_sparse_threshold <- 1e6
+
+# Storage rule for the bag and sentence constructions: sparse once the
+# incidence would exceed .thg_sparse_threshold cells. Both counts arrive as
+# integers, so the product is taken in double -- a corpus large enough to need
+# the sparse path is exactly the one whose integer product overflows to NA,
+# and NA would fall through `isTRUE()` and send the largest corpora down the
+# dense path.
+.thg_choose_sparse <- function(n_docs, n_vocab, construction) {
+  stopifnot(
+    "`n_docs` must be a single count" =
+      length(n_docs) == 1L && is.finite(n_docs) && n_docs >= 0,
+    "`n_vocab` must be a single count" =
+      length(n_vocab) == 1L && is.finite(n_vocab) && n_vocab >= 0
+  )
+  construction %in% c("bag", "sentence") &&
+    as.double(n_docs) * as.double(n_vocab) >= .thg_sparse_threshold
+}
 #
 # "bag": the bipartite document-word incidence (Hayashi et al. 2020 analyze
 # documents as vertices with words as hyperedges; HyperGAT-style uses the
@@ -48,6 +65,36 @@
   }
   lapply(wins, \(win) sort(unique(win)))
 }
+# Which words survive the vocabulary filters. Ranking is by decreasing corpus
+# count with ties broken alphabetically, so the kept set is deterministic and
+# every filter is a prefix of the same ranking: min_count trims the rare tail,
+# max_words caps the head, coverage keeps the shortest prefix carrying that
+# share of all tokens.
+.thg_keep_vocabulary <- function(total, min_count = 1L, max_words = Inf,
+                                 coverage = 1) {
+  stopifnot(
+    "internal: `total` must be a named count vector" =
+      length(total) > 0L && !is.null(names(total))
+  )
+  counts <- as.numeric(total)
+  ranked <- order(-counts, names(total))
+  counts <- counts[ranked]
+  words <- names(total)[ranked]
+
+  keep <- counts >= min_count
+  if (is.finite(max_words)) {
+    keep <- keep & seq_along(counts) <= max_words
+  }
+  # cumulative token share; the tolerance keeps coverage = 1 from dropping the
+  # last word to floating-point error in cumsum()/sum()
+  share <- cumsum(counts) / sum(counts)
+  reached <- which(share >= coverage - sqrt(.Machine$double.eps))
+  if (length(reached) > 0L) {
+    keep <- keep & seq_along(counts) <= reached[[1L]]
+  }
+  sort(words[keep])
+}
+
 
 #' Build a weighted hypergraph from a text corpus
 #'
@@ -123,6 +170,17 @@
 #'   [stop_words_en()]. Not applicable to `"knn"`.
 #' @param min_count Minimum total corpus count for a word to be kept
 #'   (default `1L`, keep everything). Not applicable to `"knn"`.
+#' @param max_words Keep at most this many words, the most frequent first
+#'   (ties broken alphabetically). `Inf`, the default, keeps every word.
+#'   Pruning the long tail is the usual way to make a large corpus tractable:
+#'   the rare words carry little signal but dominate the vocabulary, and the
+#'   incidence has one hyperedge per word.
+#' @param coverage Keep the fewest most-frequent words whose combined corpus
+#'   count reaches this share of all tokens, a number in `(0, 1]`. `1`, the
+#'   default, keeps every word; `0.99` keeps the words carrying 99% of the
+#'   tokens. Applied together with `max_words` and `min_count`, the strictest
+#'   wins. Documents left with no tokens are dropped with a
+#'   `hypernets_dropped_documents` warning.
 #' @param min_chars Minimum number of characters for a word to be kept
 #'   (default `1L`, keep everything). Raise it to drop the single letters
 #'   and short fragments that initials, enumerations and hyphenated
@@ -203,6 +261,8 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
                             weight = c("n", "tfidf"),
                             stop_words = NULL,
                             min_count = 1L,
+                            max_words = Inf,
+                            coverage = 1,
                             min_chars = 1L,
                             lowercase = TRUE,
                             window = 3L,
@@ -230,6 +290,12 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       is.null(stop_words) || is.character(stop_words),
     "`min_count` must be a single count >= 1" =
       length(min_count) == 1L && is.finite(min_count) && min_count >= 1,
+    "`max_words` must be a single count >= 1, or Inf" =
+      length(max_words) == 1L && is.numeric(max_words) && !is.na(max_words) &&
+        max_words >= 1,
+    "`coverage` must be a single share in (0, 1]" =
+      length(coverage) == 1L && is.numeric(coverage) && is.finite(coverage) &&
+        coverage > 0 && coverage <= 1,
     "`min_chars` must be a single count >= 1" =
       length(min_chars) == 1L && is.finite(min_chars) && min_chars >= 1,
     "`lowercase` must be TRUE or FALSE" =
@@ -282,6 +348,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     return(.thg_knn_text(text, doc_id, meta, k = k, embeddings = embeddings,
                          model = model, stop_words = stop_words,
                          min_count = min_count, min_chars = min_chars,
+                         max_words = max_words, coverage = coverage,
                          weight = weight))
   }
 
@@ -322,16 +389,23 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   )
   counts <- stats::aggregate(n ~ doc + word, data = long, FUN = sum)
 
-  if (min_count > 1L) {
-    total <- tapply(counts$n, counts$word, sum)
-    keep <- names(total)[total >= min_count]
+  # min_count, max_words and coverage are one filter over one ranking
+  total <- tapply(counts$n, counts$word, sum)
+  keep <- .thg_keep_vocabulary(total, min_count = min_count,
+                               max_words = max_words, coverage = coverage)
+  if (length(keep) == 0L) {
+    stop(errorCondition(
+      sprintf(
+        "no word survives `min_count = %d`, `max_words = %s` and `coverage = %g`",
+        as.integer(min_count), format(max_words), coverage
+      ),
+      class = "hypernets_empty_corpus", call = NULL
+    ))
+  }
+  vocabulary_full <- length(total)
+  token_share <- sum(as.numeric(total[keep])) / sum(as.numeric(total))
+  if (length(keep) < vocabulary_full) {
     counts <- counts[counts$word %in% keep, , drop = FALSE]
-    if (nrow(counts) == 0L) {
-      stop(errorCondition(
-        sprintf("no word reaches `min_count = %d`", as.integer(min_count)),
-        class = "hypernets_empty_corpus", call = NULL
-      ))
-    }
     tokens <- lapply(tokens, \(t) t[t %in% keep])
     if (!is.null(sentence_tokens)) {
       sentence_tokens <- lapply(sentence_tokens, \(doc) {
@@ -339,6 +413,10 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
         doc[lengths(doc) > 0L]
       })
     }
+    message(sprintf(
+      "vocabulary pruned to %d of %d words, retaining %.2f%% of tokens",
+      length(keep), vocabulary_full, 100 * token_share
+    ))
   }
 
   kept_docs <- doc_id[doc_id %in% counts$doc]
@@ -367,8 +445,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   # otherwise (the dense engines cover every algorithm; the sparse ones the
   # spectral / transductive core)
   if (is.null(sparse)) {
-    sparse <- construction %in% c("bag", "sentence") &&
-      n_docs * nrow(vocabulary) >= .thg_sparse_threshold
+    sparse <- .thg_choose_sparse(n_docs, nrow(vocabulary), construction)
   }
 
   n_windows <- NULL
@@ -483,7 +560,12 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
     window = if (identical(construction, "window")) as.integer(window) else NULL,
     window_mode = if (identical(construction, "window")) window_mode else NULL,
     n_windows = n_windows,
-    n_dropped = length(dropped)
+    n_dropped = length(dropped),
+    min_count = as.integer(min_count),
+    max_words = max_words,
+    coverage = coverage,
+    n_vocabulary_full = vocabulary_full,
+    token_share = token_share
   )
   class(hg) <- c("text_hypergraph", class(hg))
   hg
@@ -492,11 +574,13 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
 # The knn construction: documents as vertices, each document plus its k
 # nearest embedding neighbors as one cosine-weighted hyperedge.
 .thg_knn_text <- function(text, doc_id, meta, k, embeddings, model,
-                          stop_words, min_count, min_chars, weight) {
+                          stop_words, min_count, min_chars, max_words,
+                          coverage, weight) {
   if (!is.null(stop_words) || min_count > 1L || min_chars > 1L ||
+      is.finite(max_words) || coverage < 1 ||
       identical(weight, "tfidf")) {
     stop(errorCondition(
-      "`stop_words`, `min_count`, `min_chars`, and `weight` apply to token-based constructions, not construction = \"knn\"",
+      "`stop_words`, `min_count`, `min_chars`, `max_words`, `coverage`, and `weight` apply to token-based constructions, not construction = \"knn\"",
       class = "hypernets_bad_input", call = NULL
     ))
   }
