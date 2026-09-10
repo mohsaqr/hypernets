@@ -11,7 +11,7 @@ three constructions:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,8 @@ three constructions:</p>
 <span>  weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"tfidf"</span><span class="op">)</span>,</span>
 <span>  stop_words <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_count <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  max_words <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  coverage <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  min_chars <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  lowercase <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  window <span class="op">=</span> <span class="fl">3L</span>,</span>
@@ -121,6 +123,23 @@ tokenization (compared after lowercasing when <code>lowercase = TRUE</code>); se
 <dt id="arg-min-count">min_count<a class="anchor" aria-label="anchor" href="#arg-min-count"></a></dt>
 <dd><p>Minimum total corpus count for a word to be kept
 (default <code>1L</code>, keep everything). Not applicable to <code>"knn"</code>.</p></dd>
+
+
+<dt id="arg-max-words">max_words<a class="anchor" aria-label="anchor" href="#arg-max-words"></a></dt>
+<dd><p>Keep at most this many words, the most frequent first
+(ties broken alphabetically). <code>Inf</code>, the default, keeps every word.
+Pruning the long tail is the usual way to make a large corpus tractable:
+the rare words carry little signal but dominate the vocabulary, and the
+incidence has one hyperedge per word.</p></dd>
+
+
+<dt id="arg-coverage">coverage<a class="anchor" aria-label="anchor" href="#arg-coverage"></a></dt>
+<dd><p>Keep the fewest most-frequent words whose combined corpus
+count reaches this share of all tokens, a number in <code>(0, 1]</code>. <code>1</code>, the
+default, keeps every word; <code>0.99</code> keeps the words carrying 99% of the
+tokens. Applied together with <code>max_words</code> and <code>min_count</code>, the strictest
+wins. Documents left with no tokens are dropped with a
+<code>hypernets_dropped_documents</code> warning.</p></dd>
 
 
 <dt id="arg-min-chars">min_chars<a class="anchor" aria-label="anchor" href="#arg-min-chars"></a></dt>

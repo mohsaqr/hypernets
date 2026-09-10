@@ -17,7 +17,7 @@ An optional weight column produces a weighted incidence matrix."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -174,6 +174,10 @@ hyperedges, and are left out.</p>
 path is additionally exercised by the full GFCC reproduction from the
 Legal Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and
 77,187 nonzero incidences).</p>
+<p>A dense incidence with more than <code>.Machine$integer.max</code> cells cannot be
+addressed by the flat cell index, and would exhaust memory well before
+that. It raises the classed error <code>hypernets_dense_too_large</code> rather than
+attempting the allocation; pass <code>sparse = TRUE</code> for data at that scale.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

@@ -42,6 +42,7 @@ hg <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens
 hg
 #> Text hypergraph: 165 documents, 1453 words (documents as nodes, weight = tfidf)
 #> Hyperedges: 1453 (words); sizes 1-140, median 4
@@ -84,6 +85,7 @@ word_hg <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens
 hg_centrality(word_hg, type = "clique", sort_by = "clique", n = 10)
 #>           node    clique
 #> 1        covid 0.2798710
@@ -260,6 +262,7 @@ abstracts_2020 <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens
 hg_null_test(
   abstracts_2020,
   statistic = c("pairwise_participation", "avg_jaccard"),

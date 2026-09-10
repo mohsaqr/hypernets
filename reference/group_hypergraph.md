@@ -134,6 +134,12 @@ additionally exercised by the full GFCC reproduction from the Legal
 Hypergraphs Zenodo archive (3,618 nodes, 46,165 hyperedges and 77,187
 nonzero incidences).
 
+A dense incidence with more than `.Machine$integer.max` cells cannot be
+addressed by the flat cell index, and would exhaust memory well before
+that. It raises the classed error `hypernets_dense_too_large` rather
+than attempting the allocation; pass `sparse = TRUE` for data at that
+scale.
+
 ## References
 
 Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.

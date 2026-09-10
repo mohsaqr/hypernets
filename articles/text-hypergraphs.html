@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,6 +107,7 @@ abstracts are dropped — a word seen once cannot connect anything.</p>
 <span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
 <span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens</span></span>
 <span><span class="va">hg</span></span>
 <span><span class="co">#&gt; Text hypergraph: 165 documents, 1453 words (documents as nodes, weight = tfidf)</span></span>
 <span><span class="co">#&gt; Hyperedges: 1453 (words); sizes 1-140, median 4</span></span></code></pre></div>
@@ -142,6 +143,7 @@ the corpus’s organizing vocabulary.</p>
 <span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
 <span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens</span></span>
 <span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">word_hg</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           node    clique</span></span>
 <span><span class="co">#&gt; 1        covid 0.2798710</span></span>
@@ -289,6 +291,7 @@ compares. On the 2020 abstracts:</p>
 <span>  stop_words <span class="op">=</span> <span class="va">stops</span>,</span>
 <span>  min_count <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens</span></span>
 <span><span class="fu"><a href="../reference/hg_null_test.html">hg_null_test</a></span><span class="op">(</span></span>
 <span>  <span class="va">abstracts_2020</span>,</span>
 <span>  statistic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pairwise_participation"</span>, <span class="st">"avg_jaccard"</span><span class="op">)</span>,</span>

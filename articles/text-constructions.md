@@ -39,6 +39,7 @@ windowed <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens
 windowed
 #> Text hypergraph: 40 documents, 349 words (windowed hyperedges: w = 3, sliding, 2000 windows)
 #> Hyperedges: 1880 (distinct windows); sizes 2-3, median 3
@@ -73,6 +74,7 @@ bag_words <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens
 hg_centrality(bag_words, type = "clique", sort_by = "clique", n = 10)
 #>           node    clique
 #> 1        covid 0.2792762
@@ -105,6 +107,7 @@ windowed_4 <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens
 hg_centrality(windowed_4, type = "clique", sort_by = "clique", n = 10)
 #>          node    clique
 #> 1   education 0.4314610
@@ -176,6 +179,7 @@ bag <- text_hypergraph(
   stop_words = stops,
   min_count = 3L
 )
+#> vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens
 bag_clusters <- hg_cluster(bag, k = 4, type = "random_walk", seed = 1)
 hg_agreement(knn_clusters, bag_clusters, what = "table")
 #>      label_x   label_y  n

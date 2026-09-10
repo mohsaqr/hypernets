@@ -17,6 +17,8 @@ text_hypergraph(
   weight = c("n", "tfidf"),
   stop_words = NULL,
   min_count = 1L,
+  max_words = Inf,
+  coverage = 1,
   min_chars = 1L,
   lowercase = TRUE,
   window = 3L,
@@ -74,6 +76,23 @@ text_hypergraph(
 
   Minimum total corpus count for a word to be kept (default `1L`, keep
   everything). Not applicable to `"knn"`.
+
+- max_words:
+
+  Keep at most this many words, the most frequent first (ties broken
+  alphabetically). `Inf`, the default, keeps every word. Pruning the
+  long tail is the usual way to make a large corpus tractable: the rare
+  words carry little signal but dominate the vocabulary, and the
+  incidence has one hyperedge per word.
+
+- coverage:
+
+  Keep the fewest most-frequent words whose combined corpus count
+  reaches this share of all tokens, a number in `(0, 1]`. `1`, the
+  default, keeps every word; `0.99` keeps the words carrying 99% of the
+  tokens. Applied together with `max_words` and `min_count`, the
+  strictest wins. Documents left with no tokens are dropped with a
+  `hypernets_dropped_documents` warning.
 
 - min_chars:
 
