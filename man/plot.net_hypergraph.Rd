@@ -2,11 +2,12 @@
 % Please edit documentation in R/hypergraph_plot.R
 \name{plot.net_hypergraph}
 \alias{plot.net_hypergraph}
-\title{Plot a hypergraph with hyperedges as blobs}
+\title{Plot a hypergraph with hyperedges as pebbles}
 \usage{
 \method{plot}{net_hypergraph}(
   x,
-  layout = c("spring", "circle"),
+  layout = c("bipartite", "spring", "circle"),
+  center = NULL,
   seed = 1L,
   color_by = NULL,
   linetype_by = NULL,
@@ -17,8 +18,11 @@
   dismantled = FALSE,
   ncol = NULL,
   node_size = 2.5,
+  detail = 5,
+  outline = "white",
   alpha = 0.45,
-  padding = 0.06,
+  linewidth = 1.1,
+  padding = 0.045,
   legend_title = NULL,
   ...
 )
@@ -28,19 +32,31 @@
 members. Draw a part of a large hypergraph by passing \code{\link[=hg_subset]{hg_subset()}}
 first.}
 
-\item{layout}{\code{"spring"} (default; \code{\link[cograph:layout_spring]{cograph::layout_spring()}} on the
-clique projection), \code{"circle"}, or a data.frame with \code{node}, \code{x} and
-\code{y} columns to reuse coordinates across panels.}
+\item{layout}{\code{"bipartite"} (default; a Fruchterman-Reingold layout of the
+star expansion, nodes and hyperedges placed together), \code{"spring"} (the
+same on the clique projection), \code{"circle"}, or a data.frame with \code{node},
+\code{x} and \code{y} columns to reuse node coordinates across panels (hyperedges
+then sit at the centroid of their members).}
 
-\item{seed}{Seed for the spring layout (default \code{1}).}
+\item{center}{Node names to place in the middle of the picture, such as
+the outcome states every hyperedge ends in. Under \code{"bipartite"} and
+\code{"spring"} they are held on a small ring at the centre while the rest of
+the layout arranges around them; under \code{"circle"} they sit inside the
+ring of the other nodes. Names that are not nodes of this hypergraph are
+skipped, so one vector can serve several subsets; an error is raised
+only when none of them is. \code{NULL} (default) places every node freely.
+Not used with a \code{layout} table.}
 
-\item{color_by}{Fill of the blobs: \code{NULL} (one colour), \code{"size"}
+\item{seed}{Seed for the force-directed layouts (default \code{1}); the
+caller's random number stream is left untouched.}
+
+\item{color_by}{Colour of the hulls: \code{NULL} (one colour), \code{"size"}
 (hyperedge cardinality, sequential scale), the name of a column in the
 edge metadata (\code{x$edge_data}), a vector named by hyperedge, or a vector
 with one value per hyperedge. Character or factor values get the
 Okabe-Ito palette; numeric values a sequential scale built from it.}
 
-\item{linetype_by}{Outline line type of the blobs, resolved like
+\item{linetype_by}{Outline line type of the hulls, resolved like
 \code{color_by}; discrete only.}
 
 \item{labels}{\code{TRUE} (default) writes the node names, \code{FALSE} writes
@@ -50,32 +66,38 @@ none, and a character vector named by node replaces the names shown.}
 
 \item{edge_labels}{Name the hyperedges on the figure. \code{FALSE} (default)
 writes nothing, \code{TRUE} writes the hyperedge names, or pass a vector named
-by hyperedge to write something else. A figure of the highest-ranked
-hyperedges is otherwise anonymous -- the ranking table names them and the
-picture does not -- and there are as many labels as hyperedges, so they
-fit where node names would not. Each label sits just outside the member
-furthest from the centre of the layout, which keeps it clear of the
-crowded overlap where the blobs meet.}
+by hyperedge to write something else. Under the bipartite layout each
+label sits at the hyperedge's own position; under the projection layouts,
+just outside the member furthest from the centre, clear of the crowded
+overlap.}
 
 \item{edge_label_size}{Text size for \code{edge_labels} (default \code{3}).}
 
 \item{dismantled}{Draw one panel per hyperedge instead of one figure with
-every blob overlaid (default \code{FALSE}). All panels share the layout, so
-positions are comparable, and each is titled with its hyperedge name.
-Overlaid blobs mislead: a blob is a hull drawn around its members, so two
-hyperedges sharing nothing still overlap on the page wherever their hulls
-sweep past each other. One panel each shows membership as it is. Needs
-the suggested \code{gridExtra}; returns a \code{gtable}, not a \code{ggplot}, so no
-further layers can be added and \code{edge_labels} does not apply.}
+every hull overlaid (default \code{FALSE}). All panels share the layout, so
+positions are comparable; each panel greys out the non-members and is
+titled with its hyperedge name. \code{edge_labels} does not apply.}
 
 \item{ncol}{Columns in the panel grid when \code{dismantled = TRUE}
 (default: roughly square).}
 
-\item{alpha}{Fill transparency of the blobs (default \code{0.45}).}
+\item{detail}{How much of the hull's shape the smoothing keeps: the width,
+in harmonics, of the Gaussian low-pass applied to the outline. The
+default \code{5} gives rounded, tapering petals; \code{3} is rounder still, \code{8}
+stays close to the members, and \code{Inf} draws the unsmoothed rounded hull.}
 
-\item{padding}{Blob radius around the member positions as a fraction of
-the layout extent (default \code{0.06}, the radius cograph draws when the
-layout fills its canvas; smaller values enlarge the canvas).}
+\item{outline}{Outline colour: \code{"white"} (default) draws seams that part
+overlapping hyperedges; \code{"fill"} outlines each hyperedge in its own
+colour (pair it with a lower \code{alpha}, e.g. \code{0.15}); any other colour is
+used as given.}
+
+\item{alpha}{Fill transparency (default \code{0.45}); the outline is always
+drawn at full strength.}
+
+\item{linewidth}{Width of the outlines (default \code{1.1}).}
+
+\item{padding}{Room around the member positions as a fraction of the layout
+extent (default \code{0.045}).}
 
 \item{legend_title}{Legend title for \code{color_by}; defaults to the
 selector's name.}
@@ -83,17 +105,20 @@ selector's name.}
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
-A ggplot object.
+A ggplot object (with \code{dismantled = TRUE}, one facet per
+hyperedge).
 }
 \description{
-Places the nodes with a graph layout of the clique projection and draws
-every hyperedge as a smooth translucent blob around its members, through
-\code{\link[cograph:plot_simplicial]{cograph::plot_simplicial()}}. Blobs can be coloured by hyperedge size, by
-a column of the edge metadata, or by any value supplied per hyperedge, and
-outlined with a line type by the same kinds of selector; hypernets adds the
-legend for that mapping. This is the drawing convention used for the
-decision and tribunal figures of Coupette et al. (2024). A hyperedge with
-a single member is drawn as its node alone.
+Draws every hyperedge as a smooth pebble around its members -- the convex
+hull of the members, widened by \code{padding} and with its corners smoothed
+away -- in a translucent fill parted from its neighbours by a white seam.
+Every member is guaranteed to lie inside its pebble. The default layout places the bipartite star expansion
+(nodes and hyperedges together), which gives each hyperedge a position of
+its own among its members; hulls fan out instead of piling onto shared
+nodes, and hyperedge labels sit at those positions. Hulls can be coloured
+by hyperedge size, by a column of the edge metadata, or by any value
+supplied per hyperedge, and outlined with a line type by the same kinds of
+selector. A hyperedge with a single member is drawn as its node alone.
 }
 \examples{
 dat <- data.frame(
@@ -101,10 +126,17 @@ dat <- data.frame(
   event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e4")
 )
 hg <- group_hypergraph(dat, "member", "event")
-plot(hg, color_by = "size")
+plot(hg, color_by = "size", edge_labels = TRUE)
+plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
+plot(hg, center = c("b", "c"))
+plot(hg, dismantled = TRUE)
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 hypergraphs. \emph{Philosophical Transactions of the Royal Society A},
 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
+
+Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph drawing by
+force-directed placement. \emph{Software: Practice and Experience}, 21(11),
+1129-1164. \doi{10.1002/spe.4380211102}
 }

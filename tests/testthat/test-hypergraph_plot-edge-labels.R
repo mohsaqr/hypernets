@@ -16,8 +16,8 @@ petal_hg <- function() {
 }
 
 edge_label_data <- function(p) {
-  hits <- Filter(function(l) is.data.frame(l$data) &&
-                   identical(names(l$data), c("x", "y", "label")), p$layers)
+  # hyperedge names are boxed labels; node names are plain text
+  hits <- Filter(function(l) inherits(l$geom, "GeomLabel"), p$layers)
   if (length(hits) == 0L) NULL else hits[[length(hits)]]$data
 }
 
