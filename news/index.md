@@ -1,5 +1,44 @@
 # Changelog
 
+## hypernets 0.4.7
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  hypergraph draws every hyperedge as a smooth *pebble*: the convex hull
+  of its members, widened by `padding` and low-pass filtered in the
+  Fourier domain, then pushed out along its normal so every member keeps
+  room inside. Overlapping pebbles are parted by white seams. New
+  `detail` (smoothing; default `5`, `Inf` for the unsmoothed rounded
+  hull) and `outline` (`"white"` seams, `"fill"` for an outline in the
+  pebble’s own colour, or any colour). Defaults are now `alpha = 0.45`,
+  `linewidth = 1.1` and `padding = 0.045`. Drawing is plain ggplot2;
+  [`cograph::plot_simplicial()`](https://sonsoles.me/cograph/reference/plot_simplicial.html)
+  is no longer used.
+
+- The default `layout` is now `"bipartite"`: nodes and hyperedges placed
+  together, so each hyperedge has a position of its own and its label
+  sits there. The force-directed layouts (`"bipartite"`, `"spring"`) use
+  a Fruchterman-Reingold placement computed in base R; on three test
+  hypergraphs it left 0.3, 0.3 and 0 non-member nodes inside a pebble on
+  average against 5, 1.8 and 10 for
+  [`cograph::layout_spring()`](https://sonsoles.me/cograph/reference/layout_spring.html).
+  `seed` no longer disturbs the caller’s random number stream.
+
+- New `center`: node names to place in the middle of the picture. Names
+  absent from the hypergraph are skipped, so one vector serves several
+  subsets. Centring costs some clarity, since convex pebbles around the
+  hyperedges must cover the middle.
+
+- `dismantled = TRUE` now returns one ggplot with a facet per hyperedge
+  (members inked, others grey) instead of a gridExtra `gtable`, and is
+  tested.
+
+- Hyperedge labels have dark text in a box bordered with the hyperedge’s
+  colour; a label whose own position falls outside its pebble moves to
+  the members’ centroid. A whole-number colour scale
+  (`color_by = "size"`) gets whole-number legend breaks. The same
+  variable given to `color_by` and `linetype_by` yields one merged
+  legend.
+
 ## hypernets 0.4.5
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a

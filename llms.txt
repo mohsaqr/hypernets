@@ -643,7 +643,7 @@ verbs.
   : Plot Method for net_honem
 
 - [`plot(`*`<net_hypergraph>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_hypergraph.md)
-  : Plot a hypergraph with hyperedges as blobs
+  : Plot a hypergraph with hyperedges as pebbles
 
 - [`plot(`*`<net_hypergraph_cluster>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_hypergraph_cluster.md)
   : Plot method for net_hypergraph_cluster

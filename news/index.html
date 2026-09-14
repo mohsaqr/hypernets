@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,14 @@
       <small>Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.7" id="hypernets-047">hypernets 0.4.7<a class="anchor" aria-label="anchor" href="#hypernets-047"></a></h2>
+<ul><li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a hypergraph draws every hyperedge as a smooth <em>pebble</em>: the convex hull of its members, widened by <code>padding</code> and low-pass filtered in the Fourier domain, then pushed out along its normal so every member keeps room inside. Overlapping pebbles are parted by white seams. New <code>detail</code> (smoothing; default <code>5</code>, <code>Inf</code> for the unsmoothed rounded hull) and <code>outline</code> (<code>"white"</code> seams, <code>"fill"</code> for an outline in the pebble’s own colour, or any colour). Defaults are now <code>alpha = 0.45</code>, <code>linewidth = 1.1</code> and <code>padding = 0.045</code>. Drawing is plain ggplot2; <code><a href="https://sonsoles.me/cograph/reference/plot_simplicial.html" class="external-link">cograph::plot_simplicial()</a></code> is no longer used.</p></li>
+<li><p>The default <code>layout</code> is now <code>"bipartite"</code>: nodes and hyperedges placed together, so each hyperedge has a position of its own and its label sits there. The force-directed layouts (<code>"bipartite"</code>, <code>"spring"</code>) use a Fruchterman-Reingold placement computed in base R; on three test hypergraphs it left 0.3, 0.3 and 0 non-member nodes inside a pebble on average against 5, 1.8 and 10 for <code><a href="https://sonsoles.me/cograph/reference/layout_spring.html" class="external-link">cograph::layout_spring()</a></code>. <code>seed</code> no longer disturbs the caller’s random number stream.</p></li>
+<li><p>New <code>center</code>: node names to place in the middle of the picture. Names absent from the hypergraph are skipped, so one vector serves several subsets. Centring costs some clarity, since convex pebbles around the hyperedges must cover the middle.</p></li>
+<li><p><code>dismantled = TRUE</code> now returns one ggplot with a facet per hyperedge (members inked, others grey) instead of a gridExtra <code>gtable</code>, and is tested.</p></li>
+<li><p>Hyperedge labels have dark text in a box bordered with the hyperedge’s colour; a label whose own position falls outside its pebble moves to the members’ centroid. A whole-number colour scale (<code>color_by = "size"</code>) gets whole-number legend breaks. The same variable given to <code>color_by</code> and <code>linetype_by</code> yields one merged legend.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.5" id="hypernets-045">hypernets 0.4.5<a class="anchor" aria-label="anchor" href="#hypernets-045"></a></h2>
 <ul><li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a hypergraph gains <code>dismantled</code> and <code>ncol</code>, drawing one panel per hyperedge on a shared layout, each titled with its hyperedge name. Overlaid blobs mislead: a blob is a hull around its members, so two hyperedges sharing nothing still overlap on the page wherever their hulls sweep past each other. Needs the suggested <code>gridExtra</code> and returns a <code>gtable</code>, so <code>edge_labels</code> does not apply. <strong>This one has no unit tests yet.</strong></p></li>
