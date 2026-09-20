@@ -307,7 +307,8 @@ build_hypa <- function(data, order = 2L, alpha = 0.05, min_count = 5L,
   order <- sort(as.integer(order))
   min_count <- as.integer(min_count)
 
-  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
+  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE,
+                                verb = "build_hypa")
   if (length(trajectories) == 0L) {
     stop("No valid trajectories (each must have at least 2 states)")
   }

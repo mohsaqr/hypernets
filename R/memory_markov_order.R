@@ -269,7 +269,8 @@ markov_order_test <- function(data, max_order = 3L, n_perm = 500L, alpha = 0.05,
     data <- data$sequence_data
   }
 
-  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
+  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE,
+                                verb = "markov_order_test")
   n_seqs <- length(trajectories)
   stopifnot("need >= 1 sequence after parsing" = n_seqs >= 1L)
   seq_lens <- vapply(trajectories, length, integer(1L))
@@ -406,6 +407,58 @@ print.net_markov_order_group <- function(x, ...) {
     cat("\n")
   }
   invisible(x)
+}
+
+
+#' Tidy accessor for a grouped Markov order test
+#'
+#' @description
+#' The per-group test tables stacked into one data.frame, with a `group`
+#' column naming the group each row came from. This is the supported way to
+#' read a `net_markov_order_group`; the print method shows each group in turn
+#' but a comparison across groups needs one table.
+#'
+#' @param x A `net_markov_order_group`, as returned by
+#'   [markov_order_test()] on a `netobject_group`.
+#' @param row.names,optional,... Passed on for S3 consistency; unused.
+#' @param what `"orders"` (default) for one row per group and order, or
+#'   `"null"` for the permutation null draws, one row per group, order and
+#'   replicate.
+#' @param top Keep only the first `top` rows, applied last.
+#' @return A base `data.frame`. For `what = "orders"`, one row per group and
+#'   order, with `group` first and then the columns of
+#'   [as.data.frame.net_markov_order()]. For `what = "null"`, one row per
+#'   group, order and replicate with columns `group`, `order`, `replicate`,
+#'   `g2`. Returns a zero-row frame with those columns when the group is
+#'   empty.
+#' @examples
+#' seqs <- list(c("a", "b", "a", "c"), c("b", "a", "c", "a"))
+#' fit <- markov_order_test(seqs, max_order = 2L, n_perm = 20L, seed = 1L)
+#' as.data.frame(fit)
+#' @export
+as.data.frame.net_markov_order_group <- function(x, row.names = NULL,
+                                                 optional = FALSE, ...,
+                                                 what = c("orders", "null"),
+                                                 top = NULL) {
+  what <- match.arg(what)
+  groups <- names(x) %||% as.character(seq_along(x))
+  parts <- Map(function(fit, label) {
+    tab <- as.data.frame(fit, what = what)
+    if (nrow(tab) == 0L) return(NULL)
+    cbind(group = rep.int(label, nrow(tab)), tab, stringsAsFactors = FALSE)
+  }, x, groups)
+  out <- do.call(rbind, parts)
+  if (is.null(out)) {
+    out <- if (identical(what, "orders")) {
+      data.frame(group = character(0), stringsAsFactors = FALSE)
+    } else {
+      data.frame(group = character(0), order = integer(0),
+                 replicate = integer(0), g2 = numeric(0),
+                 stringsAsFactors = FALSE)
+    }
+  }
+  rownames(out) <- NULL
+  .ho_top(out, top)
 }
 
 

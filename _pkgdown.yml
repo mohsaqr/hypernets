@@ -17,9 +17,11 @@ reference:
   - build_hypa
   - build_mogen
   - hon_centrality
+  - hon_outcome
   - bootstrap_hon
   - compare_hon
   - markov_order_test
+  - markov_stability
   - path_dependence
   - mogen_transitions
   - path_counts
@@ -103,6 +105,7 @@ reference:
   - hg_centrality
   - hg_cluster
   - hg_keywords
+  - hg_sequences
   - hg_relations
   - hg_topic_sizes
   - hg_topic_quality

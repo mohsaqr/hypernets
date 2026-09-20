@@ -36,7 +36,9 @@ first.}
 star expansion, nodes and hyperedges placed together), \code{"spring"} (the
 same on the clique projection), \code{"circle"}, or a data.frame with \code{node},
 \code{x} and \code{y} columns to reuse node coordinates across panels (hyperedges
-then sit at the centroid of their members).}
+then sit at the centroid of their members). The two force-directed
+layouts place each connected component separately and pack the results;
+a \code{layout} table is used exactly as given.}
 
 \item{center}{Node names to place in the middle of the picture, such as
 the outcome states every hyperedge ends in. Under \code{"bipartite"} and
@@ -71,7 +73,10 @@ label sits at the hyperedge's own position; under the projection layouts,
 just outside the member furthest from the centre, clear of the crowded
 overlap.}
 
-\item{edge_label_size}{Text size for \code{edge_labels} (default \code{3}).}
+\item{edge_label_size}{Text size for \code{edge_labels} (default \code{3}), and for
+the panel titles when \code{dismantled = TRUE}. A title is never cut to fit
+its panel -- a clipped hyperedge name reads as a different hyperedge --
+so lower this, or \code{ncol}, if long names collide.}
 
 \item{dismantled}{Draw one panel per hyperedge instead of one figure with
 every hull overlaid (default \code{FALSE}). All panels share the layout, so
@@ -97,7 +102,9 @@ drawn at full strength.}
 \item{linewidth}{Width of the outlines (default \code{1.1}).}
 
 \item{padding}{Room around the member positions as a fraction of the layout
-extent (default \code{0.045}).}
+extent (default \code{0.045}). It also sets how far apart the layout packs
+disconnected components, so that two components' pebbles never touch and
+imply a member they do not share.}
 
 \item{legend_title}{Legend title for \code{color_by}; defaults to the
 selector's name.}
@@ -120,6 +127,16 @@ by hyperedge size, by a column of the edge metadata, or by any value
 supplied per hyperedge, and outlined with a line type by the same kinds of
 selector. A hyperedge with a single member is drawn as its node alone.
 }
+\details{
+A hypergraph that falls into several disconnected pieces is laid out one
+piece at a time and the pieces are then packed into a roughly square frame.
+A force-directed layout has no force at all between two disconnected
+components -- they repel and nothing pulls back -- so laying the whole
+hypergraph out at once lets a stray hyperedge drift to the edge of the
+picture and set the scale for everything else, leaving the connected
+structure a speck in the middle. Packing keeps every component at its own
+size and the frame spent on structure.
+}
 \examples{
 dat <- data.frame(
   member = c("a", "b", "c", "b", "c", "d", "d", "e", "f"),
@@ -130,6 +147,14 @@ plot(hg, color_by = "size", edge_labels = TRUE)
 plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
 plot(hg, dismantled = TRUE)
+
+# disconnected pieces are laid out separately and packed
+apart <- group_hypergraph(
+  data.frame(member = c("a", "b", "c", "b", "c", "d", "x", "y", "z"),
+             event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3")),
+  "member", "event"
+)
+plot(apart, color_by = "size")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

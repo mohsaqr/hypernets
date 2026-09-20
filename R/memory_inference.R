@@ -59,7 +59,7 @@
       "`time` requires `action`"  = is.null(time)
     )
     data <- .coerce_sequence_input(data)
-    trajectories <- .hon_parse_input(data,
+    trajectories <- .hon_parse_input(data, verb = "bootstrap_hon",
                                      collapse_repeats = FALSE)
   }
   if (isTRUE(collapse_repeats)) {

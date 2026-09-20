@@ -264,19 +264,27 @@ test_that("accessors reject unknown what = and bad filters", {
 })
 
 test_that("every exported net_* result class has an as.data.frame method", {
-  # The taxonomy contract: no result object forces the user to reach in
-  # with $. If a new net_* class appears without an accessor, this fails.
-  methods <- as.character(utils::methods("as.data.frame"))
-  covered <- sub("^as\\.data\\.frame\\.", "", methods)
-  expected <- c(
-    "net_hon", "net_hon_boot", "net_hon_compare", "net_honem", "net_hypa",
-    "net_markov_order", "net_mogen", "net_path_dependence",
-    "net_simplicial", "net_q_analysis", "net_persistent_homology",
-    "net_persistence_landscape",
-    "net_hypergraph", "net_hypergraph_cluster", "net_hypergraph_measures",
-    "net_hypergraph_transduction"
-  )
-  expect_setequal(intersect(expected, covered), expected)
+  # The taxonomy contract: no result object forces the user to reach in with $.
+  #
+  # This used to compare against a hand-maintained `expected` list, which meant
+  # a NEW net_* class shipped without an accessor was silently not covered --
+  # the test claimed to catch that and could not. The class list is now
+  # DISCOVERED from the package itself: every net_* class has a print method by
+  # the same taxonomy, so the print methods enumerate the classes. Methods are
+  # read out of hypernets' own namespace because honets/Nestimate/cograph
+  # register colliding S3 methods and whichever loads last would otherwise win.
+  # NAMESPACE is the package's own declaration of which classes it ships, and
+  # it reads the same under devtools::load_all() and an installed build (the
+  # S3 methods table does not -- load_all populates it lazily).
+  declared <- function(generic) {
+    lines <- readLines(testthat::test_path("..", "..", "NAMESPACE"))
+    hits <- grep(sprintf("^S3method\\(%s,net_", generic), lines, value = TRUE)
+    sub(sprintf("^S3method\\(%s,(net_[A-Za-z0-9_.]+)\\)$", generic), "\\1", hits)
+  }
+  classes <- sort(unique(declared("print")))
+  covered <- declared("as.data.frame")
+  expect_true(length(classes) >= 17L)   # guard against discovering nothing
+  expect_setequal(intersect(classes, covered), classes)
 })
 
 # ---- top = ---------------------------------------------------------------

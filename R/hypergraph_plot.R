@@ -11,8 +11,9 @@
 # one shared [0, 1] frame: `nodes` (node, x, y) and `edges` (hyperedge, x, y).
 # Under a projection layout a hyperedge has no vertex of its own and sits at
 # the centroid of its members. Both axes are scaled by the same factor so the
-# layout keeps its shape.
-.thg_positions <- function(hg, layout, seed, center = NULL) {
+# layout keeps its shape. `padding` is the pebble reach the packing has to
+# leave between disconnected components.
+.thg_positions <- function(hg, layout, seed, center = NULL, padding = 0.045) {
   inc <- as.matrix(hg$incidence != 0)
   n <- nrow(inc)
   m <- ncol(inc)
@@ -35,14 +36,16 @@
                         dimnames = rep(list(paste0("v", seq_len(n + m))), 2L))
     adjacency[seq_len(n), n + seq_len(m)] <- inc
     adjacency <- adjacency + t(adjacency)
-    xy <- .thg_layout_fr(adjacency, seed = seed,
-                         pinned = c(centred, rep(FALSE, m)))
+    xy <- .thg_layout_packed(adjacency, seed = seed,
+                             pinned = c(centred, rep(FALSE, m)),
+                             padding = padding)
   } else {
     layout <- match.arg(layout, c("spring", "circle"))
     projection <- as.matrix(hg_project(hg, method = "clique",
                                        weighted = FALSE, what = "matrix"))
     xy <- if (identical(layout, "spring")) {
-      .thg_layout_fr((projection != 0) * 1, seed = seed, pinned = centred)
+      .thg_layout_packed((projection != 0) * 1, seed = seed, pinned = centred,
+                         padding = padding)
     } else if (any(centred)) {
       # the centred nodes on a small inner ring, the rest on the outer ring
       .thg_ring(centred, radius = 0.25) + .thg_ring(!centred)
@@ -70,6 +73,120 @@
   )
 }
 
+# Force-directed placement, component by component. Fruchterman-Reingold
+# repels every pair but attracts only along edges, so two disconnected
+# components feel repulsion and nothing else: they drift apart for as long as
+# the temperature allows, and because the frame is then scaled by its widest
+# span, the islands set the scale and the connected structure is squeezed into
+# a corner of it. Laying each component out on its own and packing the boxes
+# afterwards keeps every component at its own natural size and spends the
+# frame on structure instead of on empty space between islands. One component
+# is the ordinary case and goes straight to the placement.
+.thg_layout_packed <- function(adjacency, seed = 1L,
+                               pinned = rep(FALSE, nrow(adjacency)),
+                               padding = 0.045) {
+  component <- .thg_components(adjacency)
+  if (max(component) == 1L) {
+    return(.thg_layout_fr(adjacency, seed = seed, pinned = pinned))
+  }
+  parts <- lapply(seq_len(max(component)), function(k) {
+    keep <- component == k
+    xy <- if (sum(keep) == 1L) {
+      matrix(0, 1L, 2L)
+    } else {
+      .thg_layout_fr(adjacency[keep, keep, drop = FALSE], seed = seed,
+                     pinned = pinned[keep])
+    }
+    sweep(xy, 2L, apply(xy, 2L, min))
+  })
+  size <- t(vapply(parts, function(p) apply(p, 2L, max), numeric(2L)))
+  # The gap between components has to outrun the pebbles, whose reach is
+  # `padding` of the finished extent -- but that extent is itself what the gap
+  # sets, so the two are settled by iteration from one ideal edge length. It
+  # converges from below: a wider gap only widens the extent sub-linearly.
+  gap <- Reduce(function(g, pass) {
+    extent <- max(apply(.thg_pack(parts, size, g, component), 2L,
+                        function(z) diff(range(z))))
+    max(1, 2.5 * padding * extent)
+  }, seq_len(3L), init = 1)
+  .thg_pack(parts, size, gap, component)
+}
+
+# Place the component layouts at their packed offsets and restore the original
+# vertex order. `parts` is in component order, and each part holds its
+# component's vertices in increasing original index, which is exactly how
+# split() groups them.
+.thg_pack <- function(parts, size, gap, component) {
+  offset <- .thg_shelf_offsets(size, gap)
+  stacked <- do.call(rbind, Map(function(p, k) sweep(p, 2L, offset[k, ], "+"),
+                                parts, seq_along(parts)))
+  rows <- unlist(split(seq_along(component), component), use.names = FALSE)
+  stacked[order(rows), , drop = FALSE]
+}
+
+# Connected components of an undirected adjacency matrix as labels 1..K.
+# Label propagation: each vertex repeatedly takes the smallest label in its
+# closed neighbourhood, settling after as many passes as the graph is wide.
+# Graph traversal is the justified exception to the no-loop rule.
+.thg_components <- function(adjacency) {
+  neighbourhood <- adjacency != 0
+  diag(neighbourhood) <- TRUE
+  label <- seq_len(nrow(adjacency))
+  repeat {
+    settled <- apply(neighbourhood, 1L, function(near) min(label[near]))
+    if (identical(settled, label)) break
+    label <- settled
+  }
+  match(label, sort(unique(label)))
+}
+
+# Shelf packing of the component boxes into a roughly square frame: boxes are
+# laid tallest first along a shelf until the next one would overrun the side
+# of a square of the same total area, then a new shelf starts above. Shelves
+# are centred horizontally and their boxes centred vertically, so the packing
+# reads as one figure rather than a ragged staircase. A square frame is what
+# makes coord_equal() spend the whole panel on the picture. Returns one (x, y)
+# offset per box, in the order the boxes were given.
+.thg_shelf_offsets <- function(size, gap) {
+  wide <- size[, 1L] + gap
+  high <- size[, 2L] + gap
+  tall <- order(-high, -wide)
+  target <- max(sqrt(sum(wide * high)), max(wide))
+  # a running total is sequential by nature, so the shelf a box lands on is
+  # carried forward by Reduce() rather than recomputed
+  running <- Reduce(function(state, w) {
+    if (state[["used"]] > 0 && state[["used"]] + w > target) {
+      c(shelf = state[["shelf"]] + 1, used = w)
+    } else {
+      c(shelf = state[["shelf"]], used = state[["used"]] + w)
+    }
+  }, wide[tall], init = c(shelf = 1, used = 0), accumulate = TRUE)[-1L]
+  shelf <- vapply(running, function(s) s[["shelf"]], numeric(1L))
+  index <- match(shelf, sort(unique(shelf)))
+  shelf_height <- vapply(split(high[tall], index), max, numeric(1L))
+  left <- stats::ave(wide[tall], index, FUN = function(w) cumsum(w) - w)
+  shelf_width <- stats::ave(wide[tall], index, FUN = sum)
+  offset <- matrix(0, nrow(size), 2L)
+  offset[tall, 1L] <- left + (target - shelf_width) / 2 + gap / 2
+  offset[tall, 2L] <- cumsum(c(0, shelf_height))[index] +
+    (shelf_height[index] - high[tall]) / 2 + gap / 2
+  offset
+}
+
+# Distance beyond which two vertices stop repelling, in ideal edge lengths
+# (k = 1 here, the layout being spread over an area of n). Unbounded
+# repulsion leaves a weakly attached cluster no equilibrium: it is pushed by
+# every vertex in the graph and pulled back by one edge, so it settles roughly
+# n^(1/3) ideal lengths out and the hyperedge bridging it stretches across the
+# page. Cutting repulsion off beyond a few ideal lengths is Fruchterman and
+# Reingold's own grid variant, whose whole point is that distant pairs
+# contribute nothing. On a core-plus-satellite fixture over 30 seeds, 2.5
+# brought the satellite from 0.84 of the frame away to 0.70, widened the core
+# from 0.31 of the frame to 0.43 and narrowed the bridging pebble from 0.43 to
+# 0.37; it also left the fewest non-members inside a pebble of the values
+# tried (0.20 per layout against 0.32 uncut). See tmp/measure_layout.R.
+.thg_repulsion_cutoff <- 2.5
+
 # Fruchterman-Reingold placement of an undirected 0/1 adjacency matrix. Every
 # pair repels with force k^2 / d and every edge attracts with d^2 / k (k = 1),
 # each vertex moving at most the current temperature, which cools linearly.
@@ -81,7 +198,8 @@
 # vertices are held on a small ring at the origin and never move; the rest of
 # the layout is then wrapped around them by .thg_surround().
 .thg_layout_fr <- function(adjacency, seed = 1L, n_iter = 500L,
-                           pinned = rep(FALSE, nrow(adjacency))) {
+                           pinned = rep(FALSE, nrow(adjacency)),
+                           cutoff = .thg_repulsion_cutoff) {
   n <- nrow(adjacency)
   had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
   if (had_seed) old_seed <- get(".Random.seed", envir = globalenv())
@@ -103,7 +221,7 @@
     dy <- outer(state$y, state$y, "-")
     d <- pmax(sqrt(dx^2 + dy^2), 0.01)
     # both forces divided by d, so multiplying by (dx, dy) gives the vector
-    force <- 1 / d^2 - adjacency * d
+    force <- (d < cutoff) / d^2 - adjacency * d
     diag(force) <- 0
     move_x <- rowSums(dx * force)
     move_y <- rowSums(dy * force)
@@ -299,6 +417,15 @@
 #' supplied per hyperedge, and outlined with a line type by the same kinds of
 #' selector. A hyperedge with a single member is drawn as its node alone.
 #'
+#' A hypergraph that falls into several disconnected pieces is laid out one
+#' piece at a time and the pieces are then packed into a roughly square frame.
+#' A force-directed layout has no force at all between two disconnected
+#' components -- they repel and nothing pulls back -- so laying the whole
+#' hypergraph out at once lets a stray hyperedge drift to the edge of the
+#' picture and set the scale for everything else, leaving the connected
+#' structure a speck in the middle. Packing keeps every component at its own
+#' size and the frame spent on structure.
+#'
 #' @param x A `net_hypergraph` with at least one hyperedge of two or more
 #'   members. Draw a part of a large hypergraph by passing [hg_subset()]
 #'   first.
@@ -306,7 +433,9 @@
 #'   star expansion, nodes and hyperedges placed together), `"spring"` (the
 #'   same on the clique projection), `"circle"`, or a data.frame with `node`,
 #'   `x` and `y` columns to reuse node coordinates across panels (hyperedges
-#'   then sit at the centroid of their members).
+#'   then sit at the centroid of their members). The two force-directed
+#'   layouts place each connected component separately and pack the results;
+#'   a `layout` table is used exactly as given.
 #' @param center Node names to place in the middle of the picture, such as
 #'   the outcome states every hyperedge ends in. Under `"bipartite"` and
 #'   `"spring"` they are held on a small ring at the centre while the rest of
@@ -336,7 +465,10 @@
 #'   label sits at the hyperedge's own position; under the projection layouts,
 #'   just outside the member furthest from the centre, clear of the crowded
 #'   overlap.
-#' @param edge_label_size Text size for `edge_labels` (default `3`).
+#' @param edge_label_size Text size for `edge_labels` (default `3`), and for
+#'   the panel titles when `dismantled = TRUE`. A title is never cut to fit
+#'   its panel -- a clipped hyperedge name reads as a different hyperedge --
+#'   so lower this, or `ncol`, if long names collide.
 #' @param labels `TRUE` (default) writes the node names, `FALSE` writes
 #'   none, and a character vector named by node replaces the names shown.
 #' @param label_size,node_size Text and point sizes.
@@ -352,7 +484,9 @@
 #'   drawn at full strength.
 #' @param linewidth Width of the outlines (default `1.1`).
 #' @param padding Room around the member positions as a fraction of the layout
-#'   extent (default `0.045`).
+#'   extent (default `0.045`). It also sets how far apart the layout packs
+#'   disconnected components, so that two components' pebbles never touch and
+#'   imply a member they do not share.
 #' @param legend_title Legend title for `color_by`; defaults to the
 #'   selector's name.
 #' @param ... Unused; for S3 consistency.
@@ -375,6 +509,14 @@
 #' plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 #' plot(hg, center = c("b", "c"))
 #' plot(hg, dismantled = TRUE)
+#'
+#' # disconnected pieces are laid out separately and packed
+#' apart <- group_hypergraph(
+#'   data.frame(member = c("a", "b", "c", "b", "c", "d", "x", "y", "z"),
+#'              event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3")),
+#'   "member", "event"
+#' )
+#' plot(apart, color_by = "size")
 #' @export
 plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
                                 center = NULL, seed = 1L, color_by = NULL,
@@ -438,7 +580,7 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
     ifelse(is.na(replacement), x$nodes, as.character(replacement))
   }
 
-  pos <- .thg_positions(x, layout, seed, center)
+  pos <- .thg_positions(x, layout, seed, center, padding)
   edge_names <- pos$edges$hyperedge
   drawn <- which(drawable)
   # largest hyperedges first, so a small pebble is never buried under a big one
@@ -523,10 +665,16 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
         ggplot2::vars(.data$hyperedge),
         ncol = as.integer(ncol %||% ceiling(sqrt(length(drawn))))
       )
+    # strip.clip = "off": a panel title is a hyperedge name, and ggplot2
+    # otherwise cuts it to the panel's width, which silently turns
+    # "32006L0123" into "2006L012" -- an identifier that reads as a different
+    # hyperedge. Letting a long name overflow its strip is visible and the
+    # reader can act on it; a truncated one is not.
     return(.thg_hull_theme(p) +
-             ggplot2::theme(strip.text = ggplot2::element_text(
-               size = edge_label_size * 3, face = "bold"
-             )))
+             ggplot2::theme(strip.clip = "off",
+                            strip.text = ggplot2::element_text(
+                              size = edge_label_size * 3, face = "bold"
+                            )))
   }
 
   p <- .thg_hull_layers(ggplot2::ggplot(), hulls, fill_map, ltype_map, alpha,

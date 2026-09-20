@@ -259,7 +259,8 @@ build_mogen <- function(data, max_order = 5L, criterion = c("aic", "bic", "lrt")
   )
   max_order <- as.integer(max_order)
 
-  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
+  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE,
+                                verb = "build_mogen")
   if (length(trajectories) == 0L) {
     stop("No valid trajectories (each must have at least 2 states)")
   }

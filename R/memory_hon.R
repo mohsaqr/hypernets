@@ -48,7 +48,46 @@
 #' @param collapse_repeats Logical. Remove adjacent duplicates.
 #' @return List of character vectors.
 #' @noRd
-.hon_parse_input <- function(data, collapse_repeats = FALSE) {
+# One event per row (long) or one trajectory per row (wide)? Nothing in a
+# data.frame's shape distinguishes them, and this parser reads every frame as
+# wide. Handed a long table it therefore treated each ROW as a trajectory and
+# silently promoted actor ids and timestamps to states -- a two-actor,
+# four-turn table became states "1", "2", "3", "4", "A", "B", "C", "s1", "s2"
+# and eight trajectories instead of three states and two. No error, no
+# warning, a confidently wrong model.
+#
+# The canonical long column names are the argument names the memory verbs
+# already use, so their presence is a reliable signal: a frame carrying two or
+# more of them, passed where a wide frame is expected, is a long table whose
+# `action`/`actor`/`time` arguments were forgotten. Refusing is deliberate --
+# routing it automatically would be a guess about the caller's intent, and the
+# verbs that cannot take those arguments at all have no route to offer.
+.HON_LONG_COLUMNS <- c("action", "actor", "time")
+
+.hon_guard_long_format <- function(data, verb = NULL) {
+  if (!is.data.frame(data)) return(invisible(NULL))
+  found <- .HON_LONG_COLUMNS[.HON_LONG_COLUMNS %in% tolower(names(data))]
+  if (length(found) < 2L) return(invisible(NULL))
+  takes_long <- is.null(verb) || verb %in% c("build_hon", "bootstrap_hon",
+                                             "compare_hon")
+  remedy <- if (takes_long) {
+    paste0("pass the long-format arguments, e.g. ",
+           "`action = \"action\", actor = \"actor\", time = \"time\"`")
+  } else {
+    paste0("this verb reads wide sequences only -- split the table first, ",
+           "e.g. `split(d$action, d$actor)`")
+  }
+  stop(errorCondition(
+    sprintf(paste0("`data` looks like a long event table (columns %s), but it ",
+                   "would be read as wide -- one trajectory per row, so actor ",
+                   "ids and times would become states. To use it, %s."),
+            paste(sprintf("`%s`", found), collapse = ", "), remedy),
+    class = c("hypernets_long_format", "hypernets_bad_input"), call = NULL))
+}
+
+.hon_parse_input <- function(data, collapse_repeats = FALSE,
+                             verb = NULL) {
+  .hon_guard_long_format(data, verb)
   if (is.matrix(data) && !is.numeric(data)) {
     data <- as.data.frame(data, stringsAsFactors = FALSE)
   }
@@ -1185,7 +1224,8 @@ build_hon <- function(data, max_order = 5L, min_freq = 1L,
   min_freq <- as.integer(min_freq)
 
   # --- Parse input ---
-  trajectories <- .hon_parse_input(data, collapse_repeats = collapse_repeats)
+  trajectories <- .hon_parse_input(data, collapse_repeats = collapse_repeats,
+                             verb = "build_hon")
 
   if (length(trajectories) == 0L) {
     stop("No valid trajectories (each must have at least 2 states)")
