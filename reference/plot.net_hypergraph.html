@@ -25,7 +25,7 @@ selector. A hyperedge with a single member is drawn as its node alone."></head><
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,7 +114,9 @@ first.</p></dd>
 star expansion, nodes and hyperedges placed together), <code>"spring"</code> (the
 same on the clique projection), <code>"circle"</code>, or a data.frame with <code>node</code>,
 <code>x</code> and <code>y</code> columns to reuse node coordinates across panels (hyperedges
-then sit at the centroid of their members).</p></dd>
+then sit at the centroid of their members). The two force-directed
+layouts place each connected component separately and pack the results;
+a <code>layout</code> table is used exactly as given.</p></dd>
 
 
 <dt id="arg-center">center<a class="anchor" aria-label="anchor" href="#arg-center"></a></dt>
@@ -165,7 +167,10 @@ overlap.</p></dd>
 
 
 <dt id="arg-edge-label-size">edge_label_size<a class="anchor" aria-label="anchor" href="#arg-edge-label-size"></a></dt>
-<dd><p>Text size for <code>edge_labels</code> (default <code>3</code>).</p></dd>
+<dd><p>Text size for <code>edge_labels</code> (default <code>3</code>), and for
+the panel titles when <code>dismantled = TRUE</code>. A title is never cut to fit
+its panel – a clipped hyperedge name reads as a different hyperedge –
+so lower this, or <code>ncol</code>, if long names collide.</p></dd>
 
 
 <dt id="arg-dismantled">dismantled<a class="anchor" aria-label="anchor" href="#arg-dismantled"></a></dt>
@@ -205,7 +210,9 @@ drawn at full strength.</p></dd>
 
 <dt id="arg-padding">padding<a class="anchor" aria-label="anchor" href="#arg-padding"></a></dt>
 <dd><p>Room around the member positions as a fraction of the layout
-extent (default <code>0.045</code>).</p></dd>
+extent (default <code>0.045</code>). It also sets how far apart the layout packs
+disconnected components, so that two components' pebbles never touch and
+imply a member they do not share.</p></dd>
 
 
 <dt id="arg-legend-title">legend_title<a class="anchor" aria-label="anchor" href="#arg-legend-title"></a></dt>
@@ -221,6 +228,17 @@ selector's name.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A ggplot object (with <code>dismantled = TRUE</code>, one facet per
 hyperedge).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>A hypergraph that falls into several disconnected pieces is laid out one
+piece at a time and the pieces are then packed into a roughly square frame.
+A force-directed layout has no force at all between two disconnected
+components – they repel and nothing pulls back – so laying the whole
+hypergraph out at once lets a stray hyperedge drift to the edge of the
+picture and set the scale for everything else, leaving the connected
+structure a speck in the middle. Packing keeps every component at its own
+size and the frame spent on structure.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -247,6 +265,15 @@ force-directed placement. <em>Software: Practice and Experience</em>, 21(11),
 <span class="r-plt img"><img src="plot.net_hypergraph-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">hg</span>, dismantled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.net_hypergraph-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># disconnected pieces are laid out separately and packed</span></span></span>
+<span class="r-in"><span><span class="va">apart</span> <span class="op">&lt;-</span> <span class="fu"><a href="group_hypergraph.html">group_hypergraph</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>member <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"d"</span>, <span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>             event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"e1"</span>, <span class="st">"e1"</span>, <span class="st">"e1"</span>, <span class="st">"e2"</span>, <span class="st">"e2"</span>, <span class="st">"e2"</span>, <span class="st">"e3"</span>, <span class="st">"e3"</span>, <span class="st">"e3"</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="st">"member"</span>, <span class="st">"event"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">apart</span>, color_by <span class="op">=</span> <span class="st">"size"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.net_hypergraph-5.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

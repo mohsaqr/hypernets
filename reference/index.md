@@ -20,12 +20,16 @@ A node is a state plus the memory of how it was reached.
   : Build Multi-Order Generative Model (MOGen)
 - [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
   : Higher-order centralities with first-order projection
+- [`hon_outcome()`](https://mohsaqr.github.io/hypernets/reference/hon_outcome.md)
+  : Relate higher-order structure to an actor-level outcome
 - [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
   : Bootstrap inference for higher-order network rules
 - [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
   : Two-sample permutation comparison of higher-order network rules
 - [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
   : Test the Markov order of a sequential process
+- [`markov_stability()`](https://mohsaqr.github.io/hypernets/reference/markov_stability.md)
+  : Markov Stability of a First- or Higher-Order Chain
 - [`path_dependence()`](https://mohsaqr.github.io/hypernets/reference/path_dependence.md)
   : Per-Context Path Dependence at Order k
 - [`mogen_transitions()`](https://mohsaqr.github.io/hypernets/reference/mogen_transitions.md)
@@ -222,6 +226,8 @@ verbs.
   [`plot(`*`<hypernets_keywords>`*`)`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   [`hypergraph_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
   : Characteristic words (keywords) per cluster
+- [`hg_sequences()`](https://mohsaqr.github.io/hypernets/reference/hg_sequences.md)
+  : Per-actor state sequences from a clustered corpus
 - [`hg_relations()`](https://mohsaqr.github.io/hypernets/reference/hg_relations.md)
   [`hypergraph_relations()`](https://mohsaqr.github.io/hypernets/reference/hg_relations.md)
   : Relations between topics: a weighted network of shared vocabulary
@@ -310,8 +316,14 @@ verbs.
 
   Print method for `net_markov_order_group`
 
+- [`print(`*`<net_markov_stability>`*`)`](https://mohsaqr.github.io/hypernets/reference/print.net_markov_stability.md)
+  : Print Method for net_markov_stability
+
 - [`print(`*`<net_mogen>`*`)`](https://mohsaqr.github.io/hypernets/reference/print.net_mogen.md)
   : Print Method for net_mogen
+
+- [`print(`*`<net_outcome>`*`)`](https://mohsaqr.github.io/hypernets/reference/print.net_outcome.md)
+  : Print method for net_outcome
 
 - [`print(`*`<net_path_dependence>`*`)`](https://mohsaqr.github.io/hypernets/reference/print.net_path_dependence.md)
   :
@@ -362,8 +374,14 @@ verbs.
 - [`summary(`*`<net_markov_order>`*`)`](https://mohsaqr.github.io/hypernets/reference/summary.net_markov_order.md)
   : Summary Method for net_markov_order
 
+- [`summary(`*`<net_markov_stability>`*`)`](https://mohsaqr.github.io/hypernets/reference/summary.net_markov_stability.md)
+  : Summary Method for net_markov_stability
+
 - [`summary(`*`<net_mogen>`*`)`](https://mohsaqr.github.io/hypernets/reference/summary.net_mogen.md)
   : Summary Method for net_mogen
+
+- [`summary(`*`<net_outcome>`*`)`](https://mohsaqr.github.io/hypernets/reference/summary.net_outcome.md)
+  : Summary method for net_outcome
 
 - [`summary(`*`<net_path_dependence>`*`)`](https://mohsaqr.github.io/hypernets/reference/summary.net_path_dependence.md)
   :
@@ -417,8 +435,14 @@ verbs.
 - [`plot(`*`<net_markov_order>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_markov_order.md)
   : Plot Method for net_markov_order
 
+- [`plot(`*`<net_markov_stability>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_markov_stability.md)
+  : Plot Method for net_markov_stability
+
 - [`plot(`*`<net_mogen>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_mogen.md)
   : Plot Method for net_mogen
+
+- [`plot(`*`<net_outcome>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_outcome.md)
+  : Plot method for net_outcome
 
 - [`plot(`*`<net_path_dependence>`*`)`](https://mohsaqr.github.io/hypernets/reference/plot.net_path_dependence.md)
   :
@@ -470,8 +494,17 @@ verbs.
 - [`as.data.frame(`*`<net_markov_order>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_order.md)
   : Coerce a net_markov_order to a tidy table
 
+- [`as.data.frame(`*`<net_markov_order_group>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_order_group.md)
+  : Tidy accessor for a grouped Markov order test
+
+- [`as.data.frame(`*`<net_markov_stability>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_stability.md)
+  : Tidy accessor for net_markov_stability
+
 - [`as.data.frame(`*`<net_mogen>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_mogen.md)
   : Coerce a net_mogen to a tidy table
+
+- [`as.data.frame(`*`<net_outcome>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_outcome.md)
+  : Coerce a net_outcome to a tidy table
 
 - [`as.data.frame(`*`<net_path_dependence>`*`)`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_path_dependence.md)
   : Coerce a net_path_dependence to its tidy per-context table

@@ -55,7 +55,9 @@ plot(
   expansion, nodes and hyperedges placed together), `"spring"` (the same
   on the clique projection), `"circle"`, or a data.frame with `node`,
   `x` and `y` columns to reuse node coordinates across panels
-  (hyperedges then sit at the centroid of their members).
+  (hyperedges then sit at the centroid of their members). The two
+  force-directed layouts place each connected component separately and
+  pack the results; a `layout` table is used exactly as given.
 
 - center:
 
@@ -106,7 +108,10 @@ plot(
 
 - edge_label_size:
 
-  Text size for `edge_labels` (default `3`).
+  Text size for `edge_labels` (default `3`), and for the panel titles
+  when `dismantled = TRUE`. A title is never cut to fit its panel – a
+  clipped hyperedge name reads as a different hyperedge – so lower this,
+  or `ncol`, if long names collide.
 
 - dismantled:
 
@@ -147,7 +152,9 @@ plot(
 - padding:
 
   Room around the member positions as a fraction of the layout extent
-  (default `0.045`).
+  (default `0.045`). It also sets how far apart the layout packs
+  disconnected components, so that two components' pebbles never touch
+  and imply a member they do not share.
 
 - legend_title:
 
@@ -160,6 +167,17 @@ plot(
 ## Value
 
 A ggplot object (with `dismantled = TRUE`, one facet per hyperedge).
+
+## Details
+
+A hypergraph that falls into several disconnected pieces is laid out one
+piece at a time and the pieces are then packed into a roughly square
+frame. A force-directed layout has no force at all between two
+disconnected components – they repel and nothing pulls back – so laying
+the whole hypergraph out at once lets a stray hyperedge drift to the
+edge of the picture and set the scale for everything else, leaving the
+connected structure a speck in the middle. Packing keeps every component
+at its own size and the frame spent on structure.
 
 ## References
 
@@ -188,4 +206,13 @@ plot(hg, detail = Inf, outline = "fill", alpha = 0.15)
 plot(hg, center = c("b", "c"))
 
 plot(hg, dismantled = TRUE)
+
+
+# disconnected pieces are laid out separately and packed
+apart <- group_hypergraph(
+  data.frame(member = c("a", "b", "c", "b", "c", "d", "x", "y", "z"),
+             event = c("e1", "e1", "e1", "e2", "e2", "e2", "e3", "e3", "e3")),
+  "member", "event"
+)
+plot(apart, color_by = "size")
 ```

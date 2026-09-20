@@ -1,5 +1,117 @@
 # Changelog
 
+## hypernets 0.5.0
+
+- [`hon_outcome()`](https://mohsaqr.github.io/hypernets/reference/hon_outcome.md)
+  is the package’s first verb that relates higher-order structure to an
+  outcome. Per-actor features come from
+  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
+  and
+  [`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md)
+  – no new mathematics – aggregated as an exposure-weighted mean over
+  the actor’s own visits, decoded against the network by the
+  longest-suffix rule. Returns a `net_outcome` whose
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) is one
+  row per feature with `estimate`, `std_error`, `conf_low`, `conf_high`,
+  `statistic`, `p` and `p_adj` (BH by default, and the result records
+  which correction was applied). `nested_in =` switches to
+  cluster-robust standard errors with t(G-1) intervals, and `vcov`
+  selects the estimator: `"CR3"` (default, the cluster jackknife,
+  `sandwich::vcovCL(type = "HC3")`) or `"CR1"` (Stata’s, HC1). Measured
+  interval coverage over 2000 replicates: 0.9530 model-based, 0.9525
+  CR3, 0.9330 CR1 – and 0.7200 when the clustering is ignored, which is
+  why `nested_in` exists. CR3 is the default because CR1’s shortfall is
+  a known property of that estimator at moderate cluster counts,
+  reproduced independently through `sandwich` itself. Collinearity, rank
+  deficiency, few clusters, dropped actors and binomial separation all
+  raise classed conditions; nothing is dropped silently.
+
+- [`markov_stability()`](https://mohsaqr.github.io/hypernets/reference/markov_stability.md)
+  describes the random walk a transition matrix carries: persistence,
+  stationary distribution, mean recurrence time, sojourn time and
+  Kemeny-Snell mean first passage. On a `net_hon` the matrix is
+  row-stochastic over *memory* states, so this is a higher-order
+  random-walk analysis – stationary mass on memory states and first
+  passage between them. A reducible chain now raises
+  `hypernets_not_ergodic` instead of returning the 1e15 artefacts an
+  unguarded solve produces.
+
+- **The memory verbs no longer read a long event table as a wide one.**
+  `build_hon(long)` without `action`/`actor`/`time` used to treat each
+  ROW as a trajectory, promoting actor ids and timestamps to states – a
+  two-actor, four-turn table became states `1, 2, 3, 4, A, B, C, s1, s2`
+  and eight trajectories instead of three states and two, with no error
+  and no warning.
+  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
+  [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md),
+  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
+  [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md),
+  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
+  and
+  [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
+  now raise `hypernets_long_format` (inheriting `hypernets_bad_input`)
+  when handed a frame carrying two or more of the canonical long column
+  names, with the remedy appropriate to that verb – the long-format
+  arguments where they exist, splitting the table where they do not.
+
+- [`hg_sequences()`](https://mohsaqr.github.io/hypernets/reference/hg_sequences.md)
+  closes the text-to-memory gap: a
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
+  plus a
+  [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
+  partition becomes the long `actor` / `time` / `action` table the
+  memory family reads, so a transcript can go from topics to a
+  higher-order transition model without the caller hand-writing a
+  merge-order-split join. Note that
+  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
+  and friends need the `action` / `actor` / `time` arguments given
+  explicitly.
+
+- [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) gains a
+  method for `net_markov_order_group`, which had a print method and no
+  accessor. The accessor-contract test now DISCOVERS the package’s
+  `net_*` classes from `NAMESPACE` instead of comparing against a
+  hand-maintained list, which is how that gap had stayed invisible.
+
+- The local equivalence suite’s gate now accepts the documented
+  `HYPERNETS_EQUIV_TESTS`. It previously read only the pre-rename
+  `HONETS_EQUIV_TESTS`, so the command in the project documentation
+  skipped all 31 oracle files and reported “PASS 0” – green, having run
+  nothing. Cross-package identity against Nestimate’s memory family is
+  now proven from this side, in
+  `local_testing_and_equivalence/test-identity-nestimate-memory.R`.
+
+## hypernets 0.4.8
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  hypergraph lays each connected component out on its own and packs the
+  results into a roughly square frame. A force-directed layout has no
+  force between two disconnected components – they repel and nothing
+  pulls back – so laying the whole hypergraph out at once let a stray
+  hyperedge drift to the edge of the picture and set the scale for
+  everything else. On a corpus of one connected core and three islands,
+  the core was left 0.05 of the frame on average (0.02 at worst) over 20
+  seeds; it now gets 0.43 (0.24 at worst). `padding` also sets the seam
+  the packing leaves between components, so two components’ pebbles
+  never touch and imply a member they do not share.
+
+- The force-directed layouts stop repelling beyond 2.5 ideal edge
+  lengths – Fruchterman and Reingold’s own grid variant. Unbounded
+  repulsion left a weakly attached cluster no equilibrium: pushed by
+  every vertex and pulled back by one edge, it settled roughly `n^(1/3)`
+  ideal lengths out and the hyperedge bridging it stretched across the
+  page. On a core-plus-satellite fixture over 30 seeds the satellite
+  came in from 0.84 of the frame away to 0.70, the core widened from
+  0.31 of the frame to 0.43, and the bridging pebble narrowed from 0.43
+  to 0.37. It also left fewer non-members inside a pebble than the uncut
+  layout (0.20 per layout against 0.32).
+
+- `plot(dismantled = TRUE)` no longer cuts a panel title to the panel’s
+  width, which silently turned `32006L0123` into `2006L012` – an
+  identifier that reads as a different hyperedge. Long names now
+  overflow their strip; lower `edge_label_size` or `ncol` if they
+  collide.
+
 ## hypernets 0.4.7
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a

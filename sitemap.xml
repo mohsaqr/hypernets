@@ -3,6 +3,7 @@
 <url><loc>https://mohsaqr.github.io/hypernets/EXPANSION-PLAN.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/LICENSE-text.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/MIGRATION-PLAN.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/ROADMAP-analytics.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/ROADMAP-text.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/TODO-text.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/articles/benchmarks.html</loc></url>
@@ -23,7 +24,10 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_hypergraph_measures.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_hypergraph_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_order.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_order_group.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_mogen.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_outcome.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_path_dependence.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_persistence_landscape.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_persistent_homology.html</loc></url>
@@ -79,11 +83,13 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_sample_sbm.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_sample_uniform.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_seeds.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/hg_sequences.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_subset.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hg_topic_sizes.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hon_centrality.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/hon_outcome.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_allset.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.html</loc></url>
@@ -101,6 +107,7 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/long-data.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/markov_order_test.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/markov_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/mogen_transitions.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/path_counts.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/path_dependence.html</loc></url>
@@ -115,7 +122,9 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_hypergraph_cluster.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_hypergraph_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_markov_order.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_markov_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_mogen.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_outcome.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_path_dependence.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_persistence_landscape.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/plot.net_persistent_homology.html</loc></url>
@@ -131,7 +140,9 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_hypergraph_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_markov_order.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_markov_order_group.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_markov_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_mogen.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_outcome.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_path_dependence.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_persistence_landscape.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/print.net_persistent_homology.html</loc></url>
@@ -150,7 +161,9 @@
 <url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_hypergraph_cluster.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_hypergraph_transduction.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_markov_order.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_markov_stability.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_mogen.html</loc></url>
+<url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_outcome.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/summary.net_path_dependence.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.html</loc></url>
 <url><loc>https://mohsaqr.github.io/hypernets/reference/text_hypergraph.html</loc></url>
