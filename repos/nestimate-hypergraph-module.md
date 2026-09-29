@@ -29,5 +29,7 @@ igraph, Z/H vs clean-room tensor iteration; TOL 1e-10, cosine 1e-6 for
 sign/rotation-ambiguous eigenvectors).
 
 All listed capabilities plus Laplacians, clustering, transduction, window and
-kNN construction, PageRank and duals now live natively in hypernets. Wasserstein
-distance remains open in hypernets.
+kNN construction, PageRank and duals now live natively in hypernets, as does
+the Wasserstein distance between persistence diagrams (`wasserstein_distance()`,
+`R/simplicial_distances.R`, shipped 2026-09-02; SciPy assignment oracle in
+`local_testing_and_equivalence/test-equiv-wasserstein-scipy.R`).

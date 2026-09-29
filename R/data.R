@@ -148,3 +148,45 @@ NULL
 #'                               nodes = gfcc_decisions, sparse = TRUE)
 #' summary(blocks)
 "gfcc_citations"
+
+#' Simulated sequences with planted memory modules
+#'
+#' A process whose communities can only be seen with memory. Four groups of
+#' four actions sit on a ring and neighbouring groups share one action
+#' (`s1`, ..., `s4`); the other two actions of group \eqn{k} (`p<k>_1`,
+#' `p<k>_2`) are its own. A walk starts in a random group at a random action
+#' of it and each step moves to another action of the current group, chosen
+#' at random; on reaching a shared action the walk switches to the
+#' neighbouring group with probability 0.05. At a shared action a
+#' first-order network sees both groups equally, while a second-order state
+#' such as `"p1_1 -> s2"` knows it came from group 1. The planted group of
+#' every state is in [ring_communities].
+#'
+#' @format A list of 200 character vectors, one walk each, 40 actions long,
+#'   over the 12 actions `s1`-`s4` and `p1_1`-`p4_2`.
+#' @source Simulated with seed 1 by `data-raw/ring_sequences.R`.
+#' @seealso [hon_communities()], which recovers the four groups from these
+#'   sequences.
+#' @examples
+#' length(ring_sequences)
+#' ring_hon <- build_hon(ring_sequences, max_order = 2L)
+#' ring_hon
+"ring_sequences"
+
+#' Planted communities of the ring sequences
+#'
+#' The true community of every state a second-order network built from
+#' [ring_sequences] can hold. A state `"u -> v"` belongs to the one group
+#' holding both `u` and `v`; the first-order state of an action that is not
+#' shared (`"p1_1"`) belongs to that action's group. First-order states of
+#' the shared actions (`"s1"`, ...) have no single group and are not listed.
+#'
+#' @format A data frame with 56 rows (one per state) and 2 columns:
+#' \describe{
+#'   \item{state}{Character. A state label as [build_hon()] writes it.}
+#'   \item{community}{Integer. The planted group, 1 to 4.}
+#' }
+#' @source Built with [ring_sequences] by `data-raw/ring_sequences.R`.
+#' @examples
+#' ring_communities
+"ring_communities"

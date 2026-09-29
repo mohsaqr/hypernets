@@ -1,3 +1,5 @@
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 # Expansion Plan — higher-order networks
 
 Owner decisions taken 2026-08-25, **substantially revised 2026-08-26**. This
@@ -34,16 +36,17 @@ reasoning is the useful part.
 - The literature the plan itself cites (Battiston et al. 2020; Bianconi 2021;
   Tian & Zafarani 2024) treats memory networks, simplicial complexes and
   hypergraphs as **one field**, called higher-order networks.
-- `hypernets` and `hypernets` are three characters apart, both ending in
+- `honets` and `hypernets` are three characters apart, both ending in
   `nets`, both higher-order packages by the same author. That is a
   usability defect independent of the architecture.
 
 The split had put a boundary through the middle of a field rather than
 between fields.
 
-**Decision now in force:** hypernets is *the* higher-order networks package,
-covering all three structure families under one taxonomy (see `?hypernets` and
-`CLAUDE.md`). hypernets 0.1.2 is folded in and retired — nothing was thrown
+**Decision now in force:** honets (renamed hypernets at 0.4.0, 2026-09-07) is
+*the* higher-order networks package, covering all three structure families
+under one taxonomy (see `?hypernets` and `CLAUDE.md`). The short-lived
+hypergraph package `hypernets` 0.1.2 is folded in and retired — nothing was thrown
 away: its ten R files, tests, equivalence suite and both tutorials moved
 across, and 223 lines of duplication were **deleted** rather than
 maintained. Nestimate imports one sibling instead of two.
@@ -55,8 +58,8 @@ maintained. Nestimate imports one sibling instead of two.
 | Nestimate | estimation hub; re-exports delegated verbs | 0.9.0, untouched |
 | psychnets | cross-sectional psychometric networks | delegated |
 | idiographic | person-specific temporal models | delegated |
-| **hypernets** | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
-| ~~hypernets~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into hypernets** |
+| **honets** (now hypernets) | **higher-order networks: memory + simplicial + hypergraph** | **0.2.0 (T0 done for all three families)** |
+| ~~hypernets 0.1.2~~ | ~~hypergraphs~~ | **retired 2026-08-26, folded into honets** |
 
 ## Track A — hypernets (higher-order / sequence paradigm)
 

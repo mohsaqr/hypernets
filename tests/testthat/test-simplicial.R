@@ -230,7 +230,7 @@ test_that("build_simplicial pathway from hypa works", {
     c("A", "B", "C"), c("A", "B", "C"), c("A", "B", "C"),
     c("A", "B", "D"), c("C", "B", "D"), c("C", "B", "A")
   )
-  h <- build_hypa(trajs, k = 2)
+  h <- build_hypa(trajs, order = 2)
   sc <- build_simplicial(h, type = "pathway")
   expect_s3_class(sc, "net_simplicial")
   expect_equal(sc$type, "pathway")
@@ -836,7 +836,7 @@ test_that("build_simplicial pathway HYPA with max_pathways truncates", {
     c("A", "B", "D"), c("C", "B", "D"), c("C", "B", "A"),
     c("D", "A", "B"), c("D", "A", "B")
   )
-  h <- build_hypa(trajs, k = 2)
+  h <- build_hypa(trajs, order = 2)
   n_anom <- sum(h$scores$anomaly != "normal")
   if (n_anom > 1L) {
     sc <- build_simplicial(h, type = "pathway", max_pathways = 1)

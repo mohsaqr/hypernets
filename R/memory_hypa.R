@@ -377,7 +377,7 @@ build_hypa <- function(data, order = 2L, alpha = 0.05, min_count = 5L,
 #'
 #' @examples
 #' seqs <- list(c("A","B","C"), c("B","C","A"), c("A","C","B"), c("A","B","C"))
-#' hyp <- build_hypa(seqs, k = 2)
+#' hyp <- build_hypa(seqs, order = 2)
 #' print(hyp)
 #'
 #' \donttest{
@@ -387,7 +387,7 @@ build_hypa <- function(data, order = 2L, alpha = 0.05, min_count = 5L,
 #'   V3 = c("C","A","B","C","A","B","C","A","B","C"),
 #'   V4 = c("A","B","C","A","B","C","A","B","C","A")
 #' )
-#' hypa <- build_hypa(seqs, k = 2L)
+#' hypa <- build_hypa(seqs, order = 2L)
 #' print(hypa)
 #' }
 #'
@@ -432,7 +432,7 @@ print.net_hypa <- function(x, ...) {
 #'   else; assign the result to keep the table.
 #' @examples
 #' seqs <- list(c("A","B","C"), c("B","C","A"), c("A","C","B"), c("A","B","C"))
-#' hyp <- build_hypa(seqs, k = 2)
+#' hyp <- build_hypa(seqs, order = 2)
 #' summary(hyp)
 #'
 #' \donttest{
@@ -442,7 +442,7 @@ print.net_hypa <- function(x, ...) {
 #'   V3 = c("C","A","B","C","A","B","C","A","B","C"),
 #'   V4 = c("A","B","C","A","B","C","A","B","C","A")
 #' )
-#' hypa <- build_hypa(seqs, k = 2L)
+#' hypa <- build_hypa(seqs, order = 2L)
 #' summary(hypa)
 #' summary(hypa, type = "over", n = 5)
 #' }

@@ -7,5 +7,5 @@
 - **Interoperability**: compatible `start`, `end`, `window` and snapshot
   vocabulary is intentional; future adapters may exchange projected graphs.
 - **Collision audit 2026-09-02**: no exported name overlaps with hypernets.
-- **Version checked locally**: 0.3.53.
+- **Version checked locally**: 0.4.10 (installed, 2026-09-29).
 

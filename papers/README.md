@@ -11,7 +11,7 @@ from the built R package by `.Rbuildignore`.
 | 2019 | Hypergraph attention networks (Linmei et al.) | [`2019-EMNLP-HGAT-Linmei.pdf`](2019-EMNLP-HGAT-Linmei.pdf) |
 | 2019 | Edge-dependent vertex-weight random walks (Chitra & Raphael) | [`2019-ICML-HypergraphRW-Chitra.pdf`](2019-ICML-HypergraphRW-Chitra.pdf) |
 | 2019 | HyperGCN (Yadati et al.) | [`2019-NeurIPS-HyperGCN-Yadati.pdf`](2019-NeurIPS-HyperGCN-Yadati.pdf) |
-| 2019 | XLNet (Yang et al.) | [`2019-NeurIPS-XLNet-Yang.pdf`](2019-NeurIPS-XLNet-Yang.pdf) |
+| 2019 | XLNet (Yang et al.) — **not used by the package** (no reference in `R/`; kept as background) | [`2019-NeurIPS-XLNet-Yang.pdf`](2019-NeurIPS-XLNet-Yang.pdf) |
 | 2020 | Hypergraph clustering (Hayashi et al.) | [`2020-CIKM-HypergraphClustering-Hayashi.pdf`](2020-CIKM-HypergraphClustering-Hayashi.pdf) |
 | 2020 | HyperGAT (Ding et al.) | [`2020-EMNLP-HyperGAT-Ding.pdf`](2020-EMNLP-HyperGAT-Ding.pdf) |
 | 2020 | HNHN (Dong et al.) | [`2020-HNHN-Dong.pdf`](2020-HNHN-Dong.pdf) |
@@ -91,7 +91,10 @@ hypergraphs”, *Philosophical Transactions of the Royal Society A* 382(2270),
 ## Method bibliography without a local PDF
 
 These sources directly define exported hypernets methods but are indexed by DOI
-or bibliographic record rather than copied into this repository.
+or bibliographic record rather than copied into this repository. Entries
+added 2026-09-29 were checked against Crossref / publisher / arXiv / CRAN
+records; the file each is cited in follows the entry. **Used, not yet
+cited** marks a method used in `R/` without a roxygen `@references` entry.
 
 ### Memory networks
 
@@ -105,6 +108,54 @@ or bibliographic record rather than copied into this repository.
   [doi:10.1145/3097983.3098145](https://doi.org/10.1145/3097983.3098145).
 - Scholtes, Wider & Garas (2016), higher-order centralities,
   [doi:10.1140/epjb/e2016-60663-0](https://doi.org/10.1140/epjb/e2016-60663-0).
+- Saebi, Xu, Kaplan, Ribeiro & Chawla (2020), BuildHON+, *EPJ Data Science*
+  9(1), 15,
+  [doi:10.1140/epjds/s13688-020-00233-y](https://doi.org/10.1140/epjds/s13688-020-00233-y).
+  `R/memory_hon.R`.
+- Gote, Casiraghi, Schweitzer & Scholtes (2023), multi-order generative
+  models for variable-length paths, *Applied Network Science* 8, 68,
+  [doi:10.1007/s41109-023-00596-x](https://doi.org/10.1007/s41109-023-00596-x).
+  `R/memory_mogen.R`, `R/hypergraph_null.R` — **the roxygen cites it as
+  "Gote & Scholtes, 8, 62": two authors and the article number are wrong.**
+- Rosvall, Esquivel, Lancichinetti, West & Lambiotte (2014), memory in network
+  flows, *Nature Communications* 5, 4630,
+  [doi:10.1038/ncomms5630](https://doi.org/10.1038/ncomms5630).
+  `R/memory_communities.R`, `R/memory_markov_stability.R`.
+- Rosvall & Bergstrom (2008), the map equation, *PNAS* 105(4), 1118-1123,
+  [doi:10.1073/pnas.0706851105](https://doi.org/10.1073/pnas.0706851105).
+  `R/memory_communities.R`.
+- Edler, Bohlin & Rosvall (2017), Infomap for memory and multilayer networks,
+  *Algorithms* 10(4), 112,
+  [doi:10.3390/a10040112](https://doi.org/10.3390/a10040112).
+  `R/memory_communities.R`.
+- Lambiotte & Rosvall (2012), smart teleportation, *Physical Review E* 85(5),
+  056107,
+  [doi:10.1103/PhysRevE.85.056107](https://doi.org/10.1103/PhysRevE.85.056107).
+  `R/memory_communities.R`, `R/memory_markov_stability.R`.
+- Scholtes, Wider, Pfitzner, Garas, Tessone & Schweitzer (2014),
+  causality-driven slow-down and speed-up of diffusion, *Nature
+  Communications* 5, 5024,
+  [doi:10.1038/ncomms6024](https://doi.org/10.1038/ncomms6024).
+  `R/memory_markov_stability.R`.
+- Kemeny & Snell (1976), *Finite Markov Chains*, Springer-Verlag
+  (Undergraduate Texts in Mathematics; reprint of the 1960 edition), ISBN
+  0-387-90192-2. `R/memory_markov_stability.R`.
+- Anderson & Goodman (1957), statistical inference about Markov chains,
+  *Annals of Mathematical Statistics* 28(1), 89-110,
+  [doi:10.1214/aoms/1177707039](https://doi.org/10.1214/aoms/1177707039).
+  `R/memory_markov_order.R`.
+- Agresti (1992), exact inference for contingency tables, *Statistical
+  Science* 7(1), 131-153,
+  [doi:10.1214/ss/1177011454](https://doi.org/10.1214/ss/1177011454).
+  `R/memory_markov_order.R`.
+- Tong (1975), Markov-chain order by AIC, *Journal of Applied Probability*
+  12(3), 488-497, [doi:10.2307/3212863](https://doi.org/10.2307/3212863).
+  `R/memory_markov_order.R`.
+- Katz (1981), criteria for estimating the order of a Markov chain,
+  *Technometrics* 23(3), 243-249 (end page unverified: Crossref gives only the
+  start page), [doi:10.2307/1267787](https://doi.org/10.2307/1267787).
+  `R/memory_markov_order.R` (its roxygen gives the Taylor & Francis DOI
+  10.1080/00401706.1981.10486293, not checked).
 
 ### Simplicial topology
 
@@ -114,6 +165,18 @@ or bibliographic record rather than copied into this repository.
   [doi:10.1111/cgf.12447](https://doi.org/10.1111/cgf.12447).
 - Atkin (1974), q-analysis, *Mathematical Structure in Human Affairs*.
 - Edelsbrunner & Harer (2010), *Computational Topology: An Introduction*.
+- Edelsbrunner, Letscher & Zomorodian (2002), topological persistence and
+  simplification, *Discrete & Computational Geometry* 28(4), 511-533,
+  [doi:10.1007/s00454-002-2885-2](https://doi.org/10.1007/s00454-002-2885-2).
+  The journal version is 2002; the FOCS conference version is 2000.
+  `R/simplicial_homology.R` (corrected to 2002 on 2026-09-29); the code
+  comment in `R/simplicial.R` still says 2000.
+- Kerber, Morozov & Nigmetov (2017), geometry helps to compare persistence
+  diagrams, *ACM Journal of Experimental Algorithmics* 22, Article 1.4, 1-20,
+  [doi:10.1145/3064175](https://doi.org/10.1145/3064175) (article number from
+  a search snippet; the ACM page was unreachable). `R/simplicial_distances.R`.
+- Hatcher (2002), *Algebraic Topology*, Cambridge University Press, ISBN
+  0-521-79540-0. `R/simplicial.R`, `R/simplicial_homology.R`.
 
 ### Hypergraphs and statistical decisions
 
@@ -125,6 +188,79 @@ or bibliographic record rather than copied into this repository.
   [doi:10.1140/epjds/s13688-020-00231-0](https://doi.org/10.1140/epjds/s13688-020-00231-0).
 - Chodrow (2020), configuration models,
   [doi:10.1093/comnet/cnaa018](https://doi.org/10.1093/comnet/cnaa018).
+- Bianconi (2021), *Higher-Order Networks*, Cambridge University Press
+  (Elements in the Structure and Dynamics of Complex Networks),
+  [doi:10.1017/9781108770996](https://doi.org/10.1017/9781108770996).
+  `R/hypernets-package.R`.
+- Estrada & Rodríguez-Velázquez (2005), complex networks as hypergraphs,
+  arXiv:physics/0505137; journal version under a different title, "Subgraph
+  centrality and clustering in complex hyper-networks", *Physica A* 364,
+  581-594 (2006),
+  [doi:10.1016/j.physa.2005.12.002](https://doi.org/10.1016/j.physa.2005.12.002).
+  `R/hypergraph_centrality.R` (cites the preprint).
+- Chung (2005), Laplacians and the Cheeger inequality for directed graphs,
+  *Annals of Combinatorics* 9(1), 1-19,
+  [doi:10.1007/s00026-005-0237-z](https://doi.org/10.1007/s00026-005-0237-z).
+  `R/hypergraph_laplacian.R`.
+- Burgio, Matamalas, Gómez & Arenas (2020), cooperation from networks to
+  hypergraphs, *Entropy* 22(7), 744,
+  [doi:10.3390/e22070744](https://doi.org/10.3390/e22070744). `R/hypergraph.R`.
+- Do, Yoon, Hooi & Shin (2020), structural patterns and generative models of
+  real-world hypergraphs, *KDD '20*, 176-186,
+  [doi:10.1145/3394486.3403060](https://doi.org/10.1145/3394486.3403060).
+  `R/hypergraph_measures.R` (cites the arXiv version).
+- **Unverified / probably wrong:** `R/hypergraph_measures.R` cites "Lee, G.,
+  Choe, M., & Shin, K. (2024). A survey on hypergraph representation,
+  learning and mining. *Data Mining & Knowledge Discovery* 37, 1-39." No such
+  paper could be found. Candidates: Lee, Bu, Eliassi-Rad & Shin (2025), "A
+  survey on hypergraph mining: patterns, tools, and generators", *ACM
+  Computing Surveys* 57(8), 1-36,
+  [doi:10.1145/3719002](https://doi.org/10.1145/3719002) (arXiv:2401.08878);
+  or Lee, Choe & Shin (2021), "How do hyperedges overlap in real-world
+  hypergraphs? Patterns, measures, and generators", *WWW 2021*. The roxygen
+  needs correcting.
+- Marchette (2021), *HyperG: Hypergraphs in R*, R package 1.0.0 (CRAN
+  2021-03-04). `R/hypergraph_random.R`.
+- Page, Brin, Motwani & Winograd (1999), the PageRank citation ranking,
+  Stanford InfoLab Technical Report 1999-66 (report number from search
+  results; the InfoLab server was unreachable). `R/hypergraph_pagerank.R`.
+- Fruchterman & Reingold (1991), force-directed placement, *Software:
+  Practice and Experience* 21(11), 1129-1164,
+  [doi:10.1002/spe.4380211102](https://doi.org/10.1002/spe.4380211102).
+  `R/hypergraph_plot.R`.
+
+### Text and neural models
+
+- Grootendorst (2022), BERTopic: neural topic modeling with a class-based
+  TF-IDF procedure, arXiv:2203.05794. `R/text_verbs.R` (`"ctfidf"`).
+- Roberts, Stewart & Tingley (2019), stm, *Journal of Statistical Software*
+  91(2), [doi:10.18637/jss.v091.i02](https://doi.org/10.18637/jss.v091.i02).
+  `R/text_topics.R`.
+- Hoffman, Blei & Bach (2010), online learning for LDA, *NIPS 23*, 856-864.
+  Cited only in a code comment of `R/text_hypergat.R` (the `semantic = "lda"`
+  path), not in roxygen.
+- Blei, Ng & Jordan (2003), latent Dirichlet allocation, *JMLR* 3, 993-1022.
+  **Used, not yet cited**: `hg_hypergat(semantic = "lda")`.
+- Zaheer, Kottur, Ravanbakhsh, Póczos, Salakhutdinov & Smola (2017), Deep
+  Sets, *NIPS 30*, 3391-3401 (arXiv:1703.06114). **Used, not yet cited**:
+  `hypergraph_allset(model = "deepsets")`.
+- Lee, Lee, Kim, Kosiorek, Choi & Teh (2019), Set Transformer, *ICML 2019*,
+  PMLR 97, 3744-3753. **Used, not yet cited**: the PMA block of
+  `hypergraph_allset(model = "transformer")`.
+- Kipf & Welling (2017), graph convolutional networks, *ICLR 2017*
+  (arXiv:1609.02907). **Used, not yet cited**: the graph-convolution basis of
+  `hg_neural()`, `hg_hypergcn()`, `heterogeneous_hgat()`.
+- Yao, Mao & Luo (2019), graph convolutional networks for text
+  classification (TextGCN), *AAAI* 33(01), 7370-7377,
+  [doi:10.1609/aaai.v33i01.33017370](https://doi.org/10.1609/aaai.v33i01.33017370).
+  **Used, not yet cited**: the TextGCN corpora, splits and baseline numbers in
+  `benchmarks/RESULTS.md` and the benchmarks article.
+- Reimers & Gurevych (2019), Sentence-BERT, *EMNLP-IJCNLP 2019*, 3980-3990,
+  [doi:10.18653/v1/D19-1410](https://doi.org/10.18653/v1/D19-1410).
+  **Used, not yet cited**: `sbert` embeddings for `knn_hypergraph()` /
+  `text_hypergraph(construction = "knn")`.
+- Not used by the package: Yang et al. (2019), XLNet, *NeurIPS 32*
+  (arXiv:1906.08237); the local PDF is kept.
 - Zhu, Ghahramani & Lafferty (2003), class-mass-normalized label spreading.
 - Hubert & Arabie (1985), adjusted Rand index.
 - Vinh, Epps & Bailey (2010), adjusted mutual information.

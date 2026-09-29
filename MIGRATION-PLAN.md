@@ -1,3 +1,5 @@
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 # Migration plan — texthypergraph folds into hypernets
 
 **Status (2026-09-01): EXECUTED in the working tree, uncommitted.** See

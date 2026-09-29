@@ -381,8 +381,31 @@ build_simplicial <- function(x, type = "clique", threshold = 0,
 #' Computes Betti numbers: \eqn{\beta_0} (components), \eqn{\beta_1}
 #' (loops), \eqn{\beta_2} (voids), etc.
 #'
+#' @details
+#' \strong{Coefficient field: the rationals.} The Betti numbers are the ranks
+#' of the simplicial homology groups with \emph{rational} (equivalently real)
+#' coefficients, \eqn{\beta_k = \dim_{\mathbb{Q}} H_k(K; \mathbb{Q}) =
+#' \dim C_k - \mathrm{rank}\,\partial_k - \mathrm{rank}\,\partial_{k+1}}.
+#' The oriented boundary matrices (entries \eqn{\pm 1}) are ranked in double
+#' precision with \code{qr()} (default tolerance). Over \eqn{\mathbb{Q}} the
+#' torsion of integral homology is invisible, so these numbers can differ
+#' from the \eqn{\mathbb{Z}/2} Betti numbers that
+#' \code{\link{persistent_homology}} reports as essential classes. They agree
+#' whenever the integral homology is torsion-free; they differ, for example,
+#' on the real projective plane: its 6-vertex triangulation has rational
+#' Betti numbers \eqn{(1, 0, 0)} here but \eqn{\mathbb{Z}/2} Betti numbers
+#' \eqn{(1, 1, 1)} in \code{persistent_homology()} (Hatcher 2002, Sections
+#' 2.1-2.2 and 3.A, on homology with coefficients and the universal
+#' coefficient theorem). Both Euler characteristics equal 1.
+#'
+#' @references
+#' Hatcher, A. (2002). \emph{Algebraic Topology}. Cambridge University
+#' Press. ISBN 0-521-79540-0.
+#'
 #' @param sc A \code{net_simplicial} object.
-#' @return Named integer vector \code{c(b0 = ..., b1 = ..., ...)}.
+#' @return Named integer vector \code{c(b0 = ..., b1 = ..., ...)}: the
+#'   rational Betti numbers, one per dimension from 0 to the dimension of
+#'   the complex.
 #' @examples
 #' mat <- matrix(c(0,.6,.5,.6,0,.4,.5,.4,0), 3, 3)
 #' colnames(mat) <- rownames(mat) <- c("A","B","C")

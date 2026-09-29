@@ -1,3 +1,5 @@
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 # hypernets text and hypergraph roadmap
 
 This file preserves the release history of the retired `texthypergraph`

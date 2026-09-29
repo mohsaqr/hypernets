@@ -313,13 +313,14 @@
   # Re(Conj(a) * b) is the dot product: orient the normals outward
   if (sum(Re(Conj(normal) * (curve - mean(curve)))) < 0) normal <- -normal
   members <- complex(real = x, imaginary = y)
-  # sampled offsets are only nearly exact, so re-measure; two passes suffice
-  # in practice and the bound keeps the loop finite
-  for (pass in seq_len(3L)) {
-    deficit <- clearance * radius - .thg_inside_distance(curve, normal, members)
-    if (max(deficit) <= 0) break
-    curve <- curve + max(deficit) * normal
-  }
+  # sampled offsets are only nearly exact, so re-measure and push again, at
+  # most three times (two suffice in practice); a pass with no deficit left
+  # changes nothing
+  curve <- Reduce(function(outline, pass) {
+    deficit <- max(clearance * radius -
+                     .thg_inside_distance(outline, normal, members))
+    if (deficit <= 0) outline else outline + deficit * normal
+  }, seq_len(3L), curve)
   data.frame(x = Re(curve), y = Im(curve))
 }
 
@@ -417,6 +418,23 @@
 #' supplied per hyperedge, and outlined with a line type by the same kinds of
 #' selector. A hyperedge with a single member is drawn as its node alone.
 #'
+#' A hypergraph whose hyperedges carry one numeric attribute -- such as a
+#' `trials` count that [group_hypergraph()] kept because it is constant
+#' within each group -- is drawn by that attribute with no further argument:
+#' it colours the pebbles, writes a title box with the count beside each
+#' one, and names the unit of the legends. Of several numeric attributes,
+#' the one that varies between hyperedges is read when only one does (a
+#' membership share of 1 on every hyperedge is passed over); otherwise none
+#' is. `color_by`, `titles` and `unit` override it.
+#'
+#' Node labels are bold with a white halo, the legends sit below the plot
+#' (a colour bar 2.5 cm per key, discrete legends at most four keys to a
+#' row) and the plot has wide margins (40, 130, 30 and 130 pt) so title
+#' boxes outside the pebbles are not cut. The look of
+#' earlier versions is partly available through arguments: `alpha = 0.45`,
+#' `label_size = 3` and `pieces = "packed"`; the legend position and margins
+#' through `ggplot2::theme()` added to the result.
+#'
 #' A hypergraph that falls into several disconnected pieces is laid out one
 #' piece at a time and the pieces are then packed into a roughly square frame.
 #' A force-directed layout has no force at all between two disconnected
@@ -446,7 +464,8 @@
 #'   Not used with a `layout` table.
 #' @param seed Seed for the force-directed layouts (default `1`); the
 #'   caller's random number stream is left untouched.
-#' @param color_by Colour of the hulls: `NULL` (one colour), `"size"`
+#' @param color_by Colour of the hulls: `NULL` (the hyperedges' count
+#'   attribute described above, else one colour), `"size"`
 #'   (hyperedge cardinality, sequential scale), the name of a column in the
 #'   edge metadata (`x$edge_data`), a vector named by hyperedge, or a vector
 #'   with one value per hyperedge. Character or factor values get the
@@ -471,7 +490,8 @@
 #'   so lower this, or `ncol`, if long names collide.
 #' @param labels `TRUE` (default) writes the node names, `FALSE` writes
 #'   none, and a character vector named by node replaces the names shown.
-#' @param label_size,node_size Text and point sizes.
+#' @param label_size,node_size Text and point sizes (defaults `4.2` and
+#'   `2.5`).
 #' @param detail How much of the hull's shape the smoothing keeps: the width,
 #'   in harmonics, of the Gaussian low-pass applied to the outline. The
 #'   default `5` gives rounded, tapering petals; `3` is rounder still, `8`
@@ -480,7 +500,7 @@
 #'   overlapping hyperedges; `"fill"` outlines each hyperedge in its own
 #'   colour (pair it with a lower `alpha`, e.g. `0.15`); any other colour is
 #'   used as given.
-#' @param alpha Fill transparency (default `0.45`); the outline is always
+#' @param alpha Fill transparency (default `0.5`); the outline is always
 #'   drawn at full strength.
 #' @param linewidth Width of the outlines (default `1.1`).
 #' @param padding Room around the member positions as a fraction of the layout
@@ -489,9 +509,111 @@
 #'   imply a member they do not share.
 #' @param legend_title Legend title for `color_by`; defaults to the
 #'   selector's name.
+#' @param node_sizes Size every node by a value, such as how often the node
+#'   occurs: a data.frame with a node column and a value column, or a numeric
+#'   vector named by node. The columns are `node` and `value` when those names
+#'   are present; otherwise the one character (or factor) column holds the
+#'   node names and the one numeric column the values, so a table such as
+#'   `data.frame(state, trials)` is read as it is. Every node of the
+#'   hypergraph needs a non-negative value; names that are not nodes are
+#'   skipped, so one table serves every [hg_subset()]. Without `direction`
+#'   the nodes are points whose area follows the value
+#'   ([ggplot2::scale_size_area()], largest 10 mm), with a size legend, and
+#'   each label sits just above its dot. With `direction` they are circles in
+#'   data units (the figure has a fixed 1:1 aspect): the largest has a radius
+#'   of 4% of the layout extent and none is smaller than 30% of that radius,
+#'   so the rarest nodes stay visible, and a caption says what area and
+#'   triangle show. `NULL` (default) draws plain points.
+#' @param direction Mark on each circle where the walk goes next: a
+#'   data.frame with columns `from`, `to` and a weight -- `weight`, or else
+#'   the one other numeric column, such as `trials` (how often `to` follows
+#'   `from`; repeated pairs are summed). Each node gets a triangle pointing at
+#'   the other node that follows it with the largest weight, ties broken by
+#'   node name; a node that nothing else follows (a sink, or only itself)
+#'   gets no triangle. Rows naming a node that is not in the hypergraph are
+#'   skipped. Requires `node_sizes`.
+#' @param arrow_style `"inside"` (default; a triangle inscribed in the
+#'   circle, its apex on the rim facing the next node) or `"outside"` (the
+#'   circle drawn out into a tip beyond its rim). An outside tip that points
+#'   upward moves that node's label below the circle.
+#' @param node_fill Colour of the circles drawn by `node_sizes` with
+#'   `direction` (default black).
+#' @param arrow_fill Colour of the `direction` triangles. `NULL` (default) is
+#'   a dark slate (`"#1F3A44"`) for `"inside"` and `node_fill` for
+#'   `"outside"`.
+#' @param transitions Draw the moves between nodes as curved arrows: a
+#'   data.frame with `from`, `to` and a weight, read like `direction`. Line
+#'   width follows the weight; a node followed by itself gets a small loop
+#'   below it. Rows naming a node that is not in the hypergraph are skipped.
+#'   The width legend is titled "<Unit> making the transition" when `unit` is
+#'   given and "Transition weight" otherwise.
+#' @param size_title What the node area shows (e.g. `"trials with the
+#'   event"`): the caption reads "Circle area: <size_title>." and the point
+#'   size legend is titled with it. `NULL` (default) uses "<unit> with the
+#'   event" when there is a unit, and otherwise says the area is
+#'   proportional to the event value.
+#' @param titles Write a title box beside every hyperedge, just outside its
+#'   pebble on the side facing away from the centre of the figure. `NULL`
+#'   (default) writes the hyperedges' count attribute described above (not
+#'   when `dismantled = TRUE`), else none; `FALSE` writes
+#'   none; `TRUE` writes the hyperedge names; a selector
+#'   resolved like `color_by` (an edge-metadata column, a vector named by
+#'   hyperedge, or one value per hyperedge) must be numeric and adds a second
+#'   line with that number and `unit` (e.g. "3,667 trials"). A hyperedge with
+#'   a single member gets its box beside that node. Boxes are placed in
+#'   order of decreasing value (name breaks ties) and a box that would sit on
+#'   an earlier one moves below it.
+#' @param title_prefix Text written before each hyperedge name in its title
+#'   box (default `""`), such as `"Mostly "`.
+#' @param notes A further line for some title boxes: a character vector named
+#'   by hyperedge, or a data.frame with a `note` column and the hyperedge
+#'   names in a `hyperedge`, `edge` or `group` column. Hyperedges without a
+#'   note get none; names that are not hyperedges are skipped. Requires
+#'   `titles`.
+#' @param unit The word for what the values count (e.g. `"trials"`,
+#'   `"steps"`). It titles the `color_by` legend (capitalised, unless
+#'   `legend_title` is given), follows the number in each title box, and
+#'   names the node area ("<unit> with the event") and the transition
+#'   widths. `NULL` (default) is the unit the hypergraph records
+#'   (`"sequences"` for [group_hypergraph()] of a clustering), else the
+#'   name of the hyperedges' count attribute described above, else those
+#'   texts stay generic.
+#' @param pieces How the bipartite layout places a hypergraph that falls into
+#'   disconnected pieces: `"row"` (default; every piece is laid out in a
+#'   frame of its own, as if drawn alone, and the frames are set side by
+#'   side 1.4 frame widths apart, in order of the piece's most prominent
+#'   hyperedge -- see `titles` -- with a piece of one node at the middle of
+#'   its frame) or `"packed"` (pieces are laid out one by one and packed into
+#'   a square frame). Only the bipartite layout has pieces; `"row"` given
+#'   with another layout is an error.
+#' @param title_gap Distance of each title box beyond its pebble, in layout
+#'   units (the layout spans 0 to 1; default `0.06`).
+#' @param group Draw one group only: the name of a value of the hyperedges'
+#'   `group` attribute, such as `"Cluster 1"` of a [group_hypergraph()] built
+#'   from a clustering of sequences. Only that group's hyperedges and their
+#'   members are drawn; for clustered sequences each node is sized by the
+#'   sequences of the group containing it (unless `node_sizes` is given),
+#'   each set is named by the states it adds to those every drawn set
+#'   shares (listed in the subtitle), the figure is titled with the group
+#'   and its number of sequences, `titles` defaults to `FALSE` and the
+#'   legends are stacked. A
+#'   name that is not a group, or a hypergraph without a `group` attribute,
+#'   raises `hypernets_bad_input`. `NULL` (default) draws every hyperedge.
 #' @param ... Unused; for S3 consistency.
 #' @return A ggplot object (with `dismantled = TRUE`, one facet per
-#'   hyperedge).
+#'   hyperedge). With `node_sizes` and `direction` the nodes are polygon
+#'   layers in data units and the caption names what circle area and
+#'   triangle show; with `node_sizes` alone they are points with a size
+#'   legend. Title boxes are the last layer.
+#' @section Conditions:
+#' `hypernets_bad_input` for an invalid selector or layout, a `node_sizes`
+#' that misses a node or holds a negative value, a `direction` or
+#' `transitions` table without `from`, `to` and one non-negative numeric
+#' weight, a `direction` without `node_sizes`, `titles` that are not
+#' numeric, `notes` without titles, an invalid `unit`, `title_prefix` or
+#' `title_gap`, `pieces = "row"` with a layout other than
+#' `"bipartite"`, or node overlays or titles combined with
+#' `dismantled = TRUE`.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #'   hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #'   382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -517,18 +639,61 @@
 #'   "member", "event"
 #' )
 #' plot(apart, color_by = "size")
+#'
+#' # circles sized by how often each node occurs, pointing where it goes next
+#' counts <- c(a = 40, b = 25, c = 12, d = 30, e = 5, f = 2)
+#' moves <- data.frame(from = c("a", "b", "c", "d", "d", "e"),
+#'                     to = c("b", "c", "a", "e", "b", "f"),
+#'                     weight = c(20, 9, 4, 8, 3, 1))
+#' plot(hg, node_sizes = counts, direction = moves,
+#'      size_title = "occurrences of the node")
+#' plot(hg, node_sizes = counts, direction = moves, transitions = moves,
+#'      arrow_style = "outside")
+#'
+#' # groups of events with their trial counts: the count colours the pebbles
+#' # and writes a title box per group; points sized by how many trials
+#' # contain each event
+#' members <- data.frame(
+#'   group = c("Hint", "Hint", "Hint", "Question", "Question", "Question"),
+#'   state = c("Wrong", "Hint", "Retry", "Wrong", "Question", "Retry"),
+#'   trials = c(120, 120, 120, 80, 80, 80)
+#' )
+#' trial_groups <- group_hypergraph(members, actor = "state", group = "group")
+#' event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
+#'                            trials = c(200, 120, 80, 190))
+#' plot(trial_groups, node_sizes = event_trials)
 #' @export
 plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
                                 center = NULL, seed = 1L, color_by = NULL,
                                 linetype_by = NULL,
-                                labels = TRUE, label_size = 3,
+                                labels = TRUE, label_size = 4.2,
                                 edge_labels = FALSE, edge_label_size = 3,
                                 dismantled = FALSE, ncol = NULL,
                                 node_size = 2.5, detail = 5,
-                                outline = "white", alpha = 0.45,
+                                outline = "white", alpha = 0.5,
                                 linewidth = 1.1, padding = 0.045,
-                                legend_title = NULL, ...) {
+                                legend_title = NULL, node_sizes = NULL,
+                                direction = NULL,
+                                arrow_style = c("inside", "outside"),
+                                node_fill = "#000000", arrow_fill = NULL,
+                                transitions = NULL, size_title = NULL,
+                                titles = NULL, title_prefix = "",
+                                notes = NULL, unit = NULL, pieces = NULL,
+                                title_gap = 0.06, group = NULL, ...) {
   .thg_check_hg(x)
+  group_title <- NULL
+  if (!is.null(group)) {
+    selected <- .thg_select_group(x, group)
+    x <- selected$hypergraph
+    node_sizes <- node_sizes %||% selected$node_sizes
+    # one group's sets are told apart by their members and the subtitle, as
+    # in a table of the group's sets; title boxes would crowd the pebbles
+    titles <- titles %||% FALSE
+    group_title <- selected[c("title", "subtitle")]
+  }
+  arrow_style <- match.arg(arrow_style)
+  explicit_pieces <- !is.null(pieces)
+  pieces <- match.arg(pieces %||% "row", c("packed", "row"))
   stopifnot(
     "`alpha` must be a number in (0, 1]" =
       is.numeric(alpha) && length(alpha) == 1L && alpha > 0 && alpha <= 1,
@@ -552,6 +717,73 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
     )
   }
   if (!is.data.frame(layout)) layout <- match.arg(layout)
+  overlaid <- !is.null(node_sizes) || !is.null(direction) ||
+    !is.null(transitions)
+  if (isTRUE(dismantled) && overlaid) {
+    .thg_bad_input(
+      "`node_sizes`, `direction` and `transitions` do not apply when `dismantled = TRUE`"
+    )
+  }
+  if (!is.null(direction) && is.null(node_sizes)) {
+    .thg_bad_input("`direction` needs `node_sizes`: the triangles sit inside the circles")
+  }
+  .thg_check_string(node_fill, "node_fill", colour = TRUE)
+  .thg_check_string(arrow_fill, "arrow_fill", null_ok = TRUE, colour = TRUE)
+  .thg_check_string(size_title, "size_title", null_ok = TRUE)
+  .thg_check_string(unit, "unit", null_ok = TRUE)
+  .thg_check_string(title_prefix, "title_prefix")
+  if (!is.numeric(title_gap) || length(title_gap) != 1L || !is.finite(title_gap) ||
+      title_gap < 0) {
+    .thg_bad_input("`title_gap` must be one non-negative number")
+  }
+  # A numeric hyperedge attribute (such as a count of trials that
+  # group_hypergraph() kept because it is constant within each group) is
+  # what the pebbles show unless the call says otherwise: it colours them,
+  # writes the title boxes and names the unit. Of several, an attribute with
+  # one value on every hyperedge (a membership share of 1 throughout) tells
+  # them apart no better than none and gives way to the one that varies;
+  # otherwise the call has to choose.
+  numeric_attributes <- Filter(function(column) {
+    is.numeric(x$edge_data[[column]]) && all(is.finite(x$edge_data[[column]]))
+  }, setdiff(names(x$edge_data), "edge"))
+  varying <- Filter(function(column) length(unique(x$edge_data[[column]])) > 1L,
+                    numeric_attributes)
+  count <- if (length(numeric_attributes) == 1L) numeric_attributes else
+    if (length(varying) == 1L) varying
+  color_by <- color_by %||% count
+  unit <- unit %||% x$params$unit %||% count
+  titles <- titles %||% (if (is.null(count) || isTRUE(dismantled)) FALSE else count)
+  titled <- !isFALSE(titles)
+  if (!is.null(notes) && !titled) {
+    .thg_bad_input("`notes` are written into the title boxes: give `titles` too")
+  }
+  if (isTRUE(dismantled) && titled) {
+    .thg_bad_input("`titles` do not apply when `dismantled = TRUE`: each panel is already titled with its hyperedge name")
+  }
+  title_values <- if (is.logical(titles) && length(titles) == 1L && !is.na(titles)) {
+    NULL
+  } else {
+    values <- .thg_edge_aesthetic(x, titles, "titles")
+    if (!is.numeric(values) || any(!is.finite(values))) {
+      .thg_bad_input("`titles` must be TRUE, FALSE or a selector of finite numbers (a count per hyperedge)")
+    }
+    values
+  }
+  title_notes <- if (is.null(notes)) NULL else
+    .thg_keyed_values(notes, colnames(x$incidence), "notes",
+                      key_columns = c("hyperedge", "edge", "group"),
+                      value_column = "note", type = "character")
+  if (explicit_pieces && identical(pieces, "row") &&
+      !identical(layout, "bipartite")) {
+    .thg_bad_input("`pieces = \"row\"` applies to the bipartite layout only")
+  }
+  node_value <- if (is.null(node_sizes)) NULL else
+    .thg_keyed_values(node_sizes, x$nodes, "node_sizes", key_columns = "node",
+                      value_column = "value")
+  direction <- if (is.null(direction)) NULL else
+    .thg_move_table(direction, "direction", x$nodes)
+  transitions <- if (is.null(transitions)) NULL else
+    .thg_move_table(transitions, "transitions", x$nodes)
   if (!is.null(center)) {
     if (!is.character(center) || anyNA(center)) {
       .thg_bad_input("`center` must be a character vector of node names")
@@ -580,6 +812,24 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
     ifelse(is.na(replacement), x$nodes, as.character(replacement))
   }
 
+  # the order in which hyperedges claim room: title boxes, and the pieces of
+  # a row layout, go by decreasing title value (else numeric colour value),
+  # then by name
+  edge_names <- colnames(x$incidence) %||% paste0("h", seq_len(x$n_hyperedges))
+  prominence <- title_values %||% (if (is.numeric(fill)) fill)
+  precedence <- if (is.null(prominence)) order(edge_names) else
+    order(-prominence, edge_names)
+  # decided before a row of pieces turns the layout into a table: every
+  # hyperedge of a bipartite layout has a position inside its pebble (its own
+  # vertex, or its members' centroid), where its label goes
+  bipartite <- identical(layout, "bipartite")
+  if (identical(pieces, "row") && bipartite) {
+    row <- .thg_row_layout(x, seed, center, padding, precedence)
+    if (!is.null(row)) {
+      layout <- row
+      center <- NULL
+    }
+  }
   pos <- .thg_positions(x, layout, seed, center, padding)
   edge_names <- pos$edges$hyperedge
   drawn <- which(drawable)
@@ -599,6 +849,7 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
     stats::setNames(rep_len(.thg_linetypes, length(ltype_levels)), ltype_levels)
   if (!is.null(fill_map)) {
     attr(fill_map, "title") <- legend_title %||%
+      (if (!is.null(unit)) tools::toTitleCase(unit)) %||%
       (if (is.character(color_by) && length(color_by) == 1L) color_by else "value")
   }
   if (!is.null(ltype_map)) {
@@ -678,19 +929,20 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
   }
 
   p <- .thg_hull_layers(ggplot2::ggplot(), hulls, fill_map, ltype_map, alpha,
-                        linewidth, outline) +
-    ggplot2::geom_point(
-      data = node_data, mapping = ggplot2::aes(x = .data$x, y = .data$y),
-      shape = 21, fill = node_ink, colour = "white", stroke = 0.5,
-      size = node_size
-    )
-  if (!isFALSE(labels)) {
-    p <- p + ggplot2::geom_text(
-      data = node_data,
-      mapping = ggplot2::aes(x = .data$x, y = .data$y, label = .data$label),
-      size = label_size, vjust = -1.1, colour = node_ink
-    )
+                        linewidth, outline)
+  circles <- !is.null(node_value) && !is.null(direction)
+  geometry <- if (circles) {
+    .thg_node_geometry(node_data, x$nodes, node_value, direction, arrow_style)
   }
+  label_data <- .thg_label_positions(node_data, node_value, geometry)
+  p <- p + .thg_node_layers(
+    node_data, x$nodes, label_data, value = node_value, geometry = geometry,
+    transitions = transitions, style = arrow_style, node_fill = node_fill,
+    arrow_fill = arrow_fill, labels = labels, label_size = label_size,
+    node_size = node_size,
+    area_what = size_title %||% (if (!is.null(unit)) paste(unit, "with the event")),
+    unit = unit
+  )
 
   if (!isFALSE(edge_labels)) {
     edge_shown <- if (isTRUE(edge_labels)) {
@@ -702,7 +954,7 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
       replaced <- unname(edge_labels[drawn_names])
       ifelse(is.na(replaced), drawn_names, as.character(replaced))
     }
-    anchor_xy <- if (identical(layout, "bipartite")) {
+    anchor_xy <- if (bipartite) {
       # the hyperedge's own position, unless the layout left it outside its
       # pebble (a two-member hyperedge's vertex sits off the line between its
       # members); then the centroid of the members, which is always inside
@@ -737,7 +989,85 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
       inherit.aes = FALSE
     )
   }
-  .thg_hull_theme(p)
+  if (titled) {
+    boxes <- .thg_title_boxes(hulls, pos, x$hyperedges, edge_names, precedence,
+                              title_values, title_prefix, unit, title_notes,
+                              gap = title_gap)
+    p <- p + ggplot2::geom_label(
+      data = boxes,
+      mapping = ggplot2::aes(x = .data$x, y = .data$y, label = .data$label,
+                             hjust = .data$hjust),
+      inherit.aes = FALSE, size = 3.4, fontface = "bold", lineheight = 0.9,
+      linewidth = 0.3, fill = "white"
+    )
+  }
+  # legends below the plot, wide margins so title boxes outside the pebbles
+  # are not cut; three legends do not fit on one row
+  p <- .thg_hull_theme(p) +
+    ggplot2::theme(plot.margin = ggplot2::margin(40, 130, 30, 130),
+                   legend.position = "bottom",
+                   legend.key.width = grid::unit(2.5, "cm"))
+  if (!is.null(transitions)) p <- p + ggplot2::theme(legend.box = "vertical")
+  if (!is.null(group_title)) {
+    # two legends side by side overrun a one-group figure; stack them
+    p <- p + ggplot2::labs(title = group_title$title,
+                           subtitle = group_title$subtitle) +
+      ggplot2::theme(legend.box = "vertical")
+  }
+  p
+}
+
+# One group of a hypergraph whose hyperedges carry a `group` attribute: its
+# hyperedges, its nodes, and -- for clustered sequences -- the node sizes of
+# that group (sequences containing the state) and a title naming it.
+.thg_select_group <- function(x, group) {
+  if (!is.character(group) || length(group) != 1L || is.na(group)) {
+    .thg_bad_input("`group` must be one group name")
+  }
+  groups <- x$edge_data$group
+  if (is.null(groups)) {
+    .thg_bad_input("`group` needs hyperedges with a `group` attribute, such as group_hypergraph() of a clustering")
+  }
+  if (!group %in% groups) {
+    .thg_bad_input(sprintf("`group` \"%s\" is not a group of this hypergraph; groups: %s",
+                           group, paste(unique(groups), collapse = ", ")))
+  }
+  hypergraph <- hg_subset(x, where = list(group = group))
+  counts <- x$state_counts
+  node_sizes <- NULL
+  title <- group
+  subtitle <- NULL
+  if (!is.null(counts)) {
+    # a set is named by what it adds to the states every drawn set shares,
+    # so the title boxes stay short; the shared states go in the subtitle
+    members <- lapply(hypergraph$hyperedges, \(idx) hypergraph$nodes[idx])
+    core <- Reduce(intersect, members)
+    added <- vapply(members, \(m) {
+      extra <- setdiff(m, core)
+      if (length(extra)) paste(extra, collapse = " + ") else "(shared states only)"
+    }, character(1L))
+    added <- make.unique(added, sep = " ")
+    old <- colnames(hypergraph$incidence)
+    colnames(hypergraph$incidence) <- added
+    hypergraph$edge_data$edge <- added[match(hypergraph$edge_data$edge, old)]
+    # hyperedges in name order, as group_hypergraph() orders a table of the
+    # group's sets, so the seeded layout is the one that table would get
+    by_name <- match(sort(added), added)
+    hypergraph <- .thg_rebuild(hypergraph,
+                               hypergraph$incidence[, by_name, drop = FALSE],
+                               by_name)
+    if (length(core)) {
+      subtitle <- sprintf("Shared by every set: %s", paste(core, collapse = ", "))
+    }
+    in_group <- counts$group == group
+    node_sizes <- stats::setNames(counts$count[in_group], counts$node[in_group])
+    n <- x$group_sizes$sequences[match(group, x$group_sizes$group)]
+    title <- sprintf("%s (%s %s)", group,
+                     formatC(n, big.mark = ",", format = "d"),
+                     x$params$unit %||% "sequences")
+  }
+  list(hypergraph = hypergraph, node_sizes = node_sizes, title = title,
+       subtitle = subtitle)
 }
 
 # The shape layer with its fill, outline and line-type scales. With
@@ -767,8 +1097,17 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
                                     name = title, aesthetics = scaled,
                                     breaks = .thg_count_breaks(hulls$value))
     } else {
-      ggplot2::scale_fill_manual(values = fill_map$palette, name = title,
-                                 drop = FALSE, aesthetics = scaled)
+      # the wide keys of the theme are for the colour bar: a discrete legend
+      # keeps the default key width and at most four keys to a row, so a
+      # legend of many levels stays narrow
+      ggplot2::scale_fill_manual(
+        values = fill_map$palette, name = title, drop = FALSE,
+        aesthetics = scaled,
+        guide = ggplot2::guide_legend(
+          nrow = ceiling(length(fill_map$palette) / 4), byrow = TRUE,
+          theme = ggplot2::theme(legend.key.width = grid::unit(1.2, "lines"))
+        )
+      )
     }
   }
   if (!is.null(ltype_map)) {
@@ -808,4 +1147,413 @@ plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
 # blue, matching the yellow-to-blue ordering of the paper's cardinality scale.
 .thg_okabe_ito_ramp <- function() {
   c("#F0E442", "#009E73", "#0072B2")
+}
+
+# ---- node overlays: sized circles, direction triangles, transitions ---------
+# Ported from the pipeline helpers the package author drew these figures with
+# (plot_blobs(), .direction_node_layers(), .transition_arrows()), rebuilt as
+# ordinary layers so no caller edits a finished plot's layers by index.
+
+# Stop with hypernets_bad_input unless `x` is one non-missing string -- one
+# grDevices can read as a colour when `colour = TRUE` -- or, with
+# `null_ok = TRUE`, NULL.
+.thg_check_string <- function(x, arg, null_ok = FALSE, colour = FALSE) {
+  if (null_ok && is.null(x)) return(invisible(NULL))
+  ok <- is.character(x) && length(x) == 1L && !is.na(x) &&
+    (!colour ||
+       tryCatch(is.matrix(grDevices::col2rgb(x)), error = function(e) FALSE))
+  if (!ok) {
+    .thg_bad_input(sprintf("`%s` must be %s%s", arg,
+                           if (null_ok) "NULL or " else "",
+                           if (colour) "a single colour" else "a single string"))
+  }
+  invisible(x)
+}
+
+# Numbers as text with a thousands separator, never in scientific notation.
+# Legend labels are each as short as they can be written ("12,000", "2.5");
+# `count = TRUE`, for title boxes, writes whole numbers as integers ("3,667")
+# and others to three significant digits.
+.thg_comma <- function(x, count = FALSE) {
+  vapply(x, function(v) {
+    if (is.na(v)) return(NA_character_)
+    if (!count) return(format(v, big.mark = ",", scientific = FALSE, trim = TRUE))
+    if (abs(v - round(v)) < sqrt(.Machine$double.eps)) {
+      formatC(round(v), big.mark = ",", format = "d")
+    } else {
+      formatC(v, digits = 3L, format = "fg", big.mark = ",")
+    }
+  }, character(1L))
+}
+
+# The one column of `data` whose values satisfy `test`, excluding `skip`:
+# how a two-column table such as (state, trials) is read without naming its
+# columns. NULL when there is not exactly one.
+.thg_only_column <- function(data, test, skip = character()) {
+  hits <- Filter(function(column) test(data[[column]]),
+                 setdiff(names(data), skip))
+  if (length(hits) == 1L) hits else NULL
+}
+
+# Values keyed by name, returned in the order of `keys` (NA where a key has
+# none; the first value given for a name counts), from a vector named by key
+# or a data.frame. The data.frame's key column is the first of `key_columns`
+# it has -- else, for a numeric `type`, its one text column -- and its value
+# column is `value_column`, else, for a numeric `type`, its one numeric
+# column. A numeric table (`node_sizes`) must also name every key once, with
+# finite non-negative values, at least one positive. Names that are not keys
+# are skipped, so one table serves every subset.
+.thg_keyed_values <- function(tab, keys, arg, key_columns, value_column,
+                              type = c("numeric", "character")) {
+  type <- match.arg(type)
+  numeric <- identical(type, "numeric")
+  is_type <- if (numeric) is.numeric else is.character
+  if (is.data.frame(tab)) {
+    key <- intersect(key_columns, names(tab))[1L]
+    if (is.na(key) && numeric) {
+      key <- .thg_only_column(tab, function(v) is.character(v) || is.factor(v)) %||%
+        NA_character_
+    }
+    value <- if (value_column %in% names(tab)) value_column else if (numeric) {
+      .thg_only_column(tab, is.numeric, skip = key)
+    }
+    if (is.na(key) || is.null(value)) {
+      .thg_bad_input(sprintf(
+        "a `%s` data.frame needs a `%s` column and the names in a %s column%s",
+        arg, value_column,
+        paste(sprintf("`%s`", key_columns), collapse = " or "),
+        if (numeric) ", or exactly one text column (the names) and one numeric column (the values)" else ""))
+    }
+    names_given <- as.character(tab[[key]])
+    values <- tab[[value]]
+  } else {
+    if (!is_type(tab) || is.null(names(tab))) {
+      .thg_bad_input(sprintf("`%s` must be a data.frame or a %s vector named by %s",
+                             arg, type, key_columns[[1L]]))
+    }
+    names_given <- names(tab)
+    values <- unname(tab)
+  }
+  if (!is_type(values)) .thg_bad_input(sprintf("`%s` values must be %s", arg, type))
+  if (!numeric) return(values[match(keys, names_given)])
+  if (anyDuplicated(names_given)) .thg_bad_input(sprintf("`%s` names a node more than once", arg))
+  missing <- setdiff(keys, names_given)
+  if (length(missing)) {
+    .thg_bad_input(sprintf("`%s` has no value for %d node(s): %s", arg,
+                           length(missing),
+                           paste(utils::head(missing, 5L), collapse = ", ")))
+  }
+  out <- values[match(keys, names_given)]
+  if (any(!is.finite(out)) || any(out < 0)) {
+    .thg_bad_input(sprintf("`%s` values must be finite and non-negative", arg))
+  }
+  if (max(out) <= 0) .thg_bad_input(sprintf("`%s` needs at least one positive value", arg))
+  out
+}
+
+# A from/to/weight table (the weight named `weight`, or the one other
+# numeric column, such as `trials`) restricted to pairs of drawn nodes,
+# repeated pairs summed, zero weights dropped (a pair that never happens is
+# no move), in a deterministic order.
+.thg_move_table <- function(tab, arg, nodes) {
+  weight_column <- if (!is.data.frame(tab)) NULL else if ("weight" %in% names(tab)) {
+    "weight"
+  } else {
+    .thg_only_column(tab, is.numeric, skip = c("from", "to"))
+  }
+  if (!is.data.frame(tab) || !all(c("from", "to") %in% names(tab)) ||
+      is.null(weight_column)) {
+    .thg_bad_input(sprintf(
+      "`%s` must be a data.frame with `from`, `to` and a weight: a `weight` column, or exactly one other numeric column",
+      arg))
+  }
+  weight <- tab[[weight_column]]
+  if (!is.numeric(weight) || any(!is.finite(weight)) || any(weight < 0)) {
+    .thg_bad_input(sprintf("`%s$weight` must be finite non-negative numbers", arg))
+  }
+  from <- as.character(tab$from)
+  to <- as.character(tab$to)
+  if (anyNA(from) || anyNA(to)) {
+    .thg_bad_input(sprintf("`%s` has missing `from` or `to` names", arg))
+  }
+  inside <- from %in% nodes & to %in% nodes
+  if (length(from) && !any(inside)) {
+    .thg_bad_input(sprintf("no row of `%s` joins two nodes of the hypergraph", arg))
+  }
+  keep <- inside & weight > 0
+  if (!any(keep)) {
+    return(data.frame(from = character(), to = character(), weight = numeric()))
+  }
+  out <- stats::aggregate(weight ~ from + to,
+                          data = data.frame(from = from[keep], to = to[keep],
+                                            weight = weight[keep]),
+                          FUN = sum)
+  out <- out[order(out$from, out$to), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
+
+# Circle radius and heading for every node. Radius: area proportional to
+# the value, the largest 4% of the layout extent, none below 30% of that.
+# Heading: towards the other node that follows with the largest weight, ties
+# broken by name; NA for a node nothing else follows. `below`: an outside
+# tip points up, so that node's label goes under its circle.
+.thg_node_geometry <- function(node_data, nodes, value, direction,
+                               style = "inside") {
+  span <- max(diff(range(node_data$y)), diff(range(node_data$x)), 1e-9)
+  r_max <- 0.04 * span
+  radius <- pmax(r_max * sqrt(value / max(value)), 0.3 * r_max)
+  target <- rep(NA_integer_, length(nodes))
+  if (!is.null(direction) && nrow(direction)) {
+    moves <- direction[direction$from != direction$to, , drop = FALSE]
+    moves <- moves[order(moves$from, -moves$weight, moves$to), , drop = FALSE]
+    best <- moves[!duplicated(moves$from), , drop = FALSE]
+    target <- match(best$to[match(nodes, best$from)], nodes)
+  }
+  heading <- atan2(node_data$y[target] - node_data$y,
+                   node_data$x[target] - node_data$x)
+  below <- identical(style, "outside") & !is.na(heading) & sin(heading) > 0.5
+  data.frame(node = nodes, x = node_data$x, y = node_data$y, radius = radius,
+             target = nodes[target], heading = heading, below = below,
+             stringsAsFactors = FALSE)
+}
+
+# Where each node label is written: above its node (-1.1 label heights), just
+# above its dot when points are sized by a value (the largest dot, 10 mm
+# across, has a radius of about 1.2 label heights at label size 4.2, plus a
+# small gap), and just above its circle -- or just below when an outside
+# tip points up -- when circles are drawn.
+.thg_label_positions <- function(node_data, value = NULL, geometry = NULL) {
+  y <- node_data$y
+  vjust <- rep(-1.1, nrow(node_data))
+  if (!is.null(geometry)) {
+    y <- node_data$y + ifelse(geometry$below, -1, 1) * geometry$radius
+    vjust <- ifelse(geometry$below, 1.35, -0.35)
+  } else if (!is.null(value)) {
+    vjust <- -0.4 - 1.8 * sqrt(value / max(value))
+  }
+  data.frame(x = node_data$x, y = y, vjust = vjust, label = node_data$label,
+             stringsAsFactors = FALSE)
+}
+
+# Everything drawn on the nodes, as a list of layers, scales and labels to
+# add to the pebbles, in drawing order:
+#   * `transitions`: curved arrows whose width follows the weight. Each end
+#     is pulled back from its node (past its circle, when circles are drawn)
+#     so the head stays visible; a node followed by itself gets a small loop
+#     below it, or above it when its label sits below.
+#   * the nodes: with `geometry` (node_sizes plus direction) a disc per node
+#     and a triangle turned onto its heading -- the triangle given in its own
+#     frame, +x towards the next node, in radii of its circle -- and a caption
+#     saying what area and triangle show; with `value` alone, points whose
+#     area follows the value (each label just above its own dot: the largest
+#     dot, 10 mm across, has a radius of about 1.2 label heights at label
+#     size 4.2, plus a small gap); otherwise plain points.
+#   * the labels, bold with a halo as cograph's .add_text_with_halo():
+#     stamped eight times in white at points on a small circle around it
+#     (alpha 0.6), then once on top.
+.thg_node_layers <- function(node_data, nodes, label_data, value = NULL,
+                             geometry = NULL,
+                             transitions = NULL, style = "inside",
+                             node_fill = "#000000", arrow_fill = NULL,
+                             labels = TRUE, label_size = 4.2, node_size = 2.5,
+                             area_what = NULL, unit = NULL) {
+  ink <- "#2B2B2B"
+  arrows <- list()
+  if (!is.null(transitions)) {
+    radius <- geometry$radius %||% rep(0, length(nodes))
+    flip <- geometry$below %||% rep(FALSE, length(nodes))
+    span <- max(diff(range(node_data$y)), diff(range(node_data$x)), 1e-9)
+    gap <- 0.035 * span
+    i <- match(transitions$from, nodes)
+    j <- match(transitions$to, nodes)
+    d <- data.frame(transitions, x = node_data$x[i], y = node_data$y[i],
+                    xend = node_data$x[j], yend = node_data$y[j],
+                    r_from = radius[i], r_to = radius[j], flip = flip[i])
+    head <- ggplot2::arrow(length = grid::unit(3, "mm"), type = "closed")
+    links <- d[d$from != d$to, , drop = FALSE]
+    len <- pmax(sqrt((links$xend - links$x)^2 + (links$yend - links$y)^2), 1e-9)
+    pull_from <- pmin(pmax(gap, links$r_from + 0.01 * span) / len, 0.45)
+    pull_to <- pmin(pmax(gap, links$r_to + 0.01 * span) / len, 0.45)
+    links$x0 <- links$x + (links$xend - links$x) * pull_from
+    links$y0 <- links$y + (links$yend - links$y) * pull_from
+    links$x1 <- links$xend - (links$xend - links$x) * pull_to
+    links$y1 <- links$yend - (links$yend - links$y) * pull_to
+    loops <- d[d$from == d$to, , drop = FALSE]
+    # swapping the ends turns the bulge of the curve to the other side
+    side <- ifelse(loops$flip, -1, 1)
+    loops$half <- side * pmax(gap, loops$r_from)
+    loops$ly <- loops$y - side * (loops$r_from + 0.4 * gap)
+    width_title <- if (is.null(unit)) "Transition weight" else
+      paste(tools::toTitleCase(unit), "making the transition")
+    arrows <- list(
+      if (nrow(links)) ggplot2::geom_curve(
+        data = links,
+        mapping = ggplot2::aes(x = .data$x0, y = .data$y0, xend = .data$x1,
+                               yend = .data$y1, linewidth = .data$weight),
+        curvature = 0.15, arrow = head, colour = "#333333", alpha = 0.75,
+        inherit.aes = FALSE
+      ),
+      if (nrow(loops)) ggplot2::geom_curve(
+        data = loops,
+        mapping = ggplot2::aes(x = .data$x - .data$half, y = .data$ly,
+                               xend = .data$x + .data$half, yend = .data$ly,
+                               linewidth = .data$weight),
+        curvature = 1.6, arrow = head, colour = "#333333", alpha = 0.75,
+        inherit.aes = FALSE
+      ),
+      ggplot2::scale_linewidth(range = c(0.3, 2.6), name = width_title,
+                               labels = .thg_comma)
+    )
+  }
+  shape_mapping <- ggplot2::aes(x = .data$x, y = .data$y, group = .data$id)
+  caption <- list()
+  if (!is.null(geometry)) {
+    a <- seq(0, 2 * pi, length.out = 64L)
+    discs <- do.call(rbind, lapply(seq_len(nrow(geometry)), function(i) {
+      data.frame(id = i, x = geometry$x[i] + geometry$radius[i] * cos(a),
+                 y = geometry$y[i] + geometry$radius[i] * sin(a))
+    }))
+    tip <- if (identical(style, "inside")) {
+      list(x = c(0.95, -0.2, -0.2), y = c(0, 0.86, -0.86))
+    } else {
+      list(x = c(1.55, 0.55, 0.55), y = c(0, 0.62, -0.62))
+    }
+    triangles <- do.call(rbind, lapply(which(!is.na(geometry$heading)), function(i) {
+      tx <- geometry$radius[i] * tip$x
+      ty <- geometry$radius[i] * tip$y
+      h <- geometry$heading[i]
+      data.frame(id = i, x = geometry$x[i] + tx * cos(h) - ty * sin(h),
+                 y = geometry$y[i] + tx * sin(h) + ty * cos(h))
+    }))
+    marks <- list(
+      ggplot2::geom_polygon(data = discs, mapping = shape_mapping,
+                            fill = node_fill, colour = NA, inherit.aes = FALSE),
+      if (!is.null(triangles)) ggplot2::geom_polygon(
+        data = triangles, mapping = shape_mapping,
+        fill = arrow_fill %||% (if (identical(style, "inside")) "#1F3A44" else node_fill),
+        colour = NA, inherit.aes = FALSE
+      )
+    )
+    caption <- list(ggplot2::labs(caption = sprintf(
+      "Circle area: %s. Triangle: points to the event that most often follows it.",
+      area_what %||% "proportional to the event value")))
+  } else if (!is.null(value)) {
+    marks <- list(
+      ggplot2::geom_point(
+        data = data.frame(x = node_data$x, y = node_data$y, value = value),
+        mapping = ggplot2::aes(x = .data$x, y = .data$y, size = .data$value),
+        shape = 21, fill = ink, colour = "white", stroke = 0.5
+      ),
+      ggplot2::scale_size_area(
+        max_size = 10, labels = .thg_comma,
+        name = if (is.null(area_what)) {
+          "Event value"
+        } else {
+          paste0(toupper(substr(area_what, 1L, 1L)), substring(area_what, 2L))
+        }
+      )
+    )
+  } else {
+    marks <- list(ggplot2::geom_point(
+      data = node_data, mapping = ggplot2::aes(x = .data$x, y = .data$y),
+      shape = 21, fill = ink, colour = "white", stroke = 0.5, size = node_size
+    ))
+  }
+  text <- if (isFALSE(labels)) {
+    list()
+  } else {
+    halo_width <- 0.003 * max(diff(range(label_data$y)), 1e-9)
+    label_mapping <- ggplot2::aes(x = .data$x, y = .data$y, label = .data$label,
+                                  vjust = .data$vjust)
+    stamps <- lapply(seq(0, 2 * pi, length.out = 9L)[-9L], function(a) {
+      shifted <- label_data
+      shifted$x <- shifted$x + halo_width * cos(a)
+      shifted$y <- shifted$y + halo_width * sin(a)
+      ggplot2::geom_text(data = shifted, mapping = label_mapping,
+                         colour = "white", fontface = "bold",
+                         size = label_size, alpha = 0.6, inherit.aes = FALSE)
+    })
+    c(stamps, list(ggplot2::geom_text(data = label_data, mapping = label_mapping,
+                                      colour = ink, fontface = "bold",
+                                      size = label_size, inherit.aes = FALSE)))
+  }
+  c(arrows, marks, text, caption)
+}
+
+# ---- title boxes and side-by-side pieces -------------------------------------
+# Ported from the pipeline helper plot_blobs() (see the node overlays above):
+# the same placement rule and constants, so the package draws its figures.
+
+# One title box per hyperedge, in `precedence` order: the name (after
+# `prefix`), then the value and `unit`, then the note, each on its own line.
+# A box sits `gap` layout units beyond the pebble's furthest reach along the
+# direction from the figure's centre (the middle of the pebbles' extent) to
+# the pebble's centre, left-, centre- or right-justified by the side it is
+# on; a one-member hyperedge, which has no pebble, is placed from its node.
+# A box within a quarter of the figure's height across and 7% of it
+# vertically of an earlier box moves to 8% below the lowest such box.
+.thg_title_boxes <- function(hulls, pos, hyperedges, edge_names, precedence,
+                             values, prefix, unit, notes, gap = 0.06) {
+  centre <- c(mean(range(hulls$x)), mean(range(hulls$y)))
+  boxes <- do.call(rbind, lapply(precedence, function(k) {
+    outline <- hulls[hulls$hyperedge == edge_names[k], c("x", "y")]
+    if (!nrow(outline)) outline <- pos$nodes[hyperedges[[k]], c("x", "y")]
+    heading <- c(mean(outline$x), mean(outline$y)) - centre
+    length_heading <- sqrt(sum(heading^2))
+    # a pebble centred on the figure has no side of its own: write above it
+    heading <- if (length_heading > 0) heading / length_heading else c(0, 1)
+    reach <- max((outline$x - centre[1L]) * heading[1L] +
+                   (outline$y - centre[2L]) * heading[2L])
+    at <- centre + (reach + gap) * heading
+    count <- if (is.null(values)) "" else
+      sprintf("\n%s%s", .thg_comma(values[k], count = TRUE),
+              if (is.null(unit)) "" else paste0(" ", unit))
+    note <- if (is.null(notes) || is.na(notes[k])) "" else paste0("\n", notes[k])
+    data.frame(x = at[1L], y = at[2L],
+               hjust = 0.5 - 0.5 * sign(round(heading[1L], 1L)),
+               label = paste0(prefix, edge_names[k], count, note),
+               stringsAsFactors = FALSE)
+  }))
+  spread <- diff(range(hulls$y))
+  # each box depends on where the earlier ones ended up, so the positions are
+  # carried forward by Reduce()
+  boxes$y <- Reduce(function(ys, i) {
+    earlier <- seq_len(i - 1L)
+    clash <- abs(boxes$x[earlier] - boxes$x[i]) < 0.25 * spread &
+      abs(ys[earlier] - ys[i]) < 0.07 * spread
+    if (any(clash)) ys[i] <- min(ys[earlier][clash]) - 0.08 * spread
+    ys
+  }, seq_len(nrow(boxes))[-1L], boxes$y)
+  rownames(boxes) <- NULL
+  boxes
+}
+
+# Node positions for `pieces = "row"`: every connected piece (hyperedges
+# joined by a shared node) is laid out on its own with the bipartite layout,
+# in its own unit frame, exactly as it would be drawn alone, and piece i is
+# shifted 1.4 (i - 1) to the right. Pieces are ordered by their earliest
+# hyperedge in `precedence`; a piece of one node sits at (0.5, 0.5) of its
+# frame. NULL for a connected hypergraph, which needs no row.
+.thg_row_layout <- function(hg, seed, center, padding, precedence) {
+  inc <- as.matrix(hg$incidence != 0)
+  piece <- .thg_components(crossprod(inc) * 1)
+  if (max(piece) == 1L) return(NULL)
+  earliest <- vapply(seq_len(max(piece)), function(k) {
+    min(match(which(piece == k), precedence))
+  }, integer(1L))
+  do.call(rbind, lapply(seq_along(earliest), function(i) {
+    edges <- which(piece == order(earliest)[i])
+    rows <- which(rowSums(inc[, edges, drop = FALSE]) > 0)
+    shift <- (i - 1L) * 1.4
+    if (length(rows) == 1L) {
+      return(data.frame(node = hg$nodes[rows], x = 0.5 + shift, y = 0.5,
+                        stringsAsFactors = FALSE))
+    }
+    part <- list(incidence = hg$incidence[rows, edges, drop = FALSE],
+                 nodes = hg$nodes[rows])
+    at <- .thg_positions(part, "bipartite", seed, center, padding)$nodes
+    data.frame(node = at$node, x = at$x + shift, y = at$y,
+               stringsAsFactors = FALSE)
+  }))
 }

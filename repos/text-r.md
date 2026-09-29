@@ -5,8 +5,8 @@
   (SimCSE/E5/BGE-class included), plus downstream analysis/prediction
   helpers.
 - **Verified 2026-08-24**: on CRAN (presence checked); capability description
-  from package documentation background — exact function surface not audited
-  this session.
+  from package documentation background — exact function surface not audited.
+  Current CRAN version 1.9 (published 2026-06-13, checked 2026-09-29).
 - **Role for us**: an optional external embedding route. sbert is the native
   hypernets-facing frontend; either package can supply a matrix to
   `knn_hypergraph()`. PLM training remains outside hypernets.

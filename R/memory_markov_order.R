@@ -174,6 +174,67 @@
 #' keep raising the order while the test rejects, and stop at the first
 #' non-rejection.
 #'
+#' @details
+#' Sources of each part of the output:
+#' \itemize{
+#'   \item \code{g2}, \code{df}, \code{p_asymptotic}: the likelihood-ratio
+#'     (\eqn{G^2}) test of order \eqn{k-1} against order \eqn{k} of Anderson
+#'     & Goodman (1957), written as a test of conditional
+#'     independence of \eqn{s} and \eqn{x} given \eqn{w} and summed over the
+#'     contexts \eqn{w}. Anderson & Goodman's degrees of freedom are
+#'     \eqn{m^{k-1}(m-1)^2} for \eqn{m} states; here \code{df} is
+#'     \eqn{\sum_w (r_w - 1)(c_w - 1)} with \eqn{r_w} and \eqn{c_w} the
+#'     numbers of \emph{observed} \eqn{x} and \eqn{s} categories in context
+#'     \eqn{w}, so contexts and categories that never occur contribute no
+#'     degrees of freedom. The two coincide when every \eqn{(k+1)}-gram is
+#'     observed. This observed-support count is an implementation choice,
+#'     not taken from a published source.
+#'   \item \code{p_permutation}: the successors \eqn{s} are permuted within
+#'     each context \eqn{w}, holding both margins of every \eqn{x}-by-\eqn{s}
+#'     stratum fixed. This is the conditional (margin-fixed) reference set
+#'     of the exact conditional test of conditional independence in a
+#'     stratified contingency table (Agresti 1992), sampled by Monte Carlo;
+#'     the p-value is \eqn{(b + 1)/(B + 1)}. It is exact for a table of
+#'     independent \eqn{(x, w, s)} tuples. Tuples cut from the same
+#'     trajectory overlap and are serially dependent, and the exact
+#'     conditional test for Markov chains conditions instead on the
+#'     transition-count sufficient statistics (Besag & Mondal 2013). No
+#'     published source applies the within-context shuffle of tuples to
+#'     Markov-order selection; treat \code{p_permutation} as a
+#'     tuple-level conditional test, not as an exact test for the chain.
+#'   \item \code{loglik}, \code{AIC}, \code{BIC}, \code{aic_order},
+#'     \code{bic_order}: the log-likelihood of the multi-order model of
+#'     Scholtes (2017), in which the first \eqn{k} steps of each trajectory
+#'     are scored by the lower-order layers, and order selection by AIC
+#'     (Tong 1975) and BIC (Katz 1981). Free parameters per layer are
+#'     counted on the observed transitions (non-zero entries per row minus
+#'     one), not by Scholtes' degrees-of-freedom formula.
+#' }
+#'
+#' @references
+#' Anderson, T. W., & Goodman, L. A. (1957). Statistical inference about
+#' Markov chains. \emph{The Annals of Mathematical Statistics}, 28(1),
+#' 89-110. \doi{10.1214/aoms/1177707039}
+#'
+#' Agresti, A. (1992). A survey of exact inference for contingency tables.
+#' \emph{Statistical Science}, 7(1), 131-153. \doi{10.1214/ss/1177011454}
+#'
+#' Besag, J., & Mondal, D. (2013). Exact goodness-of-fit tests for Markov
+#' chains. \emph{Biometrics}, 69(2), 488-496. \doi{10.1111/biom.12009}
+#'
+#' Scholtes, I. (2017). When is a network a network? Multi-order graphical
+#' model selection in pathways and temporal networks. In \emph{Proceedings
+#' of the 23rd ACM SIGKDD International Conference on Knowledge Discovery
+#' and Data Mining} (pp. 1037-1046). \doi{10.1145/3097983.3098145}
+#'
+#' Tong, H. (1975). Determination of the order of a Markov chain by
+#' Akaike's information criterion. \emph{Journal of Applied Probability},
+#' 12(3), 488-497. \doi{10.2307/3212863}
+#'
+#' Katz, R. W. (1981). On some criteria for estimating the order of a
+#' Markov chain. \emph{Technometrics}, 23(3), 243-249.
+#' \doi{10.1080/00401706.1981.10486293}
+#'
 #' @param data A data.frame (wide format, one sequence per row) or list
 #'   of character vectors (one per trajectory). NAs are treated as end
 #'   of sequence.

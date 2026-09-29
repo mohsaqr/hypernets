@@ -1,3 +1,164 @@
+# hypernets 0.5.1
+
+* **`group_hypergraph()` reads Nestimate clusterings directly.** A mixture
+  Markov fit (`net_mmm`), a distance clustering (`net_clustering`) or the
+  per-cluster networks built from either (`netobject_group`, with names from
+  `rename_models()`) become a hypergraph of each cluster's most frequent
+  state sets: every sequence reduces to the set of its distinct states and
+  the `top` (default 8) most frequent sets of each cluster are the
+  hyperedges, carrying `group`, `set` and `count` (frequent-itemset support
+  counting; Agrawal & Srikant 1994). `states =` keeps a subset of states
+  before counting. `as.data.frame(hg, what = "sets")` and
+  `what = "state_counts"` return the tables; `plot(hg, group = "Cluster 1")`
+  draws one cluster's sets, nodes sized by the cluster's sequences
+  containing the state, sets named by what they add to the states all of
+  them share. The objects are read by structure; Nestimate is not a
+  dependency. On the Eventdata26 three-cluster mixture (750 / 1,784 / 1,301
+  steps) the sets and counts are identical to the pipeline's
+  `step_variations()` for every cluster (local parity test). The data.frame
+  path is unchanged (`identical()` to a fixture frozen before the change).
+
+* **`markov_order_test()` cites its sources.** New `@references` and a
+  `@details` section tying each output column to its origin: the
+  likelihood-ratio (`g2`, `df`, `p_asymptotic`) test of Anderson & Goodman
+  (1957); the within-context permutation (`p_permutation`) as the
+  margin-fixed conditional test of Agresti (1992), with the caveat that
+  overlapping tuples from one trajectory are serially dependent and the
+  exact test for a chain conditions on transition counts (Besag & Mondal
+  2013); the multi-order log-likelihood of Scholtes (2017) and AIC/BIC order
+  selection (Tong 1975; Katz 1981). Two implementation choices are stated as
+  such: `df` counts observed categories per context, and layer parameters
+  are counted on observed transitions. No computed value changes.
+
+* **`betti_numbers()` and `persistent_homology()` document their
+  coefficient fields.** `betti_numbers()` ranks oriented boundary matrices
+  over the rationals (`qr()`); `persistent_homology()` reduces over Z/2.
+  They differ when integral homology has torsion: on the 6-vertex real
+  projective plane `betti_numbers()` gives (1, 0, 0) and
+  `persistent_homology()` has essential classes (1, 1, 1). A test pins both
+  (Hatcher 2002). No computed value changes.
+
+* **HyperGAT benchmark compares like with like.** The `hg_hypergat()`
+  benchmark rows (R8 0.9665, R52 0.9433) were run with `semantic = "none"`
+  and are now set against the paper's "w/o semantic" ablation (Ding et al.
+  2020, Table 4: R8 0.9714, R52 0.9415) rather than full HyperGAT
+  (Table 2: 0.9797, 0.9498). The result CSV records `semantic`; the
+  published table gains the ablation rows; `RESULTS.md`,
+  `render_results.R` and the benchmarks article compute the comparison
+  from them. No training was rerun.
+
+* **`plot.net_hypergraph()` draws node overlays** as ordinary ggplot layers.
+  `node_sizes =` (a `node`/`value` table or a vector named by node) draws each
+  node as a circle in data units whose area follows the value (largest radius
+  4% of the layout, none below 30% of it, so rare nodes stay visible);
+  `direction =` (a `from`/`to`/`weight` table) adds a triangle pointing at the
+  node that most often follows it, ties broken by name, none for a sink;
+  `arrow_style = "inside" | "outside"`, `node_fill`, `arrow_fill`;
+  `transitions =` draws the moves as curved arrows with width by `weight` and
+  self-loops; labels move above each circle with a white halo, and the
+  caption states what circle area (`size_title`) and triangles show.
+
+* **`plot.net_hypergraph()` draws the event-data blob figures exactly.**
+  Every figure the Eventdata26 pipeline drew with its `plot_blobs()` helper
+  (19 calls across six documents) is now one `plot()` call on
+  `group_hypergraph(members, actor = "state", group = "group")`, with the
+  same built layer data (maximum absolute difference 0 in every layer;
+  local-only parity test), and the call passes only the data:
+  `plot(groups, node_sizes = node_sizes, notes = notes)`. A numeric
+  hyperedge attribute that `group_hypergraph()` kept (such as `trials`,
+  constant within each group) colours the pebbles, writes a title box with
+  its count beside each one and names the unit, with no argument; of several
+  numeric attributes the one that varies between hyperedges is read.
+  `color_by`, `titles`, `unit` and `legend_title` override it. That look is
+  the default for every hypergraph plot: haloed bold labels, legends below
+  (2.5 cm keys for the colour bar, stacked when transitions add a third;
+  discrete legends keep default keys, at most four to a row), margins
+  40/130/30/130 pt, `alpha = 0.5`, `label_size = 4.2`, and `pieces = "row"`
+  (each disconnected piece laid out on its own and set side by side;
+  `pieces = "packed"` packs them). The earlier look is partly available
+  through `alpha = 0.45`, `label_size = 3` and `pieces = "packed"`; legend
+  position and margins through `ggplot2::theme()`. `title_gap` sets how far
+  beyond its pebble a title box sits (default 0.06, as the pipeline's
+  helper). Hyperedge labels
+  (`edge_labels`) on a row of pieces sit inside their pebbles. New
+  arguments: `titles` (`TRUE` for names, or a numeric selector for a count
+  line), `title_prefix`, `notes` (a further line, from a named vector or a
+  `group`/`note` table), `unit` (titles the colour legend and names counts,
+  node area and transition widths), `pieces`. The caption and size legend
+  call a node an "event".
+  `node_sizes` without `direction` now draws points with an area legend
+  (`scale_size_area()`); circles in data units are drawn with `direction`.
+  `node_sizes`, `direction` and `transitions` read tables such as
+  `(state, trials)` and `(from, to, trials)` as they are. The caption is one
+  line ("Circle area: ... Triangle: points to the ... that most often
+  follows it."). `tools` joins Imports (`toTitleCase()`).
+
+* **`ring_sequences` and `ring_communities`**: 200 simulated walks with
+  planted memory modules (four groups of four actions on a ring, shared
+  actions between neighbours) and the planted community of every
+  second-order state, built by `data-raw/ring_sequences.R`. They replace the
+  simulator the `hon_communities()` walk-through defined inline.
+
+* **`plot.net_hon_communities()` is rebuilt on it.** The default physical
+  view is the community hypergraph (member = physical node, group =
+  `"Community k"`) drawn by `plot.net_hypergraph()`: pebbles coloured by
+  community (discrete Okabe-Ito, legend "Community"), in the blob look with a
+  title box per community giving its name and flow,
+  circles sized by physical flow, triangles pointing along the projected
+  link flow, and a caption naming flow, one-node communities and the
+  zero-flow states left out. It returns the ggplot; `...` reaches
+  `plot.net_hypergraph()`. The custom circular layout, pie nodes and base
+  legend are gone. `type = "states"` still draws with cograph.
+
+* **`hon_outcome()` is withdrawn** (added in 0.5.0). Its per-actor features --
+  the visit-weighted mean of a higher-order node's centrality or embedding
+  over the actor's visits -- are a construction with no published basis, and
+  nothing unreferenced ships in this package. The code is kept outside the
+  package for later work. `sandwich` leaves Suggests with it.
+
+* `hon_communities()` finds modules in a higher-order network with the map
+  equation for memory networks (Rosvall et al. 2014; Edler, Bohlin & Rosvall
+  2017). State nodes are clustered but coded over physical nodes, so a
+  physical state can belong to several modules. Flow and codelength match the
+  Python `infomap` package to ~1e-14 bits; the search (node aggregation with
+  fine-tuning over seeded trials, trial stability as ARI) is reported beside a
+  first-order map of the same flow, so the bits saved by memory are explicit.
+  Returns `net_hon_communities`; `as.data.frame(what = "states" | "physical" |
+  "modules" | "trials" | "first_order" | "codelength")`; `plot()` draws the
+  physical view through `plot.net_hypergraph()` (see below) and uses cograph
+  only for `type = "states"`. Coarse-tuning (Edler et al. 2017, Alg. 6) is not implemented.
+
+* **`plot.net_markov_stability()` is redesigned** around four views chosen
+  with `what =`. The default `"landscape"` places each state by stationary
+  share (x, log scale) and persistence (y); dashed lines at the even share
+  `1/n` and the mean persistence split the states into hubs, relays, traps
+  and transients, point size is the mean stay, and memory states (`"a -> b"`)
+  get their own shape. The other views delegate to cograph:
+  `"states"` to `cograph::plot_centrality()`, `"passage_time"` to
+  `cograph::plot_heatmap()` (states in share order, fastest and slowest
+  passages named in the subtitle), and `"network"` to `cograph::plot_tna()`
+  (node size = share, pie = persistence, the 10 most common states by
+  default; returns `x` invisibly). `...` reaches the cograph function. Calls
+  that pass `metrics` without `what` still get the per-metric view. To
+  support the network view `markov_stability()` now also stores the
+  row-normalised transition matrix as `$transition` (an additive field; no
+  computed value changes). `grDevices`, already used by the hypergraph
+  plots, is now declared in Imports.
+
+* `as.data.frame.net_markov_stability()` gains `decreasing =` (so the
+  shortest passage times and least persistent states are one call, not a
+  subset) and `from =` / `to =` filters on the first-passage table. Ties
+  break on the row key in both directions. Default output is unchanged.
+
+* `markov_stability()` on a chain where pruning left a state with no outgoing
+  transition now raises `hypernets_not_ergodic` (as well as
+  `hypernets_bad_input`), and the message says to lower `min_freq` in
+  `build_hon()`. The documentation shows the case on `ai_long`.
+
+* Tests and examples call `build_hypa(order =)` instead of the deprecated
+  `k =`, clearing the 45 deprecation warnings from the suite. The deprecated
+  argument still works and still warns; a test now asserts both.
+
 # hypernets 0.5.0
 
 * `hon_outcome()` is the package's first verb that relates higher-order
@@ -118,6 +279,29 @@
   members' centroid. A whole-number colour scale (`color_by = "size"`) gets
   whole-number legend breaks. The same variable given to `color_by` and
   `linetype_by` yields one merged legend.
+
+# hypernets 0.4.6
+
+* The sparse-storage rule of `text_hypergraph()` (bag and sentence
+  constructions) no longer overflows. It multiplied two integers
+  (`n_docs * nrow(vocabulary)`), so any corpus large enough to need sparse
+  storage overflowed `.Machine$integer.max` to `NA`, `isTRUE(NA)` was
+  `FALSE`, and exactly the largest corpora went down the dense path and hit
+  the vector memory limit inside `matrix()`. The product is now taken in
+  double.
+
+* `group_hypergraph()` refuses a dense incidence of more than
+  `.Machine$integer.max` cells with the classed error
+  `hypernets_dense_too_large`, instead of overflowing its flat cell index or
+  attempting the allocation.
+
+* `text_hypergraph()` gains `max_words` and `coverage`. With `min_count` they
+  are one filter over one ranking (decreasing corpus count, ties broken
+  alphabetically), so all three keep prefixes of the same order and the
+  strictest wins. Both default to no pruning. Pruning emits a suppressible
+  message and records `min_count`, `max_words`, `coverage`,
+  `n_vocabulary_full` and `token_share` in the text layer. The `"knn"`
+  construction rejects both, alongside the other token-based arguments.
 
 # hypernets 0.4.5
 

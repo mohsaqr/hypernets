@@ -1,6 +1,6 @@
 Package: hypernets
 Title: Higher-Order Network Analysis
-Version: 0.5.0
+Version: 0.5.1
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -56,20 +56,22 @@ Imports:
     cograph,
     ggplot2,
     graphics,
+    grDevices,
     grid,
     Matrix,
     methods,
     parallel,
     RSpectra,
     stats,
+    tools,
     utils
 Suggests:
     gridExtra,
     igraph,
     jsonlite,
     knitr,
+    png,
     rmarkdown,
-    sandwich,
     sbert,
     testthat (>= 3.0.0),
     torch

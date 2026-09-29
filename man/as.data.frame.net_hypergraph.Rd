@@ -9,7 +9,7 @@
   row.names = NULL,
   optional = FALSE,
   ...,
-  what = c("edges", "nodes", "memberships"),
+  what = c("edges", "nodes", "memberships", "sets", "state_counts"),
   sort_by = NULL,
   top = NULL
 )
@@ -25,7 +25,9 @@
 
 \item{what}{\code{"edges"} (default) for one row per hyperedge, \code{"nodes"}
 for one row per node, or \code{"memberships"} for one row per node-in-
-hyperedge cell of the incidence matrix.}
+hyperedge cell of the incidence matrix. A hypergraph of clustered
+sequences (\code{\link[=group_hypergraph]{group_hypergraph()}} on a Nestimate clustering) also has
+\code{"sets"} and \code{"state_counts"}.}
 
 \item{sort_by}{\code{NULL} (construction order, default), \code{"weight"}, or
 \code{"size"} - sort the table by that column, largest first (ties broken
@@ -45,6 +47,14 @@ for a hypergraph with planted blocks (\code{\link[=hg_sample_sbm]{hg_sample_sbm(
 incidence cell with columns \code{node}, \code{hyperedge} and \code{weight} (the
 incidence value: 1 for a binary hypergraph, the summed weight for a
 weighted one), in hyperedge order; \code{sort_by = "weight"} orders it.
+For \code{what = "sets"}, one row per hyperedge with \code{group}, \code{hyperedge},
+\code{set} (the states joined by \code{" + "}), \code{size}, \code{count} (sequences of the
+group with exactly that set) and \code{share} (\code{count} over the group's
+sequences), in group order and decreasing count. For
+\code{what = "state_counts"}, one row per group and state with \code{group},
+\code{node}, \code{count} (sequences of the group containing the state) and
+\code{share}. Asking for either of a hypergraph without them raises
+\code{hypernets_bad_input}.
 }
 \description{
 One row per hyperedge: its identifier, size (number of distinct member

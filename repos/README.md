@@ -1,6 +1,6 @@
 # Package and repository map
 
-Maintained 2026-09-02. Runtime dependencies are deliberately separated from
+Maintained 2026-09-02; synced with the code 2026-09-29. Runtime dependencies are deliberately separated from
 equivalence oracles and research references. Oracles are local-test tools,
 never hypernets runtime dependencies.
 
@@ -17,13 +17,21 @@ never hypernets runtime dependencies.
 
 | Repository/package | Oracle role | Current status |
 |---|---|---|
-| HyperNetX | Zhou/Hayashi Laplacians, EDVW transition/PageRank, s-line graph | Shipped methods have local parity tests; note needs no “parked” interpretation |
-| XGI | Clique/Z/H centralities and measure naming | Independent Python equivalence runner shipped for all three centralities |
+| HyperNetX 2.4.3 | Zhou/Hayashi Laplacians, EDVW transition/PageRank, s-line graph | Shipped methods have local parity tests; note needs no “parked” interpretation |
+| XGI 0.10.2 | Clique/Z/H centralities and measure naming; planned Hodge/simpliciality/HIF oracle | Independent Python equivalence runner shipped for all three centralities |
 | HyperG | Unweighted kNN/dual constructions and random generators | kNN/dual plus G(n,p), SBM, uniform and regular models shipped; three samplers have exact seeded parity |
-| SimplicialComplex | Persistence diagrams, landscapes and diagram distances | Bottleneck and Wasserstein shipped |
-| GUDHI / ripser.py / giotto-tda | Independent persistence and Wasserstein conventions | Wasserstein conventions implemented; SciPy assignment oracle shipped |
-| pathpy / pyHON / HYPA / HONEM | Memory-network construction, MOGen and anomaly methods | Integrated in `local_testing_and_equivalence/` |
-| HypergraphX | Legal motifs, s-centralities, temporal and community conventions | Legal formula fixtures shipped; broader oracle coverage remains useful |
+| SimplicialComplex | Candidate oracle for diagram distances and landscapes | **Not used yet**; bottleneck and Wasserstein ship without it |
+| GUDHI / ripser.py / giotto-tda | Planned oracle for Betti numbers, bottleneck, Wasserstein, landscapes (ROADMAP.md Phase 1) | **Not used yet** (GUDHI 3.13.0 current) |
+| TDAstats (R, ripser) | Vietoris-Rips persistent homology | In use: `test-equiv-persistent_homology.R` |
+| SciPy | `linear_sum_assignment` for the Wasserstein matching | In use: `test-equiv-wasserstein-scipy.R` |
+| pathpy 2.2.0 / pyHON / pyMOGen | Memory-network construction, MOGen, HON centralities | In use in `local_testing_and_equivalence/`; pathpyG (v0.2.0-alpha, GitHub only) not used |
+| HYPA reference code | `build_hypa()` | **Not used yet** (ROADMAP.md Phase 1) |
+| HONEM (Saebi et al.) | `build_honem()` | No external code: checked only against a clean-room R reimplementation (`test-equiv-honem.R`) |
+| BiasedUrn (R) + Monte Carlo | Wallenius null and configuration-model semantics for `build_hypa()` | In use: `test-equiv-hypa.R` |
+| markovchain (R) | `verifyMarkovProperty()` chi-square for `markov_order_test()` | In use: `test-equiv-markov_order.R` |
+| infomap 2.15.1 | Map-equation flow and codelength for `hon_communities()` | In use: `test-equiv-hon-communities-infomap.R` ([`infomap.md`](infomap.md)) |
+| scikit-learn 1.8.0 | ARI / AMI / NMI for `hg_agreement()` | In use: frozen reference values in `tests/testthat/test-agreement-sklearn.R` |
+| HypergraphX 1.8.0 | Legal motifs, s-centralities, temporal and community conventions | Not a live test: used via frozen formula fixtures and the Zenodo notebooks; `compute_motifs` planned |
 | Legal Hypergraphs archive | Published GFCC/ICSID workflow | Full GFCC Figure 8 and ICSID Figures 6--7 reproduction passes against Zenodo 8081507 |
 
 ## Neural references and baselines
@@ -33,8 +41,8 @@ never hypernets runtime dependencies.
 | HyperGAT_TextClassification | Official Ding et al. implementation | Sentence and LDA semantic paths shipped; 20NG/MR/Ohsumed runs open |
 | DHG / DeepHypergraph | Official-adjacent HGNN and packaged neural-model zoo | HGNN parity plus native HyperGCN/HNHN shipped |
 | AllSet | Official AllDeepSets/AllSetTransformer implementation | Both native models shipped with multiset-invariance tests |
-| BERTopic | Practical embedding/topic baseline | Actual-package multi-seed benchmark remains open; UMAP/HDBSCAN baseline is reported separately |
-| text | Historical reticulate/Hugging Face route | Superseded by sbert for the native pipeline |
+| BERTopic 0.17.4 | Practical embedding/topic baseline | Actual-package ten-seed R8 benchmark run: `benchmarks/RESULTS.md`; UMAP/HDBSCAN baseline reported separately |
+| text 1.9 | Historical reticulate/Hugging Face route | Superseded by sbert for the native pipeline |
 
 Detailed notes: [`hypernetx.md`](hypernetx.md), [`xgi.md`](xgi.md),
 [`hyperg-r.md`](hyperg-r.md), [`simplicialcomplex-r.md`](simplicialcomplex-r.md),
@@ -42,4 +50,4 @@ Detailed notes: [`hypernetx.md`](hypernetx.md), [`xgi.md`](xgi.md),
 [`hypergraphx.md`](hypergraphx.md), [`legal-hypergraphs.md`](legal-hypergraphs.md),
 [`hypergat-textclassification.md`](hypergat-textclassification.md),
 [`deephypergraph.md`](deephypergraph.md), [`allset.md`](allset.md),
-[`bertopic.md`](bertopic.md), and [`text-r.md`](text-r.md).
+[`bertopic.md`](bertopic.md), [`text-r.md`](text-r.md), and [`infomap.md`](infomap.md).

@@ -10,10 +10,14 @@
   interactive visualizations). NOT a native implementation; Python managed
   through reticulate.
 - **Role for us**: the practical baseline any hypergraph-clustering claim
-  must beat or complement. The actual-package benchmark remains open because
-  the current environment has no Python `bertopic` installation. A ten-seed
-  TF-IDF/SVD -> UMAP -> HDBSCAN comparison is retained under its accurate
-  name as a separate baseline, not as a BERTopic result. UMAP/HDBSCAN are
-  stochastic and BERTopic has no generative likelihood.
+  must beat or complement. **The actual-package benchmark has been run**:
+  `bertopic.BERTopic` 0.17.4 (current on PyPI, checked 2026-09-29) on R8
+  over ten paired seeds, three variants (as shipped, reduced to eight topics,
+  eight-cluster KMeans), driven by `benchmarks/run_bertopic_benchmark.R` /
+  `benchmarks/bertopic_core.py` in the `benchmarks/.venv`; results and
+  write-up in `benchmarks/RESULTS.md` ("BERTopic baseline"). The separate
+  ten-seed TF-IDF/SVD -> UMAP -> HDBSCAN comparison is kept under its own
+  name, not as a BERTopic result. UMAP/HDBSCAN are stochastic and BERTopic
+  has no generative likelihood.
 - **Links**: https://maartengr.github.io/BERTopic ·
   https://cran.r-project.org/package=BERTopic

@@ -83,8 +83,10 @@
              paste(state_names[zero_rows], collapse = ", "),
              ". These states have no outgoing transitions, so the chain is ",
              "not ergodic and mean first passage times are undefined. ",
-             "Remove the state(s) or supply a different transition matrix."),
-      class = "hypernets_bad_input", call = NULL))
+             "Remove the state(s) or supply a different transition matrix; ",
+             "for a pruned higher-order network, lower `min_freq` in ",
+             "build_hon()."),
+      class = c("hypernets_not_ergodic", "hypernets_bad_input"), call = NULL))
   }
 
   if (any(abs(row_sums - 1) > 1e-6)) {
@@ -121,8 +123,8 @@
 #'
 #' Reachability by repeated boolean squaring of `I + A`: after
 #' `ceiling(log2(n))` squarings the matrix holds every path of length `< n`,
-#' so an all-TRUE result is strong connectivity. Squaring is the justified
-#' loop here — it runs `log2(n)` times, not `n` times.
+#' so an all-TRUE result is strong connectivity. The squarings run through
+#' Reduce(): `log2(n)` rounds, not `n`.
 #'
 #' @param P Square numeric matrix.
 #' @return Logical scalar.
@@ -132,11 +134,8 @@
   if (n == 1L) return(TRUE)
   reach <- (diag(n) + (P != 0)) != 0
   steps <- max(1L, ceiling(log2(n)))
-  # repeated squaring: log2(n) iterations, each doubling the path length
-  for (i in seq_len(steps)) {
-    reach <- (reach %*% reach) != 0
-    if (all(reach)) return(TRUE)
-  }
+  # repeated squaring: log2(n) rounds, each doubling the path length
+  reach <- Reduce(function(r, i) (r %*% r) != 0, seq_len(steps), reach)
   all(reach)
 }
 
@@ -204,8 +203,11 @@
 #'     \item{`as.data.frame(x, what = "stationary")`}{one row per state,
 #'       columns `state`, `stationary_prob`, `return_time`.}
 #'   }
-#'   `summary()` names the attractor and the stickiest state, `plot()` draws
-#'   the metrics as a faceted bar chart, and `print()` shows the table.
+#'   `summary()` names the attractor and the stickiest state, `print()`
+#'   shows the table, and `plot()` draws a stability landscape, a per-state
+#'   profile, a first-passage heatmap or the transition network (see
+#'   [plot.net_markov_stability()]). The row-normalised transition matrix
+#'   the quantities were computed from is kept for the network view.
 #'
 #' @details
 #' \strong{Persistence} is the self-transition probability \eqn{P_{ii}}.
@@ -234,12 +236,24 @@
 #' up front and reported as `hypernets_not_ergodic` rather than surfacing as
 #' a LAPACK singularity.
 #'
+#' \strong{Heavy pruning.} `min_freq` in [build_hon()] drops rare
+#' transitions, and on a small corpus that can leave a higher-order state
+#' with no outgoing transition at all, or split the chain into parts that
+#' cannot reach each other. On the AI turns of `ai_long`,
+#' `build_hon(ai_long, action = "code", actor = "session_id",
+#' time = "order_in_session", max_order = 2, min_freq = 50)` leaves the
+#' state `Ask` with no outgoing transition, and `min_freq = 20` leaves a
+#' reducible chain; `markov_stability()` refuses both with
+#' `hypernets_not_ergodic`. Lower `min_freq` (`min_freq = 10` gives an
+#' irreducible chain there) rather than analysing a chain whose passage
+#' times are undefined.
+#'
 #' @section Conditions:
 #' Raises `hypernets_bad_input` for an unsupported `x`, a non-square or
-#' single-state matrix, missing values, a state with no outgoing transitions,
-#' and for rows that do not sum to 1 under `normalize = FALSE`. Raises
-#' `hypernets_not_ergodic` (which also inherits `hypernets_bad_input`) when
-#' the chain is reducible. Warns `hypernets_renormalized` when rows are
+#' single-state matrix, missing values, and for rows that do not sum to 1
+#' under `normalize = FALSE`. Raises `hypernets_not_ergodic` (which also
+#' inherits `hypernets_bad_input`) when a state has no outgoing transitions
+#' or the chain is reducible. Warns `hypernets_renormalized` when rows are
 #' rescaled.
 #'
 #' @seealso [build_hon()] for the higher-order chain, [markov_order_test()]
@@ -275,6 +289,10 @@
 #' ms <- markov_stability(hon)
 #' as.data.frame(ms, sort_by = "stationary_prob", top = 5L)
 #' as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L)
+#' # the least persistent states, and the quickest passages out of "Specify"
+#' as.data.frame(ms, sort_by = "persistence", decreasing = FALSE, top = 5L)
+#' as.data.frame(ms, what = "passage_time", from = "Specify",
+#'               sort_by = "steps", decreasing = FALSE, top = 5L)
 #'
 #' @export
 markov_stability <- function(x, normalize = TRUE) {
@@ -367,6 +385,7 @@ markov_stability <- function(x, normalize = TRUE) {
     list(
       stability    = stability,
       passage_time = M,
+      transition   = P,
       stationary   = stat,
       return_times = 1 / stat,
       states       = state_names,
@@ -392,9 +411,18 @@ markov_stability <- function(x, normalize = TRUE) {
 #'   `"passage_time"` (one row per ordered pair of states) or
 #'   `"stationary"` (one row per state, distribution only).
 #' @param sort_by `NULL` (construction order, the default) or a column name
-#'   of the selected table; sorts decreasing.
+#'   of the selected table.
+#' @param decreasing Logical. Sort `sort_by` from largest to smallest
+#'   (`TRUE`, the default) or smallest to largest (`FALSE`). Ties are broken
+#'   by the row key, ascending in both directions: `state`, or `from` then
+#'   `to` for the passage table.
+#' @param from,to `NULL` (default, every state) or a character vector of
+#'   states. Restrict the `what = "passage_time"` table to passages leaving
+#'   the `from` states and arriving at the `to` states. Only that table has
+#'   `from`/`to` columns; using either with another `what`, or naming a state
+#'   the chain does not have, raises `hypernets_bad_input`.
 #' @param top Integer or `NULL`. Keep only the first `top` rows, applied
-#'   after `what` and `sort_by`.
+#'   last: after `what`, `from`/`to` and `sort_by`.
 #' @return A base `data.frame`. For `what = "states"`, one row per state with
 #'   `state`, `persistence`, `stationary_prob`, `return_time`,
 #'   `sojourn_time`, `avg_time_to_others` and `avg_time_from_others`. For
@@ -409,8 +437,24 @@ as.data.frame.net_markov_stability <- function(x, row.names = NULL,
                                                         "passage_time",
                                                         "stationary"),
                                                sort_by = NULL,
+                                               decreasing = TRUE,
+                                               from = NULL, to = NULL,
                                                top = NULL) {
   what <- match.arg(what)
+  stopifnot(
+    "`decreasing` must be a single TRUE or FALSE" =
+      is.logical(decreasing) && length(decreasing) == 1L && !is.na(decreasing)
+  )
+  if (!identical(what, "passage_time") && (!is.null(from) || !is.null(to))) {
+    stop(errorCondition(
+      sprintf(paste0("`from` and `to` filter the passage table; ",
+                     "what = \"%s\" has no from/to columns. ",
+                     "Use what = \"passage_time\"."), what),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  .hms_check_states(from, "from", x$states)
+  .hms_check_states(to, "to", x$states)
+
   out <- switch(
     what,
     states = x$stability,
@@ -430,6 +474,8 @@ as.data.frame.net_markov_stability <- function(x, row.names = NULL,
       )
     }
   )
+  if (!is.null(from)) out <- out[out$from %in% from, , drop = FALSE]
+  if (!is.null(to))   out <- out[out$to %in% to, , drop = FALSE]
 
   if (!is.null(sort_by)) {
     stopifnot(
@@ -437,10 +483,44 @@ as.data.frame.net_markov_stability <- function(x, row.names = NULL,
         is.character(sort_by) && length(sort_by) == 1L &&
         sort_by %in% names(out)
     )
-    out <- out[order(out[[sort_by]], decreasing = TRUE), , drop = FALSE]
+    # Primary key signed so one ascending order() serves both directions;
+    # xtfrm() makes a character column sortable the same way. The row key
+    # breaks ties deterministically and stays ascending either way.
+    primary <- xtfrm(out[[sort_by]])
+    if (decreasing) primary <- -primary
+    keys <- if (identical(what, "passage_time")) {
+      list(out$from, out$to)
+    } else {
+      list(out$state)
+    }
+    out <- out[do.call(order, c(list(primary), keys)), , drop = FALSE]
   }
   rownames(out) <- NULL
   .ho_top(out, top)
+}
+
+#' Validate a from/to state filter against the chain's states
+#'
+#' @param states `NULL` or the character vector the caller passed.
+#' @param arg Argument name, for the message.
+#' @param known Character vector of the chain's states.
+#' @return `NULL`, invisibly; raises `hypernets_bad_input` on bad input.
+#' @noRd
+.hms_check_states <- function(states, arg, known) {
+  if (is.null(states)) return(invisible(NULL))
+  if (!is.character(states) || !length(states) || anyNA(states)) {
+    stop(errorCondition(
+      sprintf("`%s` must be a non-empty character vector of states.", arg),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  unknown <- setdiff(states, known)
+  if (length(unknown)) {
+    stop(errorCondition(
+      sprintf("`%s` names state(s) the chain does not have: %s.", arg,
+              paste(unknown, collapse = ", ")),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  invisible(NULL)
 }
 
 
@@ -515,22 +595,100 @@ summary.net_markov_stability <- function(object, ...) {
 #' Plot Method for net_markov_stability
 #'
 #' @description
-#' One horizontal bar panel per requested metric, states ordered by
-#' stationary probability. Colour is the metric (Okabe-Ito, colour-blind
-#' safe) and is redundant with the facet label, so no distinction rests on
-#' colour alone.
+#' Four views of the same chain. Three delegate to cograph's own plotting
+#' functions, which own the layout, labels, legend and theme; only the
+#' landscape, which cograph has no counterpart for, is drawn here.
+#'
+#' \describe{
+#'   \item{`what = "landscape"` (default)}{\emph{Which states matter, and how?}
+#'     One point per state: stationary share (x, log scale) against
+#'     persistence (y). Dashed lines at the even share \eqn{1/n} and at the
+#'     mean persistence split the plane into four named quadrants:
+#'     \strong{hubs} (common and sticky), \strong{relays} (common, quickly
+#'     left), \strong{traps} (rare but sticky) and \strong{transients} (rare,
+#'     quickly left). A state is common when its share is strictly above
+#'     \eqn{1/n} and sticky when its persistence is strictly above the mean.
+#'     Point size is the mean stay (sojourn time); shape separates memory
+#'     states (`"a -> b"`) from first-order states. Every state is labelled
+#'     up to 15 states, otherwise the most common and most persistent are.
+#'     Drawn with ggplot2: cograph has no scatter or quadrant view.}
+#'   \item{`what = "states"`}{\emph{How does each state compare with the
+#'     rest?} [cograph::plot_centrality()] on the per-state table, one panel
+#'     per metric, states ordered by stationary share. The `k` largest values
+#'     in each panel are highlighted, where `k` is the number of states whose
+#'     share exceeds the even share \eqn{1/n}.}
+#'   \item{`what = "passage_time"`}{\emph{How far apart are the states?}
+#'     [cograph::plot_heatmap()] on the mean-first-passage matrix, rows and
+#'     columns in stationary-share order, values printed for up to 12
+#'     states. The diagonal is the mean return time \eqn{1/\pi_i}. The
+#'     subtitle names the fastest and the slowest off-diagonal passage.}
+#'   \item{`what = "network"`}{\emph{What does the walk look like?}
+#'     [cograph::plot_tna()], cograph's TNA network view, on the transition
+#'     matrix: node size from the stationary share, the node's pie (donut)
+#'     filled to its persistence, edges the transition probabilities (below
+#'     0.05 hidden). By default only the 10 most common states are drawn; the
+#'     title says how many were left out.}
+#' }
+#'
+#' `top` restricts every view to the `top` states with the largest
+#' stationary share. The landscape's reference lines are computed over the
+#' whole chain, so a state's quadrant does not change with `top`.
 #'
 #' @param x A `net_markov_stability` object.
+#' @param what Which view: `"landscape"` (default), `"states"`,
+#'   `"passage_time"` or `"network"`. Supplying `metrics` without `what`
+#'   selects `"states"`, the view `metrics` belongs to.
 #' @param metrics Character vector, any subset of `"persistence"`,
 #'   `"stationary_prob"`, `"return_time"`, `"sojourn_time"`,
-#'   `"avg_time_to_others"`, `"avg_time_from_others"`. Default: all six.
-#' @param top Integer or `NULL`. Plot only the `top` states with the largest
-#'   stationary probability. Default `NULL` (all states).
-#' @param ... Ignored.
-#' @return A `ggplot` object, faceted by metric.
-#' @inherit markov_stability examples
+#'   `"avg_time_to_others"`, `"avg_time_from_others"`: the panels of the
+#'   `"states"` view. Default: all six. Other views refuse it.
+#' @param top Integer or `NULL`. Show only the `top` states with the largest
+#'   stationary share. Default `NULL`: every state, except the network view,
+#'   which draws at most 10.
+#' @param from,to `NULL` or character vectors of states: restrict the
+#'   `"passage_time"` heatmap to passages leaving `from` / arriving at `to`
+#'   (applied together with `top`). Other views refuse them.
+#' @param ... Passed to the cograph function behind the view
+#'   ([cograph::plot_centrality()], [cograph::plot_heatmap()] or
+#'   [cograph::plot_tna()]), overriding the defaults set here. Ignored by
+#'   the landscape.
+#' @return
+#' \describe{
+#'   \item{`"landscape"`}{a `ggplot`; its data has one row per state with
+#'     `state`, `stationary_prob`, `persistence`, `sojourn_time`, `memory`
+#'     (`"memory state"` / `"first-order state"`) and `quadrant`.}
+#'   \item{`"states"`}{the `ggplot` from [cograph::plot_centrality()]; its
+#'     data has one row per state x metric.}
+#'   \item{`"passage_time"`}{the `ggplot` from [cograph::plot_heatmap()]; its
+#'     data has one row per ordered pair shown (`row` = from, `col` = to,
+#'     `value` = mean steps).}
+#'   \item{`"network"`}{`x`, invisibly. [cograph::plot_tna()] draws with
+#'     base graphics and has no ggplot to return.}
+#' }
+#' @section Conditions:
+#' Raises `hypernets_bad_input` for an unknown `what`, for `metrics` with a
+#' view other than `"states"`, for `from`/`to` with a view other than
+#' `"passage_time"`, and for `from`/`to` naming unknown states.
+#' @examples
+#' P <- matrix(c(0.7, 0.2, 0.1,
+#'               0.3, 0.5, 0.2,
+#'               0.2, 0.3, 0.5),
+#'             nrow = 3, byrow = TRUE,
+#'             dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
+#' ms <- markov_stability(P)
+#' plot(ms)                           # landscape
+#' plot(ms, what = "states")          # cograph::plot_centrality()
+#' plot(ms, what = "passage_time")    # cograph::plot_heatmap()
+#' plot(ms, what = "network")         # cograph::plot_tna()
+#'
+#' # A second-order chain: memory states are drawn as triangles
+#' hon <- build_hon(split(human_long$code, human_long$session_id),
+#'                  max_order = 2L, min_freq = 50L)
+#' plot(markov_stability(hon), top = 10L)
 #' @export
 plot.net_markov_stability <- function(x,
+                                      what = c("landscape", "states",
+                                               "passage_time", "network"),
                                       metrics = c("persistence",
                                                   "stationary_prob",
                                                   "return_time",
@@ -538,54 +696,271 @@ plot.net_markov_stability <- function(x,
                                                   "avg_time_to_others",
                                                   "avg_time_from_others"),
                                       top = NULL,
+                                      from = NULL, to = NULL,
                                       ...) {
-  metrics <- match.arg(metrics, several.ok = TRUE)
-  d <- as.data.frame(x, sort_by = "stationary_prob", top = top)
+  views <- c("landscape", "states", "passage_time", "network")
+  metrics_given <- !missing(metrics)
+  if (missing(what)) {
+    what <- if (metrics_given) "states" else "landscape"
+  }
+  if (!is.character(what) || length(what) != 1L || !(what %in% views)) {
+    stop(errorCondition(
+      sprintf("`what` must be one of %s.",
+              paste0("\"", views, "\"", collapse = ", ")),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  if (metrics_given && !identical(what, "states")) {
+    stop(errorCondition(
+      sprintf("`metrics` chooses the panels of what = \"states\"; what = \"%s\" has none.",
+              what),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  if ((!is.null(from) || !is.null(to)) && !identical(what, "passage_time")) {
+    stop(errorCondition(
+      sprintf("`from` and `to` restrict what = \"passage_time\"; what = \"%s\" does not take them.",
+              what),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  switch(what,
+         landscape    = .hms_plot_landscape(x, top),
+         states       = .hms_plot_states(x, metrics, top, ...),
+         passage_time = .hms_plot_passage(x, top, from, to, ...),
+         network      = .hms_plot_network(x, top, ...))
+}
 
-  labels <- c(persistence          = "Persistence",
-              stationary_prob      = "Stationary probability",
-              return_time          = "Return time (steps)",
-              sojourn_time         = "Sojourn time (steps)",
-              avg_time_to_others   = "Mean steps to others",
-              avg_time_from_others = "Mean steps from others")
-  pal <- c("#009E73", "#E69F00", "#56B4E9", "#CC79A7", "#0072B2", "#D55E00")
-  names(pal) <- labels[c("persistence", "stationary_prob", "return_time",
-                         "sojourn_time", "avg_time_to_others",
-                         "avg_time_from_others")]
 
-  plot_df <- do.call(rbind, lapply(metrics, function(m) {
-    data.frame(state  = d$state,
-               metric = unname(labels[m]),
-               value  = d[[m]],
-               stringsAsFactors = FALSE)
-  }))
-  # an absorbing state has Inf sojourn time; drop it from the bars rather
-  # than let ggplot fail on a non-finite value, and say so in the subtitle
-  n_inf <- sum(!is.finite(plot_df$value))
-  plot_df <- plot_df[is.finite(plot_df$value), , drop = FALSE]
-  plot_df$state  <- factor(plot_df$state, levels = rev(d$state))
-  plot_df$metric <- factor(plot_df$metric, levels = unname(labels[metrics]))
+# ---- plot helpers ----------------------------------------------------------
 
-  ggplot2::ggplot(plot_df,
-                  ggplot2::aes(x = .data$state, y = .data$value,
-                               fill = .data$metric)) +
-    ggplot2::geom_col(width = 0.7, show.legend = FALSE) +
-    ggplot2::scale_fill_manual(values = pal) +
-    ggplot2::coord_flip() +
-    ggplot2::facet_wrap(~ .data$metric, scales = "free_x", ncol = 2L) +
+#' Which state labels carry memory (higher-order states)
+#' @param states Character vector of state labels.
+#' @return Logical vector.
+#' @noRd
+.hms_is_memory <- function(states) grepl(" -> ", states, fixed = TRUE)
+
+#' Chain order and state counts, for plot titles
+#' @param x A `net_markov_stability`.
+#' @return A list with `order_word` and `counts` strings.
+#' @noRd
+.hms_describe_chain <- function(x) {
+  memory <- .hms_is_memory(x$states)
+  order <- max(lengths(strsplit(x$states, " -> ", fixed = TRUE)))
+  order_word <- switch(as.character(order), `1` = "first-order",
+                       `2` = "second-order", `3` = "third-order",
+                       sprintf("order-%d", order))
+  list(
+    order_word = order_word,
+    counts = if (any(memory)) {
+      sprintf("%d states (%d carry memory)", x$n_states, sum(memory))
+    } else {
+      sprintf("%d states", x$n_states)
+    }
+  )
+}
+
+#' States in stationary-share order, cut to `top`
+#' @param x A `net_markov_stability`.
+#' @param top Integer or `NULL`.
+#' @return The states data.frame.
+#' @noRd
+.hms_plot_table <- function(x, top) {
+  as.data.frame(x, sort_by = "stationary_prob", top = top)
+}
+
+#' Quadrant of each state in the stability landscape
+#'
+#' Common = stationary share strictly above the even share `1/n`; sticky =
+#' persistence strictly above the chain's mean persistence. Strict
+#' inequalities keep a chain of identical states out of the upper quadrants.
+#' @param share,persistence Numeric vectors.
+#' @param n_states Number of states in the whole chain.
+#' @param mean_persistence Mean persistence over the whole chain.
+#' @return Factor with levels hub, relay, trap, transient.
+#' @noRd
+.hms_quadrant <- function(share, persistence, n_states, mean_persistence) {
+  common <- share > 1 / n_states
+  sticky <- persistence > mean_persistence
+  q <- ifelse(common, ifelse(sticky, "hub", "relay"),
+              ifelse(sticky, "trap", "transient"))
+  factor(q, levels = c("hub", "relay", "trap", "transient"))
+}
+
+.hms_quadrant_palette <- c(hub = "#D55E00", relay = "#E69F00",
+                           trap = "#0072B2", transient = "#999999")
+
+#' Stability landscape: share x persistence, four quadrants
+#'
+#' The one view drawn here: cograph has no scatter or quadrant plot, and its
+#' `theme_cograph_*()` objects are network themes, not ggplot themes.
+#' @noRd
+.hms_plot_landscape <- function(x, top) {
+  d <- .hms_plot_table(x, top)
+  n_states <- x$n_states
+  even_share <- 1 / n_states
+  mean_persistence <- mean(x$stability$persistence)
+  d$memory <- factor(ifelse(.hms_is_memory(d$state), "memory state",
+                            "first-order state"),
+                     levels = c("first-order state", "memory state"))
+  d$quadrant <- .hms_quadrant(d$stationary_prob, d$persistence, n_states,
+                              mean_persistence)
+  # an absorbing state has Inf sojourn; size it as the largest finite stay
+  finite_stay <- d$sojourn_time[is.finite(d$sojourn_time)]
+  d$stay <- pmin(d$sojourn_time, if (length(finite_stay)) max(finite_stay) else 1)
+
+  # every label when few; otherwise the most common and the most persistent.
+  # Rows are in share order, so check_overlap keeps the more common label.
+  labelled <- nrow(d) <= 15L |
+    seq_len(nrow(d)) <= 6L |
+    (rank(-d$persistence, ties.method = "first") <= 4L & d$persistence > 0)
+  label_df <- d[labelled, , drop = FALSE]
+
+  # explicit limits: a log axis cannot place a corner label at -Inf
+  x_range <- range(c(d$stationary_prob, even_share))
+  x_lim <- exp(log(x_range) +
+                 c(-1, 1) * max(diff(log(x_range)), log(4)) * 0.12)
+  y_range <- range(c(d$persistence, mean_persistence))
+  y_pad <- max(diff(y_range), 0.05) * 0.12
+  y_lim <- c(y_range[1L] - 2.5 * y_pad, y_range[2L] + 3.5 * y_pad)
+  corners <- data.frame(
+    x = x_lim[c(2L, 2L, 1L, 1L)], y = y_lim[c(2L, 1L, 2L, 1L)],
+    hjust = c(1, 1, 0, 0), vjust = c(1, 0, 1, 0),
+    label = c("HUBS\ncommon and sticky", "RELAYS\ncommon, quickly left",
+              "TRAPS\nrare but sticky", "TRANSIENTS\nrare, quickly left"),
+    quadrant = factor(names(.hms_quadrant_palette),
+                      levels = names(.hms_quadrant_palette)))
+  chain <- .hms_describe_chain(x)
+
+  ggplot2::ggplot(d, ggplot2::aes(x = .data$stationary_prob,
+                                  y = .data$persistence)) +
+    ggplot2::geom_vline(xintercept = even_share, linetype = "dashed",
+                        colour = "#999999") +
+    ggplot2::geom_hline(yintercept = mean_persistence, linetype = "dashed",
+                        colour = "#999999") +
+    ggplot2::geom_text(data = corners,
+                       ggplot2::aes(x = .data$x, y = .data$y,
+                                    label = .data$label,
+                                    colour = .data$quadrant,
+                                    hjust = .data$hjust, vjust = .data$vjust),
+                       size = 3.2, fontface = "bold", lineheight = 0.9,
+                       inherit.aes = FALSE) +
+    ggplot2::geom_point(ggplot2::aes(size = .data$stay, shape = .data$memory,
+                                     fill = .data$quadrant),
+                        colour = "#000000", stroke = 0.5) +
+    ggplot2::geom_text(data = label_df, ggplot2::aes(label = .data$state),
+                       vjust = 2, size = 3.1, check_overlap = TRUE) +
+    ggplot2::scale_x_log10(
+      limits = x_lim, expand = ggplot2::expansion(mult = 0.01),
+      labels = function(v) sprintf("%g%%", signif(100 * v, 2))) +
+    ggplot2::scale_y_continuous(
+      limits = y_lim, expand = ggplot2::expansion(mult = 0.01),
+      breaks = function(l) pretty(pmax(l, 0))) +
+    ggplot2::scale_shape_manual(values = c("first-order state" = 21,
+                                           "memory state" = 24),
+                                name = NULL) +
+    ggplot2::scale_fill_manual(values = .hms_quadrant_palette,
+                               guide = "none") +
+    ggplot2::scale_colour_manual(values = .hms_quadrant_palette,
+                                 guide = "none") +
+    ggplot2::scale_size_continuous(range = c(2.5, 8),
+                                   name = "Mean stay\n(steps)") +
     ggplot2::labs(
-      x = NULL, y = NULL,
-      title = "Markov stability",
-      subtitle = if (n_inf > 0L) {
-        sprintf("%d states; %d non-finite value(s) omitted (absorbing state)",
-                nrow(d), n_inf)
-      } else {
-        sprintf("%d states, ordered by stationary probability", nrow(d))
-      }) +
+      x = sprintf("Stationary share (log scale; dashed = even share 1/%d)",
+                  n_states),
+      y = "Persistence (probability of repeating)",
+      title = sprintf("Stability landscape of a %s chain", chain$order_word),
+      subtitle = paste0(
+        "Right of the dashed line: visited more than an even share. ",
+        "Above it: more likely than average to repeat itself.\n",
+        "Bigger point = longer stay. ", chain$counts,
+        if (nrow(d) < n_states) sprintf("; the %d most common shown", nrow(d)),
+        ".")) +
     ggplot2::theme_minimal(base_size = 12) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      strip.text       = ggplot2::element_text(face = "bold"),
-      plot.title       = ggplot2::element_text(face = "bold")
-    )
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(face = "bold"),
+                   plot.subtitle = ggplot2::element_text(size = 10))
+}
+
+#' Per-state metrics through cograph::plot_centrality()
+#' @noRd
+.hms_plot_states <- function(x, metrics, top, ...) {
+  metrics <- match.arg(metrics,
+                       c("persistence", "stationary_prob", "return_time",
+                         "sojourn_time", "avg_time_to_others",
+                         "avg_time_from_others"),
+                       several.ok = TRUE)
+  d <- .hms_plot_table(x, top)
+  table <- data.frame(node = d$state, d[metrics], check.names = FALSE)
+  chain <- .hms_describe_chain(x)
+  defaults <- list(
+    x = table, style = "dot",
+    order_by = if ("stationary_prob" %in% metrics) "stationary_prob" else NULL,
+    highlight = sum(x$stability$stationary_prob > 1 / x$n_states),
+    title = sprintf("State profile of a %s chain", chain$order_word),
+    subtitle = sprintf("%s%s; highlighted: the largest values in each panel",
+                       chain$counts,
+                       if (nrow(d) < x$n_states) sprintf(", %d shown", nrow(d)) else ""))
+  do.call(cograph::plot_centrality, utils::modifyList(defaults, list(...)))
+}
+
+#' Mean first-passage heatmap through cograph::plot_heatmap()
+#' @noRd
+.hms_plot_passage <- function(x, top, from, to, ...) {
+  .hms_check_states(from, "from", x$states)
+  .hms_check_states(to, "to", x$states)
+  keep <- .hms_plot_table(x, top)$state
+  rows <- if (is.null(from)) keep else keep[keep %in% from]
+  cols <- if (is.null(to)) keep else keep[keep %in% to]
+  if (!length(rows) || !length(cols)) {
+    stop(errorCondition(
+      "No passages left to draw: `from`/`to` name no state among the `top` shown.",
+      class = "hypernets_bad_input", call = NULL))
+  }
+  M <- x$passage_time[rows, cols, drop = FALSE]
+  pairs <- as.data.frame(x, what = "passage_time", from = rows, to = cols)
+  off <- pairs[pairs$from != pairs$to, , drop = FALSE]
+  extremes <- if (nrow(off)) {
+    fast <- off[which.min(off$steps), ]
+    slow <- off[which.max(off$steps), ]
+    sprintf("\nFastest: %s to %s, %.1f steps. Slowest: %s to %s, %.1f steps.",
+            fast$from, fast$to, fast$steps, slow$from, slow$to, slow$steps)
+  } else {
+    ""
+  }
+  chain <- .hms_describe_chain(x)
+  defaults <- list(
+    x = M, colors = c("#FFFFFF", "#4A6FE3"), legend_title = "Mean steps",
+    show_values = max(dim(M)) <= 12L, value_digits = 1L,
+    xlab = "to", ylab = "from",
+    title = sprintf("Mean first-passage time in a %s chain",
+                    chain$order_word),
+    subtitle = paste0("Steps from the row state to the column state; ",
+                      "the diagonal is the mean return time.", extremes))
+  do.call(cograph::plot_heatmap, utils::modifyList(defaults, list(...)))
+}
+
+#' Transition network through cograph::plot_tna()
+#' @noRd
+.hms_plot_network <- function(x, top, ...) {
+  P <- x$transition
+  if (is.null(P)) {
+    stop(errorCondition(
+      paste0("This net_markov_stability object predates hypernets 0.5.1 and ",
+             "carries no transition matrix; recompute it with ",
+             "markov_stability()."),
+      class = "hypernets_bad_input", call = NULL))
+  }
+  d <- .hms_plot_table(x, top %||% min(x$n_states, 10L))
+  hidden <- x$n_states - nrow(d)
+  chain <- .hms_describe_chain(x)
+  defaults <- list(
+    x = P[d$state, d$state, drop = FALSE],
+    vsize = 3 + 5 * sqrt(d$stationary_prob / max(d$stationary_prob)),
+    pie = d$persistence, minimum = 0.05, label_size = 0.7,
+    title = if (hidden > 0L) {
+      sprintf("Top %d of %d states by share (%d hidden)",
+              nrow(d), x$n_states, hidden)
+    } else {
+      sprintf("%s chain, %d states", chain$order_word, x$n_states)
+    })
+  do.call(cograph::plot_tna, utils::modifyList(defaults, list(...)))
+  invisible(x)
 }

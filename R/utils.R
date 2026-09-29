@@ -302,3 +302,77 @@
     class = c("netobject", "cograph_network")
   )
 }
+
+#' Sequences of a Nestimate clustering, split by group
+#'
+#' Reads the three shapes a Nestimate clustering takes without calling
+#' Nestimate: a mixture Markov fit (`net_mmm`) or a distance clustering
+#' (`net_clustering`), each with one row of `$data` per sequence and an
+#' integer `$assignments`, and the per-group networks built from either
+#' (`netobject_group`, a named list of netobjects each with its own `$data`).
+#' Group labels are `"Cluster k"` for the first two, as Nestimate's
+#' `build_network()` names them, and the list names for a
+#' `netobject_group` (so `rename_models()` names carry through).
+#'
+#' @param x A `net_mmm`, `net_clustering` or `netobject_group`.
+#' @return A named list, one element per group in group order, each a list
+#'   of character vectors (one per sequence, NA cells dropped).
+#' @noRd
+.coerce_grouped_sequences <- function(x) {
+  rows_of <- function(df) {
+    df <- as.data.frame(df, stringsAsFactors = FALSE)
+    if (nrow(df) == 0L) return(list())
+    cells <- do.call(cbind, lapply(df, as.character))
+    keep <- !is.na(cells) & nzchar(cells)
+    # column-major order keeps each row's cells in sequence order
+    unname(split(cells[keep], factor(row(cells)[keep], levels = seq_len(nrow(df)))))
+  }
+  if (inherits(x, "netobject_group")) {
+    labels <- names(x)
+    if (!length(x) || is.null(labels) || anyNA(labels) || any(!nzchar(labels)) ||
+        anyDuplicated(labels)) {
+      .thg_bad_input("a netobject_group needs unique, non-empty group names")
+    }
+    ok <- vapply(x, \(net) inherits(net, c("netobject", "cograph_network")) &&
+                   !is.null(net$data), logical(1L))
+    if (!all(ok)) {
+      .thg_bad_input(sprintf(
+        "every network of the netobject_group needs its sequence data ($data); missing in: %s",
+        paste(labels[!ok], collapse = ", ")))
+    }
+    return(stats::setNames(
+      lapply(unclass(x), \(net) rows_of(.coerce_sequence_input(net))), labels))
+  }
+  if (!inherits(x, c("net_mmm", "net_clustering"))) {
+    .thg_bad_input("expected a net_mmm, net_clustering or netobject_group")
+  }
+  if (is.null(x$data) || is.null(x$assignments)) {
+    .thg_bad_input(sprintf("this %s carries no $data or no $assignments",
+                           class(x)[1L]))
+  }
+  data <- as.data.frame(x$data, stringsAsFactors = FALSE)
+  assignments <- x$assignments
+  k <- x$k %||% max(assignments)
+  if (length(assignments) != nrow(data) || anyNA(assignments) ||
+      any(assignments < 1 | assignments > k | assignments != round(assignments))) {
+    .thg_bad_input(sprintf(
+      "`assignments` must be one whole number in 1..%d per sequence of $data (%d sequences)",
+      k, nrow(data)))
+  }
+  # a mixture fit keeps its component networks, whose weight dimnames decode
+  # integer-coded state cells as .coerce_sequence_input() does for a netobject
+  labels <- if (inherits(x, "net_mmm") && length(x$models)) {
+    rownames(x$models[[1L]]$weights)
+  }
+  if (length(labels) && ncol(data) &&
+      all(vapply(data, is.numeric, logical(1L)))) {
+    data[] <- lapply(data, \(col) {
+      idx <- as.integer(col)
+      ifelse(is.na(idx) | idx < 1L | idx > length(labels), NA_character_,
+             labels[idx])
+    })
+  }
+  sequences <- rows_of(data)
+  groups <- lapply(seq_len(k), \(g) sequences[assignments == g])
+  stats::setNames(groups, paste("Cluster", seq_len(k)))
+}

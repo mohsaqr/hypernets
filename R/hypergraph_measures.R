@@ -87,9 +87,9 @@
 #' as.data.frame(m, what = "global")
 #'
 #' @references
-#' Lee, G., Choe, M., & Shin, K. (2024). A survey on hypergraph
-#' representation, learning and mining. \emph{Data Mining & Knowledge
-#' Discovery} 37, 1-39.
+#' Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
+#' hypergraph mining: patterns, tools, and generators. \emph{ACM Computing
+#' Surveys}, 57(8), 203. \doi{10.1145/3719002}
 #'
 #' Do, M. T., Yoon, S., Hooi, B., & Shin, K. (2020). Structural patterns
 #' and generative models of real-world hypergraphs. arXiv:2006.07060.

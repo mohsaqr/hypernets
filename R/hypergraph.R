@@ -282,7 +282,9 @@ print.net_hypergraph <- function(x, ...) {
 #'   by hyperedge id so the order is deterministic).
 #' @param what `"edges"` (default) for one row per hyperedge, `"nodes"`
 #'   for one row per node, or `"memberships"` for one row per node-in-
-#'   hyperedge cell of the incidence matrix.
+#'   hyperedge cell of the incidence matrix. A hypergraph of clustered
+#'   sequences ([group_hypergraph()] on a Nestimate clustering) also has
+#'   `"sets"` and `"state_counts"`.
 #' @return A data.frame. For `what = "edges"`, one row per hyperedge with
 #'   columns `hyperedge` (character id), `size` (integer), `states`
 #'   (comma-separated member states), and `weight` (numeric window count,
@@ -293,6 +295,14 @@ print.net_hypergraph <- function(x, ...) {
 #'   incidence cell with columns `node`, `hyperedge` and `weight` (the
 #'   incidence value: 1 for a binary hypergraph, the summed weight for a
 #'   weighted one), in hyperedge order; `sort_by = "weight"` orders it.
+#'   For `what = "sets"`, one row per hyperedge with `group`, `hyperedge`,
+#'   `set` (the states joined by `" + "`), `size`, `count` (sequences of the
+#'   group with exactly that set) and `share` (`count` over the group's
+#'   sequences), in group order and decreasing count. For
+#'   `what = "state_counts"`, one row per group and state with `group`,
+#'   `node`, `count` (sequences of the group containing the state) and
+#'   `share`. Asking for either of a hypergraph without them raises
+#'   `hypernets_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
@@ -307,9 +317,39 @@ print.net_hypergraph <- function(x, ...) {
 as.data.frame.net_hypergraph <- function(x, row.names = NULL,
                                          optional = FALSE, ...,
                                          what = c("edges", "nodes",
-                                                  "memberships"),
+                                                  "memberships", "sets",
+                                                  "state_counts"),
                                          sort_by = NULL, top = NULL) {
   what <- match.arg(what)
+  if (what %in% c("sets", "state_counts")) {
+    if (is.null(x$group_sizes)) {
+      .thg_bad_input(sprintf(
+        "`what = \"%s\"` needs a hypergraph of clustered sequences (group_hypergraph() on a net_mmm, net_clustering or netobject_group)",
+        what))
+    }
+    sequences <- stats::setNames(x$group_sizes$sequences, x$group_sizes$group)
+    group_rank <- stats::setNames(seq_along(sequences), names(sequences))
+    if (identical(what, "state_counts")) {
+      out <- x$state_counts
+      out$share <- out$count / sequences[out$group]
+      out <- out[order(group_rank[out$group], -out$count, out$node), , drop = FALSE]
+    } else {
+      edge_data <- x$edge_data
+      out <- data.frame(
+        group = edge_data$group,
+        hyperedge = as.character(edge_data$edge),
+        set = edge_data$set,
+        size = lengths(x$hyperedges)[match(edge_data$edge, colnames(x$incidence))],
+        count = edge_data$count,
+        stringsAsFactors = FALSE
+      )
+      out$share <- out$count / sequences[out$group]
+      out <- out[order(group_rank[out$group], -out$count, out$set), , drop = FALSE]
+    }
+    out$share <- unname(out$share)
+    rownames(out) <- NULL
+    return(.ho_top(out, top))
+  }
   if (identical(what, "memberships")) {
     nodes <- x$nodes %||% rownames(x$incidence) %||%
       paste0("n", seq_len(x$n_nodes))

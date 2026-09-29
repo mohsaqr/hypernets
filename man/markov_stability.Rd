@@ -34,8 +34,11 @@ the mean recurrence time.}
 \item{\code{as.data.frame(x, what = "stationary")}}{one row per state,
 columns \code{state}, \code{stationary_prob}, \code{return_time}.}
 }
-\code{summary()} names the attractor and the stickiest state, \code{plot()} draws
-the metrics as a faceted bar chart, and \code{print()} shows the table.
+\code{summary()} names the attractor and the stickiest state, \code{print()}
+shows the table, and \code{plot()} draws a stability landscape, a per-state
+profile, a first-passage heatmap or the transition network (see
+\code{\link[=plot.net_markov_stability]{plot.net_markov_stability()}}). The row-normalised transition matrix
+the quantities were computed from is kept for the network view.
 }
 \description{
 Per-state stability of the random walk carried by a transition matrix:
@@ -75,14 +78,25 @@ higher-order network — pruning a \code{net_hon} with \code{min_freq} can leave
 absorbing or unreachable higher-order state — so irreducibility is checked
 up front and reported as \code{hypernets_not_ergodic} rather than surfacing as
 a LAPACK singularity.
+
+\strong{Heavy pruning.} \code{min_freq} in \code{\link[=build_hon]{build_hon()}} drops rare
+transitions, and on a small corpus that can leave a higher-order state
+with no outgoing transition at all, or split the chain into parts that
+cannot reach each other. On the AI turns of \code{ai_long},
+\code{build_hon(ai_long, action = "code", actor = "session_id", time = "order_in_session", max_order = 2, min_freq = 50)} leaves the
+state \code{Ask} with no outgoing transition, and \code{min_freq = 20} leaves a
+reducible chain; \code{markov_stability()} refuses both with
+\code{hypernets_not_ergodic}. Lower \code{min_freq} (\code{min_freq = 10} gives an
+irreducible chain there) rather than analysing a chain whose passage
+times are undefined.
 }
 \section{Conditions}{
 
 Raises \code{hypernets_bad_input} for an unsupported \code{x}, a non-square or
-single-state matrix, missing values, a state with no outgoing transitions,
-and for rows that do not sum to 1 under \code{normalize = FALSE}. Raises
-\code{hypernets_not_ergodic} (which also inherits \code{hypernets_bad_input}) when
-the chain is reducible. Warns \code{hypernets_renormalized} when rows are
+single-state matrix, missing values, and for rows that do not sum to 1
+under \code{normalize = FALSE}. Raises \code{hypernets_not_ergodic} (which also
+inherits \code{hypernets_bad_input}) when a state has no outgoing transitions
+or the chain is reducible. Warns \code{hypernets_renormalized} when rows are
 rescaled.
 }
 
@@ -101,6 +115,10 @@ hon <- build_hon(split(human_long$code, human_long$session_id),
 ms <- markov_stability(hon)
 as.data.frame(ms, sort_by = "stationary_prob", top = 5L)
 as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L)
+# the least persistent states, and the quickest passages out of "Specify"
+as.data.frame(ms, sort_by = "persistence", decreasing = FALSE, top = 5L)
+as.data.frame(ms, what = "passage_time", from = "Specify",
+              sort_by = "steps", decreasing = FALSE, top = 5L)
 
 }
 \references{

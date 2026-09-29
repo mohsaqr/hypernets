@@ -273,13 +273,14 @@ test_that("every exported net_* result class has an as.data.frame method", {
   # the same taxonomy, so the print methods enumerate the classes. Methods are
   # read out of hypernets' own namespace because honets/Nestimate/cograph
   # register colliding S3 methods and whichever loads last would otherwise win.
-  # NAMESPACE is the package's own declaration of which classes it ships, and
-  # it reads the same under devtools::load_all() and an installed build (the
-  # S3 methods table does not -- load_all populates it lazily).
+  # The namespace's S3 registry is the parsed NAMESPACE, so it reads the same
+  # under devtools::load_all() and an installed build (the S3 methods TABLE
+  # does not -- load_all populates it lazily). Reading the NAMESPACE file
+  # itself broke under R CMD check, where tests run without the source tree.
   declared <- function(generic) {
-    lines <- readLines(testthat::test_path("..", "..", "NAMESPACE"))
-    hits <- grep(sprintf("^S3method\\(%s,net_", generic), lines, value = TRUE)
-    sub(sprintf("^S3method\\(%s,(net_[A-Za-z0-9_.]+)\\)$", generic), "\\1", hits)
+    registry <- getNamespaceInfo("hypernets", "S3methods")
+    hits <- registry[, 1L] == generic & startsWith(registry[, 2L], "net_")
+    registry[hits, 2L]
   }
   classes <- sort(unique(declared("print")))
   covered <- declared("as.data.frame")

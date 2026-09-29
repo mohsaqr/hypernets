@@ -15,12 +15,17 @@ group_hypergraph(
   from = NULL,
   to = NULL,
   member = NULL,
-  cooccur_by = NULL
+  cooccur_by = NULL,
+  top = 8L,
+  states = NULL
 )
 }
 \arguments{
 \item{data}{Data frame in long format, one row per actor-in-group or per
-edge.}
+edge; or a clustering of sequences from Nestimate -- a mixture Markov
+fit (\code{net_mmm}), a distance clustering (\code{net_clustering}), or the
+per-cluster networks built from either (\code{netobject_group}). See
+"Clustered sequences" below.}
 
 \item{actor}{Character. Name of the column whose values become the
 hypergraph's nodes (members, participants, actors).}
@@ -57,6 +62,14 @@ with no member contributes no hyperedge.}
 
 \item{member, cooccur_by}{Deprecated names of \code{actor} and \code{group}; using
 them warns with a \code{hypernets_deprecated} condition.}
+
+\item{top}{Clustered sequences only: the number of most frequent state
+sets of each group kept as hyperedges (default \code{8}).}
+
+\item{states}{Clustered sequences only: the states to keep, such as the
+events of interest. Every other state is removed from each sequence's
+set before counting, and a sequence left with no state is not counted.
+\code{NULL} (default) keeps every state.}
 }
 \value{
 A \code{net_hypergraph} object with the same structure produced by
@@ -64,6 +77,10 @@ A \code{net_hypergraph} object with the same structure produced by
 \code{n_hyperedges}, \code{size_distribution}, \code{params}), plus \code{edge_data} when
 \code{data} carries hyperedge attributes (see Details). The \code{params} list
 records \code{source = "group_hypergraph"} and the original column names.
+For clustered sequences the object also has \code{group_sizes} and
+\code{state_counts} (read them with \code{as.data.frame()}) and \code{params} records
+\code{source = "clustered_sequences"}, \code{top}, \code{states} and
+\code{unit = "sequences"}.
 }
 \description{
 Constructs a \link[=build_hypergraph]{net_hypergraph} the way a network is
@@ -92,13 +109,6 @@ observed and triadic structure must be inferred from triangles.
 
 Rows with \code{NA} in the actor, hyperedge or weight column are dropped
 silently.
-
-Every other column of \code{data} that is constant within a hyperedge (a
-session's date, a team's department) is kept as a hyperedge attribute in
-the result's \code{edge_data} table, one row per hyperedge, where
-\code{\link[=hg_subset]{hg_subset()}}'s \code{where} argument and \code{\link[=hg_project]{hg_project()}}'s \code{edge_source} can
-use it. Columns that vary within a hyperedge describe memberships, not
-hyperedges, and are left out.
 }
 \note{
 Dense and sparse paths are tested for exact equality. The sparse
@@ -111,6 +121,40 @@ addressed by the flat cell index, and would exhaust memory well before
 that. It raises the classed error \code{hypernets_dense_too_large} rather than
 attempting the allocation; pass \code{sparse = TRUE} for data at that scale.
 }
+\section{Clustered sequences}{
+
+Given a Nestimate clustering, every sequence of every group is reduced to
+the set of its distinct states (order and repetition dropped; \code{NA} and
+empty cells ignored), and the \code{top} most frequent sets of each group
+become hyperedges -- frequent-itemset support counting with each sequence
+as one transaction (Agrawal & Srikant 1994), restricted to the sets that
+occur exactly. Sets of equal count are ranked by their name (states
+sorted and joined by \code{" + "}). Groups are named \code{"Cluster 1"},
+\code{"Cluster 2"}, ... for a \code{net_mmm} or \code{net_clustering}, as Nestimate's
+\code{build_network()} names them, and by the list names of a
+\code{netobject_group}, so names given with Nestimate's \code{rename_models()}
+carry through. Integer-coded states are decoded to their labels. The
+objects are read by their structure; Nestimate is not needed.
+
+The hyperedges are named \code{"<group>: <set>"} and carry \code{group}, \code{set} and
+\code{count} (sequences with exactly that set) as hyperedge attributes, so
+\code{plot()} colours and titles them by \code{count} in \code{"sequences"}, and
+\code{plot(hg, group = "Cluster 1")} draws one group's sets with each node
+sized by the sequences of that group containing the state. Read the
+tables with \code{as.data.frame(hg, what = "sets")} (one row per hyperedge:
+its group, set, size, count and share of the group's sequences) and
+\code{as.data.frame(hg, what = "state_counts")} (one row per group and
+state). A malformed clustering (no \verb{$data}, assignments that do not match
+it, unnamed networks) raises \code{hypernets_bad_input}.
+
+Every other column of \code{data} that is constant within a hyperedge (a
+session's date, a team's department) is kept as a hyperedge attribute in
+the result's \code{edge_data} table, one row per hyperedge, where
+\code{\link[=hg_subset]{hg_subset()}}'s \code{where} argument and \code{\link[=hg_project]{hg_project()}}'s \code{edge_source} can
+use it. Columns that vary within a hyperedge describe memberships, not
+hyperedges, and are left out.
+}
+
 \examples{
 df <- data.frame(
   person = c("Alice", "Bob", "Carol", "Alice", "Bob",
@@ -125,8 +169,24 @@ summary(hg)
 contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
 group_hypergraph(contacts, from = "from", to = "to")
 
+# a clustering of sequences, shaped as Nestimate's cluster_mmm() returns it
+fit <- structure(list(
+  data = data.frame(V1 = c("a", "a", "b", "a", "c"),
+                    V2 = c("b", "b", "c", "c", "a"),
+                    V3 = c("a", NA, "a", "b", "b")),
+  assignments = c(1L, 1L, 2L, 1L, 2L), k = 2L
+), class = "net_mmm")
+sets <- group_hypergraph(fit, top = 3)
+as.data.frame(sets, what = "sets")
+plot(sets, group = "Cluster 1")
+
 }
 \references{
+Agrawal, R., & Srikant, R. (1994). Fast algorithms for mining association
+rules in large databases. In \emph{Proceedings of the 20th International
+Conference on Very Large Data Bases (VLDB)} (pp. 487-499). Morgan
+Kaufmann.
+
 Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.
 (2013). Evolutionary dynamics of group interactions on structured
 populations: a review. \emph{Journal of the Royal Society Interface}

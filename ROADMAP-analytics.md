@@ -1,3 +1,5 @@
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 # ROADMAP — analytical capability
 
 Status 2026-09-20. Companion to `ROADMAP-text.md` (constructions) and
@@ -51,6 +53,12 @@ per-document assignments — and all of it dead-ends.
    new Suggests may be justified; it must be guarded at every use site.
 
 ## Tier A — structure to outcome
+
+**Status 2026-09-29: SIDELINED to `workinprogress/hon_outcome/`.** Built in
+0.5.0, withdrawn in 0.5.1: the per-actor "exposure" features (visit-weighted
+mean of node centrality / HONEM coordinate) have no published reference.
+Revive only with a referenced feature construction (see
+`workinprogress/README.md`).
 
 The multiplier. Converts the package from "describes structure" to "explains
 learning".
@@ -112,6 +120,16 @@ compare_hon(fit, by = "condition", covariates = ~ prior_score,
   `markov_order_test()` already has (KS against U(0,1) under a true null).
 
 ## Tier C — idiographic higher-order models
+
+**Status 2026-09-29: REJECTED as specified; moved to
+`workinprogress/hon_per_actor/`.** One BuildHON per actor/session overfits
+(median session: 17 transitions -> 8 nodes, 14 edges, spurious 2nd-4th order
+memory) and yields incomparable node sets. Nestimate's "per session" means
+sessions are trajectories of ONE pooled model -- already the behaviour of
+`build_hon(actor = "session_id")`. **Replacement to consider:** a *group*
+model, one HON per group (condition / cohort / human vs AI) with enough data
+per group -- the higher-order analogue of TNA group models. Needs a
+reference before building.
 
 Everything currently pools across people, discarding the variation learning
 research exists to study. One model per actor, then compare, cluster and

@@ -9,7 +9,7 @@
 #'
 #' @description
 #' Computes persistent homology via full boundary-matrix reduction over
-#' \eqn{\mathbb{Z}/2} (Edelsbrunner, Letscher & Zomorodian 2000). The
+#' \eqn{\mathbb{Z}/2} (Edelsbrunner, Letscher & Zomorodian 2002). The
 #' returned persistence diagram pairs each k-dimensional homology class
 #' to the simplex whose addition creates it (birth) and the simplex whose
 #' addition destroys it (death). Essential classes - those never killed -
@@ -27,6 +27,17 @@
 #'     value is \eqn{\max_{(i,j) \in \sigma}\,d(i,j)}. Thresholds run low
 #'     to high. Use \code{max_scale} to cap the filtration diameter.}
 #' }
+#'
+#' \strong{Coefficient field: \eqn{\mathbb{Z}/2}.} The reduction adds
+#' columns modulo 2, so the diagram, the Betti curve and the essential
+#' classes are those of homology with \eqn{\mathbb{Z}/2} coefficients (the
+#' standard field of Edelsbrunner, Letscher & Zomorodian 2002).
+#' \code{\link{betti_numbers}} instead ranks oriented boundary matrices over
+#' the rationals. The two agree when the integral homology is torsion-free
+#' and differ otherwise: on the 6-vertex triangulation of the real projective
+#' plane the essential classes here number \eqn{(1, 1, 1)} in dimensions
+#' 0, 1, 2, while \code{betti_numbers()} returns \eqn{(1, 0, 0)} (Hatcher
+#' 2002, Sections 2.2 and 3.A).
 #'
 #' @param x A square matrix, \code{tna}, or \code{netobject}. For
 #'   \code{type = "vr"}, must be a non-negative distance matrix.
@@ -52,9 +63,12 @@
 #' }
 #'
 #' @references
-#' Edelsbrunner, H., Letscher, D., & Zomorodian, A. (2000). Topological
+#' Edelsbrunner, H., Letscher, D., & Zomorodian, A. (2002). Topological
 #' persistence and simplification. \emph{Discrete & Computational Geometry}
-#' \strong{28}, 511-533.
+#' \strong{28}(4), 511-533. \doi{10.1007/s00454-002-2885-2}
+#'
+#' Hatcher, A. (2002). \emph{Algebraic Topology}. Cambridge University
+#' Press. ISBN 0-521-79540-0.
 #'
 #' @examples
 #' mat <- matrix(c(0,.6,.5,.6,0,.4,.5,.4,0), 3, 3)

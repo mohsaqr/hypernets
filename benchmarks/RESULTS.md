@@ -16,8 +16,12 @@ the `normalization` argument exists.
 
 Headline (neural tier, 3 seeds each): `hg_hypergat()` (Ding 2020,
 sentence hyperedges, official corpus files/protocol) is the package's
-strongest method — R8 0.9665 (1.3 pts from full published HyperGAT) and
-R52 0.9433, ABOVE published transductive TextGCN (0.9356). `hg_neural()`
+strongest method — R8 0.9665 and R52 0.9433, both run sentence-only
+(`semantic = "none"`). Against the matching published ablation, HyperGAT
+"w/o semantic" (Ding 2020, Table 4): R8 0.49 pts below (0.9714), R52
+0.18 pts above (0.9415). R52 is also above published transductive TextGCN
+(0.9356). Full HyperGAT (Table 2: R8 0.9797, R52 0.9498) adds LDA semantic
+hyperedges and is not the like-for-like comparator for these rows. `hg_neural()`
 (HGNN) holds MR (0.7692); 20NG stays with closed-form transduction
 (0.8477) — the corpus-level design oversmooths there at every
 configuration tested. HGNN configs reported: paper defaults (lr 0.001,
@@ -170,8 +174,18 @@ is ARB/17/21 (0.0265401292268786); aggregate top closeness is ARB/15/5
 
 | Dataset | Method | Accuracy (mean of seeds) | SD | Range | Macro-F1 | Fit (s) |
 |---|---|---|---|---|---|---|
-| R8 | hypergat (10 ep) | 0.9665 | 0.0034 | [0.9630, 0.9699] | 0.9046 | 154 |
-| R52 | hypergat (10 ep) | 0.9433 | 0.0018 | [0.9412, 0.9447] | 0.7604 | 227 |
+| R8 | hypergat (10 ep, semantic = none) | 0.9665 | 0.0034 | [0.9630, 0.9699] | 0.9046 | 181 |
+| R52 | hypergat (10 ep, semantic = none) | 0.9433 | 0.0018 | [0.9412, 0.9447] | 0.7604 | 228 |
+
+The `hg_hypergat()` rows were run with `semantic = "none"` (sentence
+hyperedges only), so their published comparator is the paper's
+"w/o semantic" ablation (Ding et al. 2020, Table 4), not full HyperGAT
+(Table 2), which adds LDA semantic hyperedges.
+
+| Dataset | Ours (semantic) | Published comparator | Published accuracy | Ours - comparator | Full HyperGAT (Table 2) |
+|---|---|---|---|---|---|
+| R52 | 0.9433 (none) | HyperGAT w/o semantic (Table 4) | 0.9415 +/- 0.0032 | +0.0018 | 0.9498 |
+| R8 | 0.9665 (none) | HyperGAT w/o semantic (Table 4) | 0.9714 +/- 0.0026 | -0.0049 | 0.9797 |
 
 ## Published reference (Ding et al. 2020, Table 2; mean of 10 runs)
 
@@ -182,3 +196,7 @@ is ARB/17/21 (0.0265401292268786); aggregate top closeness is ARB/15/5
 | R52 | 0.9356 | 0.9498 | 0.9281 |
 | Ohsumed | 0.6836 | 0.6990 | 0.5770 |
 | MR | 0.7674 | 0.7832 | 0.7514 |
+
+HyperGAT "w/o semantic" ablation (Ding et al. 2020, Table 4; the
+comparator for `semantic = "none"` runs): 20NG 0.8602, R8 0.9714,
+R52 0.9415, Ohsumed 0.6848, MR 0.7811.

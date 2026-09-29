@@ -17,7 +17,18 @@
   `local_testing_and_equivalence/test-equiv-centrality-xgi.R`; XGI stays out
   of hypernets' runtime dependency graph.
   Also the reference for measure naming when new measures are considered.
-- **Not verified this session**: its generator and stats submodules' exact
-  surface.
+- **Verified 2026-09-29 on 0.10.2** (current on PyPI, released 2026-05-15;
+  wheel source inspected): `linalg` has `hodge_laplacian`,
+  `multiorder_laplacian`, `laplacian` and `normalized_hypergraph_laplacian`;
+  `algorithms.simpliciality` has `simplicial_fraction`,
+  `edit_simpliciality`, `face_edit_simpliciality`,
+  `simplicial_edit_distance`, `mean_face_edit_distance`; `readwrite.hif` has
+  `read_hif` / `write_hif` (HIF); generators include `random_hypergraph`,
+  `chung_lu_hypergraph`, `dcsbm_hypergraph`, `watts_strogatz_hypergraph`,
+  `uniform_HSBM`, `uniform_HPPM`, `uniform_erdos_renyi_hypergraph`,
+  `uniform_hypergraph_configuration_model`, `random_simplicial_complex`,
+  `flag_complex`; also `katz_centrality`, `local_clustering_coefficient`,
+  `degree_assortativity`. These are the planned oracles for ROADMAP.md
+  Phase 2 (Hodge Laplacians, simpliciality, clustering, Katz, HIF).
 - **Links**: https://xgi.readthedocs.io · https://github.com/xgi-org/xgi ·
   `pip install xgi`

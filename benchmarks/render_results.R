@@ -64,8 +64,32 @@ if (file.exists(hypergat_file)) {
   cat("|---|---|---|---|---|---|---|\n")
   invisible(lapply(seq_len(nrow(hga)), \(i) {
     r <- hga[i, ]
-    cat(sprintf("| %s | hypergat (%d ep) | %s | %s | [%s, %s] | %s | %.0f |\n",
-                r$dataset, r$epochs, fmt(r$accuracy), fmt(r$sd),
+    cat(sprintf("| %s | hypergat (%d ep, semantic = %s) | %s | %s | [%s, %s] | %s | %.0f |\n",
+                r$dataset, r$epochs, r$semantic, fmt(r$accuracy), fmt(r$sd),
                 fmt(r$acc_min), fmt(r$acc_max), fmt(r$macro_f1), r$fit_s))
+  }))
+
+  # Compare like with like: sentence-only runs (semantic = "none") against
+  # the paper's "w/o semantic" ablation (Ding et al. 2020, Table 4); runs
+  # with semantic hyperedges against full HyperGAT (Table 2).
+  published <- utils::read.csv(file.path("benchmarks", "published_table2.csv"))
+  hga$comparator <- ifelse(hga$semantic == "none", "HyperGAT w/o semantic",
+                           "HyperGAT")
+  full <- published[published$model == "HyperGAT", c("dataset", "accuracy")]
+  names(full) <- c("dataset", "full_accuracy")
+  cmp <- merge(hga, published[, c("dataset", "model", "accuracy", "sd")],
+               by.x = c("dataset", "comparator"), by.y = c("dataset", "model"),
+               suffixes = c("", "_published"))
+  cmp <- merge(cmp, full, by = "dataset")
+  cat("\n| Dataset | Ours (semantic) | Published comparator | Published",
+      "accuracy | Ours - comparator | Full HyperGAT (Table 2) |\n")
+  cat("|---|---|---|---|---|---|\n")
+  invisible(lapply(seq_len(nrow(cmp)), \(i) {
+    r <- cmp[i, ]
+    cat(sprintf("| %s | %s (%s) | %s (Table %s) | %s +/- %s | %+.4f | %s |\n",
+                r$dataset, fmt(r$accuracy), r$semantic, r$comparator,
+                if (r$comparator == "HyperGAT") "2" else "4",
+                fmt(r$accuracy_published), fmt(r$sd_published),
+                r$accuracy - r$accuracy_published, fmt(r$full_accuracy)))
   }))
 }

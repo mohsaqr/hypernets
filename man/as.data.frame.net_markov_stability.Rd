@@ -11,6 +11,9 @@
   ...,
   what = c("states", "passage_time", "stationary"),
   sort_by = NULL,
+  decreasing = TRUE,
+  from = NULL,
+  to = NULL,
   top = NULL
 )
 }
@@ -28,10 +31,21 @@
 \code{"stationary"} (one row per state, distribution only).}
 
 \item{sort_by}{\code{NULL} (construction order, the default) or a column name
-of the selected table; sorts decreasing.}
+of the selected table.}
+
+\item{decreasing}{Logical. Sort \code{sort_by} from largest to smallest
+(\code{TRUE}, the default) or smallest to largest (\code{FALSE}). Ties are broken
+by the row key, ascending in both directions: \code{state}, or \code{from} then
+\code{to} for the passage table.}
+
+\item{from, to}{\code{NULL} (default, every state) or a character vector of
+states. Restrict the \code{what = "passage_time"} table to passages leaving
+the \code{from} states and arriving at the \code{to} states. Only that table has
+\code{from}/\code{to} columns; using either with another \code{what}, or naming a state
+the chain does not have, raises \code{hypernets_bad_input}.}
 
 \item{top}{Integer or \code{NULL}. Keep only the first \code{top} rows, applied
-after \code{what} and \code{sort_by}.}
+last: after \code{what}, \code{from}/\code{to} and \code{sort_by}.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "states"}, one row per state with
@@ -59,5 +73,9 @@ hon <- build_hon(split(human_long$code, human_long$session_id),
 ms <- markov_stability(hon)
 as.data.frame(ms, sort_by = "stationary_prob", top = 5L)
 as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L)
+# the least persistent states, and the quickest passages out of "Specify"
+as.data.frame(ms, sort_by = "persistence", decreasing = FALSE, top = 5L)
+as.data.frame(ms, what = "passage_time", from = "Specify",
+              sort_by = "steps", decreasing = FALSE, top = 5L)
 
 }

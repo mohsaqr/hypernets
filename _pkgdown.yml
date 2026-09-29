@@ -17,7 +17,7 @@ reference:
   - build_hypa
   - build_mogen
   - hon_centrality
-  - hon_outcome
+  - hon_communities
   - bootstrap_hon
   - compare_hon
   - markov_order_test
@@ -130,6 +130,8 @@ reference:
   - icsid_tribunals
   - gfcc_decisions
   - gfcc_citations
+  - ring_sequences
+  - ring_communities
 
 articles:
 - title: Text hypergraphs

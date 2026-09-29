@@ -391,3 +391,43 @@ test_that("persistent_homology mode flag is set", {
   ph_v <- persistent_homology(d, n_steps = 5L, type = "vr", max_scale = 1)
   expect_identical(ph_v$mode, "vr")
 })
+
+# ---- Coefficient field: betti_numbers() is rational, PH is Z/2 ----
+#
+# The 6-vertex triangulation of the real projective plane (Hatcher 2002):
+# H_1(RP^2; Z) = Z/2 is pure torsion, so the rational Betti numbers are
+# (1, 0, 0) while the Z/2 Betti numbers are (1, 1, 1). The two verbs are
+# documented to use these two fields; this pins that behaviour.
+
+test_that("betti_numbers() is rational and persistent_homology() is Z/2 on RP^2", {
+  triangles <- list(c(1L, 2L, 3L), c(1L, 3L, 4L), c(1L, 4L, 5L),
+                    c(1L, 5L, 6L), c(1L, 2L, 6L), c(2L, 3L, 5L),
+                    c(3L, 4L, 6L), c(2L, 4L, 5L), c(3L, 5L, 6L),
+                    c(2L, 4L, 6L))
+  edge_list <- do.call(c, lapply(triangles, combn, m = 2L,
+                                 simplify = FALSE))
+  edges <- unique(edge_list)
+  # A closed pseudo-manifold: every edge lies on exactly two triangles.
+  expect_identical(length(edges), 15L)
+  expect_true(all(table(vapply(edge_list, paste, character(1L),
+                               collapse = ",")) == 2L))
+
+  sc <- .make_simplicial_complex(c(as.list(seq_len(6L)), edges, triangles),
+                                 nodes = paste0("v", seq_len(6L)),
+                                 type = "vr")
+  sc$filtration <- rep(0, length(sc$simplices))
+  expect_identical(unname(sc$f_vector), c(6L, 15L, 10L))
+  expect_identical(euler_characteristic(sc), 1L)
+
+  # Rationals: torsion is invisible.
+  expect_identical(betti_numbers(sc), c(b0 = 1L, b1 = 0L, b2 = 0L))
+
+  # Z/2: one essential class in each of dimensions 0, 1, 2.
+  ph <- persistent_homology(sc, type = "vr")
+  pers <- as.data.frame(ph)
+  essential <- subset(pers, is.infinite(death))
+  expect_identical(sort(essential$dimension), c(0L, 1L, 2L))
+  # Euler-Poincare holds in both fields.
+  expect_identical(sum(c(1L, -1L, 1L) * betti_numbers(sc)), 1L)
+  expect_equal(sum((-1)^essential$dimension), 1)
+})

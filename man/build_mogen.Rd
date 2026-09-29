@@ -67,7 +67,8 @@ plot(m)
 Scholtes, I. (2017). When is a Network a Network? Multi-Order Graphical
 Model Selection in Pathways and Temporal Networks. \emph{KDD 2017}.
 
-Gote, C. & Scholtes, I. (2023). Predicting variable-length paths in
-networked systems using multi-order generative models. \emph{Applied
-Network Science}, 8, 62.
+Gote, C., Casiraghi, G., Schweitzer, F. & Scholtes, I. (2023).
+Predicting variable-length paths in networked systems using multi-order
+generative models. \emph{Applied Network Science}, 8, 68.
+\doi{10.1007/s41109-023-00596-x}
 }

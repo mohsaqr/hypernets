@@ -6,47 +6,115 @@
 \usage{
 \method{plot}{net_markov_stability}(
   x,
+  what = c("landscape", "states", "passage_time", "network"),
   metrics = c("persistence", "stationary_prob", "return_time", "sojourn_time",
     "avg_time_to_others", "avg_time_from_others"),
   top = NULL,
+  from = NULL,
+  to = NULL,
   ...
 )
 }
 \arguments{
 \item{x}{A \code{net_markov_stability} object.}
 
+\item{what}{Which view: \code{"landscape"} (default), \code{"states"},
+\code{"passage_time"} or \code{"network"}. Supplying \code{metrics} without \code{what}
+selects \code{"states"}, the view \code{metrics} belongs to.}
+
 \item{metrics}{Character vector, any subset of \code{"persistence"},
 \code{"stationary_prob"}, \code{"return_time"}, \code{"sojourn_time"},
-\code{"avg_time_to_others"}, \code{"avg_time_from_others"}. Default: all six.}
+\code{"avg_time_to_others"}, \code{"avg_time_from_others"}: the panels of the
+\code{"states"} view. Default: all six. Other views refuse it.}
 
-\item{top}{Integer or \code{NULL}. Plot only the \code{top} states with the largest
-stationary probability. Default \code{NULL} (all states).}
+\item{top}{Integer or \code{NULL}. Show only the \code{top} states with the largest
+stationary share. Default \code{NULL}: every state, except the network view,
+which draws at most 10.}
 
-\item{...}{Ignored.}
+\item{from, to}{\code{NULL} or character vectors of states: restrict the
+\code{"passage_time"} heatmap to passages leaving \code{from} / arriving at \code{to}
+(applied together with \code{top}). Other views refuse them.}
+
+\item{...}{Passed to the cograph function behind the view
+(\code{\link[cograph:plot_centrality]{cograph::plot_centrality()}}, \code{\link[cograph:plot_heatmap]{cograph::plot_heatmap()}} or
+\code{\link[cograph:plot_tna]{cograph::plot_tna()}}), overriding the defaults set here. Ignored by
+the landscape.}
 }
 \value{
-A \code{ggplot} object, faceted by metric.
+\describe{
+\item{\code{"landscape"}}{a \code{ggplot}; its data has one row per state with
+\code{state}, \code{stationary_prob}, \code{persistence}, \code{sojourn_time}, \code{memory}
+(\code{"memory state"} / \code{"first-order state"}) and \code{quadrant}.}
+\item{\code{"states"}}{the \code{ggplot} from \code{\link[cograph:plot_centrality]{cograph::plot_centrality()}}; its
+data has one row per state x metric.}
+\item{\code{"passage_time"}}{the \code{ggplot} from \code{\link[cograph:plot_heatmap]{cograph::plot_heatmap()}}; its
+data has one row per ordered pair shown (\code{row} = from, \code{col} = to,
+\code{value} = mean steps).}
+\item{\code{"network"}}{\code{x}, invisibly. \code{\link[cograph:plot_tna]{cograph::plot_tna()}} draws with
+base graphics and has no ggplot to return.}
+}
 }
 \description{
-One horizontal bar panel per requested metric, states ordered by
-stationary probability. Colour is the metric (Okabe-Ito, colour-blind
-safe) and is redundant with the facet label, so no distinction rests on
-colour alone.
+Four views of the same chain. Three delegate to cograph's own plotting
+functions, which own the layout, labels, legend and theme; only the
+landscape, which cograph has no counterpart for, is drawn here.
+
+\describe{
+\item{\code{what = "landscape"} (default)}{\emph{Which states matter, and how?}
+One point per state: stationary share (x, log scale) against
+persistence (y). Dashed lines at the even share \eqn{1/n} and at the
+mean persistence split the plane into four named quadrants:
+\strong{hubs} (common and sticky), \strong{relays} (common, quickly
+left), \strong{traps} (rare but sticky) and \strong{transients} (rare,
+quickly left). A state is common when its share is strictly above
+\eqn{1/n} and sticky when its persistence is strictly above the mean.
+Point size is the mean stay (sojourn time); shape separates memory
+states (\code{"a -> b"}) from first-order states. Every state is labelled
+up to 15 states, otherwise the most common and most persistent are.
+Drawn with ggplot2: cograph has no scatter or quadrant view.}
+\item{\code{what = "states"}}{\emph{How does each state compare with the
+rest?} \code{\link[cograph:plot_centrality]{cograph::plot_centrality()}} on the per-state table, one panel
+per metric, states ordered by stationary share. The \code{k} largest values
+in each panel are highlighted, where \code{k} is the number of states whose
+share exceeds the even share \eqn{1/n}.}
+\item{\code{what = "passage_time"}}{\emph{How far apart are the states?}
+\code{\link[cograph:plot_heatmap]{cograph::plot_heatmap()}} on the mean-first-passage matrix, rows and
+columns in stationary-share order, values printed for up to 12
+states. The diagonal is the mean return time \eqn{1/\pi_i}. The
+subtitle names the fastest and the slowest off-diagonal passage.}
+\item{\code{what = "network"}}{\emph{What does the walk look like?}
+\code{\link[cograph:plot_tna]{cograph::plot_tna()}}, cograph's TNA network view, on the transition
+matrix: node size from the stationary share, the node's pie (donut)
+filled to its persistence, edges the transition probabilities (below
+0.05 hidden). By default only the 10 most common states are drawn; the
+title says how many were left out.}
 }
+
+\code{top} restricts every view to the \code{top} states with the largest
+stationary share. The landscape's reference lines are computed over the
+whole chain, so a state's quadrant does not change with \code{top}.
+}
+\section{Conditions}{
+
+Raises \code{hypernets_bad_input} for an unknown \code{what}, for \code{metrics} with a
+view other than \code{"states"}, for \code{from}/\code{to} with a view other than
+\code{"passage_time"}, and for \code{from}/\code{to} naming unknown states.
+}
+
 \examples{
-# A first-order chain, straight from a transition matrix
 P <- matrix(c(0.7, 0.2, 0.1,
               0.3, 0.5, 0.2,
               0.2, 0.3, 0.5),
             nrow = 3, byrow = TRUE,
             dimnames = list(c("A", "B", "C"), c("A", "B", "C")))
-markov_stability(P)
+ms <- markov_stability(P)
+plot(ms)                           # landscape
+plot(ms, what = "states")          # cograph::plot_centrality()
+plot(ms, what = "passage_time")    # cograph::plot_heatmap()
+plot(ms, what = "network")         # cograph::plot_tna()
 
-# The higher-order walk: states that carry their memory
+# A second-order chain: memory states are drawn as triangles
 hon <- build_hon(split(human_long$code, human_long$session_id),
                  max_order = 2L, min_freq = 50L)
-ms <- markov_stability(hon)
-as.data.frame(ms, sort_by = "stationary_prob", top = 5L)
-as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L)
-
+plot(markov_stability(hon), top = 10L)
 }

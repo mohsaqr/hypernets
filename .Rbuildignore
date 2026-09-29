@@ -26,3 +26,5 @@ Rplots\.pdf$
 ^ROADMAP-text\.md$
 ^TODO-text\.md$
 ^\.DS_Store$
+^workinprogress$
+^ROADMAP\.md$

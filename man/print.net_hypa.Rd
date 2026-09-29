@@ -19,7 +19,7 @@ Print Method for net_hypa
 }
 \examples{
 seqs <- list(c("A","B","C"), c("B","C","A"), c("A","C","B"), c("A","B","C"))
-hyp <- build_hypa(seqs, k = 2)
+hyp <- build_hypa(seqs, order = 2)
 print(hyp)
 
 \donttest{
@@ -29,7 +29,7 @@ seqs <- data.frame(
   V3 = c("C","A","B","C","A","B","C","A","B","C"),
   V4 = c("A","B","C","A","B","C","A","B","C","A")
 )
-hypa <- build_hypa(seqs, k = 2L)
+hypa <- build_hypa(seqs, order = 2L)
 print(hypa)
 }
 

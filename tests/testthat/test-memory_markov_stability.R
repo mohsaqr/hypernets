@@ -154,6 +154,9 @@ test_that("a state with no outgoing transition is a classed error", {
   P_dead <- .ms_P
   P_dead["B", ] <- 0
   expect_error(markov_stability(P_dead), class = "hypernets_bad_input")
+  # a dead-end state is one way a chain fails to be ergodic, so it carries
+  # the same class as the reducible case
+  expect_error(markov_stability(P_dead), class = "hypernets_not_ergodic")
   # the message names the offending state so the user can act on it
   expect_error(markov_stability(P_dead), "B")
 })
@@ -273,4 +276,301 @@ test_that("a diagonal that is 1 in double precision gives Inf sojourn", {
   expect_warning(ms <- markov_stability(P), class = "hypernets_not_ergodic")
   expect_identical(as.data.frame(ms)$sojourn_time[1L], Inf)
   expect_s3_class(plot(ms), "ggplot")
+})
+
+
+# ---- Accessor: ascending order and the from/to passage filter ------------
+
+# The accessor exactly as it stood before `decreasing`, `from` and `to` were
+# added (0.5.0). The default and descending calls must still reproduce it.
+.ms_accessor_050 <- function(x, what = "states", sort_by = NULL, top = NULL) {
+  out <- switch(
+    what,
+    states = x$stability,
+    stationary = data.frame(state = x$states,
+                            stationary_prob = unname(x$stationary),
+                            return_time = unname(x$return_times),
+                            stringsAsFactors = FALSE),
+    passage_time = {
+      M <- x$passage_time
+      data.frame(from = rep(rownames(M), times = ncol(M)),
+                 to = rep(colnames(M), each = nrow(M)),
+                 steps = as.vector(M), stringsAsFactors = FALSE)
+    }
+  )
+  if (!is.null(sort_by)) {
+    out <- out[order(out[[sort_by]], decreasing = TRUE), , drop = FALSE]
+  }
+  rownames(out) <- NULL
+  if (!is.null(top)) out <- utils::head(out, top)
+  rownames(out) <- NULL
+  out
+}
+
+test_that("default and descending calls are unchanged from 0.5.0", {
+  hon <- build_hon(.ms_seqs(), max_order = 2L, min_freq = 50L)
+  ms <- markov_stability(hon)
+  expect_identical(as.data.frame(ms), .ms_accessor_050(ms))
+  expect_identical(as.data.frame(ms, what = "passage_time"),
+                   .ms_accessor_050(ms, what = "passage_time"))
+  expect_identical(as.data.frame(ms, what = "stationary"),
+                   .ms_accessor_050(ms, what = "stationary"))
+  expect_identical(as.data.frame(ms, sort_by = "stationary_prob", top = 5L),
+                   .ms_accessor_050(ms, sort_by = "stationary_prob", top = 5L))
+  expect_identical(
+    as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L),
+    .ms_accessor_050(ms, what = "passage_time", sort_by = "steps", top = 5L))
+})
+
+test_that("decreasing = FALSE sorts ascending, the reverse of descending", {
+  ms <- markov_stability(.ms_P)
+  # every column below is untied on the calibration chain
+  asc <- as.data.frame(ms, sort_by = "stationary_prob", decreasing = FALSE)
+  expect_identical(asc$state, c("C", "B", "A"))           # 9 < 13 < 19 / 41
+  desc <- as.data.frame(ms, sort_by = "stationary_prob")
+  expect_identical(asc, `rownames<-`(desc[rev(seq_len(nrow(desc))), ], NULL))
+
+  pt_asc <- as.data.frame(ms, what = "passage_time", sort_by = "steps",
+                          decreasing = FALSE)
+  expect_equal(pt_asc$steps, sort(as.vector(.ms_M)), tolerance = 1e-12)
+  pt_desc <- as.data.frame(ms, what = "passage_time", sort_by = "steps")
+  expect_identical(pt_asc,
+                   `rownames<-`(pt_desc[rev(seq_len(nrow(pt_desc))), ], NULL))
+  # the shortest passage is the recurrence of A, 41/19
+  expect_identical(c(pt_asc$from[1L], pt_asc$to[1L]), c("A", "A"))
+
+  # top applies after the ascending sort: the two shortest sojourns
+  low <- as.data.frame(ms, sort_by = "sojourn_time", decreasing = FALSE,
+                       top = 2L)
+  expect_identical(low$state, c("B", "C"))                # both 1 / 0.5 = 2
+})
+
+test_that("ties are broken by the row key in both directions", {
+  P <- matrix(c(0.5, 0.25, 0.25,
+                0.25, 0.5, 0.25,
+                0.25, 0.25, 0.5), nrow = 3L, byrow = TRUE,
+              dimnames = list(c("Z", "Y", "X"), c("Z", "Y", "X")))
+  ms <- markov_stability(P)
+  # all three persistences are 0.5: the key (state, ascending) decides
+  expect_identical(as.data.frame(ms, sort_by = "persistence")$state,
+                   c("X", "Y", "Z"))
+  expect_identical(
+    as.data.frame(ms, sort_by = "persistence", decreasing = FALSE)$state,
+    c("X", "Y", "Z"))
+})
+
+test_that("from and to restrict the passage table to hand-derived rows", {
+  ms <- markov_stability(.ms_P)
+  a_out <- as.data.frame(ms, what = "passage_time", from = "A")
+  expect_identical(a_out$to, c("A", "B", "C"))
+  expect_equal(a_out$steps, c(41 / 19, 60 / 13, 70 / 9), tolerance = 1e-12)
+
+  into_c <- as.data.frame(ms, what = "passage_time", to = "C")
+  expect_identical(into_c$from, c("A", "B", "C"))
+  expect_equal(into_c$steps, c(70 / 9, 20 / 3, 41 / 9), tolerance = 1e-12)
+
+  ab_bc <- as.data.frame(ms, what = "passage_time", from = c("A", "B"),
+                         to = c("B", "C"), sort_by = "steps",
+                         decreasing = FALSE)
+  expect_identical(paste(ab_bc$from, ab_bc$to),
+                   c("B B", "A B", "B C", "A C"))
+  expect_equal(ab_bc$steps, c(41 / 13, 60 / 13, 20 / 3, 70 / 9),
+               tolerance = 1e-12)
+})
+
+test_that("from/to on the wrong table or an unknown state is a classed error", {
+  ms <- markov_stability(.ms_P)
+  expect_error(as.data.frame(ms, from = "A"), class = "hypernets_bad_input")
+  expect_error(as.data.frame(ms, what = "stationary", to = "A"),
+               class = "hypernets_bad_input")
+  expect_error(as.data.frame(ms, what = "passage_time", from = "Q"),
+               class = "hypernets_bad_input")
+  expect_error(as.data.frame(ms, what = "passage_time", to = 1),
+               class = "hypernets_bad_input")
+  expect_error(as.data.frame(ms, decreasing = NA), "`decreasing` must be")
+})
+
+test_that("heavy pruning of ai_long is refused as not ergodic", {
+  ai_50 <- build_hon(ai_long, action = "code", actor = "session_id",
+                     time = "order_in_session", max_order = 2L,
+                     min_freq = 50L)
+  expect_error(markov_stability(ai_50), class = "hypernets_not_ergodic")
+  ai_20 <- build_hon(ai_long, action = "code", actor = "session_id",
+                     time = "order_in_session", max_order = 2L,
+                     min_freq = 20L)
+  expect_error(markov_stability(ai_20), class = "hypernets_not_ergodic")
+  ai_10 <- build_hon(ai_long, action = "code", actor = "session_id",
+                     time = "order_in_session", max_order = 2L,
+                     min_freq = 10L)
+  expect_s3_class(markov_stability(ai_10), "net_markov_stability")
+})
+
+
+# ---- plot(): landscape, states, passage_time, network ---------------------
+
+# Four states placed deliberately, one per quadrant. n = 4, so the even share
+# is 0.25; mean persistence is (0.60 + 0 + 0.85 + 0) / 4 = 0.3625.
+#   H: share 0.453, persistence 0.60  -> hub (common, sticky)
+#   R: share 0.294, persistence 0     -> relay (common, quickly left)
+#   T: share 0.118, persistence 0.85  -> trap (rare, sticky)
+#   X: share 0.135, persistence 0     -> transient (rare, quickly left)
+.ms_quad_P <- matrix(
+  c(0.60, 0.36, 0.02, 0.02,
+    0.55, 0.00, 0.02, 0.43,
+    0.05, 0.10, 0.85, 0.00,
+    0.10, 0.88, 0.02, 0.00),
+  nrow = 4L, byrow = TRUE,
+  dimnames = list(c("H", "R", "T", "X"), c("H", "R", "T", "X"))
+)
+
+# A chain with memory-state labels, the way build_hon() writes them
+.ms_memory_P <- matrix(
+  c(0.5, 0.3, 0.2,
+    0.2, 0.4, 0.4,
+    0.3, 0.3, 0.4),
+  nrow = 3L, byrow = TRUE,
+  dimnames = list(c("A", "B", "A -> B"), c("A", "B", "A -> B"))
+)
+
+test_that("every view returns its documented type", {
+  ms <- markov_stability(.ms_P)
+  expect_s3_class(plot(ms), "ggplot")
+  expect_s3_class(plot(ms, what = "landscape"), "ggplot")
+  expect_s3_class(plot(ms, what = "states"), "ggplot")
+  expect_s3_class(plot(ms, what = "passage_time"), "ggplot")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_invisible(out <- plot(ms, what = "network"))
+  expect_identical(out, ms)
+})
+
+test_that("the landscape quadrants follow the stated rule", {
+  ms <- markov_stability(.ms_quad_P)
+  d <- as.data.frame(ms)
+  # the fixture really sits where the header says
+  expect_true(all(d$stationary_prob[d$state %in% c("H", "R")] > 0.25))
+  expect_true(all(d$stationary_prob[d$state %in% c("T", "X")] < 0.25))
+  p <- plot(ms)
+  quad <- stats::setNames(as.character(p$data$quadrant), p$data$state)
+  expect_identical(quad[c("H", "R", "T", "X")],
+                   c(H = "hub", R = "relay", T = "trap", X = "transient"))
+  # quadrants are computed on the whole chain, so `top` cannot move a state
+  p_top <- plot(ms, top = 2L)
+  expect_identical(nrow(p_top$data), 2L)
+  expect_identical(
+    stats::setNames(as.character(p_top$data$quadrant), p_top$data$state),
+    quad[p_top$data$state])
+})
+
+test_that("the landscape distinguishes memory states by shape", {
+  ms <- markov_stability(.ms_memory_P)
+  p <- plot(ms)
+  expect_identical(as.character(p$data$memory[p$data$state == "A -> B"]),
+                   "memory state")
+  built <- ggplot2::ggplot_build(p)
+  pts <- built$data[[which(vapply(p$layers, function(l)
+    inherits(l$geom, "GeomPoint"), logical(1L)))]]
+  shape_of <- stats::setNames(pts$shape, as.character(p$data$state))
+  expect_false(identical(shape_of[["A -> B"]], shape_of[["A"]]))
+  expect_identical(shape_of[["A"]], shape_of[["B"]])
+})
+
+test_that("the states view hands cograph one row per state x metric", {
+  ms <- markov_stability(.ms_quad_P)
+  p <- plot(ms, what = "states")
+  expect_identical(nrow(p$data), 4L * 6L)
+  expect_identical(nrow(unique(p$data[c("node", "measure")])), 24L)
+  # the values are the accessor's, and the states keep share order
+  d <- as.data.frame(ms, sort_by = "stationary_prob")
+  persistence <- p$data[p$data$measure == "Persistence", ]
+  expect_equal(persistence$value[match(d$state, persistence$node)],
+               d$persistence)
+  expect_identical(rev(levels(p$data$node)), d$state)
+})
+
+test_that("metrics alone still selects the states view, as before 0.5.1", {
+  ms <- markov_stability(.ms_P)
+  p <- plot(ms, metrics = "sojourn_time", top = 2L)
+  expect_identical(nrow(p$data), 2L)
+  expect_identical(nlevels(droplevels(p$data$measure)), 1L)
+})
+
+test_that("the passage heatmap has n^2 cells and the return times on its diagonal", {
+  ms <- markov_stability(.ms_P)
+  p <- plot(ms, what = "passage_time")
+  d <- p$data
+  expect_identical(nrow(d), 9L)
+  diag_cells <- d[as.character(d$row) == as.character(d$col), ]
+  ret <- as.data.frame(ms, what = "stationary")
+  expect_equal(diag_cells$value[match(ret$state, diag_cells$row)],
+               ret$return_time)
+  # both axes in stationary-share order (rows drawn top-down)
+  share_order <- as.data.frame(ms, sort_by = "stationary_prob")$state
+  expect_identical(levels(d$col), share_order)
+  expect_identical(rev(levels(d$row)), share_order)
+  # the subtitle names the extremes computed from the data: from the
+  # hand-derived matrix, B -> A = 70/19 is fastest, A -> C = 70/9 slowest
+  expect_match(p$labels$subtitle, "Fastest: B to A, 3.7 steps")
+  expect_match(p$labels$subtitle, "Slowest: A to C, 7.8 steps")
+})
+
+test_that("the passage heatmap respects top, from and to", {
+  ms <- markov_stability(.ms_P)
+  expect_identical(nrow(plot(ms, what = "passage_time", top = 2L)$data), 4L)
+  d <- plot(ms, what = "passage_time", from = "C", to = c("A", "B"))$data
+  expect_setequal(paste(d$row, d$col), c("C A", "C B"))
+})
+
+test_that("the network view delegates to cograph::plot_tna with the chain", {
+  hon <- build_hon(.ms_seqs(), max_order = 2L, min_freq = 50L)
+  ms <- markov_stability(hon)
+  captured <- NULL
+  testthat::local_mocked_bindings(
+    plot_tna = function(...) {
+      captured <<- list(...)
+      invisible(NULL)
+    },
+    .package = "cograph")
+  expect_identical(plot(ms, what = "network"), ms)
+  top10 <- as.data.frame(ms, sort_by = "stationary_prob", top = 10L)
+  expect_identical(dimnames(captured$x), list(top10$state, top10$state))
+  expect_identical(captured$x, ms$transition[top10$state, top10$state])
+  expect_identical(captured$pie, top10$persistence)
+  # node size increases with stationary share
+  expect_false(is.unsorted(rev(captured$vsize)))
+  expect_match(captured$title, sprintf("Top 10 of %d states", ms$n_states))
+  # `...` overrides the defaults
+  plot(ms, what = "network", top = 3L, minimum = 0.2)
+  expect_identical(nrow(captured$x), 3L)
+  expect_identical(captured$minimum, 0.2)
+})
+
+test_that("a bad view or a misplaced argument is a classed error", {
+  ms <- markov_stability(.ms_P)
+  expect_error(plot(ms, what = "bars"), class = "hypernets_bad_input")
+  expect_error(plot(ms, what = c("states", "network")),
+               class = "hypernets_bad_input")
+  expect_error(plot(ms, what = "landscape", metrics = "persistence"),
+               class = "hypernets_bad_input")
+  expect_error(plot(ms, what = "states", from = "A"),
+               class = "hypernets_bad_input")
+  expect_error(plot(ms, what = "passage_time", from = "Z"),
+               class = "hypernets_bad_input")
+})
+
+test_that("the object carries the row-normalised transition matrix", {
+  ms <- markov_stability(.ms_P)
+  expect_identical(ms$transition, .ms_P)
+})
+
+test_that("plots draw on a higher-order chain from real data", {
+  hon <- build_hon(.ms_seqs(), max_order = 2L, min_freq = 50L)
+  ms <- markov_stability(hon)
+  p <- plot(ms)
+  expect_true(any(p$data$memory == "memory state"))
+  expect_true(any(p$data$memory == "first-order state"))
+  expect_no_error(ggplot2::ggplot_build(p))
+  expect_no_error(ggplot2::ggplot_build(plot(ms, what = "states")))
+  expect_no_error(ggplot2::ggplot_build(plot(ms, what = "passage_time",
+                                             top = 10L)))
 })

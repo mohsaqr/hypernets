@@ -12,7 +12,7 @@
   color_by = NULL,
   linetype_by = NULL,
   labels = TRUE,
-  label_size = 3,
+  label_size = 4.2,
   edge_labels = FALSE,
   edge_label_size = 3,
   dismantled = FALSE,
@@ -20,10 +20,24 @@
   node_size = 2.5,
   detail = 5,
   outline = "white",
-  alpha = 0.45,
+  alpha = 0.5,
   linewidth = 1.1,
   padding = 0.045,
   legend_title = NULL,
+  node_sizes = NULL,
+  direction = NULL,
+  arrow_style = c("inside", "outside"),
+  node_fill = "#000000",
+  arrow_fill = NULL,
+  transitions = NULL,
+  size_title = NULL,
+  titles = NULL,
+  title_prefix = "",
+  notes = NULL,
+  unit = NULL,
+  pieces = NULL,
+  title_gap = 0.06,
+  group = NULL,
   ...
 )
 }
@@ -52,7 +66,8 @@ Not used with a \code{layout} table.}
 \item{seed}{Seed for the force-directed layouts (default \code{1}); the
 caller's random number stream is left untouched.}
 
-\item{color_by}{Colour of the hulls: \code{NULL} (one colour), \code{"size"}
+\item{color_by}{Colour of the hulls: \code{NULL} (the hyperedges' count
+attribute described above, else one colour), \code{"size"}
 (hyperedge cardinality, sequential scale), the name of a column in the
 edge metadata (\code{x$edge_data}), a vector named by hyperedge, or a vector
 with one value per hyperedge. Character or factor values get the
@@ -64,7 +79,8 @@ Okabe-Ito palette; numeric values a sequential scale built from it.}
 \item{labels}{\code{TRUE} (default) writes the node names, \code{FALSE} writes
 none, and a character vector named by node replaces the names shown.}
 
-\item{label_size, node_size}{Text and point sizes.}
+\item{label_size, node_size}{Text and point sizes (defaults \code{4.2} and
+\code{2.5}).}
 
 \item{edge_labels}{Name the hyperedges on the figure. \code{FALSE} (default)
 writes nothing, \code{TRUE} writes the hyperedge names, or pass a vector named
@@ -96,7 +112,7 @@ overlapping hyperedges; \code{"fill"} outlines each hyperedge in its own
 colour (pair it with a lower \code{alpha}, e.g. \code{0.15}); any other colour is
 used as given.}
 
-\item{alpha}{Fill transparency (default \code{0.45}); the outline is always
+\item{alpha}{Fill transparency (default \code{0.5}); the outline is always
 drawn at full strength.}
 
 \item{linewidth}{Width of the outlines (default \code{1.1}).}
@@ -109,11 +125,117 @@ imply a member they do not share.}
 \item{legend_title}{Legend title for \code{color_by}; defaults to the
 selector's name.}
 
+\item{node_sizes}{Size every node by a value, such as how often the node
+occurs: a data.frame with a node column and a value column, or a numeric
+vector named by node. The columns are \code{node} and \code{value} when those names
+are present; otherwise the one character (or factor) column holds the
+node names and the one numeric column the values, so a table such as
+\code{data.frame(state, trials)} is read as it is. Every node of the
+hypergraph needs a non-negative value; names that are not nodes are
+skipped, so one table serves every \code{\link[=hg_subset]{hg_subset()}}. Without \code{direction}
+the nodes are points whose area follows the value
+(\code{\link[ggplot2:scale_size]{ggplot2::scale_size_area()}}, largest 10 mm), with a size legend, and
+each label sits just above its dot. With \code{direction} they are circles in
+data units (the figure has a fixed 1:1 aspect): the largest has a radius
+of 4\% of the layout extent and none is smaller than 30\% of that radius,
+so the rarest nodes stay visible, and a caption says what area and
+triangle show. \code{NULL} (default) draws plain points.}
+
+\item{direction}{Mark on each circle where the walk goes next: a
+data.frame with columns \code{from}, \code{to} and a weight -- \code{weight}, or else
+the one other numeric column, such as \code{trials} (how often \code{to} follows
+\code{from}; repeated pairs are summed). Each node gets a triangle pointing at
+the other node that follows it with the largest weight, ties broken by
+node name; a node that nothing else follows (a sink, or only itself)
+gets no triangle. Rows naming a node that is not in the hypergraph are
+skipped. Requires \code{node_sizes}.}
+
+\item{arrow_style}{\code{"inside"} (default; a triangle inscribed in the
+circle, its apex on the rim facing the next node) or \code{"outside"} (the
+circle drawn out into a tip beyond its rim). An outside tip that points
+upward moves that node's label below the circle.}
+
+\item{node_fill}{Colour of the circles drawn by \code{node_sizes} with
+\code{direction} (default black).}
+
+\item{arrow_fill}{Colour of the \code{direction} triangles. \code{NULL} (default) is
+a dark slate (\code{"#1F3A44"}) for \code{"inside"} and \code{node_fill} for
+\code{"outside"}.}
+
+\item{transitions}{Draw the moves between nodes as curved arrows: a
+data.frame with \code{from}, \code{to} and a weight, read like \code{direction}. Line
+width follows the weight; a node followed by itself gets a small loop
+below it. Rows naming a node that is not in the hypergraph are skipped.
+The width legend is titled "\if{html}{\out{<Unit>}} making the transition" when \code{unit} is
+given and "Transition weight" otherwise.}
+
+\item{size_title}{What the node area shows (e.g. \code{"trials with the event"}): the caption reads "Circle area: <size_title>." and the point
+size legend is titled with it. \code{NULL} (default) uses "\if{html}{\out{<unit>}} with the
+event" when there is a unit, and otherwise says the area is
+proportional to the event value.}
+
+\item{titles}{Write a title box beside every hyperedge, just outside its
+pebble on the side facing away from the centre of the figure. \code{NULL}
+(default) writes the hyperedges' count attribute described above (not
+when \code{dismantled = TRUE}), else none; \code{FALSE} writes
+none; \code{TRUE} writes the hyperedge names; a selector
+resolved like \code{color_by} (an edge-metadata column, a vector named by
+hyperedge, or one value per hyperedge) must be numeric and adds a second
+line with that number and \code{unit} (e.g. "3,667 trials"). A hyperedge with
+a single member gets its box beside that node. Boxes are placed in
+order of decreasing value (name breaks ties) and a box that would sit on
+an earlier one moves below it.}
+
+\item{title_prefix}{Text written before each hyperedge name in its title
+box (default \code{""}), such as \code{"Mostly "}.}
+
+\item{notes}{A further line for some title boxes: a character vector named
+by hyperedge, or a data.frame with a \code{note} column and the hyperedge
+names in a \code{hyperedge}, \code{edge} or \code{group} column. Hyperedges without a
+note get none; names that are not hyperedges are skipped. Requires
+\code{titles}.}
+
+\item{unit}{The word for what the values count (e.g. \code{"trials"},
+\code{"steps"}). It titles the \code{color_by} legend (capitalised, unless
+\code{legend_title} is given), follows the number in each title box, and
+names the node area ("\if{html}{\out{<unit>}} with the event") and the transition
+widths. \code{NULL} (default) is the unit the hypergraph records
+(\code{"sequences"} for \code{\link[=group_hypergraph]{group_hypergraph()}} of a clustering), else the
+name of the hyperedges' count attribute described above, else those
+texts stay generic.}
+
+\item{pieces}{How the bipartite layout places a hypergraph that falls into
+disconnected pieces: \code{"row"} (default; every piece is laid out in a
+frame of its own, as if drawn alone, and the frames are set side by
+side 1.4 frame widths apart, in order of the piece's most prominent
+hyperedge -- see \code{titles} -- with a piece of one node at the middle of
+its frame) or \code{"packed"} (pieces are laid out one by one and packed into
+a square frame). Only the bipartite layout has pieces; \code{"row"} given
+with another layout is an error.}
+
+\item{title_gap}{Distance of each title box beyond its pebble, in layout
+units (the layout spans 0 to 1; default \code{0.06}).}
+
+\item{group}{Draw one group only: the name of a value of the hyperedges'
+\code{group} attribute, such as \code{"Cluster 1"} of a \code{\link[=group_hypergraph]{group_hypergraph()}} built
+from a clustering of sequences. Only that group's hyperedges and their
+members are drawn; for clustered sequences each node is sized by the
+sequences of the group containing it (unless \code{node_sizes} is given),
+each set is named by the states it adds to those every drawn set
+shares (listed in the subtitle), the figure is titled with the group
+and its number of sequences, \code{titles} defaults to \code{FALSE} and the
+legends are stacked. A
+name that is not a group, or a hypergraph without a \code{group} attribute,
+raises \code{hypernets_bad_input}. \code{NULL} (default) draws every hyperedge.}
+
 \item{...}{Unused; for S3 consistency.}
 }
 \value{
 A ggplot object (with \code{dismantled = TRUE}, one facet per
-hyperedge).
+hyperedge). With \code{node_sizes} and \code{direction} the nodes are polygon
+layers in data units and the caption names what circle area and
+triangle show; with \code{node_sizes} alone they are points with a size
+legend. Title boxes are the last layer.
 }
 \description{
 Draws every hyperedge as a smooth pebble around its members -- the convex
@@ -128,6 +250,23 @@ supplied per hyperedge, and outlined with a line type by the same kinds of
 selector. A hyperedge with a single member is drawn as its node alone.
 }
 \details{
+A hypergraph whose hyperedges carry one numeric attribute -- such as a
+\code{trials} count that \code{\link[=group_hypergraph]{group_hypergraph()}} kept because it is constant
+within each group -- is drawn by that attribute with no further argument:
+it colours the pebbles, writes a title box with the count beside each
+one, and names the unit of the legends. Of several numeric attributes,
+the one that varies between hyperedges is read when only one does (a
+membership share of 1 on every hyperedge is passed over); otherwise none
+is. \code{color_by}, \code{titles} and \code{unit} override it.
+
+Node labels are bold with a white halo, the legends sit below the plot
+(a colour bar 2.5 cm per key, discrete legends at most four keys to a
+row) and the plot has wide margins (40, 130, 30 and 130 pt) so title
+boxes outside the pebbles are not cut. The look of
+earlier versions is partly available through arguments: \code{alpha = 0.45},
+\code{label_size = 3} and \code{pieces = "packed"}; the legend position and margins
+through \code{ggplot2::theme()} added to the result.
+
 A hypergraph that falls into several disconnected pieces is laid out one
 piece at a time and the pieces are then packed into a roughly square frame.
 A force-directed layout has no force at all between two disconnected
@@ -137,6 +276,18 @@ picture and set the scale for everything else, leaving the connected
 structure a speck in the middle. Packing keeps every component at its own
 size and the frame spent on structure.
 }
+\section{Conditions}{
+
+\code{hypernets_bad_input} for an invalid selector or layout, a \code{node_sizes}
+that misses a node or holds a negative value, a \code{direction} or
+\code{transitions} table without \code{from}, \code{to} and one non-negative numeric
+weight, a \code{direction} without \code{node_sizes}, \code{titles} that are not
+numeric, \code{notes} without titles, an invalid \code{unit}, \code{title_prefix} or
+\code{title_gap}, \code{pieces = "row"} with a layout other than
+\code{"bipartite"}, or node overlays or titles combined with
+\code{dismantled = TRUE}.
+}
+
 \examples{
 dat <- data.frame(
   member = c("a", "b", "c", "b", "c", "d", "d", "e", "f"),
@@ -155,6 +306,29 @@ apart <- group_hypergraph(
   "member", "event"
 )
 plot(apart, color_by = "size")
+
+# circles sized by how often each node occurs, pointing where it goes next
+counts <- c(a = 40, b = 25, c = 12, d = 30, e = 5, f = 2)
+moves <- data.frame(from = c("a", "b", "c", "d", "d", "e"),
+                    to = c("b", "c", "a", "e", "b", "f"),
+                    weight = c(20, 9, 4, 8, 3, 1))
+plot(hg, node_sizes = counts, direction = moves,
+     size_title = "occurrences of the node")
+plot(hg, node_sizes = counts, direction = moves, transitions = moves,
+     arrow_style = "outside")
+
+# groups of events with their trial counts: the count colours the pebbles
+# and writes a title box per group; points sized by how many trials
+# contain each event
+members <- data.frame(
+  group = c("Hint", "Hint", "Hint", "Question", "Question", "Question"),
+  state = c("Wrong", "Hint", "Retry", "Wrong", "Question", "Retry"),
+  trials = c(120, 120, 120, 80, 80, 80)
+)
+trial_groups <- group_hypergraph(members, actor = "state", group = "group")
+event_trials <- data.frame(state = c("Wrong", "Hint", "Question", "Retry"),
+                           trials = c(200, 120, 80, 190))
+plot(trial_groups, node_sizes = event_trials)
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

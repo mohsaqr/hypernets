@@ -44,7 +44,10 @@
 #' An optional `weight` column produces a weighted incidence matrix.
 #'
 #' @param data Data frame in long format, one row per actor-in-group or per
-#'   edge.
+#'   edge; or a clustering of sequences from Nestimate -- a mixture Markov
+#'   fit (`net_mmm`), a distance clustering (`net_clustering`), or the
+#'   per-cluster networks built from either (`netobject_group`). See
+#'   "Clustered sequences" below.
 #' @param actor Character. Name of the column whose values become the
 #'   hypergraph's nodes (members, participants, actors).
 #' @param group Character. Name of the column whose shared values bind
@@ -73,12 +76,22 @@
 #'   `actor` and `cooccur_by`.
 #' @param member,cooccur_by Deprecated names of `actor` and `group`; using
 #'   them warns with a `hypernets_deprecated` condition.
+#' @param top Clustered sequences only: the number of most frequent state
+#'   sets of each group kept as hyperedges (default `8`).
+#' @param states Clustered sequences only: the states to keep, such as the
+#'   events of interest. Every other state is removed from each sequence's
+#'   set before counting, and a sequence left with no state is not counted.
+#'   `NULL` (default) keeps every state.
 #'
 #' @return A `net_hypergraph` object with the same structure produced by
 #'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
 #'   `n_hyperedges`, `size_distribution`, `params`), plus `edge_data` when
 #'   `data` carries hyperedge attributes (see Details). The `params` list
 #'   records `source = "group_hypergraph"` and the original column names.
+#'   For clustered sequences the object also has `group_sizes` and
+#'   `state_counts` (read them with `as.data.frame()`) and `params` records
+#'   `source = "clustered_sequences"`, `top`, `states` and
+#'   `unit = "sequences"`.
 #'
 #' @details
 #' The bipartite representation preserves the full group structure without
@@ -99,6 +112,31 @@
 #'
 #' Rows with `NA` in the actor, hyperedge or weight column are dropped
 #' silently.
+#'
+#' @section Clustered sequences:
+#' Given a Nestimate clustering, every sequence of every group is reduced to
+#' the set of its distinct states (order and repetition dropped; `NA` and
+#' empty cells ignored), and the `top` most frequent sets of each group
+#' become hyperedges -- frequent-itemset support counting with each sequence
+#' as one transaction (Agrawal & Srikant 1994), restricted to the sets that
+#' occur exactly. Sets of equal count are ranked by their name (states
+#' sorted and joined by `" + "`). Groups are named `"Cluster 1"`,
+#' `"Cluster 2"`, ... for a `net_mmm` or `net_clustering`, as Nestimate's
+#' `build_network()` names them, and by the list names of a
+#' `netobject_group`, so names given with Nestimate's `rename_models()`
+#' carry through. Integer-coded states are decoded to their labels. The
+#' objects are read by their structure; Nestimate is not needed.
+#'
+#' The hyperedges are named `"<group>: <set>"` and carry `group`, `set` and
+#' `count` (sequences with exactly that set) as hyperedge attributes, so
+#' `plot()` colours and titles them by `count` in `"sequences"`, and
+#' `plot(hg, group = "Cluster 1")` draws one group's sets with each node
+#' sized by the sequences of that group containing the state. Read the
+#' tables with `as.data.frame(hg, what = "sets")` (one row per hyperedge:
+#' its group, set, size, count and share of the group's sequences) and
+#' `as.data.frame(hg, what = "state_counts")` (one row per group and
+#' state). A malformed clustering (no `$data`, assignments that do not match
+#' it, unnamed networks) raises `hypernets_bad_input`.
 #'
 #' Every other column of `data` that is constant within a hyperedge (a
 #' session's date, a team's department) is kept as a hyperedge attribute in
@@ -124,7 +162,23 @@
 #' contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
 #' group_hypergraph(contacts, from = "from", to = "to")
 #'
+#' # a clustering of sequences, shaped as Nestimate's cluster_mmm() returns it
+#' fit <- structure(list(
+#'   data = data.frame(V1 = c("a", "a", "b", "a", "c"),
+#'                     V2 = c("b", "b", "c", "c", "a"),
+#'                     V3 = c("a", NA, "a", "b", "b")),
+#'   assignments = c(1L, 1L, 2L, 1L, 2L), k = 2L
+#' ), class = "net_mmm")
+#' sets <- group_hypergraph(fit, top = 3)
+#' as.data.frame(sets, what = "sets")
+#' plot(sets, group = "Cluster 1")
+#'
 #' @references
+#' Agrawal, R., & Srikant, R. (1994). Fast algorithms for mining association
+#' rules in large databases. In \emph{Proceedings of the 20th International
+#' Conference on Very Large Data Bases (VLDB)} (pp. 487-499). Morgan
+#' Kaufmann.
+#'
 #' Perc, M., Gomez-Gardenes, J., Szolnoki, A., Floria, L. M., & Moreno, Y.
 #' (2013). Evolutionary dynamics of group interactions on structured
 #' populations: a review. \emph{Journal of the Royal Society Interface}
@@ -144,7 +198,14 @@
 group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
                              nodes = NULL, sparse = FALSE, separator = NULL,
                              from = NULL, to = NULL,
-                             member = NULL, cooccur_by = NULL) {
+                             member = NULL, cooccur_by = NULL,
+                             top = 8L, states = NULL) {
+  if (inherits(data, c("net_mmm", "net_clustering", "netobject_group"))) {
+    return(.thg_sequence_set_hypergraph(data, top = top, states = states))
+  }
+  if (!is.null(states)) {
+    .thg_bad_input("`states` applies to clustered sequences (a net_mmm, net_clustering or netobject_group), not to a data.frame")
+  }
   stopifnot(is.data.frame(data))
   if (!is.null(separator)) {
     data <- .thg_expand_delimited(data, actor %||% member, separator)
@@ -335,4 +396,74 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
   )
   if (!is.null(edge_data)) out$edge_data <- edge_data
   structure(out, class = "net_hypergraph")
+}
+
+# ---- Frequent state sets of clustered sequences --------------------------
+# Each sequence of each group reduces to the set of its distinct states; the
+# `top` most frequent sets of a group become hyperedges carrying the group and
+# the number of sequences with exactly that set. This is support counting of
+# itemsets (Agrawal & Srikant 1994) with each sequence as one transaction,
+# restricted to the observed transactions themselves.
+.thg_sequence_set_hypergraph <- function(x, top = 8L, states = NULL) {
+  if (!is.numeric(top) || length(top) != 1L || !is.finite(top) || top < 1 ||
+      top != round(top)) {
+    .thg_bad_input("`top` must be one whole number of at least 1")
+  }
+  if (!is.null(states) && (!is.character(states) || !length(states) ||
+                           anyNA(states))) {
+    .thg_bad_input("`states` must be a character vector of state names to keep")
+  }
+  grouped <- .coerce_grouped_sequences(x)
+  labels <- names(grouped)
+  per_group <- lapply(labels, \(g) {
+    sets <- lapply(grouped[[g]], \(v) {
+      v <- unique(v)
+      if (!is.null(states)) v <- v[v %in% states]
+      sort(v)
+    })
+    sets <- sets[lengths(sets) > 0L]
+    keys <- vapply(sets, paste, character(1L), collapse = " + ")
+    # table() orders the sets by name; the stable order() then keeps that
+    # name order among sets of equal count
+    tab <- table(keys)
+    ranked <- order(-as.vector(tab))
+    kept <- names(tab)[utils::head(ranked, as.integer(top))]
+    counts <- as.integer(tab[kept])
+    members <- sets[match(kept, keys)]
+    in_state <- table(unlist(sets, use.names = FALSE))
+    list(
+      members = if (length(kept)) data.frame(
+        state = unlist(members, use.names = FALSE),
+        edge = rep(paste0(g, ": ", kept), lengths(members)),
+        group = g,
+        set = rep(kept, lengths(members)),
+        count = rep(counts, lengths(members)),
+        stringsAsFactors = FALSE
+      ),
+      sizes = data.frame(group = g, sequences = length(grouped[[g]]),
+                         with_states = length(sets), sets = length(tab),
+                         stringsAsFactors = FALSE),
+      nodes = data.frame(group = rep(g, length(in_state)),
+                         node = names(in_state),
+                         count = as.integer(in_state),
+                         stringsAsFactors = FALSE)
+    )
+  })
+  members <- do.call(rbind, lapply(per_group, `[[`, "members"))
+  if (is.null(members) || !nrow(members)) {
+    .thg_bad_input("no sequence keeps a state: nothing to build a hyperedge from")
+  }
+  out <- group_hypergraph(members, actor = "state", group = "edge")
+  out$group_sizes <- do.call(rbind, lapply(per_group, `[[`, "sizes"))
+  out$state_counts <- do.call(rbind, lapply(per_group, `[[`, "nodes"))
+  rownames(out$state_counts) <- NULL
+  out$params <- c(out$params, list(
+    source = "clustered_sequences",
+    input = class(x)[1L],
+    top = as.integer(top),
+    states = states,
+    unit = "sequences"
+  ))
+  out$params <- out$params[!duplicated(names(out$params), fromLast = TRUE)]
+  out
 }

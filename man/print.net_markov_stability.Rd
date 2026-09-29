@@ -38,5 +38,9 @@ hon <- build_hon(split(human_long$code, human_long$session_id),
 ms <- markov_stability(hon)
 as.data.frame(ms, sort_by = "stationary_prob", top = 5L)
 as.data.frame(ms, what = "passage_time", sort_by = "steps", top = 5L)
+# the least persistent states, and the quickest passages out of "Specify"
+as.data.frame(ms, sort_by = "persistence", decreasing = FALSE, top = 5L)
+as.data.frame(ms, what = "passage_time", from = "Specify",
+              sort_by = "steps", decreasing = FALSE, top = 5L)
 
 }
