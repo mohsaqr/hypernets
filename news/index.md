@@ -1,16 +1,752 @@
 # Changelog
 
+## hypernets 0.6.0
+
+- **One naming grammar and one reader.** Constructors (and
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md))
+  are bare nouns, every other verb is `hg_*()`, and every table of every
+  object is read with `hg_get(x, what = )`. No `build_*()`, no `hon_*()`
+  and no [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
+  method remains; no export shares a name with an imported package.
+  Every number is unchanged: the memory and simplicial verbs return the
+  estimator’s objects as before, and each old accessor table is
+  [`identical()`](https://rdrr.io/r/base/identical.html) to its
+  [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+  replacement (58 tables checked against the previous build; the one
+  difference is
+  [`hg_degree()`](https://mohsaqr.github.io/hypernets/reference/hg_degree.md)’s
+  reset row names).
+
+  | Before | After |
+  |----|----|
+  | `as.data.frame(x, what = )` (every class) | `hg_get(x, what = )` |
+  | `build_hon()` | [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md) |
+  | `build_honem()` | [`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md) |
+  | `build_mogen()` | [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md) |
+  | `build_hypa()` | [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md) on sequences (on a hypergraph: the pair HYPA, as before) |
+  | `build_simplicial()` | [`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md) (now verifies a clique complex; see below) |
+  | `markov_order_test()` | [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md) |
+  | `path_dependence()` | [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md) |
+  | `markov_stability()` | [`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md) |
+  | `persistent_homology()` | [`hg_homology()`](https://mohsaqr.github.io/hypernets/reference/hg_homology.md) |
+  | `persistence_landscape()` | [`hg_landscape()`](https://mohsaqr.github.io/hypernets/reference/hg_landscape.md) |
+  | `bottleneck_distance()` | [`hg_bottleneck()`](https://mohsaqr.github.io/hypernets/reference/hg_bottleneck.md) |
+  | `wasserstein_distance()` | [`hg_wasserstein()`](https://mohsaqr.github.io/hypernets/reference/hg_wasserstein.md) |
+  | `betti_numbers()` | [`hg_betti()`](https://mohsaqr.github.io/hypernets/reference/hg_betti.md) |
+  | `euler_characteristic()` | [`hg_euler()`](https://mohsaqr.github.io/hypernets/reference/hg_euler.md) |
+  | `q_analysis()` | [`hg_qanalysis()`](https://mohsaqr.github.io/hypernets/reference/hg_qanalysis.md) |
+  | `simplicial_degree()` | [`hg_degree()`](https://mohsaqr.github.io/hypernets/reference/hg_degree.md), or `hg_get(sc, what = "degree")` |
+  | `verify_simplicial()` | folded into `simplicial(verify = TRUE)` |
+  | `bootstrap_hon()` | [`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md) |
+  | `compare_hon()` | [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md) |
+  | `hon_centrality()` | [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md) on a memory network |
+  | `hon_communities()` | [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md) on a memory network |
+  | `mogen_transitions(mg, order =)` | `hg_get(mg, what = "transitions", order =)` |
+  | `path_counts(data, k =)` | `hg_get(mogen(data), what = "paths", k =)` |
+  | `pathways(x)` | `hg_get(x, what = "pathways")` (a one-column table, `pathway`) |
+
+  - **`hg_get(x, what = NULL, ...)`** is an S3 generic with a method for
+    every result class, including the memory and simplicial classes;
+    `what = NULL` is the primary table, and filters, `sort_by` and `top`
+    keep their names. An object without a method raises
+    `hypernets_bad_input` naming its class. Print methods now point at
+    [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md).
+  - **One verb per idea.**
+    [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
+    [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+    and
+    [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md)
+    dispatch on the class of their input: a memory network (`net_hon`,
+    or sequences for
+    [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md))
+    or a hypergraph (`net_hg`). Each method keeps its arguments and
+    defaults; an argument that only the other method takes raises
+    `hypernets_bad_input` instead of being ignored. The first argument
+    of the three is now `x` (was `hg` / `hon`).
+  - **Every sequence-taking verb reads every input form**: a long event
+    table (`action =`, `actor =`, `time =`, and new `session =`), a wide
+    data frame, a list of sequences, or a model object (netobject,
+    netobject_group, tna, cograph_network).
+    `hon(long, action =, actor =, time =)` is back and is
+    [`identical()`](https://rdrr.io/r/base/identical.html) to building
+    the relative transition network with an infinite session gap and
+    passing it on. A position column is passed as `time`. A long table
+    passed without `action =` raises `hypernets_long_format` again, now
+    recognising the usual column names by role (`code`/`state`/`event`,
+    `session_id`/`user`, `timestamp`/`order`, …).
+  - **`hg_get(mg, what = "paths", k =)`** reads k-state path counts off
+    the fitted order-(k - 1) layer of a
+    [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md)
+    model (`k` up to the highest fitted order plus one); it equals the
+    old raw-data counter on sequences without internal gaps.
+    `hg_get(x, what = "pathways")` works on
+    [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+    [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md)
+    and sequence
+    [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md)
+    fits.
+  - **[`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md)
+    checks a clique complex on construction**: its simplices against
+    igraph’s cliques of the same thresholded graph (when igraph is
+    installed) and its Euler characteristic against the alternating
+    Betti sum. A failure raises the warning
+    `hypernets_simplicial_unverified`; `verify = FALSE` skips the check.
+  - Dropped: `hypa(k =)`, the deprecated alias of `order`, now raises
+    `hypernets_bad_input`.
+
+- **One vocabulary for table columns, and prints that show the table.**
+  Every table
+  [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+  returns names the same quantity the same way: `count`, `expected`,
+  `z`, `p_value`, `p_adj`, `significant`, `log_likelihood`, `df`, `aic`,
+  `bic`, `community`, `run`, `dimension`, `node`, `members`. Renamed
+  columns (old -\> new):
+
+  - [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md):
+    `loglik` -\> `log_likelihood`, `AIC`/`BIC` -\> `aic`/`bic`,
+    `p_permutation` -\> `p_value`.
+    [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md):
+    `dof` -\> `df`, `layer_dof` -\> `layer_df`.
+    [`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md):
+    `stationary_prob` -\> `stationary`.
+    [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md):
+    `n` -\> `count`, `H_order1`, `H_orderk`, `H_drop` -\>
+    `entropy_first_order`, `entropy_order_k`, `entropy_drop`, `KL` -\>
+    `kl` (and `sort_by = "kl"`), `top_o1`/`top_ok` -\>
+    `top_first_order`/`top_order_k`.
+    [`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md)
+    variance: `dim` -\> `dimension`.
+    [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md)
+    nodes: `id`, `node` (the duplicated `label` and `name` are gone).
+  - [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md):
+    `observed` -\> `count`, `p_tail` -\> `p_adj`, `anomaly` -\>
+    `direction`, `p_adjusted_under`/`p_adjusted_over` -\>
+    `p_adj_under`/`p_adj_over`.
+    [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md):
+    `prob_<group>` -\> `probability_<group>`.
+  - [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+    on a memory network: the memory node is `node`, its physical state
+    `state`, the cluster `community` (was `state`, `physical`,
+    `module`); `n_modules` -\> `n_communities`, `trial` -\> `run`,
+    `n_states`/`n_physical` -\> `n_nodes`/`n_states`; the filter
+    argument is `community =` and a given `partition` data frame has
+    `node` and `community`. The dataset `ring_communities` has `node`
+    for `state`.
+  - Hypergraphs: the edge table’s `states` -\> `members`; temporal
+    memberships `member` -\> `node` (`edge` stays, as in HIF);
+    [`hg_mmsbm()`](https://mohsaqr.github.io/hypernets/reference/hg_mmsbm.md)
+    `u` -\> `membership_weight`, `w` -\> `affinity`, restarts
+    `start`/`loglik`/`ari_best` -\>
+    `run`/`log_likelihood`/`ari_to_best`;
+    [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md)
+    `observed`/`null_mean`/`n` -\> `count`/`expected`/`n_null`;
+    [`hg_compare_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md)
+    `largest`/`second` -\> `largest_size`/`second_size`, and
+    `what = "matrix"` is gone (the `similarity` table holds the same
+    values).
+  - Text hypergraphs: `n` -\> `count` in the weights and vocabulary
+    tables.
+  - Simplicial complexes: `id`/`dim` -\> `simplex`/`dimension`, the
+    filter argument `dim =` -\> `dimension =`; the validation table
+    `set` -\> `members`, `validated` -\> `significant`.
+
+  Every result prints a header line with its main settings, then the
+  first rows of its default table (`print(x, n = )` for more). The
+  results of
+  [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+  [`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md),
+  [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md),
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md),
+  [`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md),
+  [`hg_homology()`](https://mohsaqr.github.io/hypernets/reference/hg_homology.md),
+  [`hg_landscape()`](https://mohsaqr.github.io/hypernets/reference/hg_landscape.md)
+  and
+  [`hg_qanalysis()`](https://mohsaqr.github.io/hypernets/reference/hg_qanalysis.md)
+  carry the class `hypernets_result` in front of the estimator’s classes
+  for this; plot() and the estimator’s own verbs are the estimator’s.
+
+  [`summary()`](https://rdrr.io/r/base/summary.html) on a result returns
+  every table of the result as a list of data frames named after the
+  `what` values of
+  [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md),
+  so `summary(x)$validation` is the data frame
+  `hg_get(x, what = "validation")` returns; overall figures are added as
+  further tables (`overall` for
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md),
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md)
+  and
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md),
+  `by_order` for
+  [`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md)
+  and
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md),
+  `communities` for
+  [`hg_mmsbm()`](https://mohsaqr.github.io/hypernets/reference/hg_mmsbm.md)).
+  The result itself is not changed. This replaces the printed reports of
+  the estimators’ summaries and the single tables the bootstrap,
+  comparison, community and mixed-membership summaries returned.
+
+- **Sequences are built exactly as in the tna family.** Every verb that
+  reads a long event table
+  ([`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+  [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md),
+  [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md),
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md),
+  [`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md),
+  [`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md),
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md)
+  through the group model, `simplicial(type = "window")`,
+  [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md))
+  builds the sequences that
+  `Nestimate::build_network(method = "relative")` builds from the same
+  arguments ([`identical()`](https://rdrr.io/r/base/identical.html),
+  tested on six call patterns of `human_long`):
+
+  - new `time_threshold = 900` and `timezone = "UTC"`: with `time`, a
+    gap of more than 900 seconds starts a new sequence;
+    `time_threshold = FALSE` keeps one sequence per actor or session. On
+    `human_long` ordered by `timestamp` this gives 526 sequences instead
+    of 429.
+  - a column named `action`, `time`, `session` or `session_id` is used
+    when its argument is `NULL`; `session = FALSE` switches session
+    detection off (with `actor = "project"`, 34 sequences instead of the
+    429 sessions detected).
+  - `actor` and `session` may name several columns.
+  - a missing actor or session raises `hypernets_bad_input` (rows were
+    dropped before); without `actor`, the message
+    `hypernets_single_sequence` says all events form one sequence.
+  - [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
+    gains `session`, `time_threshold` and `timezone`.
+
+- **[`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md)
+  refuses a chain that is not irreducible.** It used to return return
+  and passage times of the order of 10^15 steps with a plain warning. A
+  chain with a transient or absorbing state, several closed classes, or
+  a state with no outgoing transition now raises `hypernets_not_ergodic`
+  naming those states.
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
+  stability result draws one panel of bars per measure, every state
+  included (the estimator’s plot dropped states beyond its eight
+  colours), and `plot(x, what = "passage_time")` the first-passage
+  heatmap through cograph.
+
+- **[`hg_topics()`](https://mohsaqr.github.io/hypernets/reference/hg_topics.md):
+  a mixed-membership topic model.** The document-word counts of a
+  hypergraph are factorized by the multiplicative updates that minimise
+  the Kullback-Leibler divergence (Lee & Seung 1999, 2001), which is
+  probabilistic latent semantic analysis (Hofmann 1999; Gaussier &
+  Goutte 2005): every document is a mixture of topics and every topic a
+  distribution over words. The fit keeps the best of `nstart` seeded
+  starts (`parallel = TRUE` gives the same result) and reports each
+  topic’s agreement across the starts by the matched average Jaccard of
+  its top words (Greene, O’Callaghan & Cunningham 2014), topics matched
+  by the Hungarian method.
+  `hg_get(fit, what = "topics" | "shares" | "words" | "documents" | "restarts")`,
+  with `print`, `summary` and `plot`. The updates agree with
+  scikit-learn’s KL solver to 1e-11 after 200 steps (local oracle).
+
+  - `hg_topic_quality(hg, topics = fit)` scores a topic model: UMass or
+    NPMI coherence of its most probable words and FREX from its word
+    distributions, both identical to stm on the same beta (local
+    oracle).
+  - `hg_cluster(algorithm = "symnmf", what = "membership")` returns the
+    graded memberships of the symmetric factorization (Kuang, Ding &
+    Park 2012), each node’s row normalised to sum to one.
+  - New dataset `covid_sample`: a seeded simple random sample of 1,000
+    abstracts from the COVID-19 education corpus of the sbert package
+    (`data-raw/covid_sample.R`), and a new vignette, “Mixed-membership
+    topics of the COVID-19 education literature”, built on it. The
+    existing vignette and `covid_abstracts` are unchanged.
+
+- **Group models of memory networks.** `hon(data, ..., group =)` takes a
+  column name or one label per sequence and returns one memory network
+  per group (`net_hon_group`);
+  [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+  stacks their tables with a `group` column.
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md)
+  takes the group model (`groups =` picks two when there are more)
+  instead of two data sets and repeated settings, and
+  [`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md)
+  on a group model bootstraps every group. Sequence
+  [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md)
+  gains `type = c("all", "over", "under")`,
+  `order_by = c("sig", "ratio", "freq", "path")` and `n` for its printed
+  view, and `hg_get(fit, what = "over" / "under", order_by =, top =)`
+  sorts each direction by its own tail.
+
+- **Simplicial complexes from sequences.**
+
+  - `simplicial(type = "window", window =, min_count =)` builds the
+    co-occurrence complex of windows of consecutive actions (Salnikov et
+    al. 2018), from the same sequence input as the memory verbs. A set
+    of actions seen in at least `min_count` windows is a simplex with
+    all its faces.
+  - `simplicial(type = "window", validate = TRUE)` needs no count
+    threshold: a set of actions becomes a simplex when it occurs in more
+    windows than a null model predicts, with Benjamini-Hochberg control
+    over all possible sets of each size (`alpha = 0.05`). The default
+    `null = "swap"` is swap randomization (Gionis et al. 2007): every
+    window keeps its number of actions and every action its number of
+    windows. `n_null = NULL` takes enough shuffles for a single set of
+    any size to pass (at least 999); fewer raise
+    `hypernets_low_resolution`. On `human_long` (window 3, 1680
+    shuffles) 30 sets pass under each of five seeds, 2 more under some,
+    and the Betti numbers are (1, 3, 0) under all five.
+    `null = "hypergeometric"` is the statistically validated hypergraph
+    of Musciotto, Battiston & Mantegna (2021), with the exact p-value of
+    their Eq. 3; its null lets an action fall into windows independently
+    of the others, so with few actions it expects more co-occurrence
+    than the windows hold (1.7 times for pairs and 2.9 times for triples
+    on `human_long`, where no set passes, also when the sessions are
+    pooled by project or into one sequence). It suits sparse
+    co-occurrence, each set expected in less than one window, and warns
+    `hypernets_dense_cooccurrence` otherwise.
+    `hg_get(sc, what = "validation")` returns the tests.
+  - [`hg_homology()`](https://mohsaqr.github.io/hypernets/reference/hg_homology.md)
+    of a window complex computes persistence over the count filtration
+    (Petri et al. 2013): a simplex enters at the largest number of
+    windows of any set containing it, and the Betti curve at count `t`
+    is the Betti numbers of the complex with `min_count = t`.
+  - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
+    complex draws its maximal simplices, all of them, the most
+    significant (validated), most frequent (window) or closest
+    (Vietoris-Rips) first, in Okabe-Ito colours; `dismantled = TRUE`
+    draws one panel per simplex and `top =` limits the number. It used
+    to hand the complex to cograph, which drew faces as well and only
+    the first ten.
+  - `simplicial(type = "clique")` takes sequences with `actor`, `action`
+    and `time` and builds their relative transition network.
+  - `simplicial(type = "vr")` and `hg_homology(type = "vr")` take points
+    (a non-square table or matrix, a data frame of coordinates, or a
+    `dist` object) as well as distances.
+  - `hg_get(sc, what = "betti")` tabulates the Betti numbers;
+    [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
+    persistence landscape draws the landscapes that are not zero, with
+    one colour and line type each.
+  - `simplicial(type = "clique", direction = "both")` joins a pair only
+    when both directed weights reach `threshold`, and then reproduces
+    the cliques of `tna::cliques()` exactly (24 of 24 size and threshold
+    combinations on two data sets). `"either"` (default) is the previous
+    rule. The clique complex now cites Giusti, Ghrist & Bassett (2016).
+
+- **The memory and simplicial families are Nestimate’s; hypernets
+  imports it.** hypernets now `Imports: Nestimate (>= 0.8.5)` and
+  re-exports Nestimate’s `build_hon()`, `build_honem()`, `build_hypa()`,
+  `build_mogen()`, `markov_order_test()`, `markov_stability()`,
+  `path_dependence()`, `mogen_transitions()`, `path_counts()`,
+  `pathways()`, `build_simplicial()`, `persistent_homology()`,
+  `q_analysis()`, `betti_numbers()`, `euler_characteristic()`,
+  `simplicial_degree()`, `verify_simplicial()`, `bottleneck_distance()`
+  and `persistence_landscape()` instead of carrying copies (the copies
+  matched CRAN Nestimate 0.8.5 on 22 of 23 calls at tolerance 0;
+  `markov_stability()` differed only by Nestimate’s rounding). Nestimate
+  does not depend on hypernets. hypernets keeps
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) for
+  Nestimate’s classes (Nestimate has none) and its own verbs on top of
+  them: `bootstrap_hon()`, `compare_hon()`, `hon_centrality()`,
+  `hon_communities()`, `wasserstein_distance()`. Loading both packages
+  now masks nothing and overwrites no S3 method. Result classes are
+  Nestimate’s (`simplicial_complex`, `persistent_homology`,
+  `q_analysis`, `persistence_landscape`; the 0.5.x `net_*` simplicial
+  names are gone). Lost with the hypernets copies, because Nestimate
+  lacks them:
+
+  - `build_hon(action =, actor =, time =)` long input – build the
+    network with
+    `Nestimate::build_network(data, method = "relative", actor =, action =, time =, time_threshold = Inf)`
+    and pass it to `build_hon()` (identical matrix); `bootstrap_hon()` /
+    `compare_hon()` still take the long form directly.
+  - the long-format guard on `build_hon()`, `build_mogen()`,
+    `build_hypa()`, `markov_order_test()` (a long table passed bare is
+    read as wide).
+  - `top =` on `mogen_transitions()` and `simplicial_degree()`
+    (`as.data.frame(x, top =)` still truncates); validation of
+    `path_counts(top =)`.
+  - hypernets’ `markov_stability()` rewrite: the reducible-chain error
+    (`hypernets_not_ergodic`), classed input errors, list-of-sequences
+    input, unrounded `$stability`, and its landscape / states / passage
+    / network plots.
+
+- **[`hg_mmsbm()`](https://mohsaqr.github.io/hypernets/reference/hg_mmsbm.md):
+  probabilistic (mixed) membership.** Hy-MMSBM (Ruggeri, Contisciani,
+  Battiston & De Bacco 2023): every node (a document, in a text
+  hypergraph) gets a probability of belonging to each of `k`
+  communities, fitted by the authors’ EM with `nstart` restarts;
+  hyperedges of any size are fitted exactly (no truncation unless
+  `max_size` is set).
+  `as.data.frame(fit, what = "membership" / "nodes" / "affinity" / "restarts")`;
+  the restarts table reports each start’s log-likelihood, convergence
+  and ARI with the kept partition, so instability is visible. Local
+  oracle against the authors’ code (commit 6a12077): one EM step to
+  4.8e-15, log-likelihood to 1.1e-15, full fits to 2.1e-12. Two
+  deliberate deviations: restarts are compared by the paper’s Eq. 5
+  log-likelihood (the authors’ CLI uses an inconsistent C = 1 form), and
+  the default stopping rule is on normalised memberships
+  (`criterion = "membership"`), because the authors’ parameter-change
+  rule never fires under their default priors (the likelihood is
+  invariant to u -\> cu, w -\> w/c^2); theirs is
+  `criterion = "parameters"`. New warning class
+  `hypernets_isolated_nodes`.
+
+- **Hypergraph clustering, assortativity and Katz centrality.**
+  [`hg_transitivity()`](https://mohsaqr.github.io/hypernets/reference/hg_transitivity.md)
+  (local clustering: projection, Watts & Strogatz 1998; extra overlap,
+  Zhou & Nakhleh 2011 / Klimm et al. 2021; two-node union / min / max,
+  Latapy et al. 2008),
+  [`hg_assortativity()`](https://mohsaqr.github.io/hypernets/reference/hg_assortativity.md)
+  (Chodrow 2020: uniform, top-2, top-bottom; rank or degree scale),
+  [`hg_degree_correlation()`](https://mohsaqr.github.io/hypernets/reference/hg_degree_correlation.md)
+  (Lotito et al. 2023), and `hg_centrality(type = "katz", alpha =)`
+  (Katz 1953 on the Estrada & Rodriguez-Velazquez 2006 hypergraph
+  adjacency). Local oracles: XGI 0.10.2 (to 2.2e-16), hypergraphx 1.8.0,
+  igraph `alpha_centrality`. Undefined coefficients are `NA` (XGI
+  reports 0); XGI’s exact uniform assortativity weights hyperedges by
+  m(m-1) and so differs from Chodrow’s definition on mixed sizes
+  (asserted). Estrada & Rodriguez-Velazquez’s global C2(H) is not
+  included (no oracle; see `workinprogress/`).
+
+- **[`hg_modularity()`](https://mohsaqr.github.io/hypernets/reference/hg_modularity.md)
+  and `hg_communities(type = "irmm")`.** Hypergraph modularity of a
+  partition (Kaminski et al. 2019; `type = "linear"`, `"majority"`,
+  `"strict"` as in HyperNetX) as a tidy score or per-community table,
+  and IRMM community detection (Kumar et al. 2020) inside the existing
+  [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+  ensemble (seeded runs, AMI medoid, comparison with Infomap through
+  [`hg_compare_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_compare_communities.md);
+  `as.data.frame(fit, what = "weights")` gives the reweighted
+  hyperedges). Local oracle: HyperNetX 2.4.3, 90 scores to 5.6e-16; IRMM
+  passes replayed step by step to 4.4e-16. (HyperNetX truncates
+  fractional weights in its degree tax; our value equals HNX on the same
+  weights rescaled to integers.)
+
+- **[`hg_write_hif()`](https://mohsaqr.github.io/hypernets/reference/hg_write_hif.md)
+  /
+  [`hg_read_hif()`](https://mohsaqr.github.io/hypernets/reference/hg_write_hif.md)**
+  read and write the Hypergraph Interchange Format (Coll et al. 2025):
+  schema-valid (official JSON schema), doubles lossless, `window_counts`
+  as edge weights, node / edge / incidence attributes kept
+  (`as.data.frame(hg, what = "node_data" / "incidence_data")`);
+  round-tripped through XGI 0.10.2 and HyperNetX 2.4.3. Directed HIF is
+  refused.
+
+- **Fixes and small API changes found while writing the 0.6.0
+  documents.**
+
+  - [`hg_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md)
+    ignored a window hypergraph’s `window_counts` and used the SD+1
+    heuristic, so it disagreed with `hg_centrality(type = "pagerank")`
+    and the Laplacian walk (by 0.018 on `ring_sequences`, window 3). It
+    now uses the package-wide default: explicit `edge_weights`, else
+    `window_counts`, else the heuristic. The sparse walk operators
+    follow the same rule (they matter for `hg_read_hif(sparse = TRUE)`
+    files with edge weights).
+  - [`hg_write_hif()`](https://mohsaqr.github.io/hypernets/reference/hg_write_hif.md)
+    wrote missing attribute values as `null`; they are now omitted, so
+    read -\> write is a fixed point for files where only some records
+    carry an attribute. `as.data.frame(hg, what = "edge_data")` is new,
+    and [`print()`](https://rdrr.io/r/base/print.html) names HIF as the
+    source of a read hypergraph.
+  - `hg_topic_quality(words =)` also takes
+    [`hg_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+    output (its `cluster` column is the topic) and the character matrix
+    `topicmodels::terms()` returns, as they are.
+  - `as.data.frame(<hg_communities>, what = "ami" / "ari" / "nmi")`
+    returns one row per distinct pair of runs (`run_a`, `run_b`, value)
+    instead of the full matrix with `Var1` / `Var2` and the diagonal.
+  - [`hg_mmsbm()`](https://mohsaqr.github.io/hypernets/reference/hg_mmsbm.md)
+    normalised memberships that EM had driven to zero or to subnormal
+    remnants, reporting exact 1/3, 1/2 … “mixtures” for them, and left
+    exact-zero rows `NA` without a warning. A node whose row total is
+    below working precision relative to the largest row now has no
+    membership (`NA`), is counted in
+    [`print()`](https://rdrr.io/r/base/print.html), and raises
+    `hypernets_collapsed_membership`. Subnormal affinities are returned
+    as 0.
+  - [`hg_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+    and
+    [`hg_agreement()`](https://mohsaqr.github.io/hypernets/reference/hg_agreement.md)
+    accept a `community` column (the
+    [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+    medoid,
+    [`hg_mmsbm()`](https://mohsaqr.github.io/hypernets/reference/hg_mmsbm.md)
+    node table).
+    [`hg_agreement()`](https://mohsaqr.github.io/hypernets/reference/hg_agreement.md)
+    left NA-labelled nodes in `n` and `agreement` while the indices
+    dropped them; they are now dropped for every column, with a
+    `hypernets_missing_labels` warning.
+  - [`?hg_assortativity`](https://mohsaqr.github.io/hypernets/reference/hg_assortativity.md)
+    states that `"top_2"` and `"top_bottom"` are positive on random
+    hypergraphs (order statistics), so 0 is not their null value.
+
+- **Bug fix: the neural verbs lost half of every symmetric matrix.**
+  `.thg_torch_sparse()` coerced to `"TsparseMatrix"` and read its
+  triplets; Matrix stores a symmetric matrix as `dsTMatrix` (upper
+  triangle only) and a unit-triangular one without its diagonal, so
+  those cells were dropped silently.
+  [`hg_hypergcn()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergcn.md)
+  therefore propagated through an upper-triangular adjacency in all
+  three methods (logits off by up to 0.83 against the official HyperGCN
+  code), and any symmetric `features` matrix given to
+  [`hg_hnhn()`](https://mohsaqr.github.io/hypernets/reference/hg_hnhn.md),
+  [`hg_allset()`](https://mohsaqr.github.io/hypernets/reference/hg_allset.md)
+  or
+  [`hg_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md)
+  was truncated. The conversion now expands to a general matrix first.
+  Found by the new DHG / official-code oracle
+  (`local_testing_and_equivalence/test-oracle-hypergcn-hnhn.R`), which
+  now agrees to about 6e-8.
+
+- **Topic measures match stm; stability resamples documents.**
+
+  - [`hg_topic_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_topic_quality.md)
+    now defaults to UMass coherence (Mimno et al. 2011) and FREX
+    exclusivity (Bischof & Airoldi 2012) computed exactly as
+    `stm::semanticCoherence()` / `stm::exclusivity()` (local oracle: max
+    difference 0 on 80 abstracts); `coherence = "npmi"` gives corpus
+    NPMI (Bouma 2009; Lau et al. 2014; text2vec oracle to 1e-8). The
+    previous within-cluster NPMI and mean share are
+    `coherence = "npmi_cluster", exclusivity = "share", sort_by = "share"`
+    (identical output). `words =` scores topic word lists from another
+    model (e.g. topicmodels, stm) with the same measures. New columns
+    `coherence_type`, `exclusivity_type`.
+  - [`hg_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_stability.md)
+    defaults to `resample = "subset"`: Hennig’s (2007) subsampling
+    stability, the per-cluster best-match Jaccard over `n_boot` node
+    subsamples (fpc `clusterboot(bootmethod = "subset")` oracle, max
+    difference 1.1e-16), plus the eigengap (von Luxburg 2007) per `k`.
+    The old two-seed comparison, which never resampled the data and so
+    measured only solver determinism, is `resample = "seeds"`.
+  - [`hg_cocluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cocluster.md)
+    (new): spectral co-clustering of a bipartite incidence, nodes and
+    hyperedges together (Dhillon 2001; sklearn `SpectralCoclustering`
+    oracle).
+  - [`hg_keywords()`](https://mohsaqr.github.io/hypernets/reference/hg_keywords.md)
+    on a word-node bag hypergraph (`nodes = "word"`) raised no error and
+    returned document ids in its `word` column; it now raises
+    `hypernets_bad_input`.
+
+- **Hypergraph verbs are `hg_*()`; the class is `net_hg`.** hypernets
+  will import Nestimate (ROADMAP Phase 0b), which keeps its own
+  `build_hypergraph()`, `hypergraph_*()` verbs and `net_hypergraph`
+  class, so both packages load in every session. Shared names would mask
+  each other’s verbs and overwrite each other’s S3 methods (measured
+  with both loaded: 26 masked, 32 overwritten). hypernets was never
+  released, so the renames below break no published code.
+
+  | Was | Is |
+  |----|----|
+  | `build_hypergraph()` | [`network_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md) (the `<source>_hypergraph()` rule) |
+  | `clique_expansion()` | [`hg_clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/hg_clique_expansion.md) (Nestimate’s `clique_expansion()` accepts only its own class) |
+  | 27 `hypergraph_*()` aliases of `hg_*()` (`hypergraph_pagerank`, `hypergraph_motifs`, …) | removed; use the `hg_*()` name |
+  | `hypergraph_allset()`, `hypergraph_hypergcn()`, `hypergraph_hnhn()`, `hypergraph_snapshot(s)()`, `hypergraph_laplacian()`, `hypergraph_joint_cluster()` | [`hg_allset()`](https://mohsaqr.github.io/hypernets/reference/hg_allset.md), [`hg_hypergcn()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergcn.md), [`hg_hnhn()`](https://mohsaqr.github.io/hypernets/reference/hg_hnhn.md), `hg_snapshot(s)()`, [`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md), [`hg_joint_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_joint_cluster.md) |
+  | `hypergraph_alldeepsets()`, `hypergraph_allset_transformer()` | `hg_allset(model = "deepsets" / "transformer")` |
+  | engines `hypergraph_centrality()`, `hypergraph_cluster()`, `hypergraph_measures()`, `hypergraph_transduction()` | internal; [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md), [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md), [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md), [`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md) are the verbs and now carry the engines’ documentation and references |
+  | class `net_hypergraph` (+ `_cluster`, `_transduction`, `_measures`, `_snapshots`) | `net_hg` (+ the same suffixes) |
+
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md)
+  gains the engine’s `"pagerank"` and `"subhypergraph"` types with
+  `damping` and `edge_weights`;
+  [`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)
+  gains `edge_weights`. Both are
+  [`identical()`](https://rdrr.io/r/base/identical.html) to the engine
+  (new tests). No computed value changes: the R8 transduction guard
+  still gives 0.8451, and the Nestimate identity tests pass with a
+  names-only normalizer. `tests/testthat/test-api-names.R` fails if an
+  export or S3 registration reintroduces a Nestimate hypergraph name.
+
+## hypernets 0.5.1
+
+- **[`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
+  reads Nestimate clusterings directly.** A mixture Markov fit
+  (`net_mmm`), a distance clustering (`net_clustering`) or the
+  per-cluster networks built from either (`netobject_group`, with names
+  from `rename_models()`) become a hypergraph of each cluster’s most
+  frequent state sets: every sequence reduces to the set of its distinct
+  states and the `top` (default 8) most frequent sets of each cluster
+  are the hyperedges, carrying `group`, `set` and `count`
+  (frequent-itemset support counting; Agrawal & Srikant 1994).
+  `states =` keeps a subset of states before counting.
+  `as.data.frame(hg, what = "sets")` and `what = "state_counts"` return
+  the tables; `plot(hg, group = "Cluster 1")` draws one cluster’s sets,
+  nodes sized by the cluster’s sequences containing the state, sets
+  named by what they add to the states all of them share. The objects
+  are read by structure; Nestimate is not a dependency. On the
+  Eventdata26 three-cluster mixture (750 / 1,784 / 1,301 steps) the sets
+  and counts are identical to the pipeline’s `step_variations()` for
+  every cluster (local parity test). The data.frame path is unchanged
+  ([`identical()`](https://rdrr.io/r/base/identical.html) to a fixture
+  frozen before the change).
+
+- **`markov_order_test()` cites its sources.** New `@references` and a
+  `@details` section tying each output column to its origin: the
+  likelihood-ratio (`g2`, `df`, `p_asymptotic`) test of Anderson &
+  Goodman (1957); the within-context permutation (`p_permutation`) as
+  the margin-fixed conditional test of Agresti (1992), with the caveat
+  that overlapping tuples from one trajectory are serially dependent and
+  the exact test for a chain conditions on transition counts (Besag &
+  Mondal 2013); the multi-order log-likelihood of Scholtes (2017) and
+  AIC/BIC order selection (Tong 1975; Katz 1981). Two implementation
+  choices are stated as such: `df` counts observed categories per
+  context, and layer parameters are counted on observed transitions. No
+  computed value changes.
+
+- **`betti_numbers()` and `persistent_homology()` document their
+  coefficient fields.** `betti_numbers()` ranks oriented boundary
+  matrices over the rationals
+  ([`qr()`](https://rdrr.io/r/base/qr.html)); `persistent_homology()`
+  reduces over Z/2. They differ when integral homology has torsion: on
+  the 6-vertex real projective plane `betti_numbers()` gives (1, 0, 0)
+  and `persistent_homology()` has essential classes (1, 1, 1). A test
+  pins both (Hatcher 2002). No computed value changes.
+
+- **HyperGAT benchmark compares like with like.** The
+  [`hg_hypergat()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergat.md)
+  benchmark rows (R8 0.9665, R52 0.9433) were run with
+  `semantic = "none"` and are now set against the paper’s “w/o semantic”
+  ablation (Ding et al. 2020, Table 4: R8 0.9714, R52 0.9415) rather
+  than full HyperGAT (Table 2: 0.9797, 0.9498). The result CSV records
+  `semantic`; the published table gains the ablation rows; `RESULTS.md`,
+  `render_results.R` and the benchmarks article compute the comparison
+  from them. No training was rerun.
+
+- **`plot.net_hypergraph()` draws node overlays** as ordinary ggplot
+  layers. `node_sizes =` (a `node`/`value` table or a vector named by
+  node) draws each node as a circle in data units whose area follows the
+  value (largest radius 4% of the layout, none below 30% of it, so rare
+  nodes stay visible); `direction =` (a `from`/`to`/`weight` table) adds
+  a triangle pointing at the node that most often follows it, ties
+  broken by name, none for a sink; `arrow_style = "inside" | "outside"`,
+  `node_fill`, `arrow_fill`; `transitions =` draws the moves as curved
+  arrows with width by `weight` and self-loops; labels move above each
+  circle with a white halo, and the caption states what circle area
+  (`size_title`) and triangles show.
+
+- **`plot.net_hypergraph()` draws the event-data blob figures exactly.**
+  Every figure the Eventdata26 pipeline drew with its `plot_blobs()`
+  helper (19 calls across six documents) is now one
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) call on
+  `group_hypergraph(members, actor = "state", group = "group")`, with
+  the same built layer data (maximum absolute difference 0 in every
+  layer; local-only parity test), and the call passes only the data:
+  `plot(groups, node_sizes = node_sizes, notes = notes)`. A numeric
+  hyperedge attribute that
+  [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
+  kept (such as `trials`, constant within each group) colours the
+  pebbles, writes a title box with its count beside each one and names
+  the unit, with no argument; of several numeric attributes the one that
+  varies between hyperedges is read. `color_by`, `titles`, `unit` and
+  `legend_title` override it. That look is the default for every
+  hypergraph plot: haloed bold labels, legends below (2.5 cm keys for
+  the colour bar, stacked when transitions add a third; discrete legends
+  keep default keys, at most four to a row), margins 40/130/30/130 pt,
+  `alpha = 0.5`, `label_size = 4.2`, and `pieces = "row"` (each
+  disconnected piece laid out on its own and set side by side;
+  `pieces = "packed"` packs them). The earlier look is partly available
+  through `alpha = 0.45`, `label_size = 3` and `pieces = "packed"`;
+  legend position and margins through
+  [`ggplot2::theme()`](https://ggplot2.tidyverse.org/reference/theme.html).
+  `title_gap` sets how far beyond its pebble a title box sits (default
+  0.06, as the pipeline’s helper). Hyperedge labels (`edge_labels`) on a
+  row of pieces sit inside their pebbles. New arguments: `titles`
+  (`TRUE` for names, or a numeric selector for a count line),
+  `title_prefix`, `notes` (a further line, from a named vector or a
+  `group`/`note` table), `unit` (titles the colour legend and names
+  counts, node area and transition widths), `pieces`. The caption and
+  size legend call a node an “event”. `node_sizes` without `direction`
+  now draws points with an area legend (`scale_size_area()`); circles in
+  data units are drawn with `direction`. `node_sizes`, `direction` and
+  `transitions` read tables such as `(state, trials)` and
+  `(from, to, trials)` as they are. The caption is one line (“Circle
+  area: … Triangle: points to the … that most often follows it.”).
+  `tools` joins Imports (`toTitleCase()`).
+
+- **`ring_sequences` and `ring_communities`**: 200 simulated walks with
+  planted memory modules (four groups of four actions on a ring, shared
+  actions between neighbours) and the planted community of every
+  second-order state, built by `data-raw/ring_sequences.R`. They replace
+  the simulator the `hon_communities()` walk-through defined inline.
+
+- **[`plot.net_hon_communities()`](https://mohsaqr.github.io/hypernets/reference/plot.net_hon_communities.md)
+  is rebuilt on it.** The default physical view is the community
+  hypergraph (member = physical node, group = `"Community k"`) drawn by
+  `plot.net_hypergraph()`: pebbles coloured by community (discrete
+  Okabe-Ito, legend “Community”), in the blob look with a title box per
+  community giving its name and flow, circles sized by physical flow,
+  triangles pointing along the projected link flow, and a caption naming
+  flow, one-node communities and the zero-flow states left out. It
+  returns the ggplot; `...` reaches `plot.net_hypergraph()`. The custom
+  circular layout, pie nodes and base legend are gone. `type = "states"`
+  still draws with cograph.
+
+- **`hon_outcome()` is withdrawn** (added in 0.5.0). Its per-actor
+  features – the visit-weighted mean of a higher-order node’s centrality
+  or embedding over the actor’s visits – are a construction with no
+  published basis, and nothing unreferenced ships in this package. The
+  code is kept outside the package for later work. `sandwich` leaves
+  Suggests with it.
+
+- `hon_communities()` finds modules in a higher-order network with the
+  map equation for memory networks (Rosvall et al. 2014; Edler, Bohlin &
+  Rosvall 2017). State nodes are clustered but coded over physical
+  nodes, so a physical state can belong to several modules. Flow and
+  codelength match the Python `infomap` package to ~1e-14 bits; the
+  search (node aggregation with fine-tuning over seeded trials, trial
+  stability as ARI) is reported beside a first-order map of the same
+  flow, so the bits saved by memory are explicit. Returns
+  `net_hon_communities`;
+  `as.data.frame(what = "states" | "physical" | "modules" | "trials" | "first_order" | "codelength")`;
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
+  physical view through `plot.net_hypergraph()` (see below) and uses
+  cograph only for `type = "states"`. Coarse-tuning (Edler et al. 2017,
+  Alg. 6) is not implemented.
+
+- **`plot.net_markov_stability()` is redesigned** around four views
+  chosen with `what =`. The default `"landscape"` places each state by
+  stationary share (x, log scale) and persistence (y); dashed lines at
+  the even share `1/n` and the mean persistence split the states into
+  hubs, relays, traps and transients, point size is the mean stay, and
+  memory states (`"a -> b"`) get their own shape. The other views
+  delegate to cograph: `"states"` to
+  [`cograph::plot_centrality()`](https://sonsoles.me/cograph/reference/plot_centrality.html),
+  `"passage_time"` to
+  [`cograph::plot_heatmap()`](https://sonsoles.me/cograph/reference/plot_heatmap.html)
+  (states in share order, fastest and slowest passages named in the
+  subtitle), and `"network"` to
+  [`cograph::plot_tna()`](https://sonsoles.me/cograph/reference/plot_tna.html)
+  (node size = share, pie = persistence, the 10 most common states by
+  default; returns `x` invisibly). `...` reaches the cograph function.
+  Calls that pass `metrics` without `what` still get the per-metric
+  view. To support the network view `markov_stability()` now also stores
+  the row-normalised transition matrix as `$transition` (an additive
+  field; no computed value changes). `grDevices`, already used by the
+  hypergraph plots, is now declared in Imports.
+
+- `as.data.frame.net_markov_stability()` gains `decreasing =` (so the
+  shortest passage times and least persistent states are one call, not a
+  subset) and `from =` / `to =` filters on the first-passage table. Ties
+  break on the row key in both directions. Default output is unchanged.
+
+- `markov_stability()` on a chain where pruning left a state with no
+  outgoing transition now raises `hypernets_not_ergodic` (as well as
+  `hypernets_bad_input`), and the message says to lower `min_freq` in
+  `build_hon()`. The documentation shows the case on `ai_long`.
+
+- Tests and examples call `build_hypa(order =)` instead of the
+  deprecated `k =`, clearing the 45 deprecation warnings from the suite.
+  The deprecated argument still works and still warns; a test now
+  asserts both.
+
 ## hypernets 0.5.0
 
-- [`hon_outcome()`](https://mohsaqr.github.io/hypernets/reference/hon_outcome.md)
-  is the package’s first verb that relates higher-order structure to an
-  outcome. Per-actor features come from
-  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
-  and
-  [`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md)
-  – no new mathematics – aggregated as an exposure-weighted mean over
-  the actor’s own visits, decoded against the network by the
-  longest-suffix rule. Returns a `net_outcome` whose
+- `hon_outcome()` is the package’s first verb that relates higher-order
+  structure to an outcome. Per-actor features come from
+  `hon_centrality()` and `build_honem()` – no new mathematics –
+  aggregated as an exposure-weighted mean over the actor’s own visits,
+  decoded against the network by the longest-suffix rule. Returns a
+  `net_outcome` whose
   [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) is one
   row per feature with `estimate`, `std_error`, `conf_low`, `conf_high`,
   `statistic`, `p` and `p_adj` (BH by default, and the result records
@@ -26,13 +762,12 @@
   deficiency, few clusters, dropped actors and binomial separation all
   raise classed conditions; nothing is dropped silently.
 
-- [`markov_stability()`](https://mohsaqr.github.io/hypernets/reference/markov_stability.md)
-  describes the random walk a transition matrix carries: persistence,
-  stationary distribution, mean recurrence time, sojourn time and
-  Kemeny-Snell mean first passage. On a `net_hon` the matrix is
-  row-stochastic over *memory* states, so this is a higher-order
-  random-walk analysis – stationary mass on memory states and first
-  passage between them. A reducible chain now raises
+- `markov_stability()` describes the random walk a transition matrix
+  carries: persistence, stationary distribution, mean recurrence time,
+  sojourn time and Kemeny-Snell mean first passage. On a `net_hon` the
+  matrix is row-stochastic over *memory* states, so this is a
+  higher-order random-walk analysis – stationary mass on memory states
+  and first passage between them. A reducible chain now raises
   `hypernets_not_ergodic` instead of returning the 1e15 artefacts an
   unguarded solve produces.
 
@@ -41,18 +776,12 @@
   ROW as a trajectory, promoting actor ids and timestamps to states – a
   two-actor, four-turn table became states `1, 2, 3, 4, A, B, C, s1, s2`
   and eight trajectories instead of three states and two, with no error
-  and no warning.
-  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
-  [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md),
-  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
-  [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md),
-  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
-  and
-  [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
-  now raise `hypernets_long_format` (inheriting `hypernets_bad_input`)
-  when handed a frame carrying two or more of the canonical long column
-  names, with the remedy appropriate to that verb – the long-format
-  arguments where they exist, splitting the table where they do not.
+  and no warning. `build_hon()`, `build_mogen()`, `build_hypa()`,
+  `markov_order_test()`, `bootstrap_hon()` and `compare_hon()` now raise
+  `hypernets_long_format` (inheriting `hypernets_bad_input`) when handed
+  a frame carrying two or more of the canonical long column names, with
+  the remedy appropriate to that verb – the long-format arguments where
+  they exist, splitting the table where they do not.
 
 - [`hg_sequences()`](https://mohsaqr.github.io/hypernets/reference/hg_sequences.md)
   closes the text-to-memory gap: a
@@ -62,10 +791,8 @@
   partition becomes the long `actor` / `time` / `action` table the
   memory family reads, so a transcript can go from topics to a
   higher-order transition model without the caller hand-writing a
-  merge-order-split join. Note that
-  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
-  and friends need the `action` / `actor` / `time` arguments given
-  explicitly.
+  merge-order-split join. Note that `build_hon()` and friends need the
+  `action` / `actor` / `time` arguments given explicitly.
 
 - [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) gains a
   method for `net_markov_order_group`, which had a print method and no
@@ -151,6 +878,32 @@
   variable given to `color_by` and `linetype_by` yields one merged
   legend.
 
+## hypernets 0.4.6
+
+- The sparse-storage rule of
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
+  (bag and sentence constructions) no longer overflows. It multiplied
+  two integers (`n_docs * nrow(vocabulary)`), so any corpus large enough
+  to need sparse storage overflowed `.Machine$integer.max` to `NA`,
+  `isTRUE(NA)` was `FALSE`, and exactly the largest corpora went down
+  the dense path and hit the vector memory limit inside
+  [`matrix()`](https://rdrr.io/r/base/matrix.html). The product is now
+  taken in double.
+
+- [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
+  refuses a dense incidence of more than `.Machine$integer.max` cells
+  with the classed error `hypernets_dense_too_large`, instead of
+  overflowing its flat cell index or attempting the allocation.
+
+- [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
+  gains `max_words` and `coverage`. With `min_count` they are one filter
+  over one ranking (decreasing corpus count, ties broken
+  alphabetically), so all three keep prefixes of the same order and the
+  strictest wins. Both default to no pruning. Pruning emits a
+  suppressible message and records `min_count`, `max_words`, `coverage`,
+  `n_vocabulary_full` and `token_share` in the text layer. The `"knn"`
+  construction rejects both, alongside the other token-based arguments.
+
 ## hypernets 0.4.5
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
@@ -185,27 +938,23 @@
 
 ## hypernets 0.4.3
 
-- New
-  [`hg_hypa()`](https://mohsaqr.github.io/hypernets/reference/hg_hypa.md):
-  hypergeometric anomaly detection for co-occurring node pairs, the
-  hypergraph counterpart of \[build_hypa()\]. A pair’s propensity to
-  share hyperedges is the product of the two hyperdegrees, and the
-  observed co-occurrence count is referred to a hypergeometric law, so
-  the test is analytic and needs no resampling. It returns one row per
-  pair, where
+- New `hg_hypa()`: hypergeometric anomaly detection for co-occurring
+  node pairs, the hypergraph counterpart of \[build_hypa()\]. A pair’s
+  propensity to share hyperedges is the product of the two hyperdegrees,
+  and the observed co-occurrence count is referred to a hypergeometric
+  law, so the test is analytic and needs no resampling. It returns one
+  row per pair, where
   [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md)
   returns one row for the whole hypergraph.
 
-  Two things make it usable at a scale
-  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md)
-  cannot reach. Only co-occurring pairs are scored, so the propensity
-  stays sparse instead of the dense n-by-n outer product the memory
-  family materialises; and `min_count` keeps pairs that cannot reach
-  significance out of the multiplicity correction, chosen by count and
-  never by p-value. On an EU citation hypergraph of 117,633 nodes and
-  181,364 hyperedges it scores 435,784 pairs in 1.5 s, where
-  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md)
-  on the same data exhausts 32 GB.
+  Two things make it usable at a scale `build_hypa()` cannot reach. Only
+  co-occurring pairs are scored, so the propensity stays sparse instead
+  of the dense n-by-n outer product the memory family materialises; and
+  `min_count` keeps pairs that cannot reach significance out of the
+  multiplicity correction, chosen by count and never by p-value. On an
+  EU citation hypergraph of 117,633 nodes and 181,364 hyperedges it
+  scores 435,784 pairs in 1.5 s, where `build_hypa()` on the same data
+  exhausts 32 GB.
 
   Results are ordered by adjusted significance rather than by `ratio`:
   ratio is maximised by the rarest pairs sitting just above `min_count`,
@@ -354,9 +1103,8 @@ relational log reads the same way in both packages.
   a numeric clock). Raw character dates are never compared.
 - **`time` is a contact clock.** A hyperedge with a `time` is an
   instantaneous event, as in Dynet’s contact format; the former
-  “growing” reading is `mode = "cumulative"` in
-  [`hypergraph_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.md),
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md),
+  “growing” reading is `mode = "cumulative"` in `hypergraph_snapshot()`,
+  `hypergraph_snapshots()`,
   [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   and
   [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md),
@@ -554,10 +1302,9 @@ that were missing for it are in the hypergraph family.
   gains `type =`: `"mass"` (the previous score, default), `"frequency"`
   (raw counts), `"ctfidf"` (Grootendorst 2022 class-based tf-idf,
   matched to BERTopic’s `ClassTfidfTransformer` to 1e-12),
-  `"centrality"` (the word’s
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md)
-  in the cluster’s own word hypergraph, measure chosen with
-  `centrality =`) and `"attention"` (summed HyperGAT word attention).
+  `"centrality"` (the word’s `hypergraph_centrality()` in the cluster’s
+  own word hypergraph, measure chosen with `centrality =`) and
+  `"attention"` (summed HyperGAT word attention).
   `hg_hypergat(what = "attention")` returns that per-document, per-word
   attention table. `type` takes several scores at once; the table (class
   `hypernets_keywords`, new leading `type` column) has a
@@ -582,11 +1329,11 @@ that were missing for it are in the hypergraph family.
 - **The complete Hayashi clustering family is implemented.**
   `hypergraph_cluster(algorithm = "symnmf")` adds Algorithm 2, RDC-Sym,
   alongside the existing RDC-Spec implementation. New
-  [`hypergraph_joint_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_joint_cluster.md)
-  implements the patent experiment’s J-NMF (Eq. 18) and JS-NMF (Eq. 19)
-  objectives when an auxiliary node-relation matrix is available. All
-  NMF paths expose their objective trace, convergence state, iteration
-  count, chosen restart and fitted factors.
+  `hypergraph_joint_cluster()` implements the patent experiment’s J-NMF
+  (Eq. 18) and JS-NMF (Eq. 19) objectives when an auxiliary
+  node-relation matrix is available. All NMF paths expose their
+  objective trace, convergence state, iteration count, chosen restart
+  and fitted factors.
 
 - **Full HyperGAT semantic hyperedges.** `hg_hypergat(semantic = "lda")`
   now implements the Ding et al. (2020) LDA path in native R: online
@@ -596,13 +1343,11 @@ that were missing for it are in the hypergraph family.
   artifacts; the default remains the backward-compatible sentence-only
   ablation.
 
-- **The neural paper set is complete.** New
-  [`hypergraph_hypergcn()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_hypergcn.md)
-  provides dynamic, fast and one-edge HyperGCN;
-  [`hypergraph_hnhn()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_hnhn.md)
+- **The neural paper set is complete.** New `hypergraph_hypergcn()`
+  provides dynamic, fast and one-edge HyperGCN; `hypergraph_hnhn()`
   exposes the HNHN alpha/beta normalization exponents; and
-  [`hypergraph_allset()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_allset.md)
-  implements both AllDeepSets and AllSetTransformer.
+  `hypergraph_allset()` implements both AllDeepSets and
+  AllSetTransformer.
   [`heterogeneous_hgat()`](https://mohsaqr.github.io/hypernets/reference/heterogeneous_hgat.md)
   implements Linmei et al.’s distinct heterogeneous
   document/topic/entity graph model with node- and type-level attention.
@@ -616,21 +1361,14 @@ that were missing for it are in the hypergraph family.
   separate peer and is not a dependency.
 
 - **Dual hypergraph verb names.** Descriptive names such as
-  [`hypergraph_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md),
-  [`hypergraph_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md),
-  [`hypergraph_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md)
-  and
-  [`hypergraph_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)
-  are exported as direct bindings to their compact `hg_*()` forms; no
-  implementation is duplicated. The raw-text attention model is also
-  available as
+  `hypergraph_edges()`, `hypergraph_project()`, `hypergraph_pagerank()`
+  and `hypergraph_classify()` are exported as direct bindings to their
+  compact `hg_*()` forms; no implementation is duplicated. The raw-text
+  attention model is also available as
   [`text_hypergat()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergat.md).
-  Existing engine names
-  [`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md),
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md)
-  and
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md)
-  keep their established meanings.
+  Existing engine names `hypergraph_measures()`,
+  `hypergraph_centrality()` and `hypergraph_cluster()` keep their
+  established meanings.
 
 - **The full *Legal hypergraphs* method layer is implemented.** New
   temporal hypergraphs and snapshots; binary/multi and self-association
@@ -709,17 +1447,17 @@ contract.
   already lived here, and
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
   is [`identical()`](https://rdrr.io/r/base/identical.html) to
-  `Nestimate::bipartite_groups()` up to the `member`/`player` argument
-  name (tested). The package now imports only cograph, ggplot2,
-  graphics, grid, Matrix, methods, parallel, RSpectra, stats and utils.
+  [`Nestimate::bipartite_groups()`](https://saqr.me/Nestimate/reference/bipartite_groups.html)
+  up to the `member`/`player` argument name (tested). The package now
+  imports only cograph, ggplot2, graphics, grid, Matrix, methods,
+  parallel, RSpectra, stats and utils.
 - **Collisions resolved without a value change.** texthypergraph carried
   a verbatim copy of the spectral trio; hypernets’ copies were kept
   (they carry the plot methods, `top =`, and scalar `edge_weights`), and
   only the normalization argument was ported.
   [`hg_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md)
   agrees with `hypergraph_centrality(type = "pagerank")` to `1e-10`
-  (tested); `hg_project(method = "clique")` equals
-  [`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md)
+  (tested); `hg_project(method = "clique")` equals `clique_expansion()`
   (tested); `text_hypergraph(construction = "window")` and
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
   produce the same incidence matrix on their shared domain (tested).
@@ -755,10 +1493,8 @@ as.data.frame(mo, what = "transitions", order = 2, top = 4)   # not head(..., 4)
 after `sort_by` - so `sort_by` and `top` compose: `top = n` is the first
 `n` rows of the table as ordered. `top = NULL` (the default) returns
 everything, and the default return of every accessor is unchanged.
-Semantics match the `top` that already shipped on
-[`path_counts()`](https://mohsaqr.github.io/hypernets/reference/path_counts.md)
-and
-[`pathways()`](https://mohsaqr.github.io/hypernets/reference/pathways.md).
+Semantics match the `top` that already shipped on `path_counts()` and
+`pathways()`.
 
 Added to: [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
 for `net_hon`, `net_honem`, `net_hypa`, `net_mogen`, `net_markov_order`,
@@ -766,11 +1502,8 @@ for `net_hon`, `net_honem`, `net_hypa`, `net_mogen`, `net_markov_order`,
 `net_simplicial`, `net_q_analysis`, `net_persistent_homology`,
 `net_persistence_landscape`, `net_hypergraph`,
 `net_hypergraph_measures`, `net_hypergraph_cluster`,
-`net_hypergraph_transduction`; and to
-[`mogen_transitions()`](https://mohsaqr.github.io/hypernets/reference/mogen_transitions.md),
-[`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md),
-[`simplicial_degree()`](https://mohsaqr.github.io/hypernets/reference/simplicial_degree.md),
-[`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md).
+`net_hypergraph_transduction`; and to `mogen_transitions()`,
+`hon_centrality()`, `simplicial_degree()`, `hypergraph_centrality()`.
 
 `path_counts(top =)` now validates its argument like the rest of the
 family: a non-whole value such as `top = 2.5` is an error rather than a
@@ -778,11 +1511,11 @@ silent truncation to 2, matching how `k` already behaved.
 
 ### Bug fix
 
-- [`plot.net_path_dependence()`](https://mohsaqr.github.io/hypernets/reference/plot.net_path_dependence.md)
-  clipped the label of its highest-KL context - the row the plot exists
-  to show. The modal-flip labels are drawn to the right of each point,
-  and the panel did not extend past the largest value, so ggplot cut the
-  label off. The x scale now leaves room for it.
+- `plot.net_path_dependence()` clipped the label of its highest-KL
+  context - the row the plot exists to show. The modal-flip labels are
+  drawn to the right of each point, and the panel did not extend past
+  the largest value, so ggplot cut the label off. The x scale now leaves
+  room for it.
 
 ### Documentation
 
@@ -815,43 +1548,28 @@ hypergraphs — under a single taxonomy.
 ### Absorbed families
 
 - **Simplicial complexes and topological data analysis**, moved verbatim
-  from Nestimate 0.9.0:
-  [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
-  (clique, Vietoris-Rips and pathway complexes),
-  [`betti_numbers()`](https://mohsaqr.github.io/hypernets/reference/betti_numbers.md),
-  [`euler_characteristic()`](https://mohsaqr.github.io/hypernets/reference/euler_characteristic.md),
-  [`persistent_homology()`](https://mohsaqr.github.io/hypernets/reference/persistent_homology.md),
-  [`persistence_landscape()`](https://mohsaqr.github.io/hypernets/reference/persistence_landscape.md),
-  [`bottleneck_distance()`](https://mohsaqr.github.io/hypernets/reference/bottleneck_distance.md),
-  [`simplicial_degree()`](https://mohsaqr.github.io/hypernets/reference/simplicial_degree.md),
-  [`q_analysis()`](https://mohsaqr.github.io/hypernets/reference/q_analysis.md),
-  [`verify_simplicial()`](https://mohsaqr.github.io/hypernets/reference/verify_simplicial.md).
+  from Nestimate 0.9.0: `build_simplicial()` (clique, Vietoris-Rips and
+  pathway complexes), `betti_numbers()`, `euler_characteristic()`,
+  `persistent_homology()`, `persistence_landscape()`,
+  `bottleneck_distance()`, `simplicial_degree()`, `q_analysis()`,
+  `verify_simplicial()`.
 - **Hypergraphs**, moved verbatim from Nestimate 0.9.0 by way of the
   short-lived earlier `hypernets` scaffold (0.1.2, never released),
-  which is folded in and retired:
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md),
+  which is folded in and retired: `build_hypergraph()`,
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md),
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
-  [`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md),
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md),
-  [`hypergraph_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_laplacian.md),
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md),
-  [`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md),
-  [`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md).
+  `hypergraph_measures()`, `hypergraph_centrality()`,
+  `hypergraph_laplacian()`, `hypergraph_cluster()`,
+  `hypergraph_transduction()`, `clique_expansion()`.
 - The consolidation **deletes 223 lines of duplication** from hypernets’
   323-line `utils.R` – 171 of them the clique-enumeration closure copied
-  out of Nestimate’s `simplicial.R`, the rest a
-  [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
+  out of Nestimate’s `simplicial.R`, the rest a `build_simplicial()`
   shim and a second copy of hypernets’ own
   `.extract_edges_from_matrix()`. hypernets had to carry that closure
-  because
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
-  needs clique enumeration; with both families in one package,
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
-  calls the real
-  [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
-  again. The seven copied helpers were verified byte-identical to
-  Nestimate’s originals before the copy was removed.
+  because `build_hypergraph()` needs clique enumeration; with both
+  families in one package, `build_hypergraph()` calls the real
+  `build_simplicial()` again. The seven copied helpers were verified
+  byte-identical to Nestimate’s originals before the copy was removed.
 
 ### Taxonomy: renames
 
@@ -918,18 +1636,16 @@ without an accessor fails the suite.
   dependency seams into `simplicial.R` (construction and structural
   measures), `simplicial_filtration.R` (the filtration and Z/2
   boundary-reduction layer that both `build_simplicial(type = "vr")` and
-  [`persistent_homology()`](https://mohsaqr.github.io/hypernets/reference/persistent_homology.md)
-  sit on) and `simplicial_homology.R`. Code unchanged; the split was
-  verified line-for-line content-preserving.
+  `persistent_homology()` sit on) and `simplicial_homology.R`. Code
+  unchanged; the split was verified line-for-line content-preserving.
 
 ### Other
 
 - [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)’s
-  weighted branch and
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)’s
-  incidence fill are vectorised (they were `for` loops accumulating into
-  a matrix). Duplicate `(member, group)` cells are summed before
-  assignment, which index assignment alone would not do.
+  weighted branch and `build_hypergraph()`’s incidence fill are
+  vectorised (they were `for` loops accumulating into a matrix).
+  Duplicate `(member, group)` cells are summed before assignment, which
+  index assignment alone would not do.
 - Package-level documentation
   ([`?hypernets`](https://mohsaqr.github.io/hypernets/reference/hypernets-package.md))
   now states the three-family taxonomy, the verb grammar, and how the
@@ -937,26 +1653,23 @@ without an accessor fails the suite.
 
 ## hypernets 0.1.5
 
-- New verb
-  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
-  (roadmap item A2): PageRank, betweenness and closeness computed on the
-  higher-order topology and projected back onto first-order states
-  (Scholtes, Wider & Garas 2016). Semantics follow pathpy 2.2.0 - that
-  paper’s reference implementation - generalized from fixed-order to the
-  variable-order networks
-  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
-  produces, and verified against it: betweenness and closeness match
-  exactly (\< 1e-10) on second- and third-order topologies, PageRank to
-  pathpy’s own `tol = 1e-6`. The underlying kernels additionally match
-  `igraph` on the same topologies. `project = FALSE` reports the
-  centralities of the memory contexts themselves; `projection =` chooses
-  how a higher-order node’s PageRank is distributed (“scaled”, “last”,
-  “first”, “all”); `sort_by =` returns the table ranked.
-- [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
-  gained the long-format interface already used by the inference verbs:
-  `action`, `actor` and `time` column names, so an event table needs no
-  manual splitting. Existing calls are unaffected (the arguments default
-  to `NULL`) and produce byte-identical networks.
+- New verb `hon_centrality()` (roadmap item A2): PageRank, betweenness
+  and closeness computed on the higher-order topology and projected back
+  onto first-order states (Scholtes, Wider & Garas 2016). Semantics
+  follow pathpy 2.2.0 - that paper’s reference implementation -
+  generalized from fixed-order to the variable-order networks
+  `build_hon()` produces, and verified against it: betweenness and
+  closeness match exactly (\< 1e-10) on second- and third-order
+  topologies, PageRank to pathpy’s own `tol = 1e-6`. The underlying
+  kernels additionally match `igraph` on the same topologies.
+  `project = FALSE` reports the centralities of the memory contexts
+  themselves; `projection =` chooses how a higher-order node’s PageRank
+  is distributed (“scaled”, “last”, “first”, “all”); `sort_by =` returns
+  the table ranked.
+- `build_hon()` gained the long-format interface already used by the
+  inference verbs: `action`, `actor` and `time` column names, so an
+  event table needs no manual splitting. Existing calls are unaffected
+  (the arguments default to `NULL`) and produce byte-identical networks.
 - New tutorial `Tutorial_docs/hon_centrality.html`: why the first-order
   network of a dense corpus cannot rank its states at all (complete
   digraph, uniform PageRank), what the higher-order ranking recovers,
@@ -966,11 +1679,9 @@ without an accessor fails the suite.
 ## hypernets 0.1.4
 
 - New inference verbs for higher-order rules (roadmap item A1):
-  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
-  — sequence bootstrap with percentile CIs for rule probabilities and
-  per-rule extraction *support*;
-  [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
-  — two-sample permutation comparison with per-edge BH adjustment and a
+  `bootstrap_hon()` — sequence bootstrap with percentile CIs for rule
+  probabilities and per-rule extraction *support*; `compare_hon()` —
+  two-sample permutation comparison with per-edge BH adjustment and a
   pooled-count-weighted global test. Both precompute per-sequence counts
   once and rebuild replicates from reweighted counts (proven identical
   to re-counting the resampled multiset), draw all randomness serially
@@ -1008,18 +1719,10 @@ without an accessor fails the suite.
 ## hypernets 0.1.0
 
 - Initial release. Code moved from Nestimate 0.9.0 (delegation T0):
-  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
-  [`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md),
-  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
-  [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md),
-  [`mogen_transitions()`](https://mohsaqr.github.io/hypernets/reference/mogen_transitions.md),
-  [`path_counts()`](https://mohsaqr.github.io/hypernets/reference/path_counts.md),
-  [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md),
-  [`path_dependence()`](https://mohsaqr.github.io/hypernets/reference/path_dependence.md),
-  and the
-  [`pathways()`](https://mohsaqr.github.io/hypernets/reference/pathways.md)
-  generic with methods for `net_hon`, `net_hypa`, and `net_mogen`.
-  Numbers are identical to the Nestimate implementations (same code,
-  same RNG streams).
+  `build_hon()`, `build_honem()`, `build_hypa()`, `build_mogen()`,
+  `mogen_transitions()`, `path_counts()`, `markov_order_test()`,
+  `path_dependence()`, and the `pathways()` generic with methods for
+  `net_hon`, `net_hypa`, and `net_mogen`. Numbers are identical to the
+  Nestimate implementations (same code, same RNG streams).
 - Corrected the HONEM reference (Saebi, Ciampaglia, Kaplan & Chawla
   2020, ); the author list previously cited was wrong.

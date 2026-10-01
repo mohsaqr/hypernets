@@ -1,5 +1,7 @@
 # hypernets text and hypergraph roadmap
 
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 This file preserves the release history of the retired `texthypergraph`
 package and records its continuation inside hypernets. Sections
 v0.1-v0.6 are historical implementation notes; v0.7 and later describe
@@ -72,7 +74,8 @@ errors / 0 warnings / 1 environmental NOTE.
 
 **Status 2026-08-25: v0.2 COMPLETE.** Both constructions shipped:
 `text_hypergraph(construction = "window")` (sliding/tumbling, set-valued
-window hyperedges; w = 2 off-diagonal parity with `Nestimate::wtna()`
+window hyperedges; w = 2 off-diagonal parity with
+[`Nestimate::wtna()`](https://saqr.me/Nestimate/reference/wtna.html)
 shipped as a package test — diagonals differ by design, wtna counts
 within-window repeats) and `construction = "knn"` +
 [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md)
@@ -167,7 +170,7 @@ go to the centroid — honest both ways. Found + fixed a real method
 defect: raw Zhou argmax collapses onto the majority class under
 imbalanced seeds (R8 0.4947 = the majority-class rate) → new
 `normalization = "class_mass"` argument (Zhu et al. 2003 CMN) on
-[`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)/[`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md),
+[`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)/`hypergraph_transduction()`,
 fixture + invariance + parity + mutation tested. Low-label study
 (stratified 1-20%, 5 draws): transduction leads the centroid at every
 fraction on MR only. Version 0.5.0.
@@ -274,16 +277,16 @@ boundary.
 [`hg_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md)**
 — hypergraph to weighted graph. `method = "clique"` (unnormalised
 co-occurrence, [`identical()`](https://rdrr.io/r/base/identical.html)
-parity with `Nestimate::clique_expansion()`) and
-`method = "association"`, the random-walk-correct
+parity with
+[`Nestimate::clique_expansion()`](https://saqr.me/Nestimate/reference/clique_expansion.html))
+and `method = "association"`, the random-walk-correct
 `w({u,v}) = sum_e 1/(|e|-1)` of Coupette et al. (2024). Verified
-2026-09-01:
-[`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md)
-is `tcrossprod(incidence)` with a zeroed diagonal and applies no `|e|`
-normalisation, so the association weighting exists nowhere in the stack.
-*Oracle*: the paper’s Zenodo reproducibility package
-(<doi:10.5281/zenodo.8081507>). *Invariant*: each hyperedge contributes
-total weight exactly 1 to the edges incident on each of its own members.
+2026-09-01: `clique_expansion()` is `tcrossprod(incidence)` with a
+zeroed diagonal and applies no `|e|` normalisation, so the association
+weighting exists nowhere in the stack. *Oracle*: the paper’s Zenodo
+reproducibility package (<doi:10.5281/zenodo.8081507>). *Invariant*:
+each hyperedge contributes total weight exactly 1 to the edges incident
+on each of its own members.
 
 **DONE 2026-09-01 `hg_line_graph(s = 1)`** — the s-line graph
 (hyperedges as vertices, adjacent when `|e_i & e_j| >= s`).
@@ -341,10 +344,8 @@ GFCC/ICSID construction.
 [`hg_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md).
 Larger bundled corpora remain carried forward. **Resolved 2026-09-02:**
 [`hg_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md)
-and
-[`hypergraph_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md)
-now expose the same documented wrapper over the shipped spectral/NMF
-coordinates.
+and `hypergraph_embed()` now expose the same documented wrapper over the
+shipped spectral/NMF coordinates.
 
 **DONE 2026-09-02 paper-oracle validation** — reconstructed the authors’
 ICSID aggregate (441 nodes, 742 cases) from Zenodo 8081507 and

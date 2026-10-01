@@ -43,6 +43,18 @@ windowed <- text_hypergraph(
 windowed
 #> Text hypergraph: 40 documents, 349 words (windowed hyperedges: w = 3, sliding, 2000 windows)
 #> Hyperedges: 1880 (distinct windows); sizes 2-3, median 3
+#>                           edge         word weight
+#>  access+asynchronous+available       access      1
+#>  access+asynchronous+available asynchronous      1
+#>  access+asynchronous+available    available      1
+#>   access+asynchronous+valuable       access      1
+#>   access+asynchronous+valuable asynchronous      1
+#>   access+asynchronous+valuable     valuable      1
+#>             access+care+future       access      1
+#>             access+care+future         care      1
+#>             access+care+future       future      1
+#>       access+care+implications       access      1
+#> ... 5575 more rows
 ```
 
 ``` r
@@ -149,6 +161,18 @@ knn_hg <- text_hypergraph(
 knn_hg
 #> Text hypergraph: 165 documents (kNN embedding hyperedges: k = 10, cosine)
 #> Hyperedges: 165 (kNN neighborhoods); sizes 11-11, median 11
+#>                 doc               edge    weight
+#>  2-s2.0-85085897904 2-s2.0-85085897904 1.0000000
+#>  2-s2.0-85092100063 2-s2.0-85085897904 0.5784754
+#>  2-s2.0-85092577169 2-s2.0-85085897904 0.5940401
+#>  2-s2.0-85096991345 2-s2.0-85085897904 0.6156138
+#>  2-s2.0-85096994563 2-s2.0-85085897904 0.5771233
+#>  2-s2.0-85108879636 2-s2.0-85085897904 0.6228458
+#>  2-s2.0-85109406490 2-s2.0-85085897904 0.5927937
+#>  2-s2.0-85119298190 2-s2.0-85085897904 0.6315365
+#>  2-s2.0-85124102536 2-s2.0-85085897904 0.5749891
+#>  2-s2.0-85124535349 2-s2.0-85085897904 0.7546323
+#> ... 1805 more rows
 ```
 
 ``` r

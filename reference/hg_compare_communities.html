@@ -15,7 +15,7 @@ communities, singletons, the balance between the two largest clusters)."></head>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,6 +27,7 @@ communities, singletons, the balance between the two largest clusters)."></head>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -62,19 +63,10 @@ communities, singletons, the balance between the two largest clusters).</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hg_compare_communities</span><span class="op">(</span><span class="va">...</span>, hg <span class="op">=</span> <span class="cn">NULL</span>, edge_source <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hypernets_community_comparison'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, n <span class="op">=</span> <span class="fl">10L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hypernets_community_comparison'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
-<span>  row.names <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  optional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"summary"</span>, <span class="st">"similarity"</span>, <span class="st">"sizes"</span>, <span class="st">"quality"</span>, <span class="st">"matrix"</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class 'hypernets_community_comparison'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"summary"</span>, <span class="st">"similarity"</span>, <span class="st">"sizes"</span>, <span class="st">"quality"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hypernets_community_comparison'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sizes"</span>, <span class="st">"similarity"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
@@ -89,7 +81,7 @@ communities, singletons, the balance between the two largest clusters).</p>
 
 
 <dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
-<dd><p>Optional: the static <code>net_hypergraph</code> the fits were computed on.
+<dd><p>Optional: the static <code>net_hg</code> the fits were computed on.
 When given, every medoid is scored with <code><a href="hg_community_quality.html">hg_community_quality()</a></code> on the
 projection its own fit used, and the scores are available as
 <code>what = "quality"</code>.</p></dd>
@@ -104,26 +96,22 @@ projections when scoring, as in <code><a href="hg_project.html">hg_project()</a>
 <dd><p>A <code>hypernets_community_comparison</code> object.</p></dd>
 
 
-<dt id="arg-row-names-optional">row.names, optional<a class="anchor" aria-label="anchor" href="#arg-row-names-optional"></a></dt>
-<dd><p>Unused; present for the base S3 contract.</p></dd>
+<dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
+<dd><p>Number of rows of the default table to print. Default <code>10</code>.</p></dd>
 
 
 <dt id="arg-what">what<a class="anchor" aria-label="anchor" href="#arg-what"></a></dt>
-<dd><p>Which table: <code>"summary"</code> (default), <code>"similarity"</code>, <code>"sizes"</code>,
-<code>"quality"</code>, or <code>"matrix"</code> for the similarity as a square matrix with
-AMI below and ARI above the diagonal (the layout of <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>).</p></dd>
-
-
-<dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
-<dd><p>A <code>hypernets_community_comparison</code> object.</p></dd>
+<dd><p>Which table: <code>"summary"</code> (default), <code>"similarity"</code>, <code>"sizes"</code>
+or <code>"quality"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>hypernets_community_comparison</code> object. <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> returns
+    <p>A <code>hypernets_community_comparison</code> object. <code><a href="hg_get.html">hg_get()</a></code> returns
 its <code>"summary"</code> (default; one row per fit with <code>model</code>, <code>medoid_seed</code>,
-<code>n_communities</code>, <code>n_singletons</code>, <code>n_nontrivial</code>, <code>largest</code>, <code>second</code>
-and <code>balance</code> = second / largest), <code>"similarity"</code> (one row per pair of
+<code>n_communities</code>, <code>n_singletons</code>, <code>n_nontrivial</code>, <code>largest_size</code>,
+<code>second_size</code> and <code>balance</code> = second / largest), <code>"similarity"</code> (one
+row per pair of
 fits with <code>model_a</code>, <code>model_b</code>, <code>ami</code>, <code>ari</code>, <code>nmi</code>, on the nodes the
 two medoids share), <code>"sizes"</code> (one row per community of every medoid
 with <code>model</code>, <code>rank</code>, <code>n_nodes</code>) or, when <code>hg</code> was given, <code>"quality"</code>
@@ -153,8 +141,8 @@ hypergraphs. <em>Philosophical Transactions of the Royal Society A</em>,
 <span class="r-in"><span>  <span class="va">binary</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_communities.html">hg_communities</a></span><span class="op">(</span><span class="va">h</span>, n_runs <span class="op">=</span> <span class="fl">2</span>, trials <span class="op">=</span> <span class="fl">2</span>, seeds <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span></span>
 <span class="r-in"><span>                           duplicate_edges <span class="op">=</span> <span class="st">"collapse"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu">hg_compare_communities</span><span class="op">(</span>mh <span class="op">=</span> <span class="va">multi</span>, bh <span class="op">=</span> <span class="va">binary</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">comparison</span>, what <span class="op">=</span> <span class="st">"similarity"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">comparison</span>, what <span class="op">=</span> <span class="st">"similarity"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   model_a model_b n_nodes ami ari nmi</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1      mh      bh       6   1   1   1</span>

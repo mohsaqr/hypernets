@@ -28,13 +28,6 @@ hg_membership(
 
 # S3 method for class 'hypernets_membership'
 plot(x, ...)
-
-hypergraph_membership(
-  hg,
-  clusters,
-  type = c("zhou", "random_walk"),
-  edge_weights = NULL
-)
 ```
 
 ## Arguments

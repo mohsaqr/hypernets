@@ -14,8 +14,6 @@ selection is deterministic.
 
 ``` r
 hg_seeds(embedding, n = 5L)
-
-hypergraph_seeds(embedding, n = 5L)
 ```
 
 ## Arguments

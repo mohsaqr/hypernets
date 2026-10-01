@@ -5,8 +5,8 @@ projects, in long format: `human_long` holds the human turns (10,796
 rows), `ai_long` the AI turns (8,551 rows). Each session's ordered codes
 form one categorical sequence, which makes the pair a natural two-cohort
 input for the higher-order verbs – e.g.
-`bootstrap_hon(human_long, action = "code", actor = "session_id", time = "timestamp")`
-or `compare_hon(human_long, ai_long, ...)`.
+`hg_bootstrap(human_long, action = "code", actor = "session_id", time = "timestamp")`
+or `hg_compare(human_long, ai_long, ...)`.
 
 ## Usage
 
@@ -74,29 +74,18 @@ the codes that co-occur in it
 ([`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)),
 and a fitted memory network becomes a pathway complex for the simplicial
 family
-([`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
+([`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md)
 with `type = "pathway"`).
 
 ## Examples
 
 ``` r
-bs <- bootstrap_hon(human_long, action = "code", actor = "session_id",
+bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
                     time = "timestamp", n_boot = 20, max_order = 2,
                     seed = 1)
-rules <- as.data.frame(bs, order_min = 2)
+#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
+rules <- hg_get(bs, order_min = 2)
+#> Error: object 'bs' not found
 head(rules)
-#>                   from        to order count probability   ci_lower   ci_upper
-#> 1 Frustrate -> Specify   Command     2     6  0.05357143 0.02115083 0.08565578
-#> 2 Frustrate -> Specify   Correct     2     9  0.08035714 0.04191279 0.12300401
-#> 3 Frustrate -> Specify Frustrate     2    21  0.18750000 0.13526718 0.23261462
-#> 4 Frustrate -> Specify   Inquire     2     8  0.07142857 0.03329832 0.10251437
-#> 5 Frustrate -> Specify Interrupt     2     9  0.08035714 0.04314421 0.11752874
-#> 6 Frustrate -> Specify    Refine     2     7  0.06250000 0.03652311 0.10455750
-#>   support n_boot_used
-#> 1       1          20
-#> 2       1          20
-#> 3       1          20
-#> 4       1          20
-#> 5       1          20
-#> 6       1          20
+#> Error: object 'rules' not found
 ```

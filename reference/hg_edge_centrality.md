@@ -22,28 +22,13 @@ hg_edge_centrality(
   snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
-
-hypergraph_edge_centrality(
-  hg,
-  s = 1L,
-  measure = c("betweenness", "closeness"),
-  normalized = TRUE,
-  top = NULL,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
 ```
 
 ## Arguments
 
 - hg:
 
-  A static `net_hypergraph` or a
+  A static `net_hg` or a
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md).
 
 - s:
@@ -68,14 +53,14 @@ hypergraph_edge_centrality(
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - snapshot_mode, multiedges:
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 ## Value

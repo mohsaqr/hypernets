@@ -5,6 +5,8 @@
 - [Topic structure of the COVID-19 education literature as a
   document-word
   hypergraph](https://mohsaqr.github.io/hypernets/articles/covid-topics.md):
+- [Mixed-membership topics of the COVID-19 education
+  literature](https://mohsaqr.github.io/hypernets/articles/topic-mixtures.md):
 - [Hypergraph analysis of a text
   corpus](https://mohsaqr.github.io/hypernets/articles/text-hypergraphs.md):
 - [Windowed and embedding

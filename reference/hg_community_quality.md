@@ -17,22 +17,13 @@ hg_community_quality(
   self_association = FALSE,
   edge_source = NULL
 )
-
-hypergraph_community_quality(
-  hg,
-  partition,
-  method = c("association", "citation"),
-  duplicate_edges = c("count", "collapse"),
-  self_association = FALSE,
-  edge_source = NULL
-)
 ```
 
 ## Arguments
 
 - hg:
 
-  A static `net_hypergraph`.
+  A static `net_hg`.
 
 - partition:
 
@@ -55,3 +46,17 @@ hypergraph_community_quality(
 ## Value
 
 A one-row data frame.
+
+## References
+
+Fortunato, S. (2010). Community detection in graphs. *Physics Reports*,
+486(3-5), 75-174.
+[doi:10.1016/j.physrep.2009.11.002](https://doi.org/10.1016/j.physrep.2009.11.002)
+
+Newman, M. E. J., & Girvan, M. (2004). Finding and evaluating community
+structure in networks. *Physical Review E*, 69, 026113.
+[doi:10.1103/PhysRevE.69.026113](https://doi.org/10.1103/PhysRevE.69.026113)
+
+Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
+*Philosophical Transactions of the Royal Society A*, 382, 20230141.
+[doi:10.1098/rsta.2023.0141](https://doi.org/10.1098/rsta.2023.0141)

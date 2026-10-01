@@ -10,8 +10,6 @@ because they are valid outcomes of this incidence model.
 
 ``` r
 hg_sample_gnp(n, m = NULL, p, lambda = NULL, seed = NULL)
-
-hypergraph_sample_gnp(n, m = NULL, p, lambda = NULL, seed = NULL)
 ```
 
 ## Arguments
@@ -41,8 +39,7 @@ hypergraph_sample_gnp(n, m = NULL, p, lambda = NULL, seed = NULL)
 
 ## Value
 
-A `net_hypergraph` with binary incidence and model parameters in
-`$params`.
+A `net_hg` with binary incidence and model parameters in `$params`.
 
 ## References
 

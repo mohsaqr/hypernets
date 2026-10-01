@@ -23,7 +23,7 @@ hypergraph walk, otherwise it teleports."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@ hypergraph walk, otherwise it teleports."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -80,17 +81,6 @@ hypergraph walk, otherwise it teleports.</p>
 <span>  n <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">1000L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-12</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">hypergraph_pagerank</span><span class="op">(</span></span>
-<span>  <span class="va">hg</span>,</span>
-<span>  damping <span class="op">=</span> <span class="fl">0.85</span>,</span>
-<span>  personalized <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sort_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  max_iter <span class="op">=</span> <span class="fl">1000L</span>,</span>
-<span>  tol <span class="op">=</span> <span class="fl">1e-12</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,7 +90,7 @@ hypergraph walk, otherwise it teleports.</p>
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
 <dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code>, <code><a href="knn_hypergraph.html">knn_hypergraph()</a></code>, or any hypernets
-<code>net_hypergraph</code> (connected when <code>damping = 1</code>).</p></dd>
+<code>net_hg</code> (connected when <code>damping = 1</code>).</p></dd>
 
 
 <dt id="arg-damping">damping<a class="anchor" aria-label="anchor" href="#arg-damping"></a></dt>
@@ -120,10 +110,11 @@ vertex names; unnamed vertices get teleport probability 0. <code>NULL</code>
 
 <dt id="arg-edge-weights">edge_weights<a class="anchor" aria-label="anchor" href="#arg-edge-weights"></a></dt>
 <dd><p>Positive hyperedge weights (one per hyperedge), or
-<code>NULL</code> (default) for the Hayashi et al. heuristic used by the
-Laplacian engines: the population standard deviation of each edge's
-non-zero vertex weights plus one, which reduces to unit weights on a
-binary incidence.</p></dd>
+<code>NULL</code> (default): a window hypergraph's window counts when present,
+otherwise the Hayashi et al. heuristic used by the Laplacian engines
+(the population standard deviation of each edge's non-zero vertex
+weights plus one, which reduces to unit weights on a binary
+incidence).</p></dd>
 
 
 <dt id="arg-sort-by">sort_by<a class="anchor" aria-label="anchor" href="#arg-sort-by"></a></dt>
@@ -153,9 +144,9 @@ incidence weights differ across the hyperedges a vertex belongs to
 (tested against the closed-form graph stationary distribution). With
 <code>damping = 1</code> and default <code>edge_weights</code>, the result equals the
 stationary distribution of the Hayashi et al. (2020) EDVW walk used by
-<code><a href="hg_cluster.html">hg_cluster()</a></code> (tested at <code>1e-12</code> against <code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></code>), and
+<code><a href="hg_cluster.html">hg_cluster()</a></code> (tested at <code>1e-12</code> against <code><a href="hg_laplacian.html">hg_laplacian()</a></code>), and
 with uniform teleportation it equals
-<code>hypergraph_centrality(type = "pagerank")</code> (tested).</p>
+<code>hg_centrality(type = "pagerank")</code> (tested).</p>
     </div>
     <div class="section level2">
     <h2 id="conditions">Conditions<a class="anchor" aria-label="anchor" href="#conditions"></a></h2>

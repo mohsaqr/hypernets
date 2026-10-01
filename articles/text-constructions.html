@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -108,7 +109,19 @@ matrix (a shipped package test).</p>
 <span><span class="co">#&gt; vocabulary pruned to 349 of 1641 words, retaining 56.92% of tokens</span></span>
 <span><span class="va">windowed</span></span>
 <span><span class="co">#&gt; Text hypergraph: 40 documents, 349 words (windowed hyperedges: w = 3, sliding, 2000 windows)</span></span>
-<span><span class="co">#&gt; Hyperedges: 1880 (distinct windows); sizes 2-3, median 3</span></span></code></pre></div>
+<span><span class="co">#&gt; Hyperedges: 1880 (distinct windows); sizes 2-3, median 3</span></span>
+<span><span class="co">#&gt;                           edge         word weight</span></span>
+<span><span class="co">#&gt;  access+asynchronous+available       access      1</span></span>
+<span><span class="co">#&gt;  access+asynchronous+available asynchronous      1</span></span>
+<span><span class="co">#&gt;  access+asynchronous+available    available      1</span></span>
+<span><span class="co">#&gt;   access+asynchronous+valuable       access      1</span></span>
+<span><span class="co">#&gt;   access+asynchronous+valuable asynchronous      1</span></span>
+<span><span class="co">#&gt;   access+asynchronous+valuable     valuable      1</span></span>
+<span><span class="co">#&gt;             access+care+future       access      1</span></span>
+<span><span class="co">#&gt;             access+care+future         care      1</span></span>
+<span><span class="co">#&gt;             access+care+future       future      1</span></span>
+<span><span class="co">#&gt;       access+care+implications       access      1</span></span>
+<span><span class="co">#&gt; ... 5575 more rows</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_centrality.html">hg_centrality</a></span><span class="op">(</span><span class="va">windowed</span>, type <span class="op">=</span> <span class="st">"clique"</span>, sort_by <span class="op">=</span> <span class="st">"clique"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          node    clique</span></span>
@@ -203,7 +216,19 @@ encodes the text directly.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">knn_hg</span></span>
 <span><span class="co">#&gt; Text hypergraph: 165 documents (kNN embedding hyperedges: k = 10, cosine)</span></span>
-<span><span class="co">#&gt; Hyperedges: 165 (kNN neighborhoods); sizes 11-11, median 11</span></span></code></pre></div>
+<span><span class="co">#&gt; Hyperedges: 165 (kNN neighborhoods); sizes 11-11, median 11</span></span>
+<span><span class="co">#&gt;                 doc               edge    weight</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904 2-s2.0-85085897904 1.0000000</span></span>
+<span><span class="co">#&gt;  2-s2.0-85092100063 2-s2.0-85085897904 0.5784754</span></span>
+<span><span class="co">#&gt;  2-s2.0-85092577169 2-s2.0-85085897904 0.5940401</span></span>
+<span><span class="co">#&gt;  2-s2.0-85096991345 2-s2.0-85085897904 0.6156138</span></span>
+<span><span class="co">#&gt;  2-s2.0-85096994563 2-s2.0-85085897904 0.5771233</span></span>
+<span><span class="co">#&gt;  2-s2.0-85108879636 2-s2.0-85085897904 0.6228458</span></span>
+<span><span class="co">#&gt;  2-s2.0-85109406490 2-s2.0-85085897904 0.5927937</span></span>
+<span><span class="co">#&gt;  2-s2.0-85119298190 2-s2.0-85085897904 0.6315365</span></span>
+<span><span class="co">#&gt;  2-s2.0-85124102536 2-s2.0-85085897904 0.5749891</span></span>
+<span><span class="co">#&gt;  2-s2.0-85124535349 2-s2.0-85085897904 0.7546323</span></span>
+<span><span class="co">#&gt; ... 1805 more rows</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">knn_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">knn_hg</span>, k <span class="op">=</span> <span class="fl">4</span>, type <span class="op">=</span> <span class="st">"random_walk"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">node</span> <span class="op">~</span> <span class="va">cluster</span>, data <span class="op">=</span> <span class="va">knn_clusters</span>, FUN <span class="op">=</span> <span class="va">length</span><span class="op">)</span></span>

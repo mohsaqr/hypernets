@@ -4,18 +4,18 @@ table the memory family consumes. Each document of a text_hypergraph()
 carries whatever metadata came with the corpus (an author, a turn, a
 timestamp); hg_cluster() gives each document a topic. hg_sequences()
 joins the two, orders the documents within each actor and returns one row
-per document as actor / time / action – the long shape
-build_hon(), bootstrap_hon(), compare_hon() and
-window_hypergraph() read through their own action / actor / time
-arguments, so no coercion is written at the call site:"><meta property="og:description" content="Turns document-level topic assignments into the canonical long sequence
+per document as actor / time / action – the long event table
+every memory-network verb reads through its action / actor / time
+arguments (hon(), mogen(), hypa(), markov_order(),
+hg_bootstrap(), hg_compare(), window_hypergraph()):"><meta property="og:description" content="Turns document-level topic assignments into the canonical long sequence
 table the memory family consumes. Each document of a text_hypergraph()
 carries whatever metadata came with the corpus (an author, a turn, a
 timestamp); hg_cluster() gives each document a topic. hg_sequences()
 joins the two, orders the documents within each actor and returns one row
-per document as actor / time / action – the long shape
-build_hon(), bootstrap_hon(), compare_hon() and
-window_hypergraph() read through their own action / actor / time
-arguments, so no coercion is written at the call site:"></head><body>
+per document as actor / time / action – the long event table
+every memory-network verb reads through its action / actor / time
+arguments (hon(), mogen(), hypa(), markov_order(),
+hg_bootstrap(), hg_compare(), window_hypergraph()):"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -23,7 +23,7 @@ arguments, so no coercion is written at the call site:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@ arguments, so no coercion is written at the call site:"></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -63,10 +64,10 @@ table the memory family consumes. Each document of a <code><a href="text_hypergr
 carries whatever metadata came with the corpus (an author, a turn, a
 timestamp); <code><a href="hg_cluster.html">hg_cluster()</a></code> gives each document a topic. <code>hg_sequences()</code>
 joins the two, orders the documents within each actor and returns one row
-per document as <code>actor</code> / <code>time</code> / <code>action</code> – the long shape
-<code><a href="build_hon.html">build_hon()</a></code>, <code><a href="bootstrap_hon.html">bootstrap_hon()</a></code>, <code><a href="compare_hon.html">compare_hon()</a></code> and
-<code><a href="window_hypergraph.html">window_hypergraph()</a></code> read through their own <code>action</code> / <code>actor</code> / <code>time</code>
-arguments, so no coercion is written at the call site:</p>
+per document as <code>actor</code> / <code>time</code> / <code>action</code> – the long event table
+every memory-network verb reads through its <code>action</code> / <code>actor</code> / <code>time</code>
+arguments (<code><a href="hon.html">hon()</a></code>, <code><a href="mogen.html">mogen()</a></code>, <code><a href="hypa.html">hypa()</a></code>, <code><a href="markov_order.html">markov_order()</a></code>,
+<code><a href="hg_bootstrap.html">hg_bootstrap()</a></code>, <code><a href="hg_compare.html">hg_compare()</a></code>, <code><a href="window_hypergraph.html">window_hypergraph()</a></code>):</p>
     </div>
 
     <div class="section level2">
@@ -79,9 +80,9 @@ arguments, so no coercion is written at the call site:</p>
 
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
-<dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code> – more generally, any <code>net_hypergraph</code>
+<dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code> – more generally, any <code>net_hg</code>
 carrying a documents table, the one reached with
-<code>as.data.frame(hg, what = "documents")</code>.</p></dd>
+<code>hg_get(hg, what = "documents")</code>.</p></dd>
 
 
 <dt id="arg-clusters">clusters<a class="anchor" aria-label="anchor" href="#arg-clusters"></a></dt>
@@ -131,16 +132,13 @@ under <code>clusters</code>, or the <code>state</code> column of the documents t
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p></p><div class="sourceCode r"><pre><code><span><span class="va">seqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_sequences.html">hg_sequences</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, actor <span class="op">=</span> <span class="st">"student"</span>, order_by <span class="op">=</span> <span class="st">"turn"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/build_hon.html">build_hon</a></span><span class="op">(</span><span class="va">seqs</span>, action <span class="op">=</span> <span class="st">"action"</span>, actor <span class="op">=</span> <span class="st">"actor"</span>, time <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre><p></p></div>
+<span><span class="fu"><a href="../reference/hon.html">hon</a></span><span class="op">(</span><span class="va">seqs</span>, action <span class="op">=</span> <span class="st">"action"</span>, actor <span class="op">=</span> <span class="st">"actor"</span>, time <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre><p></p></div>
 <p>Those three column names are fixed, which is what makes the second call
-the same every time. The memory-family verbs that do not (yet) take the
-long form – <code><a href="build_mogen.html">build_mogen()</a></code>, <code><a href="build_hypa.html">build_hypa()</a></code>, <code><a href="markov_order_test.html">markov_order_test()</a></code> –
-read a list of trajectories instead; pass the result of <code>hg_sequences()</code>
-to them only through one of the verbs above, since a long table handed to
-them bare is read as a <em>wide</em> one (one trajectory per row) and silently
-gives the wrong model.</p>
-<p>This closes the one missing edge in the cross-family design: <code><a href="pathways.html">pathways()</a></code>
-bridges the memory family to the others and <code><a href="window_hypergraph.html">window_hypergraph()</a></code> bridges
+the same every time. Passing the long table without <code>action =</code> raises
+<code>hypernets_long_format</code>: read as wide (one trajectory per row) it would
+give the wrong model.</p>
+<p>This closes the one missing edge in the cross-family design:
+<code>hg_get(x, what = "pathways")</code> bridges the memory family to the others and <code><a href="window_hypergraph.html">window_hypergraph()</a></code> bridges
 sequences to hypergraphs, but until now the text family dead-ended at
 clustering and the caller had to assemble the sequence table themselves.</p>
     </div>
@@ -166,8 +164,8 @@ Information Processing Systems</em>, 19, 1601-1608.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="hg_cluster.html">hg_cluster()</a></code> for the partition, <code><a href="build_hon.html">build_hon()</a></code> and
-<code><a href="bootstrap_hon.html">bootstrap_hon()</a></code> for what to do with the sequences,
+    <div class="dont-index"><p><code><a href="hg_cluster.html">hg_cluster()</a></code> for the partition, <code><a href="hon.html">hon()</a></code> and
+<code><a href="hg_bootstrap.html">hg_bootstrap()</a></code> for what to do with the sequences,
 <code><a href="window_hypergraph.html">window_hypergraph()</a></code> to read them back into a hypergraph.</p></div>
     </div>
 
@@ -216,16 +214,10 @@ Information Processing Systems</em>, 19, 1601-1608.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7    bo    3   late</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8    bo    4   late</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Straight into the memory family, no further coercion.</span></span></span>
+<span class="r-in"><span><span class="co"># Into the memory family: every memory verb reads the long table.</span></span></span>
 <span class="r-in"><span><span class="va">seqs</span> <span class="op">&lt;-</span> <span class="fu">hg_sequences</span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, actor <span class="op">=</span> <span class="st">"student"</span>, order_by <span class="op">=</span> <span class="st">"turn"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="build_hon.html">build_hon</a></span><span class="op">(</span><span class="va">seqs</span>, action <span class="op">=</span> <span class="st">"action"</span>, actor <span class="op">=</span> <span class="st">"actor"</span>, time <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>          max_order <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Higher-Order Network (HON)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Nodes:        2 (2 first-order states)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Edges:        4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Max order:    1 (requested 2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Min freq:     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Trajectories: 2</span>
+<span class="r-in"><span><span class="fu"><a href="hon.html">hon</a></span><span class="op">(</span><span class="va">seqs</span>, action <span class="op">=</span> <span class="st">"action"</span>, actor <span class="op">=</span> <span class="st">"actor"</span>, time <span class="op">=</span> <span class="st">"time"</span>, max_order <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone):</span> unused argument (timezone = timezone)</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

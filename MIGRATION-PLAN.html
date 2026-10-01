@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -40,11 +41,13 @@
       <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/MIGRATION-PLAN.md" class="external-link"><code>MIGRATION-PLAN.md</code></a></small>
     </div>
 
+
+<p>Superseded by ROADMAP.md (2026-09-29); kept as history.</p>
 <div id="migration-plan--texthypergraph-folds-into-hypernets" class="section level1">
 
 <p><strong>Status (2026-09-01): EXECUTED in the working tree, uncommitted.</strong> See <code>HANDOFF.md</code> / <code>CHANGES.md</code> for what was done and the measured results. Deviations from the plan below, found while executing it:</p>
 <ul><li>
-<code>Nestimate::bipartite_groups()</code> does not exist in hypernets under that name; it is <code>group_hypergraph(member =)</code> — a pure rename with <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> output (verified on binary and weighted builds). Four call sites and all test fixtures were renamed.</li>
+<code><a href="https://saqr.me/Nestimate/reference/bipartite_groups.html" class="external-link">Nestimate::bipartite_groups()</a></code> does not exist in hypernets under that name; it is <code>group_hypergraph(member =)</code> — a pure rename with <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> output (verified on binary and weighted builds). Four call sites and all test fixtures were renamed.</li>
 <li>The spectral S3 methods: <strong>hypernets’ were kept, not ours</strong> — they are the superset (plot methods, <code>top =</code>, scalar <code>edge_weights</code>, window-count defaults). Only the <code>normalization</code> argument and its helper (<code>.hl_score_predictions()</code>) were ported.</li>
 <li>
 <code><a href="reference/hg_pagerank.html">hg_pagerank()</a></code> stays as the tidy verb (personalization, sparse path, convergence warning) beside <code>hypergraph_centrality(type = "pagerank")</code>; parity to <code>1e-10</code> is tested rather than merging the two engines.</li>
@@ -59,7 +62,7 @@
 <code>texthypergraph</code> is 52% generic hypergraph math, and ~1,100 of those lines duplicate hypernets exactly (verified numerically identical this session, not assumed).</li>
 <li>
 <strong>The merge drops the <code>Nestimate</code> dependency.</strong> texthypergraph imports three Nestimate functions in code — <code>bipartite_groups</code>, <code>hypergraph_measures</code>, <code>hypergraph_centrality</code> (<code>wtna</code> appears only in comments). hypernets already has all three. CRAN’s Nestimate is 0.8.5 while texthypergraph requires &gt;= 0.9.0, so today texthypergraph <strong>cannot</strong> be submitted; merged, the dependency disappears and the blocker with it.</li>
-<li>The families are loosely coupled: memory and simplicial call nothing in the hypergraph family, and the only cross-family call is <code><a href="reference/build_hypergraph.html">build_hypergraph()</a></code> -&gt; <code><a href="reference/build_simplicial.html">build_simplicial()</a></code>. Four families coexist with file prefixes, no tangle.</li>
+<li>The families are loosely coupled: memory and simplicial call nothing in the hypergraph family, and the only cross-family call is <code>build_hypergraph()</code> -&gt; <code>build_simplicial()</code>. Four families coexist with file prefixes, no tangle.</li>
 </ul></div>
 <div class="section level2">
 <h2 id="prerequisite--both-trees-are-dirty-commit-before-moving-anything">Prerequisite — both trees are dirty. Commit before moving anything.<a class="anchor" aria-label="anchor" href="#prerequisite--both-trees-are-dirty-commit-before-moving-anything"></a></h2>
@@ -104,7 +107,7 @@
 </tr><tr><td><code>hg_project(method = "clique")</code></td>
 <td>
 <code>R/hypergraph_expansion.R</code> (93)</td>
-<td>both — <code><a href="reference/clique_expansion.html">clique_expansion()</a></code> stays as the engine, <code><a href="reference/hg_project.html">hg_project()</a></code> as the tidy verb, with an <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity test</td>
+<td>both — <code>clique_expansion()</code> stays as the engine, <code><a href="reference/hg_project.html">hg_project()</a></code> as the tidy verb, with an <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> parity test</td>
 </tr><tr><td><code>text_hypergraph(construction = "window")</code></td>
 <td>
 <code>R/hypergraph_window.R</code> (312)</td>
@@ -173,9 +176,10 @@
 </ul></div>
 <div class="section level2">
 <h2 id="not-in-scope">Not in scope<a class="anchor" aria-label="anchor" href="#not-in-scope"></a></h2>
-<p>Moving <code><a href="reference/build_hypergraph.html">build_hypergraph()</a></code> out of hypernets (it needs <code><a href="reference/build_simplicial.html">build_simplicial()</a></code> — this is what killed hypernets), any new methods, and the remaining v0.7 roadmap items.</p>
+<p>Moving <code>build_hypergraph()</code> out of hypernets (it needs <code>build_simplicial()</code> — this is what killed hypernets), any new methods, and the remaining v0.7 roadmap items.</p>
 </div>
 </div>
+
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

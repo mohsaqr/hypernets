@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -40,6 +41,8 @@
       <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/TODO-text.md" class="external-link"><code>TODO-text.md</code></a></small>
     </div>
 
+
+<p>Superseded by ROADMAP.md (2026-09-29); kept as history.</p>
 <div id="hypernets-text-and-hypergraph-backlog" class="section level1">
 
 <p>This is the maintained backlog after the texthypergraph merge. Historical Nestimate-era tasks are recorded in <code>ROADMAP-text.md</code>; hypernets does not depend on Nestimate and no work in this list requires modifying it.</p>
@@ -55,13 +58,13 @@
 </ul></div>
 <div class="section level2">
 <h2 id="statistical-and-ecosystem-completions">Statistical and ecosystem completions<a class="anchor" aria-label="anchor" href="#statistical-and-ecosystem-completions"></a></h2>
-<ul class="task-list"><li><label><input type="checkbox" checked>Add <code><a href="reference/wasserstein_distance.html">wasserstein_distance()</a></code> for persistence diagrams, using the SimplicialComplex/GUDHI finite-order and ground-metric conventions and an exact native assignment solver.</label></li>
+<ul class="task-list"><li><label><input type="checkbox" checked>Add <code>wasserstein_distance()</code> for persistence diagrams, using the SimplicialComplex/GUDHI finite-order and ground-metric conventions and an exact native assignment solver.</label></li>
 <li><label><input type="checkbox" checked>Add random hypergraph generators: Bernoulli-incidence G(n,p), SBM, k-uniform and k-regular, with <code>hg_*</code> and <code>hypergraph_*</code> names.</label></li>
 <li><label><input type="checkbox" checked>Add an independent XGI oracle runner for clique, Z and H centralities; XGI remains a local-validation dependency, never a runtime dependency.</label></li>
 <li><label><input type="checkbox" checked>Run a ten-seed UMAP/HDBSCAN baseline on R8, including a matched eight-cluster control, paired effects, and bootstrap confidence intervals.</label></li>
 <li><label><input type="checkbox" checked>Run the promised benchmark through the actual Python <code>BERTopic</code> class (0.17.4, <code>all-MiniLM-L6-v2</code>, ten seeds, three variants, two hypernets arms; <code>benchmarks/run_bertopic_benchmark.R</code>, results in <code>benchmarks/RESULTS.md</code> and the benchmarks article). The modular UMAP/HDBSCAN baseline keeps its own label.</label></li>
 <li><label><input type="checkbox" checked>Add worst-community weighted conductance to hypergraph community-quality output.</label></li>
-<li><label><input type="checkbox" checked>Ship one dedicated embedding wrapper under both <code><a href="reference/hg_embed.html">hg_embed()</a></code> and <code><a href="reference/hg_embed.html">hypergraph_embed()</a></code>, delegating to the existing spectral/NMF engine.</label></li>
+<li><label><input type="checkbox" checked>Ship one dedicated embedding wrapper under both <code><a href="reference/hg_embed.html">hg_embed()</a></code> and <code>hypergraph_embed()</code>, delegating to the existing spectral/NMF engine.</label></li>
 </ul></div>
 <div class="section level2">
 <h2 id="legal-hypergraphs-reproduction">Legal Hypergraphs reproduction<a class="anchor" aria-label="anchor" href="#legal-hypergraphs-reproduction"></a></h2>
@@ -76,6 +79,7 @@
 <li><label><input type="checkbox">CRAN submission and flagship hypernets paper.</label></li>
 </ul></div>
 </div>
+
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

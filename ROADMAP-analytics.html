@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -40,6 +41,8 @@
       <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/ROADMAP-analytics.md" class="external-link"><code>ROADMAP-analytics.md</code></a></small>
     </div>
 
+
+<p>Superseded by ROADMAP.md (2026-09-29); kept as history.</p>
 <div id="roadmap--analytical-capability" class="section level1">
 
 <p>Status 2026-09-20. Companion to <code>ROADMAP-text.md</code> (constructions) and <code>EXPANSION-PLAN.md</code> (family structure). Those two describe what hypernets can <em>represent</em>. This one describes what it can <em>conclude</em>, which is currently almost nothing.</p>
@@ -49,16 +52,16 @@
 <p>The whole inferential surface is four verbs, and none relates structure to anything outside itself:</p>
 <table class="table"><thead><tr><th>Verb</th>
 <th>Question it answers</th>
-</tr></thead><tbody><tr><td><code><a href="reference/bootstrap_hon.html">bootstrap_hon()</a></code></td>
+</tr></thead><tbody><tr><td><code>bootstrap_hon()</code></td>
 <td>are these edges stable under resampling?</td>
 </tr><tr><td><code>compare_hon(x, y)</code></td>
 <td>do <strong>exactly two</strong> groups differ?</td>
 </tr><tr><td><code><a href="reference/hg_null_test.html">hg_null_test()</a></code></td>
 <td>does this structure differ from a random null?</td>
-</tr><tr><td><code><a href="reference/markov_order_test.html">markov_order_test()</a></code></td>
+</tr><tr><td><code>markov_order_test()</code></td>
 <td>how far back does memory reach?</td>
 </tr></tbody></table><p>So the package characterises higher-order structure in great detail and cannot answer the questions its users actually have: <em>does this pattern predict the outcome? does it differ across conditions, controlling for prior attainment, with students nested in classes? which people show which structure?</em></p>
-<p>It is descriptive and unsupervised end to end. Everything upstream already produces the inputs an inferential layer would need — <code><a href="reference/build_honem.html">build_honem()</a></code> returns per-node vector features, <code><a href="reference/hg_embed.html">hg_embed()</a></code> spectral embeddings, <code><a href="reference/hg_cluster.html">hg_cluster()</a></code> per-document assignments — and all of it dead-ends.</p>
+<p>It is descriptive and unsupervised end to end. Everything upstream already produces the inputs an inferential layer would need — <code>build_honem()</code> returns per-node vector features, <code><a href="reference/hg_embed.html">hg_embed()</a></code> spectral embeddings, <code><a href="reference/hg_cluster.html">hg_cluster()</a></code> per-document assignments — and all of it dead-ends.</p>
 </div>
 <div class="section level2">
 <h2 id="design-constraints-non-negotiable-from-claudemd">Design constraints (non-negotiable, from CLAUDE.md)<a class="anchor" aria-label="anchor" href="#design-constraints-non-negotiable-from-claudemd"></a></h2>
@@ -75,18 +78,19 @@
 </ol></div>
 <div class="section level2">
 <h2 id="tier-a--structure-to-outcome">Tier A — structure to outcome<a class="anchor" aria-label="anchor" href="#tier-a--structure-to-outcome"></a></h2>
+<p><strong>Status 2026-09-29: SIDELINED to <code>workinprogress/hon_outcome/</code>.</strong> Built in 0.5.0, withdrawn in 0.5.1: the per-actor “exposure” features (visit-weighted mean of node centrality / HONEM coordinate) have no published reference. Revive only with a referenced feature construction (see <code>workinprogress/README.md</code>).</p>
 <p>The multiplier. Converts the package from “describes structure” to “explains learning”.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/hon_outcome.html">hon_outcome</a></span><span class="op">(</span><span class="va">fit</span>, outcome <span class="op">=</span> <span class="va">scores</span>, by <span class="op">=</span> <span class="st">"student"</span>,</span>
+<code class="sourceCode R"><span><span class="fu">hon_outcome</span><span class="op">(</span><span class="va">fit</span>, outcome <span class="op">=</span> <span class="va">scores</span>, by <span class="op">=</span> <span class="st">"student"</span>,</span>
 <span>            features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"centrality"</span>, <span class="st">"honem"</span><span class="op">)</span>, nested_in <span class="op">=</span> <span class="st">"class"</span><span class="op">)</span></span></code></pre></div>
 <ul><li>
-<strong>Input</strong>: a <code>net_hon</code> / <code>net_mogen</code> / <code>net_hypa</code>, or a hypergraph, plus an outcome keyed by actor. Features come from the verbs that already exist — <code><a href="reference/hon_centrality.html">hon_centrality()</a></code>, <code><a href="reference/build_honem.html">build_honem()</a></code>, <code><a href="reference/hg_embed.html">hg_embed()</a></code>, <code><a href="reference/hg_centrality.html">hg_centrality()</a></code> — so this is an assembly and inference layer, not new mathematics.</li>
+<strong>Input</strong>: a <code>net_hon</code> / <code>net_mogen</code> / <code>net_hypa</code>, or a hypergraph, plus an outcome keyed by actor. Features come from the verbs that already exist — <code>hon_centrality()</code>, <code>build_honem()</code>, <code><a href="reference/hg_embed.html">hg_embed()</a></code>, <code><a href="reference/hg_centrality.html">hg_centrality()</a></code> — so this is an assembly and inference layer, not new mathematics.</li>
 <li>
 <strong>Return</strong>: <code>net_outcome</code>, whose <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> is one row per feature with <code>estimate</code>, <code>conf_low</code>, <code>conf_high</code>, <code>p</code>, <code>p_adj</code>, <code>n</code>. <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> reports model fit and what was corrected for; <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> is a coefficient plot with intervals.</li>
 <li>
 <strong>Inference</strong>: OLS/GLM by default; <code>nested_in =</code> switches to cluster-robust standard errors (base R, no dependency) or a mixed model where a backend is available and permitted. Multiplicity across features is BH-corrected and the correction is named in the result.</li>
 <li>
-<strong>Naming</strong>: <code><a href="reference/hon_outcome.html">hon_outcome()</a></code> / <code>hg_outcome()</code> pairs with the existing <code><a href="reference/hon_centrality.html">hon_centrality()</a></code> / <code><a href="reference/hg_centrality.html">hg_centrality()</a></code>, and keeps the noun “outcome” that <code>codyna</code> already uses (<code>analyzeOutcome</code>). <strong>Open decision</strong> — the taxonomy says inference verbs are <code>bootstrap_*</code>, <code>compare_*</code>, <code>*_test</code>, and an outcome model is none of those.</li>
+<strong>Naming</strong>: <code>hon_outcome()</code> / <code>hg_outcome()</code> pairs with the existing <code>hon_centrality()</code> / <code><a href="reference/hg_centrality.html">hg_centrality()</a></code>, and keeps the noun “outcome” that <code>codyna</code> already uses (<code>analyzeOutcome</code>). <strong>Open decision</strong> — the taxonomy says inference verbs are <code>bootstrap_*</code>, <code>compare_*</code>, <code>*_test</code>, and an outcome model is none of those.</li>
 <li>
 <strong>Verification</strong>: coefficients and standard errors must match <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">stats::lm</a></code> / <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm</a></code> on the same design matrix to <code>&lt; 1e-10</code>; cluster-robust SEs against a hand-computed sandwich estimator and against <code>sandwich::vcovCL</code> where installed; a simulation showing nominal coverage of the intervals at a known effect size over multiple seeds.</li>
 </ul><p><strong>Risk to name honestly.</strong> The features are high-dimensional and collinear, the sample is actors rather than transitions, and it is easy to ship a verb that produces confident nonsense. The coverage simulation is not optional garnish — it is the thing that makes this verb publishable rather than dangerous.</p>
@@ -95,22 +99,23 @@
 <h2 id="tier-b--comparison-beyond-two-pooled-groups">Tier B — comparison beyond two pooled groups<a class="anchor" aria-label="anchor" href="#tier-b--comparison-beyond-two-pooled-groups"></a></h2>
 <p><code>compare_hon(x, y, ...)</code> is hard-wired to two groups, pooled, no covariates. Learning data is many groups, nested, with covariates. Pooled two-group permutation is the wrong model for students in classes, and CLAUDE.md’s own statistics rules say so.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/compare_hon.html">compare_hon</a></span><span class="op">(</span><span class="va">fit</span>, by <span class="op">=</span> <span class="st">"condition"</span>, covariates <span class="op">=</span> <span class="op">~</span> <span class="va">prior_score</span>,</span>
+<code class="sourceCode R"><span><span class="fu">compare_hon</span><span class="op">(</span><span class="va">fit</span>, by <span class="op">=</span> <span class="st">"condition"</span>, covariates <span class="op">=</span> <span class="op">~</span> <span class="va">prior_score</span>,</span>
 <span>            nested_in <span class="op">=</span> <span class="st">"class"</span><span class="op">)</span></span></code></pre></div>
 <ul><li>Generalise <code>by =</code> to k groups; keep the present two-argument form working.</li>
 <li>Permutation respects the nesting: shuffle labels <strong>within</strong> clusters, not across them, or the null is wrong.</li>
 <li>Return keeps the existing <code>net_*</code> shape with an added contrast column; BH across contrasts.</li>
 <li>
-<strong>Verification</strong>: with two groups and no covariates, results must be <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> to today’s <code><a href="reference/compare_hon.html">compare_hon()</a></code> — a frozen regression fixture. The within-cluster permutation gets the same uniformity check that <code><a href="reference/markov_order_test.html">markov_order_test()</a></code> already has (KS against U(0,1) under a true null).</li>
+<strong>Verification</strong>: with two groups and no covariates, results must be <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> to today’s <code>compare_hon()</code> — a frozen regression fixture. The within-cluster permutation gets the same uniformity check that <code>markov_order_test()</code> already has (KS against U(0,1) under a true null).</li>
 </ul></div>
 <div class="section level2">
 <h2 id="tier-c--idiographic-higher-order-models">Tier C — idiographic higher-order models<a class="anchor" aria-label="anchor" href="#tier-c--idiographic-higher-order-models"></a></h2>
+<p><strong>Status 2026-09-29: REJECTED as specified; moved to <code>workinprogress/hon_per_actor/</code>.</strong> One BuildHON per actor/session overfits (median session: 17 transitions -&gt; 8 nodes, 14 edges, spurious 2nd-4th order memory) and yields incomparable node sets. Nestimate’s “per session” means sessions are trajectories of ONE pooled model – already the behaviour of <code>build_hon(actor = "session_id")</code>. <strong>Replacement to consider:</strong> a <em>group</em> model, one HON per group (condition / cohort / human vs AI) with enough data per group – the higher-order analogue of TNA group models. Needs a reference before building.</p>
 <p>Everything currently pools across people, discarding the variation learning research exists to study. One model per actor, then compare, cluster and relate those models to outcomes. The sibling <code>idiographic</code> package sets the precedent.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/build_hon.html">build_hon</a></span><span class="op">(</span><span class="va">sequences</span>, by <span class="op">=</span> <span class="st">"student"</span><span class="op">)</span>   <span class="co"># net_hon_group</span></span>
+<code class="sourceCode R"><span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu">build_hon</span><span class="op">(</span><span class="va">sequences</span>, by <span class="op">=</span> <span class="st">"student"</span><span class="op">)</span>   <span class="co"># net_hon_group</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fits</span><span class="op">)</span>                            <span class="co"># one row per student per edge</span></span>
 <span><span class="fu"><a href="reference/hg_cluster.html">hg_cluster</a></span><span class="op">(</span><span class="va">fits</span><span class="op">)</span>                               <span class="co"># types of learner</span></span>
-<span><span class="fu"><a href="reference/hon_outcome.html">hon_outcome</a></span><span class="op">(</span><span class="va">fits</span>, outcome <span class="op">=</span> <span class="va">scores</span><span class="op">)</span>            <span class="co"># Tier A consumes it directly</span></span></code></pre></div>
+<span><span class="fu">hon_outcome</span><span class="op">(</span><span class="va">fits</span>, outcome <span class="op">=</span> <span class="va">scores</span><span class="op">)</span>            <span class="co"># Tier A consumes it directly</span></span></code></pre></div>
 <ul><li>A <code>net_hon_group</code> container with the usual four methods, so per-actor models are first-class rather than a list the user loops over.</li>
 <li>Sparse-data guards: most actors have short sequences. Report per-actor support and raise <code>hypernets_insufficient_support</code> rather than returning a confidently wrong per-person model.</li>
 </ul></div>
@@ -121,16 +126,16 @@
 <code class="sourceCode R"><span><span class="fu"><a href="reference/hg_sequences.html">hg_sequences</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, actor <span class="op">=</span> <span class="st">"student"</span>, order_by <span class="op">=</span> <span class="st">"turn"</span><span class="op">)</span></span></code></pre></div>
 <ul><li>
 <strong>Return</strong>: the long sequence table <code>actor</code> / <code>time</code> / <code>action</code>. CORRECTED 2026-09-20 after implementation — the first draft of this section was wrong twice, and both errors were caught by running the code:
-<ul><li>Only <code><a href="reference/build_hon.html">build_hon()</a></code>, <code><a href="reference/bootstrap_hon.html">bootstrap_hon()</a></code>, <code><a href="reference/compare_hon.html">compare_hon()</a></code> and <code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code> take <code>action</code>/<code>actor</code>/<code>time</code>. <code><a href="reference/build_mogen.html">build_mogen()</a></code>, <code><a href="reference/build_hypa.html">build_hypa()</a></code>, <code><a href="reference/markov_order_test.html">markov_order_test()</a></code> and <code><a href="reference/path_dependence.html">path_dependence()</a></code> do <strong>not</strong>. Giving those four the long-form arguments is a real gap, and memory-family surgery beyond this tier.</li>
+<ul><li>Only <code>build_hon()</code>, <code>bootstrap_hon()</code>, <code>compare_hon()</code> and <code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code> take <code>action</code>/<code>actor</code>/<code>time</code>. <code>build_mogen()</code>, <code>build_hypa()</code>, <code>markov_order_test()</code> and <code>path_dependence()</code> do <strong>not</strong>. Giving those four the long-form arguments is a real gap, and memory-family surgery beyond this tier.</li>
 <li>A bare <code>build_hon(seqs)</code> does <strong>not</strong> work and does <strong>not</strong> error. It silently reads the long table as a wide one, one trajectory per row, so <code>actor</code> ids and timestamps become states: a 2-actor x 4-turn table yields states <code>1, 2, 3, 4, A, B, C, s1, s2</code> and 8 “trajectories” instead of 3 states and 2. See the defect below.</li>
 </ul></li>
-<li>This closes the one missing edge in the cross-family design: <code><a href="reference/pathways.html">pathways()</a></code> bridges memory to the other families and <code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code> bridges sequences to hypergraphs, but the text family dead-ends at clustering.</li>
+<li>This closes the one missing edge in the cross-family design: <code>pathways()</code> bridges memory to the other families and <code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code> bridges sequences to hypergraphs, but the text family dead-ends at clustering.</li>
 <li>
 <strong>Verification</strong>: round-trip against the hand-written join above on a fixed corpus (<code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code>); sequence construction cross-checked against <code>TraMineR</code> / <code>tna</code> / <code>codyna</code> rather than a Python oracle.</li>
 </ul></div>
 <div class="section level2">
 <h2 id="defect-found-while-building-tier-d--silent-misread-of-a-long-table">Defect found while building Tier D — silent misread of a long table<a class="anchor" aria-label="anchor" href="#defect-found-while-building-tier-d--silent-misread-of-a-long-table"></a></h2>
-<p><code><a href="reference/build_hon.html">build_hon()</a></code> cannot tell a long sequence table from a wide one and assumes wide, without an error or a warning. Verified 2026-09-20:</p>
+<p><code>build_hon()</code> cannot tell a long sequence table from a wide one and assumes wide, without an error or a warning. Verified 2026-09-20:</p>
 <table class="table"><thead><tr><th>call</th>
 <th>nodes</th>
 <th>trajectories</th>
@@ -147,11 +152,11 @@
 <h2 id="tier-e--markov-order-and-the-memory-familys-loose-ends">Tier E — Markov order and the memory family’s loose ends<a class="anchor" aria-label="anchor" href="#tier-e--markov-order-and-the-memory-familys-loose-ends"></a></h2>
 <p>Small next to A–D, but they sit on the same code and are cheap.</p>
 <ol style="list-style-type: decimal"><li>
-<strong><code><a href="reference/markov_stability.html">markov_stability()</a></code> is missing.</strong> <code>Nestimate</code> 0.9.12 exports it and the JS <code>tnaj</code> has <code>markovStability</code>; hypernets is the only one of the three without it. Decide: port it, or state that hypernets deliberately does not carry it. <code>extract_pathways</code> is in the same position.</li>
+<strong><code>markov_stability()</code> is missing.</strong> <code>Nestimate</code> 0.9.12 exports it and the JS <code>tnaj</code> has <code>markovStability</code>; hypernets is the only one of the three without it. Decide: port it, or state that hypernets deliberately does not carry it. <code>extract_pathways</code> is in the same position.</li>
 <li>
-<strong>R↔︎JS equivalence for the order test.</strong> <code><a href="reference/markov_order_test.html">hypernets::markov_order_test()</a></code> and <code>tnaj::markovOrderTest()</code> are the same method in two languages on one machine, never compared. CLAUDE.md mandates cross-language numerical equivalence, and the workspace already has a <code>validation/</code> runner (R→JSON→TS) built for exactly this.</li>
+<strong>R↔︎JS equivalence for the order test.</strong> <code>hypernets::markov_order_test()</code> and <code>tnaj::markovOrderTest()</code> are the same method in two languages on one machine, never compared. CLAUDE.md mandates cross-language numerical equivalence, and the workspace already has a <code>validation/</code> runner (R→JSON→TS) built for exactly this.</li>
 <li>
-<strong>The cross-package identity test does not run.</strong> <code>Nestimate/local_testing_and_equivalence/test-equiv-honets.R:12</code> is <code>skip_if_not_installed("honets")</code> — a package renamed to <code>hypernets</code> at 0.4.0 — so it has skipped silently since the rename. Meanwhile Nestimate touched the memory family on 2026-09-13 (0.9.5) and hypernets’ copy last moved 2026-09-06. Re-home the test <strong>into hypernets</strong> comparing against installed <code>Nestimate</code>, rather than editing Nestimate (forbidden from here). A read-only diff on 2026-09-20 found <code>markov_order.R</code> differing only in <code>invisible(out)</code> and hypernets’ added <code><a href="reference/as.data.frame.net_markov_order.html">as.data.frame.net_markov_order()</a></code> — no mathematics — but the other five memory files were not audited.</li>
+<strong>The cross-package identity test does not run.</strong> <code>Nestimate/local_testing_and_equivalence/test-equiv-honets.R:12</code> is <code>skip_if_not_installed("honets")</code> — a package renamed to <code>hypernets</code> at 0.4.0 — so it has skipped silently since the rename. Meanwhile Nestimate touched the memory family on 2026-09-13 (0.9.5) and hypernets’ copy last moved 2026-09-06. Re-home the test <strong>into hypernets</strong> comparing against installed <code>Nestimate</code>, rather than editing Nestimate (forbidden from here). A read-only diff on 2026-09-20 found <code>markov_order.R</code> differing only in <code>invisible(out)</code> and hypernets’ added <code>as.data.frame.net_markov_order()</code> — no mathematics — but the other five memory files were not audited.</li>
 <li>
 <strong>The equivalence gate is misdocumented.</strong> <code>CLAUDE.md:114</code> says <code>HYPERNETS_EQUIV_TESTS</code>; <code>helper-equiv-gate.R</code> reads <code>HONETS_EQUIV_TESTS</code>. Following the documentation skips all 31 oracle files and reports <code>[ FAIL 0 | PASS 0 ]</code>. One-line fix, and until it is fixed nobody knows what that suite says.</li>
 </ol></div>
@@ -184,12 +189,13 @@
 </tr></tbody></table></div>
 <div class="section level2">
 <h2 id="open-questions-for-the-author">Open questions for the author<a class="anchor" aria-label="anchor" href="#open-questions-for-the-author"></a></h2>
-<ul><li>Naming: <code><a href="reference/hon_outcome.html">hon_outcome()</a></code> / <code>hg_outcome()</code>, or fold into the existing <code>compare_*</code> grammar? The taxonomy does not currently have a slot for a supervised verb.</li>
+<ul><li>Naming: <code>hon_outcome()</code> / <code>hg_outcome()</code>, or fold into the existing <code>compare_*</code> grammar? The taxonomy does not currently have a slot for a supervised verb.</li>
 <li>Mixed-effects backend: accept a Suggests dependency, or ship cluster-robust standard errors only and stay base-R? Cluster-robust covers most learning designs and costs nothing.</li>
 <li>Does Tier C belong here or in <code>idiographic</code>? The sibling exists; duplicating it would repeat the Nestimate divergence this roadmap is trying to close.</li>
 <li>Scope: are hypergraph-side outcomes (<code>hg_outcome()</code>) wanted in the same pass, or is the memory family enough to prove the design?</li>
 </ul></div>
 </div>
+
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

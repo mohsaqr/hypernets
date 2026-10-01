@@ -15,7 +15,7 @@ structure families, and hypernets implements all three behind one taxonomy."></h
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,6 +27,7 @@ structure families, and hypernets implements all three behind one taxonomy."></h
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -59,6 +60,24 @@ structure families, and hypernets implements all three behind one taxonomy.</p>
 
 
     <div class="section level2">
+    <h2 id="ownership">Ownership<a class="anchor" aria-label="anchor" href="#ownership"></a></h2>
+
+
+
+<p>The memory-network and simplicial-complex estimators are imported from a
+sibling estimation package; hypernets wraps them under its own names
+(<code><a href="hon.html">hon()</a></code>, <code><a href="honem.html">honem()</a></code>, <code><a href="mogen.html">mogen()</a></code>, <code><a href="hypa.html">hypa()</a></code>, <code><a href="markov_order.html">markov_order()</a></code>,
+<code><a href="memory.html">memory()</a></code>, <code><a href="hg_markov_stability.html">hg_markov_stability()</a></code>, <code><a href="simplicial.html">simplicial()</a></code>,
+<code><a href="hg_homology.html">hg_homology()</a></code>, <code><a href="hg_landscape.html">hg_landscape()</a></code>, <code><a href="hg_bottleneck.html">hg_bottleneck()</a></code>, <code><a href="hg_betti.html">hg_betti()</a></code>,
+<code><a href="hg_euler.html">hg_euler()</a></code>, <code><a href="hg_qanalysis.html">hg_qanalysis()</a></code>, <code><a href="hg_degree.html">hg_degree()</a></code>) and returns their result
+objects unchanged, so every number is the estimator's own. The wrappers
+add one sequence-input contract (long, wide, list or model input; see
+<a href="sequence-input.html">sequence-input</a>), the <code><a href="hg_get.html">hg_get()</a></code> reader for every result class, and the
+verbs hypernets computes itself on top of them (<code><a href="hg_bootstrap.html">hg_bootstrap()</a></code>,
+<code><a href="hg_compare.html">hg_compare()</a></code>, <code><a href="hg_centrality.html">hg_centrality()</a></code>, <code><a href="hg_communities.html">hg_communities()</a></code>,
+<code><a href="hg_wasserstein.html">hg_wasserstein()</a></code>). The hypergraph and text families are hypernets' own.</p>
+    </div>
+    <div class="section level2">
     <h2 id="the-three-families">The three families<a class="anchor" aria-label="anchor" href="#the-three-families"></a></h2>
 
 
@@ -67,37 +86,37 @@ structure families, and hypernets implements all three behind one taxonomy.</p>
 <dd><p>A node is a state <em>plus the memory of how it
 was reached</em>, so a relation depends on history rather than only on the
 present state. Built from categorical sequences.
-Constructors <code><a href="build_hon.html">build_hon()</a></code>, <code><a href="build_honem.html">build_honem()</a></code>, <code><a href="build_hypa.html">build_hypa()</a></code>,
-<code><a href="build_mogen.html">build_mogen()</a></code>; diagnostics <code><a href="markov_order_test.html">markov_order_test()</a></code>,
-<code><a href="path_dependence.html">path_dependence()</a></code>; inference <code><a href="bootstrap_hon.html">bootstrap_hon()</a></code>, <code><a href="compare_hon.html">compare_hon()</a></code>;
-measures <code><a href="hon_centrality.html">hon_centrality()</a></code>.</p></dd>
+Constructors <code><a href="hon.html">hon()</a></code>, <code><a href="honem.html">honem()</a></code>, <code><a href="hypa.html">hypa()</a></code>,
+<code><a href="mogen.html">mogen()</a></code>; diagnostics <code><a href="markov_order.html">markov_order()</a></code>,
+<code><a href="memory.html">memory()</a></code>; inference <code><a href="hg_bootstrap.html">hg_bootstrap()</a></code>, <code><a href="hg_compare.html">hg_compare()</a></code>;
+measures <code><a href="hg_centrality.html">hg_centrality()</a></code>.</p></dd>
 
 <dt><strong>Simplicial complexes</strong></dt>
 <dd><p>A relation is a set of nodes that are
 <em>all</em> mutually related, together with every one of its subsets, which
 gives the object a geometry and hence a topology.
-Constructor <code><a href="build_simplicial.html">build_simplicial()</a></code>; measures <code><a href="betti_numbers.html">betti_numbers()</a></code>,
-<code><a href="euler_characteristic.html">euler_characteristic()</a></code>, <code><a href="simplicial_degree.html">simplicial_degree()</a></code>, <code><a href="q_analysis.html">q_analysis()</a></code>;
-topology <code><a href="persistent_homology.html">persistent_homology()</a></code>, <code><a href="persistence_landscape.html">persistence_landscape()</a></code>,
-<code><a href="bottleneck_distance.html">bottleneck_distance()</a></code>, <code><a href="wasserstein_distance.html">wasserstein_distance()</a></code>.</p></dd>
+Constructor <code><a href="simplicial.html">simplicial()</a></code>; measures <code><a href="hg_betti.html">hg_betti()</a></code>,
+<code><a href="hg_euler.html">hg_euler()</a></code>, <code><a href="hg_degree.html">hg_degree()</a></code>, <code><a href="hg_qanalysis.html">hg_qanalysis()</a></code>;
+topology <code><a href="hg_homology.html">hg_homology()</a></code>, <code><a href="hg_landscape.html">hg_landscape()</a></code>,
+<code><a href="hg_bottleneck.html">hg_bottleneck()</a></code>, <code><a href="hg_wasserstein.html">hg_wasserstein()</a></code>.</p></dd>
 
 <dt><strong>Hypergraphs</strong></dt>
 <dd><p>A relation is an arbitrary set of nodes bound as
 a unit, with no requirement that its subsets also be relations.
-Constructors <code><a href="build_hypergraph.html">build_hypergraph()</a></code>, <code><a href="window_hypergraph.html">window_hypergraph()</a></code>,
+Constructors <code><a href="network_hypergraph.html">network_hypergraph()</a></code>, <code><a href="window_hypergraph.html">window_hypergraph()</a></code>,
 <code><a href="group_hypergraph.html">group_hypergraph()</a></code>, <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code>; random models
-<code><a href="hg_sample_gnp.html">hg_sample_gnp()</a></code>, <code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code>, <code><a href="hg_sample_uniform.html">hg_sample_uniform()</a></code>; measures <code><a href="hypergraph_measures.html">hypergraph_measures()</a></code>,
-<code><a href="hypergraph_centrality.html">hypergraph_centrality()</a></code>; spectral methods <code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></code>,
-<code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>, <code><a href="hypergraph_transduction.html">hypergraph_transduction()</a></code>; PageRank
-<code><a href="hg_pagerank.html">hypergraph_pagerank()</a></code>; embeddings <code><a href="hg_embed.html">hypergraph_embed()</a></code>; projections <code><a href="clique_expansion.html">clique_expansion()</a></code>,
-<code><a href="hg_project.html">hypergraph_project()</a></code>, <code><a href="hg_line_graph.html">hypergraph_line_graph()</a></code>,
-<code><a href="dual_hypergraph.html">dual_hypergraph()</a></code>; temporal views <code><a href="hypergraph_snapshot.html">hypergraph_snapshot()</a></code>,
-<code><a href="hypergraph_snapshots.html">hypergraph_snapshots()</a></code>; hyperedge tables <code><a href="hg_edges.html">hypergraph_edges()</a></code> and
-s-centrality <code><a href="hg_edge_centrality.html">hypergraph_edge_centrality()</a></code>; communities
-<code><a href="hg_communities.html">hypergraph_communities()</a></code> and <code><a href="hg_community_quality.html">hypergraph_community_quality()</a></code>; motifs
-<code><a href="hg_motifs.html">hypergraph_motifs()</a></code>; null models <code><a href="hg_null_test.html">hypergraph_null_test()</a></code>; neural networks
-<code><a href="hg_neural.html">hypergraph_neural()</a></code>, <code><a href="hg_hypergat.html">text_hypergat()</a></code>, <code><a href="heterogeneous_hgat.html">heterogeneous_hgat()</a></code>,
-<code><a href="hypergraph_hypergcn.html">hypergraph_hypergcn()</a></code>, <code><a href="hypergraph_hnhn.html">hypergraph_hnhn()</a></code>, <code><a href="hypergraph_allset.html">hypergraph_allset()</a></code>; embedding constructor
+<code><a href="hg_sample_gnp.html">hg_sample_gnp()</a></code>, <code><a href="hg_sample_sbm.html">hg_sample_sbm()</a></code>, <code><a href="hg_sample_uniform.html">hg_sample_uniform()</a></code>; measures <code><a href="hg_measures.html">hg_measures()</a></code>,
+<code><a href="hg_centrality.html">hg_centrality()</a></code>; spectral methods <code><a href="hg_laplacian.html">hg_laplacian()</a></code>,
+<code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="hg_classify.html">hg_classify()</a></code>; PageRank
+<code><a href="hg_pagerank.html">hg_pagerank()</a></code>; embeddings <code><a href="hg_embed.html">hg_embed()</a></code>; projections <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code>,
+<code><a href="hg_project.html">hg_project()</a></code>, <code><a href="hg_line_graph.html">hg_line_graph()</a></code>,
+<code><a href="dual_hypergraph.html">dual_hypergraph()</a></code>; temporal views <code><a href="hg_snapshot.html">hg_snapshot()</a></code>,
+<code><a href="hg_snapshots.html">hg_snapshots()</a></code>; hyperedge tables <code><a href="hg_edges.html">hg_edges()</a></code> and
+s-centrality <code><a href="hg_edge_centrality.html">hg_edge_centrality()</a></code>; communities
+<code><a href="hg_communities.html">hg_communities()</a></code> and <code><a href="hg_community_quality.html">hg_community_quality()</a></code>; motifs
+<code><a href="hg_motifs.html">hg_motifs()</a></code>; null models <code><a href="hg_null_test.html">hg_null_test()</a></code>; neural networks
+<code><a href="hg_neural.html">hg_neural()</a></code>, <code><a href="hg_hypergat.html">text_hypergat()</a></code>, <code><a href="heterogeneous_hgat.html">heterogeneous_hgat()</a></code>,
+<code><a href="hg_hypergcn.html">hg_hypergcn()</a></code>, <code><a href="hg_hnhn.html">hg_hnhn()</a></code>, <code><a href="hg_allset.html">hg_allset()</a></code>; embedding constructor
 <code><a href="knn_hypergraph.html">knn_hypergraph()</a></code>.</p></dd>
 
 <dt><strong>Text hypergraphs</strong></dt>
@@ -108,38 +127,39 @@ documents. Constructor <code><a href="text_hypergraph.html">text_hypergraph()</a
 windows, or embedding nearest neighbours); tidy verbs
 <code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_centrality.html">hg_centrality()</a></code>, <code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="hg_keywords.html">hg_keywords()</a></code>,
 <code><a href="hg_classify.html">hg_classify()</a></code>, <code><a href="hg_stability.html">hg_stability()</a></code>, <code><a href="hg_agreement.html">hg_agreement()</a></code>, <code><a href="hg_seeds.html">hg_seeds()</a></code>.
-Every verb also accepts any <code>net_hypergraph</code>.</p></dd>
+Every verb also accepts any <code>net_hg</code>.</p></dd>
 
 
-</dl><p>Long-form hypergraph verbs also have direct compact <code>hg_*</code> aliases; for
-example, <code><a href="hg_edges.html">hypergraph_edges()</a></code> and <code><a href="hg_edges.html">hg_edges()</a></code> are the same function.
-Existing engine names (<code><a href="hypergraph_measures.html">hypergraph_measures()</a></code>, <code><a href="hypergraph_centrality.html">hypergraph_centrality()</a></code>,
-<code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>) remain distinct from their tidy <code>hg_*</code> views.</p>
-    </div>
+</dl></div>
     <div class="section level2">
     <h2 id="verb-grammar">Verb grammar<a class="anchor" aria-label="anchor" href="#verb-grammar"></a></h2>
 
 
 
-<p>The same naming rules hold across all three families:</p>
-<dl><dt><code>build_*()</code></dt>
-<dd><p>Constructors. Always return an object of class
-<code>net_*</code>. Where a family admits several construction routes, they are
-selected with <code>type =</code>, never with a differently named argument.</p></dd>
+<p>The same naming rules hold across all families:</p>
+<dl><dt>Constructors are nouns</dt>
+<dd><p><code><a href="hon.html">hon()</a></code>, <code><a href="honem.html">honem()</a></code>, <code><a href="mogen.html">mogen()</a></code>,
+<code><a href="simplicial.html">simplicial()</a></code>, <code><a href="markov_order.html">markov_order()</a></code>, <code><a href="memory.html">memory()</a></code>,
+<code><a href="text_hypergraph.html">text_hypergraph()</a></code>,
+<code><a href="window_hypergraph.html">window_hypergraph()</a></code>, <code><a href="group_hypergraph.html">group_hypergraph()</a></code>, ... Where a family admits
+several construction routes, they are selected with <code>type =</code>.</p></dd>
 
-<dt><code>*_centrality()</code>, <code>*_measures()</code>, <code>*_degree()</code></dt>
-<dd><p>Measures. Always
-return a tidy <code>data.frame</code>, one row per node or per structure.</p></dd>
+<dt>Everything else is <code>hg_*()</code></dt>
+<dd><p>Measures return a tidy
+<code>data.frame</code>, one row per node or per structure
+(<code><a href="hg_centrality.html">hg_centrality()</a></code>, <code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_degree.html">hg_degree()</a></code>); inference
+returns a result object carrying estimates, intervals and p-values
+(<code><a href="hg_bootstrap.html">hg_bootstrap()</a></code>, <code><a href="hg_compare.html">hg_compare()</a></code>, <code><a href="hg_null_test.html">hg_null_test()</a></code>). One verb
+names one idea and dispatches on its input: <code><a href="hg_centrality.html">hg_centrality()</a></code>,
+<code><a href="hg_communities.html">hg_communities()</a></code> and <code><a href="hypa.html">hypa()</a></code> take a memory network or a
+hypergraph.</p></dd>
 
-<dt><code>bootstrap_*()</code>, <code>compare_*()</code>, <code>*_test()</code></dt>
-<dd><p>Inference. Return a
-<code>net_*</code> result object carrying estimates, intervals and p-values.</p></dd>
-
-<dt><code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>, <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code></dt>
-<dd><p>Every <code>net_*</code>
-result object supports all four. <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> is the tidy
-accessor – reaching into a result with <code>$</code> is never required, and a
-secondary table is selected with <code>what =</code>.</p></dd>
+<dt><code><a href="hg_get.html">hg_get()</a></code> is the one reader</dt>
+<dd><p>Every result object hands over its
+tables through <code>hg_get(x, what = )</code> – never through <code>$</code>. <code>what =</code>
+selects a secondary table; filters, <code>sort_by</code> and <code>top</code> are named
+arguments. hypernets' result classes also have <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>,
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> methods.</p></dd>
 
 
 </dl></div>
@@ -150,14 +170,14 @@ secondary table is selected with <code>what =</code>.</p></dd>
 
 <p>The families are entry points into one another, not islands. The text
 family is the corpus front end of the hypergraph family: a
-<code>text_hypergraph</code> <em>is</em> a <code>net_hypergraph</code>, so every hypergraph verb takes
-it, and every <code>hg_*()</code> verb takes any <code>net_hypergraph</code> in return.
-<code><a href="build_simplicial.html">build_simplicial()</a></code> with <code>type = "pathway"</code> turns a memory network into a
+<code>text_hypergraph</code> <em>is</em> a <code>net_hg</code>, so every hypergraph verb takes
+it, and every <code>hg_*()</code> verb takes any <code>net_hg</code> in return.
+<code><a href="simplicial.html">simplicial()</a></code> with <code>type = "pathway"</code> turns a memory network into a
 simplicial complex; <code><a href="window_hypergraph.html">window_hypergraph()</a></code> turns the same sequences into a
-hypergraph; <code><a href="clique_expansion.html">clique_expansion()</a></code> projects a hypergraph back to a pairwise
-network that any of the first-order tools accept. <code><a href="pathways.html">pathways()</a></code> is the
-shared accessor that hands sequence-derived path strings from the memory
-family to the other two.</p>
+hypergraph; <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code> projects a hypergraph back to a pairwise
+network that any of the first-order tools accept.
+<code>hg_get(x, what = "pathways")</code> on a memory network hands its
+sequence-derived path strings to the other two.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -169,7 +189,7 @@ interactions: Structure and dynamics. <em>Physics Reports</em>, 874, 1-92.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Useful links:</p><ul><li><p><a href="https://github.com/mohsaqr/hypernets" class="external-link">https://github.com/mohsaqr/hypernets</a></p></li>
-<li><p><a href="https://mohsaqr.github.io/hypernets">https://mohsaqr.github.io/hypernets</a></p></li>
+<li><p><a href="https://mohsaqr.github.io/hypernets/">https://mohsaqr.github.io/hypernets/</a></p></li>
 <li><p>Report bugs at <a href="https://github.com/mohsaqr/hypernets/issues" class="external-link">https://github.com/mohsaqr/hypernets/issues</a></p></li>
 </ul></div>
     </div>

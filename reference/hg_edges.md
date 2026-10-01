@@ -26,20 +26,6 @@ hg_edges(
   snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
-
-hypergraph_edges(
-  hg,
-  what = c("edges", "distribution", "summary"),
-  measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
-  s = 1L,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
 ```
 
 ## Arguments
@@ -49,7 +35,7 @@ hypergraph_edges(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  any hypernets `net_hypergraph`, or a
+  any hypernets `net_hg`, or a
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md).
 
 - what:
@@ -75,7 +61,7 @@ hypergraph_edges(
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal: the bounds of the period, how often to look,
   how much time each look covers, or the instants themselves.
 
@@ -83,7 +69,7 @@ hypergraph_edges(
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 ## Value

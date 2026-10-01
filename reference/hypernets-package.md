@@ -7,6 +7,40 @@ literature (Battiston et al. 2020; Bianconi 2021) organizes that idea
 into three structure families, and hypernets implements all three behind
 one taxonomy.
 
+## Ownership
+
+The memory-network and simplicial-complex estimators are imported from a
+sibling estimation package; hypernets wraps them under its own names
+([`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+[`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md),
+[`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md),
+[`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md),
+[`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+[`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md),
+[`hg_markov_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_markov_stability.md),
+[`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md),
+[`hg_homology()`](https://mohsaqr.github.io/hypernets/reference/hg_homology.md),
+[`hg_landscape()`](https://mohsaqr.github.io/hypernets/reference/hg_landscape.md),
+[`hg_bottleneck()`](https://mohsaqr.github.io/hypernets/reference/hg_bottleneck.md),
+[`hg_betti()`](https://mohsaqr.github.io/hypernets/reference/hg_betti.md),
+[`hg_euler()`](https://mohsaqr.github.io/hypernets/reference/hg_euler.md),
+[`hg_qanalysis()`](https://mohsaqr.github.io/hypernets/reference/hg_qanalysis.md),
+[`hg_degree()`](https://mohsaqr.github.io/hypernets/reference/hg_degree.md))
+and returns their result objects unchanged, so every number is the
+estimator's own. The wrappers add one sequence-input contract (long,
+wide, list or model input; see
+[sequence-input](https://mohsaqr.github.io/hypernets/reference/sequence-input.md)),
+the
+[`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+reader for every result class, and the verbs hypernets computes itself
+on top of them
+([`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md),
+[`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md),
+[`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
+[`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md),
+[`hg_wasserstein()`](https://mohsaqr.github.io/hypernets/reference/hg_wasserstein.md)).
+The hypergraph and text families are hypernets' own.
+
 ## The three families
 
 - **Memory networks**:
@@ -14,41 +48,41 @@ one taxonomy.
   A node is a state *plus the memory of how it was reached*, so a
   relation depends on history rather than only on the present state.
   Built from categorical sequences. Constructors
-  [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
-  [`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md),
-  [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
-  [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md);
+  [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+  [`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md),
+  [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md),
+  [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md);
   diagnostics
-  [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md),
-  [`path_dependence()`](https://mohsaqr.github.io/hypernets/reference/path_dependence.md);
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md);
   inference
-  [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md),
-  [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md);
+  [`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md),
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md);
   measures
-  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md).
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md).
 
 - **Simplicial complexes**:
 
   A relation is a set of nodes that are *all* mutually related, together
   with every one of its subsets, which gives the object a geometry and
   hence a topology. Constructor
-  [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md);
+  [`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md);
   measures
-  [`betti_numbers()`](https://mohsaqr.github.io/hypernets/reference/betti_numbers.md),
-  [`euler_characteristic()`](https://mohsaqr.github.io/hypernets/reference/euler_characteristic.md),
-  [`simplicial_degree()`](https://mohsaqr.github.io/hypernets/reference/simplicial_degree.md),
-  [`q_analysis()`](https://mohsaqr.github.io/hypernets/reference/q_analysis.md);
+  [`hg_betti()`](https://mohsaqr.github.io/hypernets/reference/hg_betti.md),
+  [`hg_euler()`](https://mohsaqr.github.io/hypernets/reference/hg_euler.md),
+  [`hg_degree()`](https://mohsaqr.github.io/hypernets/reference/hg_degree.md),
+  [`hg_qanalysis()`](https://mohsaqr.github.io/hypernets/reference/hg_qanalysis.md);
   topology
-  [`persistent_homology()`](https://mohsaqr.github.io/hypernets/reference/persistent_homology.md),
-  [`persistence_landscape()`](https://mohsaqr.github.io/hypernets/reference/persistence_landscape.md),
-  [`bottleneck_distance()`](https://mohsaqr.github.io/hypernets/reference/bottleneck_distance.md),
-  [`wasserstein_distance()`](https://mohsaqr.github.io/hypernets/reference/wasserstein_distance.md).
+  [`hg_homology()`](https://mohsaqr.github.io/hypernets/reference/hg_homology.md),
+  [`hg_landscape()`](https://mohsaqr.github.io/hypernets/reference/hg_landscape.md),
+  [`hg_bottleneck()`](https://mohsaqr.github.io/hypernets/reference/hg_bottleneck.md),
+  [`hg_wasserstein()`](https://mohsaqr.github.io/hypernets/reference/hg_wasserstein.md).
 
 - **Hypergraphs**:
 
   A relation is an arbitrary set of nodes bound as a unit, with no
   requirement that its subsets also be relations. Constructors
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md),
+  [`network_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md),
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md),
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md);
@@ -57,43 +91,43 @@ one taxonomy.
   [`hg_sample_sbm()`](https://mohsaqr.github.io/hypernets/reference/hg_sample_sbm.md),
   [`hg_sample_uniform()`](https://mohsaqr.github.io/hypernets/reference/hg_sample_uniform.md);
   measures
-  [`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md),
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md);
+  [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md),
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md);
   spectral methods
-  [`hypergraph_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_laplacian.md),
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md),
-  [`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md);
+  [`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md),
+  [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md),
+  [`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md);
   PageRank
-  [`hypergraph_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md);
+  [`hg_pagerank()`](https://mohsaqr.github.io/hypernets/reference/hg_pagerank.md);
   embeddings
-  [`hypergraph_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md);
+  [`hg_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md);
   projections
-  [`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md),
-  [`hypergraph_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md),
-  [`hypergraph_line_graph()`](https://mohsaqr.github.io/hypernets/reference/hg_line_graph.md),
+  [`hg_clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/hg_clique_expansion.md),
+  [`hg_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md),
+  [`hg_line_graph()`](https://mohsaqr.github.io/hypernets/reference/hg_line_graph.md),
   [`dual_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/dual_hypergraph.md);
   temporal views
-  [`hypergraph_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.md),
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md);
+  [`hg_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshot.md),
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md);
   hyperedge tables
-  [`hypergraph_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
+  [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
   and s-centrality
-  [`hypergraph_edge_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_edge_centrality.md);
+  [`hg_edge_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_edge_centrality.md);
   communities
-  [`hypergraph_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+  [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
   and
-  [`hypergraph_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md);
+  [`hg_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md);
   motifs
-  [`hypergraph_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md);
+  [`hg_motifs()`](https://mohsaqr.github.io/hypernets/reference/hg_motifs.md);
   null models
-  [`hypergraph_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md);
+  [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md);
   neural networks
-  [`hypergraph_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md),
+  [`hg_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md),
   [`text_hypergat()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergat.md),
   [`heterogeneous_hgat()`](https://mohsaqr.github.io/hypernets/reference/heterogeneous_hgat.md),
-  [`hypergraph_hypergcn()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_hypergcn.md),
-  [`hypergraph_hnhn()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_hnhn.md),
-  [`hypergraph_allset()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_allset.md);
+  [`hg_hypergcn()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergcn.md),
+  [`hg_hnhn()`](https://mohsaqr.github.io/hypernets/reference/hg_hnhn.md),
+  [`hg_allset()`](https://mohsaqr.github.io/hypernets/reference/hg_allset.md);
   embedding constructor
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md).
 
@@ -113,66 +147,68 @@ one taxonomy.
   [`hg_stability()`](https://mohsaqr.github.io/hypernets/reference/hg_stability.md),
   [`hg_agreement()`](https://mohsaqr.github.io/hypernets/reference/hg_agreement.md),
   [`hg_seeds()`](https://mohsaqr.github.io/hypernets/reference/hg_seeds.md).
-  Every verb also accepts any `net_hypergraph`.
-
-Long-form hypergraph verbs also have direct compact `hg_*` aliases; for
-example,
-[`hypergraph_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
-and
-[`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md)
-are the same function. Existing engine names
-([`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md),
-[`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md),
-[`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md))
-remain distinct from their tidy `hg_*` views.
+  Every verb also accepts any `net_hg`.
 
 ## Verb grammar
 
-The same naming rules hold across all three families:
+The same naming rules hold across all families:
 
-- `build_*()`:
+- Constructors are nouns:
 
-  Constructors. Always return an object of class `net_*`. Where a family
-  admits several construction routes, they are selected with `type =`,
-  never with a differently named argument.
+  [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+  [`honem()`](https://mohsaqr.github.io/hypernets/reference/honem.md),
+  [`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md),
+  [`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md),
+  [`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+  [`memory()`](https://mohsaqr.github.io/hypernets/reference/memory.md),
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
+  [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md),
+  [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
+  ... Where a family admits several construction routes, they are
+  selected with `type =`.
 
-- `*_centrality()`, `*_measures()`, `*_degree()`:
+- Everything else is `hg_*()`:
 
-  Measures. Always return a tidy `data.frame`, one row per node or per
-  structure.
+  Measures return a tidy `data.frame`, one row per node or per structure
+  ([`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
+  [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md),
+  [`hg_degree()`](https://mohsaqr.github.io/hypernets/reference/hg_degree.md));
+  inference returns a result object carrying estimates, intervals and
+  p-values
+  ([`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md),
+  [`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md),
+  [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md)).
+  One verb names one idea and dispatches on its input:
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
+  [`hg_communities()`](https://mohsaqr.github.io/hypernets/reference/hg_communities.md)
+  and [`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md)
+  take a memory network or a hypergraph.
 
-- `bootstrap_*()`, `compare_*()`, `*_test()`:
+- [`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+  is the one reader:
 
-  Inference. Return a `net_*` result object carrying estimates,
-  intervals and p-values.
-
-- [`print()`](https://rdrr.io/r/base/print.html),
-  [`summary()`](https://rdrr.io/r/base/summary.html),
-  [`plot()`](https://rdrr.io/r/graphics/plot.default.html),
-  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html):
-
-  Every `net_*` result object supports all four.
-  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) is the
-  tidy accessor – reaching into a result with `$` is never required, and
-  a secondary table is selected with `what =`.
+  Every result object hands over its tables through `hg_get(x, what = )`
+  – never through `$`. `what =` selects a secondary table; filters,
+  `sort_by` and `top` are named arguments. hypernets' result classes
+  also have [`print()`](https://rdrr.io/r/base/print.html),
+  [`summary()`](https://rdrr.io/r/base/summary.html) and
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods.
 
 ## Crossing between families
 
 The families are entry points into one another, not islands. The text
 family is the corpus front end of the hypergraph family: a
-`text_hypergraph` *is* a `net_hypergraph`, so every hypergraph verb
-takes it, and every `hg_*()` verb takes any `net_hypergraph` in return.
-[`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
+`text_hypergraph` *is* a `net_hg`, so every hypergraph verb takes it,
+and every `hg_*()` verb takes any `net_hg` in return.
+[`simplicial()`](https://mohsaqr.github.io/hypernets/reference/simplicial.md)
 with `type = "pathway"` turns a memory network into a simplicial
 complex;
 [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
 turns the same sequences into a hypergraph;
-[`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md)
+[`hg_clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/hg_clique_expansion.md)
 projects a hypergraph back to a pairwise network that any of the
-first-order tools accept.
-[`pathways()`](https://mohsaqr.github.io/hypernets/reference/pathways.md)
-is the shared accessor that hands sequence-derived path strings from the
-memory family to the other two.
+first-order tools accept. `hg_get(x, what = "pathways")` on a memory
+network hands its sequence-derived path strings to the other two.
 
 ## References
 
@@ -189,7 +225,7 @@ Useful links:
 
 - <https://github.com/mohsaqr/hypernets>
 
-- <https://mohsaqr.github.io/hypernets>
+- <https://mohsaqr.github.io/hypernets/>
 
 - Report bugs at <https://github.com/mohsaqr/hypernets/issues>
 

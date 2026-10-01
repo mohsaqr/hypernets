@@ -1,12 +1,12 @@
 # Sub-hypergraph by hyperedges, nodes or hyperedge attributes
 
-Keeps part of a hypergraph and returns it as a `net_hypergraph` with the
-same incidence weights, edge metadata and multiplicities. Three
-selectors combine by intersection. `edges` names the hyperedges to keep.
-`nodes` keeps the hyperedges whose members all lie in the set, the
-induced sub-hypergraph of HypergraphX. `where` keeps the hyperedges
-whose attributes take given values, so `where = c(citing = "153-001")`
-on a citation-block hypergraph is the hypergraph of one citing decision
+Keeps part of a hypergraph and returns it as a `net_hg` with the same
+incidence weights, edge metadata and multiplicities. Three selectors
+combine by intersection. `edges` names the hyperedges to keep. `nodes`
+keeps the hyperedges whose members all lie in the set, the induced
+sub-hypergraph of HypergraphX. `where` keeps the hyperedges whose
+attributes take given values, so `where = c(citing = "153-001")` on a
+citation-block hypergraph is the hypergraph of one citing decision
 (Coupette et al. 2024, Figure 3).
 
 ## Usage
@@ -20,24 +20,15 @@ hg_subset(
   size = NULL,
   drop_isolated = TRUE
 )
-
-hypergraph_subset(
-  hg,
-  edges = NULL,
-  nodes = NULL,
-  where = NULL,
-  size = NULL,
-  drop_isolated = TRUE
-)
 ```
 
 ## Arguments
 
 - hg:
 
-  A `net_hypergraph` (from
+  A `net_hg` (from
   [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
-  [`hypergraph_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.md),
+  [`hg_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshot.md),
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   ...).
 
@@ -78,9 +69,9 @@ hypergraph_subset(
 
 ## Value
 
-A `net_hypergraph` whose incidence matrix is the selected sub-matrix of
-the input, sparse if the input is sparse. Edge metadata (`edge_data`)
-and duplicate multiplicities (`edge_multiplicity`) are subset alongside.
+A `net_hg` whose incidence matrix is the selected sub-matrix of the
+input, sparse if the input is sparse. Edge metadata (`edge_data`) and
+duplicate multiplicities (`edge_multiplicity`) are subset alongside.
 
 ## References
 
@@ -99,19 +90,20 @@ dat <- data.frame(
 )
 hg <- group_hypergraph(dat, actor = "member", group = "event")
 hg_subset(hg, edges = c("e1", "e2"))
-#> Hypergraph: 4 nodes, 2 hyperedges
-#> Size distribution:
-#>   size_3   : 2
-#> Source: group membership (member = member, group = event)
+#> Hypergraph: 4 nodes, 2 hyperedges (sizes 3: 2)
+#> Source: group membership (actor = member, group = event)
+#>  hyperedge size members weight
+#>         e1    3 a, b, c     NA
+#>         e2    3 b, c, d     NA
 hg_subset(hg, nodes = c("b", "c", "d", "e"))
-#> Hypergraph: 4 nodes, 2 hyperedges
-#> Size distribution:
-#>   size_2   : 1
-#>   size_3   : 1
-#> Source: group membership (member = member, group = event)
+#> Hypergraph: 4 nodes, 2 hyperedges (sizes 2: 1, 3: 1)
+#> Source: group membership (actor = member, group = event)
+#>  hyperedge size members weight
+#>         e2    3 b, c, d     NA
+#>         e3    2    d, e     NA
 hg_subset(hg, where = c(kind = "y"))
-#> Hypergraph: 2 nodes, 1 hyperedges
-#> Size distribution:
-#>   size_2   : 1
-#> Source: group membership (member = member, group = event)
+#> Hypergraph: 2 nodes, 1 hyperedges (sizes 2: 1)
+#> Source: group membership (actor = member, group = event)
+#>  hyperedge size members weight
+#>         e3    2    d, e     NA
 ```

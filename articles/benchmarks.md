@@ -96,8 +96,10 @@ corpus.
 
 ## Against the published tables
 
-Published rows are means over 10 runs from Ding et al. (2020), Table 2;
-our transductive rows are deterministic given the split.
+Published rows are means over 10 runs from Ding et al. (2020), Table 2,
+plus the HyperGAT “w/o semantic” ablation from their Table 4 (the
+comparator for the sentence-only HyperGAT runs below); our transductive
+rows are deterministic given the split.
 
 ``` r
 
@@ -105,23 +107,28 @@ published <- read.csv("benchmark-published.csv")
 knitr::kable(published, digits = 4)
 ```
 
-| dataset | model                  | accuracy |     sd | source                    |
-|:--------|:-----------------------|---------:|-------:|:--------------------------|
-| 20ng    | TextGCN (transductive) |   0.8643 | 0.0009 | Ding et al. 2020, Table 2 |
-| R8      | TextGCN (transductive) |   0.9707 | 0.0010 | Ding et al. 2020, Table 2 |
-| R52     | TextGCN (transductive) |   0.9356 | 0.0018 | Ding et al. 2020, Table 2 |
-| ohsumed | TextGCN (transductive) |   0.6836 | 0.0056 | Ding et al. 2020, Table 2 |
-| mr      | TextGCN (transductive) |   0.7674 | 0.0020 | Ding et al. 2020, Table 2 |
-| 20ng    | HyperGAT               |   0.8662 | 0.0016 | Ding et al. 2020, Table 2 |
-| R8      | HyperGAT               |   0.9797 | 0.0023 | Ding et al. 2020, Table 2 |
-| R52     | HyperGAT               |   0.9498 | 0.0027 | Ding et al. 2020, Table 2 |
-| ohsumed | HyperGAT               |   0.6990 | 0.0034 | Ding et al. 2020, Table 2 |
-| mr      | HyperGAT               |   0.7832 | 0.0027 | Ding et al. 2020, Table 2 |
-| 20ng    | fastText               |   0.7938 | 0.0030 | Ding et al. 2020, Table 2 |
-| R8      | fastText               |   0.9613 | 0.0021 | Ding et al. 2020, Table 2 |
-| R52     | fastText               |   0.9281 | 0.0009 | Ding et al. 2020, Table 2 |
-| ohsumed | fastText               |   0.5770 | 0.0049 | Ding et al. 2020, Table 2 |
-| mr      | fastText               |   0.7514 | 0.0020 | Ding et al. 2020, Table 2 |
+| dataset | model | accuracy | sd | source |
+|:---|:---|---:|---:|:---|
+| 20ng | TextGCN (transductive) | 0.8643 | 0.0009 | Ding et al. 2020, Table 2 |
+| R8 | TextGCN (transductive) | 0.9707 | 0.0010 | Ding et al. 2020, Table 2 |
+| R52 | TextGCN (transductive) | 0.9356 | 0.0018 | Ding et al. 2020, Table 2 |
+| ohsumed | TextGCN (transductive) | 0.6836 | 0.0056 | Ding et al. 2020, Table 2 |
+| mr | TextGCN (transductive) | 0.7674 | 0.0020 | Ding et al. 2020, Table 2 |
+| 20ng | HyperGAT | 0.8662 | 0.0016 | Ding et al. 2020, Table 2 |
+| R8 | HyperGAT | 0.9797 | 0.0023 | Ding et al. 2020, Table 2 |
+| R52 | HyperGAT | 0.9498 | 0.0027 | Ding et al. 2020, Table 2 |
+| ohsumed | HyperGAT | 0.6990 | 0.0034 | Ding et al. 2020, Table 2 |
+| mr | HyperGAT | 0.7832 | 0.0027 | Ding et al. 2020, Table 2 |
+| 20ng | fastText | 0.7938 | 0.0030 | Ding et al. 2020, Table 2 |
+| R8 | fastText | 0.9613 | 0.0021 | Ding et al. 2020, Table 2 |
+| R52 | fastText | 0.9281 | 0.0009 | Ding et al. 2020, Table 2 |
+| ohsumed | fastText | 0.5770 | 0.0049 | Ding et al. 2020, Table 2 |
+| mr | fastText | 0.7514 | 0.0020 | Ding et al. 2020, Table 2 |
+| 20ng | HyperGAT w/o semantic | 0.8602 | 0.0031 | Ding et al. 2020, Table 4 (ablation) |
+| R8 | HyperGAT w/o semantic | 0.9714 | 0.0026 | Ding et al. 2020, Table 4 (ablation) |
+| R52 | HyperGAT w/o semantic | 0.9415 | 0.0032 | Ding et al. 2020, Table 4 (ablation) |
+| ohsumed | HyperGAT w/o semantic | 0.6848 | 0.0045 | Ding et al. 2020, Table 4 (ablation) |
+| mr | HyperGAT w/o semantic | 0.7811 | 0.0028 | Ding et al. 2020, Table 4 (ablation) |
 
 On 20NG the hypergraph classifier (0.8477) is within two points of
 transductive TextGCN (0.8643) and HyperGAT (0.8662), and above fastText
@@ -262,20 +269,47 @@ hypergat <- read.csv("benchmark-hypergat.csv")
 knitr::kable(hypergat, digits = 4)
 ```
 
-| dataset | method | epochs | n_seeds | n_train | n_test | accuracy | sd | acc_min | acc_max | macro_f1 | fit_s |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| R8 | hypergat | 10 | 3 | 5501 | 2190 | 0.9665 | 0.0034 | 0.9630 | 0.9699 | 0.9046 | 180.9783 |
-| R52 | hypergat | 10 | 3 | 6560 | 2570 | 0.9433 | 0.0018 | 0.9412 | 0.9447 | 0.7604 | 227.9630 |
+| dataset | method | semantic | epochs | n_seeds | n_train | n_test | accuracy | sd | acc_min | acc_max | macro_f1 | fit_s |
+|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| R8 | hypergat | none | 10 | 3 | 5501 | 2190 | 0.9665 | 0.0034 | 0.9630 | 0.9699 | 0.9046 | 180.9783 |
+| R52 | hypergat | none | 10 | 3 | 6560 | 2570 | 0.9433 | 0.0018 | 0.9412 | 0.9447 | 0.7604 | 227.9630 |
+
+Every row was run with `semantic = "none"`, so each is set beside the
+published ablation that also drops the semantic hyperedges:
+
+``` r
+
+ablation <- subset(published, model == "HyperGAT w/o semantic",
+                   select = c(dataset, accuracy, sd))
+full <- with(subset(published, model == "HyperGAT"),
+             data.frame(dataset, full_hypergat = accuracy))
+comparison <- merge(
+  subset(hypergat, semantic == "none", select = c(dataset, accuracy, sd)),
+  ablation, by = "dataset", suffixes = c("_ours", "_wo_semantic")
+)
+comparison <- merge(comparison, full, by = "dataset")
+comparison <- transform(comparison,
+                        difference = accuracy_ours - accuracy_wo_semantic)
+knitr::kable(comparison, digits = 4)
+```
+
+| dataset | accuracy_ours | sd_ours | accuracy_wo_semantic | sd_wo_semantic | full_hypergat | difference |
+|:---|---:|---:|---:|---:|---:|---:|
+| R52 | 0.9433 | 0.0018 | 0.9415 | 0.0032 | 0.9498 | 0.0018 |
+| R8 | 0.9665 | 0.0034 | 0.9714 | 0.0026 | 0.9797 | -0.0049 |
 
 This is the package’s strongest result. R8 reaches 0.9665 (SD 0.0034) –
-above every other method in this article, within 1.3 points of the full
-published HyperGAT (0.9797) and at published transductive TextGCN level
-(0.9707). R52 reaches 0.9433 (SD 0.0018), which **exceeds published
-transductive TextGCN (0.9356)** and sits 0.7 points from published
-HyperGAT (0.9498) – against our previous R52 best of 0.8797 (the
-centroid). Wall-clock: under four minutes per training run on a laptop
-CPU. The architecture, not more optimization of the corpus-level design,
-was what the skewed news corpora needed.
+above every other method in this article, 0.49 points below the matching
+published ablation, HyperGAT w/o semantic (0.9714 +/- 0.0026), and near
+published transductive TextGCN (0.9707). R52 reaches 0.9433 (SD 0.0018),
+0.18 points above the published w/o-semantic ablation (0.9415 +/-
+0.0032) and above published transductive TextGCN (0.9356) – against our
+previous R52 best of 0.8797 (the centroid). Full HyperGAT (0.9797 on R8,
+0.9498 on R52) adds LDA semantic hyperedges these runs did not use, so
+it is not the like-for-like comparator. Wall-clock: under four minutes
+per training run on a laptop CPU. The architecture, not more
+optimization of the corpus-level design, was what the skewed news
+corpora needed.
 
 ## Unsupervised UMAP/HDBSCAN baseline
 
@@ -393,8 +427,9 @@ it was best on Ohsumed here. Use the neural tier when plentiful labels
 can pay for training, and pick the architecture by corpus shape:
 [`hg_hypergat()`](https://mohsaqr.github.io/hypernets/reference/hg_hypergat.md)
 for classification of documents with sentence structure – it holds the
-package’s best R8 (0.9665) and R52 (0.9433, above published transductive
-TextGCN) – and
+package’s best R8 (0.9665) and R52 (0.9433), both sentence-only and
+within half a point of the paper’s matching “w/o semantic” ablation –
+and
 [`hg_neural()`](https://mohsaqr.github.io/hypernets/reference/hg_neural.md)
 (HGNN) when the corpus-level hypergraph with rich vertex features is the
 natural object (it holds MR at 0.7692). Neither beats the closed-form

@@ -1,11 +1,14 @@
 # Migration plan — texthypergraph folds into hypernets
 
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 **Status (2026-09-01): EXECUTED in the working tree, uncommitted.** See
 `HANDOFF.md` / `CHANGES.md` for what was done and the measured results.
 Deviations from the plan below, found while executing it:
 
-- `Nestimate::bipartite_groups()` does not exist in hypernets under that
-  name; it is `group_hypergraph(member =)` — a pure rename with
+- [`Nestimate::bipartite_groups()`](https://saqr.me/Nestimate/reference/bipartite_groups.html)
+  does not exist in hypernets under that name; it is
+  `group_hypergraph(member =)` — a pure rename with
   [`identical()`](https://rdrr.io/r/base/identical.html) output
   (verified on binary and weighted builds). Four call sites and all test
   fixtures were renamed.
@@ -46,10 +49,8 @@ until this plan is approved.
   blocker with it.
 - The families are loosely coupled: memory and simplicial call nothing
   in the hypergraph family, and the only cross-family call is
-  [`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
-  -\>
-  [`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md).
-  Four families coexist with file prefixes, no tangle.
+  `build_hypergraph()` -\> `build_simplicial()`. Four families coexist
+  with file prefixes, no tangle.
 
 ## Prerequisite — both trees are dirty. Commit before moving anything.
 
@@ -86,7 +87,7 @@ deletion plus a parity test, never a rewrite.
 |----|----|----|
 | `R/spectral.R` (592) | `R/hypergraph_laplacian.R` (746) | hypernets’, plus our `normalization` arg ported onto `hypergraph_transduction` |
 | `R/pagerank.R` (196) | hypernets’ B2 hypergraph PageRank | compare first — ours has `personalized =` and `sort_by =`; keep the superset |
-| `hg_project(method = "clique")` | `R/hypergraph_expansion.R` (93) | both — [`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md) stays as the engine, [`hg_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md) as the tidy verb, with an [`identical()`](https://rdrr.io/r/base/identical.html) parity test |
+| `hg_project(method = "clique")` | `R/hypergraph_expansion.R` (93) | both — `clique_expansion()` stays as the engine, [`hg_project()`](https://mohsaqr.github.io/hypernets/reference/hg_project.md) as the tidy verb, with an [`identical()`](https://rdrr.io/r/base/identical.html) parity test |
 | `text_hypergraph(construction = "window")` | `R/hypergraph_window.R` (312) | both — ours tokenises text, hypernets’ takes sequences; assert the reduction identity |
 
 ## File moves
@@ -168,9 +169,6 @@ Title/Description need rewriting to cover four families including text.
 
 ## Not in scope
 
-Moving
-[`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
-out of hypernets (it needs
-[`build_simplicial()`](https://mohsaqr.github.io/hypernets/reference/build_simplicial.md)
-— this is what killed hypernets), any new methods, and the remaining
-v0.7 roadmap items.
+Moving `build_hypergraph()` out of hypernets (it needs
+`build_simplicial()` — this is what killed hypernets), any new methods,
+and the remaining v0.7 roadmap items.

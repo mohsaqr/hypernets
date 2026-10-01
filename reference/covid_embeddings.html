@@ -13,7 +13,7 @@ offline; rebuilt by data-raw/covid_embeddings.R."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@ offline; rebuilt by data-raw/covid_embeddings.R."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -77,6 +78,18 @@ and 384 columns.</p>
 <span class="r-in"><span><span class="va">hg</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Text hypergraph: 165 documents (kNN embedding hyperedges: k = 10, cosine)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Hyperedges: 165 (kNN neighborhoods); sizes 11-11, median 11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 doc               edge    weight</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85085897904 2-s2.0-85085897904 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85092100063 2-s2.0-85085897904 0.5784754</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85092577169 2-s2.0-85085897904 0.5940401</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85096991345 2-s2.0-85085897904 0.6156138</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85096994563 2-s2.0-85085897904 0.5771233</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85108879636 2-s2.0-85085897904 0.6228458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85109406490 2-s2.0-85085897904 0.5927937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85119298190 2-s2.0-85085897904 0.6315365</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85124102536 2-s2.0-85085897904 0.5749891</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2-s2.0-85124535349 2-s2.0-85085897904 0.7546323</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ... 1805 more rows</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

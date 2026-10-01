@@ -1,5 +1,7 @@
 # ROADMAP — analytical capability
 
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 Status 2026-09-20. Companion to `ROADMAP-text.md` (constructions) and
 `EXPANSION-PLAN.md` (family structure). Those two describe what
 hypernets can *represent*. This one describes what it can *conclude*,
@@ -17,10 +19,10 @@ to anything outside itself:
 
 | Verb | Question it answers |
 |----|----|
-| [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md) | are these edges stable under resampling? |
+| `bootstrap_hon()` | are these edges stable under resampling? |
 | `compare_hon(x, y)` | do **exactly two** groups differ? |
 | [`hg_null_test()`](https://mohsaqr.github.io/hypernets/reference/hg_null_test.md) | does this structure differ from a random null? |
-| [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md) | how far back does memory reach? |
+| `markov_order_test()` | how far back does memory reach? |
 
 So the package characterises higher-order structure in great detail and
 cannot answer the questions its users actually have: *does this pattern
@@ -30,8 +32,7 @@ which structure?*
 
 It is descriptive and unsupervised end to end. Everything upstream
 already produces the inputs an inferential layer would need —
-[`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md)
-returns per-node vector features,
+`build_honem()` returns per-node vector features,
 [`hg_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md)
 spectral embeddings,
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
@@ -61,6 +62,12 @@ per-document assignments — and all of it dead-ends.
 
 ## Tier A — structure to outcome
 
+**Status 2026-09-29: SIDELINED to `workinprogress/hon_outcome/`.** Built
+in 0.5.0, withdrawn in 0.5.1: the per-actor “exposure” features
+(visit-weighted mean of node centrality / HONEM coordinate) have no
+published reference. Revive only with a referenced feature construction
+(see `workinprogress/README.md`).
+
 The multiplier. Converts the package from “describes structure” to
 “explains learning”.
 
@@ -72,9 +79,7 @@ hon_outcome(fit, outcome = scores, by = "student",
 
 - **Input**: a `net_hon` / `net_mogen` / `net_hypa`, or a hypergraph,
   plus an outcome keyed by actor. Features come from the verbs that
-  already exist —
-  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md),
-  [`build_honem()`](https://mohsaqr.github.io/hypernets/reference/build_honem.md),
+  already exist — `hon_centrality()`, `build_honem()`,
   [`hg_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md),
   [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md)
   — so this is an assembly and inference layer, not new mathematics.
@@ -89,11 +94,8 @@ hon_outcome(fit, outcome = scores, by = "student",
   cluster-robust standard errors (base R, no dependency) or a mixed
   model where a backend is available and permitted. Multiplicity across
   features is BH-corrected and the correction is named in the result.
-- **Naming**:
-  [`hon_outcome()`](https://mohsaqr.github.io/hypernets/reference/hon_outcome.md)
-  / `hg_outcome()` pairs with the existing
-  [`hon_centrality()`](https://mohsaqr.github.io/hypernets/reference/hon_centrality.md)
-  /
+- **Naming**: `hon_outcome()` / `hg_outcome()` pairs with the existing
+  `hon_centrality()` /
   [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md),
   and keeps the noun “outcome” that `codyna` already uses
   (`analyzeOutcome`). **Open decision** — the taxonomy says inference
@@ -134,13 +136,22 @@ compare_hon(fit, by = "condition", covariates = ~ prior_score,
   BH across contrasts.
 - **Verification**: with two groups and no covariates, results must be
   [`identical()`](https://rdrr.io/r/base/identical.html) to today’s
-  [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
-  — a frozen regression fixture. The within-cluster permutation gets the
-  same uniformity check that
-  [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
+  `compare_hon()` — a frozen regression fixture. The within-cluster
+  permutation gets the same uniformity check that `markov_order_test()`
   already has (KS against U(0,1) under a true null).
 
 ## Tier C — idiographic higher-order models
+
+**Status 2026-09-29: REJECTED as specified; moved to
+`workinprogress/hon_per_actor/`.** One BuildHON per actor/session
+overfits (median session: 17 transitions -\> 8 nodes, 14 edges, spurious
+2nd-4th order memory) and yields incomparable node sets. Nestimate’s
+“per session” means sessions are trajectories of ONE pooled model –
+already the behaviour of `build_hon(actor = "session_id")`.
+**Replacement to consider:** a *group* model, one HON per group
+(condition / cohort / human vs AI) with enough data per group – the
+higher-order analogue of TNA group models. Needs a reference before
+building.
 
 Everything currently pools across people, discarding the variation
 learning research exists to study. One model per actor, then compare,
@@ -188,28 +199,19 @@ hg_sequences(hg, topics, actor = "student", order_by = "turn")
   CORRECTED 2026-09-20 after implementation — the first draft of this
   section was wrong twice, and both errors were caught by running the
   code:
-  - Only
-    [`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
-    [`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md),
-    [`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
-    and
+  - Only `build_hon()`, `bootstrap_hon()`, `compare_hon()` and
     [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
-    take `action`/`actor`/`time`.
-    [`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md),
-    [`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
-    [`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
-    and
-    [`path_dependence()`](https://mohsaqr.github.io/hypernets/reference/path_dependence.md)
-    do **not**. Giving those four the long-form arguments is a real gap,
-    and memory-family surgery beyond this tier.
+    take `action`/`actor`/`time`. `build_mogen()`, `build_hypa()`,
+    `markov_order_test()` and `path_dependence()` do **not**. Giving
+    those four the long-form arguments is a real gap, and memory-family
+    surgery beyond this tier.
   - A bare `build_hon(seqs)` does **not** work and does **not** error.
     It silently reads the long table as a wide one, one trajectory per
     row, so `actor` ids and timestamps become states: a 2-actor x 4-turn
     table yields states `1, 2, 3, 4, A, B, C, s1, s2` and 8
     “trajectories” instead of 3 states and 2. See the defect below.
 - This closes the one missing edge in the cross-family design:
-  [`pathways()`](https://mohsaqr.github.io/hypernets/reference/pathways.md)
-  bridges memory to the other families and
+  `pathways()` bridges memory to the other families and
   [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
   bridges sequences to hypergraphs, but the text family dead-ends at
   clustering.
@@ -220,9 +222,8 @@ hg_sequences(hg, topics, actor = "student", order_by = "turn")
 
 ## Defect found while building Tier D — silent misread of a long table
 
-[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
-cannot tell a long sequence table from a wide one and assumes wide,
-without an error or a warning. Verified 2026-09-20:
+`build_hon()` cannot tell a long sequence table from a wide one and
+assumes wide, without an error or a warning. Verified 2026-09-20:
 
 | call                                         | nodes | trajectories |
 |----------------------------------------------|-------|--------------|
@@ -249,17 +250,17 @@ catch a one-sided change.
 
 Small next to A–D, but they sit on the same code and are cheap.
 
-1.  **[`markov_stability()`](https://mohsaqr.github.io/hypernets/reference/markov_stability.md)
-    is missing.** `Nestimate` 0.9.12 exports it and the JS `tnaj` has
-    `markovStability`; hypernets is the only one of the three without
-    it. Decide: port it, or state that hypernets deliberately does not
-    carry it. `extract_pathways` is in the same position.
+1.  **`markov_stability()` is missing.** `Nestimate` 0.9.12 exports it
+    and the JS `tnaj` has `markovStability`; hypernets is the only one
+    of the three without it. Decide: port it, or state that hypernets
+    deliberately does not carry it. `extract_pathways` is in the same
+    position.
 2.  **R↔︎JS equivalence for the order test.**
-    [`hypernets::markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
-    and `tnaj::markovOrderTest()` are the same method in two languages
-    on one machine, never compared. CLAUDE.md mandates cross-language
-    numerical equivalence, and the workspace already has a `validation/`
-    runner (R→JSON→TS) built for exactly this.
+    `hypernets::markov_order_test()` and `tnaj::markovOrderTest()` are
+    the same method in two languages on one machine, never compared.
+    CLAUDE.md mandates cross-language numerical equivalence, and the
+    workspace already has a `validation/` runner (R→JSON→TS) built for
+    exactly this.
 3.  **The cross-package identity test does not run.**
     `Nestimate/local_testing_and_equivalence/test-equiv-honets.R:12` is
     `skip_if_not_installed("honets")` — a package renamed to `hypernets`
@@ -269,9 +270,8 @@ Small next to A–D, but they sit on the same code and are cheap.
     hypernets** comparing against installed `Nestimate`, rather than
     editing Nestimate (forbidden from here). A read-only diff on
     2026-09-20 found `markov_order.R` differing only in `invisible(out)`
-    and hypernets’ added
-    [`as.data.frame.net_markov_order()`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.net_markov_order.md)
-    — no mathematics — but the other five memory files were not audited.
+    and hypernets’ added `as.data.frame.net_markov_order()` — no
+    mathematics — but the other five memory files were not audited.
 4.  **The equivalence gate is misdocumented.** `CLAUDE.md:114` says
     `HYPERNETS_EQUIV_TESTS`; `helper-equiv-gate.R` reads
     `HONETS_EQUIV_TESTS`. Following the documentation skips all 31
@@ -292,10 +292,9 @@ Small next to A–D, but they sit on the same code and are cheap.
 
 ## Open questions for the author
 
-- Naming:
-  [`hon_outcome()`](https://mohsaqr.github.io/hypernets/reference/hon_outcome.md)
-  / `hg_outcome()`, or fold into the existing `compare_*` grammar? The
-  taxonomy does not currently have a slot for a supervised verb.
+- Naming: `hon_outcome()` / `hg_outcome()`, or fold into the existing
+  `compare_*` grammar? The taxonomy does not currently have a slot for a
+  supervised verb.
 - Mixed-effects backend: accept a Suggests dependency, or ship
   cluster-robust standard errors only and stay base-R? Cluster-robust
   covers most learning designs and costs nothing.

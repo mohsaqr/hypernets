@@ -1,68 +1,64 @@
-# Hypergraph node centralities, as a tidy table
+# Centralities of a hypergraph or a memory network
 
-Delegates to
-[`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md):
-clique-expansion eigenvector centrality and the tensor Z- and
-H-eigenvector centralities.
+One verb, two estimators, chosen by the class of `x`:
+
+- a hypergraph (`net_hg`, e.g. from
+  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
+  [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)):
+
+  eigenvector-style hypergraph centralities – clique-motif, Z- and
+  H-eigenvector, EDVW PageRank, subhypergraph and Katz; see
+  [`hg_centrality.net_hg()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.net_hg.md).
+
+- a memory network (`net_hon`, from
+  [`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md)):
+
+  PageRank, betweenness and closeness of the higher-order topology,
+  projected onto the first-order states; see
+  [`hg_centrality.net_hon()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.net_hon.md).
+
+Each method keeps its own arguments; passing an argument that only the
+other method takes raises `hypernets_bad_input`.
 
 ## Usage
 
 ``` r
-hg_centrality(
-  hg,
-  type = c("clique", "Z", "H"),
-  sort_by = NULL,
-  n = Inf,
-  max_iter = 1000L,
-  tol = 1e-08,
-  normalize = TRUE
-)
+hg_centrality(x, ...)
+
+# Default S3 method
+hg_centrality(x, ...)
 ```
 
 ## Arguments
 
-- hg:
+- x:
 
-  A
-  [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any hypernets `net_hypergraph`).
+  A `net_hg` or a `net_hon`.
 
-- type:
+- ...:
 
-  Centralities to compute; any of `"clique"`, `"Z"`, `"H"` (default: all
-  three).
-
-- sort_by:
-
-  Optional centrality name to sort by, descending (ties broken by node
-  name); default keeps node order.
-
-- n:
-
-  Return only the first `n` rows after sorting (default all) – e.g.
-  `sort_by = "clique", n = 10` for the ten most central nodes.
-
-- max_iter, tol, normalize:
-
-  Passed to
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md).
+  Arguments of the method for `class(x)`.
 
 ## Value
 
-A base `data.frame`, one row per node (or the `n` requested rows), with
-one column per requested centrality.
+A base `data.frame`, one row per node (or per state), with one column
+per requested centrality. Any other input raises `hypernets_bad_input`.
 
 ## Examples
 
 ``` r
-hg <- text_hypergraph(c(
-  a = "salt and soup and onions",
-  b = "soup and salt",
-  c = "stars and salt"
-))
+hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 hg_centrality(hg, type = "clique")
 #>   node    clique
-#> 1    a 0.6059128
-#> 2    b 0.6059128
-#> 3    c 0.5154991
+#> 1    a 0.7071068
+#> 2    b 0.7071068
+
+seqs <- list(c("a", "b", "c", "a", "b", "c"), c("x", "b", "d", "x", "b", "d"))
+hg_centrality(hon(seqs, max_order = 2), type = "pagerank")
+#>   state  pagerank
+#> 1     a 0.1719145
+#> 2     b 0.3222546
+#> 3     c 0.1669582
+#> 4     d 0.1669582
+#> 5     x 0.1719145
 ```

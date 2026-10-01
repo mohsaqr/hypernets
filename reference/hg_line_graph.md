@@ -10,8 +10,6 @@ measures on hyperedges are parametrised (Aksoy et al. 2020).
 
 ``` r
 hg_line_graph(hg, s = 1, what = c("edges", "matrix"))
-
-hypergraph_line_graph(hg, s = 1, what = c("edges", "matrix"))
 ```
 
 ## Arguments
@@ -21,7 +19,7 @@ hypergraph_line_graph(hg, s = 1, what = c("edges", "matrix"))
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any hypernets `net_hypergraph`.
+  or any hypernets `net_hg`.
 
 - s:
 

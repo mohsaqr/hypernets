@@ -12,8 +12,6 @@ hg_topic_sizes(hg, clusters, weights = NULL)
 
 # S3 method for class 'hypernets_topic_sizes'
 plot(x, ...)
-
-hypergraph_topic_sizes(hg, clusters, weights = NULL)
 ```
 
 ## Arguments

@@ -4,12 +4,12 @@ projects, in long format: human_long holds the human turns (10,796
 rows), ai_long the AI turns (8,551 rows). Each session's ordered
 codes form one categorical sequence, which makes the pair a natural
 two-cohort input for the higher-order verbs – e.g.
-bootstrap_hon(human_long, action = &quot;code&quot;, actor = &quot;session_id&quot;, time = &quot;timestamp&quot;) or compare_hon(human_long, ai_long, ...)."><meta property="og:description" content="Coded turns from 429 human-AI pair programming sessions across 34
+hg_bootstrap(human_long, action = &quot;code&quot;, actor = &quot;session_id&quot;, time = &quot;timestamp&quot;) or hg_compare(human_long, ai_long, ...)."><meta property="og:description" content="Coded turns from 429 human-AI pair programming sessions across 34
 projects, in long format: human_long holds the human turns (10,796
 rows), ai_long the AI turns (8,551 rows). Each session's ordered
 codes form one categorical sequence, which makes the pair a natural
 two-cohort input for the higher-order verbs – e.g.
-bootstrap_hon(human_long, action = &quot;code&quot;, actor = &quot;session_id&quot;, time = &quot;timestamp&quot;) or compare_hon(human_long, ai_long, ...)."></head><body>
+hg_bootstrap(human_long, action = &quot;code&quot;, actor = &quot;session_id&quot;, time = &quot;timestamp&quot;) or hg_compare(human_long, ai_long, ...)."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -17,7 +17,7 @@ bootstrap_hon(human_long, action = &quot;code&quot;, actor = &quot;session_id&qu
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ bootstrap_hon(human_long, action = &quot;code&quot;, actor = &quot;session_id&qu
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -57,7 +58,7 @@ projects, in long format: <code>human_long</code> holds the human turns (10,796
 rows), <code>ai_long</code> the AI turns (8,551 rows). Each session's ordered
 codes form one categorical sequence, which makes the pair a natural
 two-cohort input for the higher-order verbs – e.g.
-<code>bootstrap_hon(human_long, action = "code", actor = "session_id", time = "timestamp")</code> or <code>compare_hon(human_long, ai_long, ...)</code>.</p>
+<code>hg_bootstrap(human_long, action = "code", actor = "session_id", time = "timestamp")</code> or <code>hg_compare(human_long, ai_long, ...)</code>.</p>
     </div>
 
     <div class="section level2">
@@ -112,30 +113,19 @@ or Metacognitive (human codes); AI turns carry their own scheme.</p></dd>
 sequences for the memory family, a session is a natural hyperedge over
 the codes that co-occur in it (<code><a href="group_hypergraph.html">group_hypergraph()</a></code>), and a fitted
 memory network becomes a pathway complex for the simplicial family
-(<code><a href="build_simplicial.html">build_simplicial()</a></code> with <code>type = "pathway"</code>).</p>
+(<code><a href="simplicial.html">simplicial()</a></code> with <code>type = "pathway"</code>).</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">bs</span> <span class="op">&lt;-</span> <span class="fu"><a href="bootstrap_hon.html">bootstrap_hon</a></span><span class="op">(</span><span class="va">human_long</span>, action <span class="op">=</span> <span class="st">"code"</span>, actor <span class="op">=</span> <span class="st">"session_id"</span>,</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">bs</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_bootstrap.html">hg_bootstrap</a></span><span class="op">(</span><span class="va">human_long</span>, action <span class="op">=</span> <span class="st">"code"</span>, actor <span class="op">=</span> <span class="st">"session_id"</span>,</span></span>
 <span class="r-in"><span>                    time <span class="op">=</span> <span class="st">"timestamp"</span>, n_boot <span class="op">=</span> <span class="fl">20</span>, max_order <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>                    seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">bs</span>, order_min <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone):</span> unused argument (timezone = timezone)</span>
+<span class="r-in"><span><span class="va">rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">bs</span>, order_min <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'bs' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rules</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                   from        to order count probability   ci_lower   ci_upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Frustrate -&gt; Specify   Command     2     6  0.05357143 0.02115083 0.08565578</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Frustrate -&gt; Specify   Correct     2     9  0.08035714 0.04191279 0.12300401</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Frustrate -&gt; Specify Frustrate     2    21  0.18750000 0.13526718 0.23261462</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Frustrate -&gt; Specify   Inquire     2     8  0.07142857 0.03329832 0.10251437</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Frustrate -&gt; Specify Interrupt     2     9  0.08035714 0.04314421 0.11752874</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Frustrate -&gt; Specify    Refine     2     7  0.06250000 0.03652311 0.10455750</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   support n_boot_used</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       1          20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       1          20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       1          20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4       1          20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       1          20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       1          20</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rules' not found</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

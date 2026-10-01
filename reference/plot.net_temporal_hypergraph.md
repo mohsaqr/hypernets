@@ -29,7 +29,7 @@ plot(
 - mode:
 
   Snapshot mode passed to
-  [`hypergraph_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.md).
+  [`hg_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshot.md).
 
 - method:
 

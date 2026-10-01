@@ -21,17 +21,6 @@ hg_growth(
   components = FALSE
 )
 
-hypergraph_growth(
-  x,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  mode = c("active", "cumulative"),
-  components = FALSE
-)
-
 # S3 method for class 'hypernets_series'
 plot(x, columns = NULL, facets = TRUE, ...)
 ```

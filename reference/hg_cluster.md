@@ -1,10 +1,17 @@
-# Spectral clustering of a hypergraph, as a tidy table
+# Spectral or symmetric-NMF clustering of hypergraph vertices
 
-Calls the in-package
-[`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md)
-engine (Zhou et al. 2006 normalized Laplacian, or the Hayashi et al.
-2020 random-walk Laplacian with edge-dependent vertex weights – the
-natural choice for tf-idf-weighted text hypergraphs).
+Partitions the nodes of a hypergraph into `k` clusters with either of
+Hayashi et al.'s (2020) representative-digraph algorithms.
+`algorithm = "spectral"` (RDC-Spec) row-normalizes the `k` smallest
+Laplacian eigenvectors and applies k-means. `algorithm = "symnmf"`
+(RDC-Sym) computes a rank-`k` non-negative factorization `T ~= U U'` of
+the normalized similarity `T = I - L`, then assigns each vertex to the
+largest entry in its row of `U`, exactly as Algorithm 2 specifies. With
+`type = "random_walk"` and a weighted incidence (e.g. from
+[`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
+with `weight =`), the edge-dependent vertex weights genuinely change the
+partition - with edge-independent weights the walk collapses to a graph
+random walk (Chitra & Raphael 2019).
 
 ## Usage
 
@@ -16,7 +23,7 @@ hg_cluster(
   edge_weights = NULL,
   seed = NULL,
   nstart = 25L,
-  what = c("clusters", "embedding", "eigenvalues"),
+  what = c("clusters", "embedding", "eigenvalues", "membership"),
   n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
@@ -30,7 +37,7 @@ hg_cluster(
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any hypernets `net_hypergraph`).
+  (or any hypernets `net_hg`).
 
 - k:
 
@@ -38,8 +45,9 @@ hg_cluster(
 
 - type:
 
-  `"zhou"` or `"random_walk"`, as in
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md).
+  The Laplacian, as in
+  [`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md):
+  `"zhou"` (Zhou et al. 2006) or `"random_walk"` (Hayashi et al. 2020).
 
 - edge_weights:
 
@@ -68,7 +76,10 @@ hg_cluster(
   corpus) and the stationary weight `pi`, or `"eigenvalues"` for the
   Laplacian spectrum (dense engines return all `n` values; the sparse
   engine returns the `k + 1` it computed – raise `k` for an eigengap
-  scan).
+  scan), or, with `algorithm = "symnmf"`, `"membership"` for the graded
+  membership of every node in every cluster: the node's row of the
+  non-negative factor, normalised to sum to one (Kuang, Ding & Park
+  2012).
 
 - n:
 
@@ -80,15 +91,15 @@ hg_cluster(
 
 - algorithm:
 
-  `"spectral"` (RDC-Spec) or `"symnmf"` (RDC-Sym), as in
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md).
-  SymNMF currently requires a dense incidence matrix because its paper
-  objective factorizes a dense node similarity.
+  Character. `"spectral"` (default; RDC-Spec) or `"symnmf"` (RDC-Sym).
 
-- max_iter, tol:
+- max_iter:
 
-  SymNMF convergence controls passed to
-  [`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md).
+  Maximum multiplicative-update iterations for `algorithm = "symnmf"`.
+
+- tol:
+
+  Relative objective tolerance for `algorithm = "symnmf"`.
 
 ## Value
 
@@ -97,7 +108,34 @@ A base `data.frame`. For `what = "clusters"`: one row per node, columns
 `dim1..dimk`. For `what = "eigenvalues"`: one row per eigenvalue,
 columns `index`, `value` (ascending) and `gap` (the distance to the next
 eigenvalue – large gaps indicate supported cluster counts; `NA` on the
-last row).
+last row). For `what = "membership"`: one row per node and cluster,
+columns `node`, `cluster` and `membership` (summing to one over a node's
+clusters); a node's largest membership is its cluster in
+`what = "clusters"`.
+
+## Details
+
+Both solvers are stochastic: `nstart` initializations are used and a
+`seed` fixes the result. Report stability across seeds for consequential
+results.
+
+`type = "random_walk"` (Hayashi et al. 2020) is the natural choice for
+tf-idf-weighted text hypergraphs. `what =` returns the cluster table,
+the embedding or the leading eigenvalues as a tidy data.frame.
+
+## References
+
+Kuang, D., Ding, C., & Park, H. (2012). Symmetric nonnegative matrix
+factorization for graph clustering. *Proceedings of the 2012 SIAM
+International Conference on Data Mining*, 106-117.
+[doi:10.1137/1.9781611972825.10](https://doi.org/10.1137/1.9781611972825.10)
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. *CIKM 2020*, 495-504.
+[doi:10.1145/3340531.3412034](https://doi.org/10.1145/3340531.3412034)
+
+Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+edge-dependent vertex weights. *ICML 2019*.
 
 ## Examples
 

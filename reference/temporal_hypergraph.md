@@ -115,9 +115,9 @@ A `net_temporal_hypergraph` holding the membership table (`node`,
 `end` and the hyperedge attributes), the node universe with entry times,
 the sorted event times, `format` (`"interval"` or `"contact"`),
 `time_unit`, `origin` and the `observation` bounds.
-`as.data.frame(x, what = "memberships" | "edges" | "nodes")` returns the
-three tables; [`summary()`](https://rdrr.io/r/base/summary.html) the
-one-row description.
+`hg_get(x, what = "memberships" | "edges" | "nodes")` returns the three
+tables; [`summary()`](https://rdrr.io/r/base/summary.html) the one-row
+description.
 
 ## Details
 
@@ -135,7 +135,7 @@ one-row description.
   it has appeared (the point-aggregation model of Coupette et al. 2024)
   is a snapshot `mode`, not a property of the data: ask for it with
   `mode = "cumulative"` in
-  [`hypergraph_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshot.md),
+  [`hg_snapshot()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshot.md),
   [`hg_growth()`](https://mohsaqr.github.io/hypernets/reference/hg_growth.md)
   and
   [`hg_edges()`](https://mohsaqr.github.io/hypernets/reference/hg_edges.md).
@@ -178,8 +178,9 @@ it is known independently of the log, with Dynet's meaning: they bound
 the snapshot times and the measurement grid, and an open-ended hyperedge
 is active through `observation_end`, but the stored memberships are
 never rewritten and
-[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) returns
-the original spells. Without them the window is the span of the data.
+[`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+returns the original spells. Without them the window is the span of the
+data.
 
 Every other column that is constant within a hyperedge is kept as a
 hyperedge attribute in the edge metadata, where
@@ -212,11 +213,19 @@ thg
 #> Temporal hypergraph: 5 nodes, 2 hyperedges, 4 event times
 #> Format: interval (a hyperedge is active from its start to its end)
 #> Time: time (numeric steps); observed from 1 to 5
-hypergraph_snapshot(thg, at = 3)
-#> Hypergraph: 5 nodes, 2 hyperedges
-#> Size distribution:
-#>   size_3   : 2
-#> Source: group membership (member = member, group = edge)
+#>  node edge start end weight
+#>    p1    A     1   4      1
+#>    a1    A     1   4      1
+#>    a2    A     1   4      1
+#>    p2    B     2   5      1
+#>    a1    B     2   5      1
+#>    a3    B     2   5      1
+hg_snapshot(thg, at = 3)
+#> Hypergraph: 5 nodes, 2 hyperedges (sizes 3: 2)
+#> Source: group membership (actor = node, group = edge)
+#>  hyperedge size    members weight
+#>          A    3 a1, a2, p1     NA
+#>          B    3 a1, a3, p2     NA
 
 # a contact log on a calendar: instants at each date, cumulative on request
 contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
@@ -226,14 +235,22 @@ calls
 #> Temporal hypergraph: 3 nodes, 3 hyperedges, 3 event times
 #> Format: contact (a hyperedge is an instantaneous event; mode = "cumulative" keeps every hyperedge once it appears)
 #> Time: days since 2024-01-01; observed from 0 to 8
-hypergraph_snapshot(calls, at = as.Date("2024-01-05"))
-#> Hypergraph: 2 nodes, 1 hyperedges
-#> Size distribution:
-#>   size_2   : 1
-#> Source: group membership (member = member, group = edge)
-hypergraph_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
-#> Hypergraph: 3 nodes, 2 hyperedges
-#> Size distribution:
-#>   size_2   : 2
-#> Source: group membership (member = member, group = edge)
+#>  node edge start end weight
+#>     a   e1     0  NA      1
+#>     b   e2     4  NA      1
+#>     c   e3     8  NA      1
+#>     b   e1     0  NA      1
+#>     c   e2     4  NA      1
+#>     a   e3     8  NA      1
+hg_snapshot(calls, at = as.Date("2024-01-05"))
+#> Hypergraph: 2 nodes, 1 hyperedges (sizes 2: 1)
+#> Source: group membership (actor = node, group = edge)
+#>  hyperedge size members weight
+#>         e2    2    b, c     NA
+hg_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
+#> Hypergraph: 3 nodes, 2 hyperedges (sizes 2: 2)
+#> Source: group membership (actor = node, group = edge)
+#>  hyperedge size members weight
+#>         e1    2    a, b     NA
+#>         e2    2    b, c     NA
 ```

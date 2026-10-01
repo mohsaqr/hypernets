@@ -4,13 +4,13 @@ vertex becomes a hyperedge, with the transposed weighted incidence. For a
 bag-construction text_hypergraph(), the dual is identical to rebuilding
 with the opposite nodes orientation (tested), so document-level and
 word-level analyses can share one constructed object. Duals of windowed
-and kNN hypergraphs are returned as plain net_hypergraph objects (their
+and kNN hypergraphs are returned as plain net_hg objects (their
 corpus bookkeeping does not transpose meaningfully)."><meta property="og:description" content="Returns the dual hypergraph: every hyperedge becomes a vertex and every
 vertex becomes a hyperedge, with the transposed weighted incidence. For a
 bag-construction text_hypergraph(), the dual is identical to rebuilding
 with the opposite nodes orientation (tested), so document-level and
 word-level analyses can share one constructed object. Duals of windowed
-and kNN hypergraphs are returned as plain net_hypergraph objects (their
+and kNN hypergraphs are returned as plain net_hg objects (their
 corpus bookkeeping does not transpose meaningfully)."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -19,7 +19,7 @@ corpus bookkeeping does not transpose meaningfully)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ corpus bookkeeping does not transpose meaningfully)."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -59,7 +60,7 @@ vertex becomes a hyperedge, with the transposed weighted incidence. For a
 bag-construction <code><a href="text_hypergraph.html">text_hypergraph()</a></code>, the dual is identical to rebuilding
 with the opposite <code>nodes</code> orientation (tested), so document-level and
 word-level analyses can share one constructed object. Duals of windowed
-and kNN hypergraphs are returned as plain <code>net_hypergraph</code> objects (their
+and kNN hypergraphs are returned as plain <code>net_hg</code> objects (their
 corpus bookkeeping does not transpose meaningfully).</p>
     </div>
 
@@ -74,14 +75,19 @@ corpus bookkeeping does not transpose meaningfully).</p>
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
 <dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code>, <code><a href="knn_hypergraph.html">knn_hypergraph()</a></code>, or any hypernets
-<code>net_hypergraph</code>.</p></dd>
+<code>net_hg</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A hypergraph whose incidence is the transpose of <code>hg</code>'s: a
 <code>text_hypergraph</code> with flipped <code>nodes</code> for bag constructions, otherwise
-a <code>net_hypergraph</code>. Accepted by all <code>hg_*</code> verbs.</p>
+a <code>net_hg</code>. Accepted by all <code>hg_*</code> verbs.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Berge, C. (1989). <em>Hypergraphs: Combinatorics of Finite Sets</em>.
+North-Holland Mathematical Library 45. North-Holland.</p>
     </div>
 
     <div class="section level2">
@@ -91,6 +97,13 @@ a <code>net_hypergraph</code>. Accepted by all <code>hg_*</code> verbs.</p>
 <span class="r-in"><span><span class="va">dual</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Text hypergraph: 2 documents, 4 words (words as nodes, weight = n)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Hyperedges: 2 (documents); sizes 3-3, median 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  doc  word count weight</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    a   and     1      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    a  salt     1      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    a  soup     1      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    b   and     1      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    b  soup     1      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    b stars     1      1</span>
 <span class="r-in"><span><span class="fu"><a href="hg_measures.html">hg_measures</a></span><span class="op">(</span><span class="va">dual</span>, what <span class="op">=</span> <span class="st">"edges"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   edge size</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    a    3</span>

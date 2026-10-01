@@ -23,17 +23,6 @@ hg_pagerank(
   max_iter = 1000L,
   tol = 1e-12
 )
-
-hypergraph_pagerank(
-  hg,
-  damping = 0.85,
-  personalized = NULL,
-  edge_weights = NULL,
-  sort_by = NULL,
-  n = Inf,
-  max_iter = 1000L,
-  tol = 1e-12
-)
 ```
 
 ## Arguments
@@ -43,7 +32,7 @@ hypergraph_pagerank(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any hypernets `net_hypergraph` (connected when `damping = 1`).
+  or any hypernets `net_hg` (connected when `damping = 1`).
 
 - damping:
 
@@ -62,10 +51,11 @@ hypergraph_pagerank(
 
 - edge_weights:
 
-  Positive hyperedge weights (one per hyperedge), or `NULL` (default)
-  for the Hayashi et al. heuristic used by the Laplacian engines: the
-  population standard deviation of each edge's non-zero vertex weights
-  plus one, which reduces to unit weights on a binary incidence.
+  Positive hyperedge weights (one per hyperedge), or `NULL` (default): a
+  window hypergraph's window counts when present, otherwise the Hayashi
+  et al. heuristic used by the Laplacian engines (the population
+  standard deviation of each edge's non-zero vertex weights plus one,
+  which reduces to unit weights on a binary incidence).
 
 - sort_by:
 
@@ -96,9 +86,9 @@ incidence weights differ across the hyperedges a vertex belongs to
 stationary distribution of the Hayashi et al. (2020) EDVW walk used by
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
 (tested at `1e-12` against
-[`hypergraph_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_laplacian.md)),
+[`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md)),
 and with uniform teleportation it equals
-`hypergraph_centrality(type = "pagerank")` (tested).
+`hg_centrality(type = "pagerank")` (tested).
 
 ## Conditions
 

@@ -6,7 +6,7 @@ Print a text hypergraph
 
 ``` r
 # S3 method for class 'text_hypergraph'
-print(x, ...)
+print(x, n = 10L, ...)
 ```
 
 ## Arguments
@@ -16,6 +16,10 @@ print(x, ...)
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
   object.
+
+- n:
+
+  Number of rows of the default table to print. Default `10`.
 
 - ...:
 

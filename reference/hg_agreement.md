@@ -28,15 +28,6 @@ hg_agreement(
   node = "node",
   label = NULL
 )
-
-hypergraph_agreement(
-  x,
-  y,
-  what = c("summary", "table", "mapping"),
-  method = "ari",
-  node = "node",
-  label = NULL
-)
 ```
 
 ## Arguments

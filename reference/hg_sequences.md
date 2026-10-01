@@ -8,14 +8,15 @@ timestamp);
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
 gives each document a topic. `hg_sequences()` joins the two, orders the
 documents within each actor and returns one row per document as `actor`
-/ `time` / `action` – the long shape
-[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md),
-[`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md),
-[`compare_hon()`](https://mohsaqr.github.io/hypernets/reference/compare_hon.md)
-and
-[`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
-read through their own `action` / `actor` / `time` arguments, so no
-coercion is written at the call site:
+/ `time` / `action` – the long event table every memory-network verb
+reads through its `action` / `actor` / `time` arguments
+([`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md),
+[`mogen()`](https://mohsaqr.github.io/hypernets/reference/mogen.md),
+[`hypa()`](https://mohsaqr.github.io/hypernets/reference/hypa.md),
+[`markov_order()`](https://mohsaqr.github.io/hypernets/reference/markov_order.md),
+[`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md),
+[`hg_compare()`](https://mohsaqr.github.io/hypernets/reference/hg_compare.md),
+[`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)):
 
 ## Usage
 
@@ -29,8 +30,8 @@ hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL)
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  – more generally, any `net_hypergraph` carrying a documents table, the
-  one reached with `as.data.frame(hg, what = "documents")`.
+  – more generally, any `net_hg` carrying a documents table, the one
+  reached with `hg_get(hg, what = "documents")`.
 
 - clusters:
 
@@ -83,22 +84,16 @@ A base `data.frame` with one row per document of `hg`, ordered by
 ## Details
 
     seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-    build_hon(seqs, action = "action", actor = "actor", time = "time")
+    hon(seqs, action = "action", actor = "actor", time = "time")
 
 Those three column names are fixed, which is what makes the second call
-the same every time. The memory-family verbs that do not (yet) take the
-long form –
-[`build_mogen()`](https://mohsaqr.github.io/hypernets/reference/build_mogen.md),
-[`build_hypa()`](https://mohsaqr.github.io/hypernets/reference/build_hypa.md),
-[`markov_order_test()`](https://mohsaqr.github.io/hypernets/reference/markov_order_test.md)
-– read a list of trajectories instead; pass the result of
-`hg_sequences()` to them only through one of the verbs above, since a
-long table handed to them bare is read as a *wide* one (one trajectory
-per row) and silently gives the wrong model.
+the same every time. Passing the long table without `action =` raises
+`hypernets_long_format`: read as wide (one trajectory per row) it would
+give the wrong model.
 
 This closes the one missing edge in the cross-family design:
-[`pathways()`](https://mohsaqr.github.io/hypernets/reference/pathways.md)
-bridges the memory family to the others and
+`hg_get(x, what = "pathways")` bridges the memory family to the others
+and
 [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
 bridges sequences to hypergraphs, but until now the text family
 dead-ended at clustering and the caller had to assemble the sequence
@@ -127,9 +122,8 @@ Information Processing Systems*, 19, 1601-1608.
 
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
 for the partition,
-[`build_hon()`](https://mohsaqr.github.io/hypernets/reference/build_hon.md)
-and
-[`bootstrap_hon()`](https://mohsaqr.github.io/hypernets/reference/bootstrap_hon.md)
+[`hon()`](https://mohsaqr.github.io/hypernets/reference/hon.md) and
+[`hg_bootstrap()`](https://mohsaqr.github.io/hypernets/reference/hg_bootstrap.md)
 for what to do with the sequences,
 [`window_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/window_hypergraph.md)
 to read them back into a hypergraph.
@@ -180,14 +174,8 @@ hg_sequences(hg, actor = "student", order_by = "turn", state = "phase")
 #> 7    bo    3   late
 #> 8    bo    4   late
 
-# Straight into the memory family, no further coercion.
+# Into the memory family: every memory verb reads the long table.
 seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-build_hon(seqs, action = "action", actor = "actor", time = "time",
-          max_order = 2L)
-#> Higher-Order Network (HON)
-#>   Nodes:        2 (2 first-order states)
-#>   Edges:        4
-#>   Max order:    1 (requested 2)
-#>   Min freq:     1
-#>   Trajectories: 2
+hon(seqs, action = "action", actor = "actor", time = "time", max_order = 2L)
+#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
 ```

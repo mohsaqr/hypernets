@@ -6,7 +6,7 @@ Print method for net_hon_compare
 
 ``` r
 # S3 method for class 'net_hon_compare'
-print(x, ...)
+print(x, n = 10L, ...)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ print(x, ...)
 - x:
 
   A `net_hon_compare` object.
+
+- n:
+
+  Number of rows of the default table to print. Default `10`.
 
 - ...:
 

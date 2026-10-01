@@ -4,24 +4,11 @@ Returns the node coordinates computed by hypernets' existing hypergraph
 spectral or symmetric-NMF engine without exposing the incidental k-means
 assignments produced by
 [`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md).
-This is the direct embedding verb; `hg_embed()` and `hypergraph_embed()`
-are identical names for it.
 
 ## Usage
 
 ``` r
 hg_embed(
-  hg,
-  dimensions = 2L,
-  type = c("zhou", "random_walk"),
-  method = c("spectral", "symnmf"),
-  seed = NULL,
-  nstart = 25L,
-  max_iter = 500L,
-  tol = 1e-06
-)
-
-hypergraph_embed(
   hg,
   dimensions = 2L,
   type = c("zhou", "random_walk"),
@@ -37,7 +24,7 @@ hypergraph_embed(
 
 - hg:
 
-  Any hypernets `net_hypergraph`.
+  Any hypernets `net_hg`.
 
 - dimensions:
 
@@ -70,6 +57,18 @@ hypergraph_embed(
 
 A data frame with `node`, stationary mass `pi`, and `dim1` through
 `dim<dimensions>`.
+
+## References
+
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+clustering, classification, and embedding. *Advances in Neural
+Information Processing Systems 19*.
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. *Proceedings of the 29th ACM
+International Conference on Information and Knowledge Management*,
+495-504.
+[doi:10.1145/3340531.3412034](https://doi.org/10.1145/3340531.3412034)
 
 ## Examples
 

@@ -15,7 +15,7 @@ hg_cluster() into named topics."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,6 +27,7 @@ hg_cluster() into named topics."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -75,19 +76,7 @@ fit. This is the topic-description step that turns a partition from
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hypernets_keywords'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"score"</span>, <span class="st">"share"</span><span class="op">)</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">hypergraph_keywords</span><span class="op">(</span></span>
-<span>  <span class="va">hg</span>,</span>
-<span>  <span class="va">clusters</span>,</span>
-<span>  n <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  type <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sort_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"score"</span>, <span class="st">"share"</span><span class="op">)</span>,</span>
-<span>  min_docs <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  centrality <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pagerank"</span>, <span class="st">"clique"</span>, <span class="st">"Z"</span>, <span class="st">"H"</span><span class="op">)</span>,</span>
-<span>  scores <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  collapse <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"score"</span>, <span class="st">"share"</span><span class="op">)</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -131,7 +120,7 @@ occur once.</p></dd>
 
 
 <dt id="arg-centrality">centrality<a class="anchor" aria-label="anchor" href="#arg-centrality"></a></dt>
-<dd><p>For <code>type = "centrality"</code>, the <code><a href="hypergraph_centrality.html">hypergraph_centrality()</a></code>
+<dd><p>For <code>type = "centrality"</code>, the <code><a href="hg_centrality.html">hg_centrality()</a></code>
 measure: <code>"pagerank"</code> (default; it reads the incidence weights and does
 not tie on words present in every document, as the clique measure
 does), <code>"clique"</code>, <code>"Z"</code> or <code>"H"</code>.</p></dd>
@@ -183,10 +172,11 @@ ranked by <code>sort_by</code> within type and cluster; only words with a
 positive score and at least <code>min_docs</code> documents appear. With
 <code>collapse = TRUE</code>: one row per type and cluster, columns <code>type</code>,
 <code>cluster</code>, <code>size</code> and <code>words</code>. The print method shows the collapsed
-view, truncated to the console width; <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> is the long
-form. Raises <code>hypernets_bad_input</code> for unknown node names, a <code>type</code> that
-needs the token layer on a hypergraph without one, or a malformed
-<code>scores</code> table.</p>
+view, truncated to the console width; the returned table itself is
+the long form. Raises <code>hypernets_bad_input</code> for unknown node names, a <code>type</code> that
+needs the token layer on a hypergraph without one, a malformed
+<code>scores</code> table, or a bag-of-words <code>text_hypergraph(nodes = "word")</code>,
+whose hyperedges are documents rather than words.</p>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> returns a ggplot: one panel per cluster (rows) and score type
 (columns), each with its own word axis, horizontal bars of <code>value</code> per
 word, Okabe-Ito fill by type. It needs the long form and raises
@@ -207,7 +197,7 @@ count and <code>A</code> the average token count per cluster (truncated to an
 integer, as in the reference implementation).</p></li>
 <li><p><code>"centrality"</code>: the word's centrality within the cluster's own word
 hypergraph (words as nodes, the cluster's documents as hyperedges,
-incidence = the stored weights), from <code><a href="hypergraph_centrality.html">hypergraph_centrality()</a></code> with
+incidence = the stored weights), from <code><a href="hg_centrality.html">hg_centrality()</a></code> with
 the measure named in <code>centrality</code>.</p></li>
 </ul><p><code>"frequency"</code>, <code>"ctfidf"</code> and <code>"centrality"</code> need the token-level layer
 of a bag-of-words document hypergraph (<code>construction = "bag"</code>,
@@ -241,12 +231,12 @@ class-based TF-IDF procedure. arXiv:2203.05794.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  type cluster   size words                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  mass Cluster 1 2    soup, carrots, cold    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  mass Cluster 2 2    stars, telescope, aimed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the returned long table (rank, score, share, n_docs)</span>
 <span class="r-in"><span><span class="fu">hg_keywords</span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">3</span>, type <span class="op">=</span> <span class="st">"ctfidf"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  type   cluster   size words                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ctfidf Cluster 1 2    soup, carrots, cold    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ctfidf Cluster 2 2    stars, telescope, aimed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the returned long table (rank, score, share, n_docs)</span>
 <span class="r-in"><span><span class="va">words</span> <span class="op">&lt;-</span> <span class="fu">hg_keywords</span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, n <span class="op">=</span> <span class="fl">4</span>,</span></span>
 <span class="r-in"><span>                     type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"frequency"</span>, <span class="st">"ctfidf"</span>, <span class="st">"centrality"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">words</span><span class="op">)</span></span></span>
@@ -256,7 +246,7 @@ class-based TF-IDF procedure. arXiv:2203.05794.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  type cluster   size words                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  mass Cluster 1 2    soup, carrots, cold    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  mass Cluster 2 2    stars, telescope, aimed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 rows in the returned long table (rank, score, share, n_docs)</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

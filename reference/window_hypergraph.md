@@ -7,12 +7,12 @@ state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (`window_counts`); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra & Raphael 2019) that
-[`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md)
+[`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md)
 with `type = "random_walk"` uses directly. The window counts are the
 default hyperedge weights of the whole Laplacian family
-([`hypergraph_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_laplacian.md),
-[`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md),
-[`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md)).
+([`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md),
+[`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md),
+[`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)).
 
 ## Usage
 
@@ -24,6 +24,9 @@ window_hypergraph(
   action = NULL,
   actor = NULL,
   time = NULL,
+  session = NULL,
+  time_threshold = 900,
+  timezone = "UTC",
   min_size = 1L,
   min_weight = 1L
 )
@@ -33,9 +36,11 @@ window_hypergraph(
 
 - data:
 
-  Sequence data: a wide data.frame or character matrix (one sequence per
-  row, trailing `NA`s stripped), a list of character vectors, or a long
-  data.frame together with `action` (and optionally `actor`, `time`).
+  Sequences in any form described in
+  [sequence-input](https://mohsaqr.github.io/hypernets/reference/sequence-input.md):
+  a long event table, a wide data.frame or character matrix (one
+  sequence per row, trailing `NA`s stripped), or a list of character
+  vectors.
 
 - window:
 
@@ -46,21 +51,10 @@ window_hypergraph(
   Integer \>= 1. Offset between consecutive window starts: `1` slides,
   `window` tumbles.
 
-- action:
+- action, actor, time, session, time_threshold, timezone:
 
-  Character or NULL. Long format only: column holding the categorical
-  state of each event.
-
-- actor:
-
-  Character or NULL. Long format only: column grouping events into
-  sequences (one sequence per actor). `NULL` treats all rows as one
-  sequence.
-
-- time:
-
-  Character or NULL. Long format only: column ordering events within
-  each actor. `NULL` keeps row order.
+  Long-format arguments, as in
+  [sequence-input](https://mohsaqr.github.io/hypernets/reference/sequence-input.md).
 
 - min_size:
 
@@ -78,8 +72,8 @@ window_hypergraph(
 
 ## Value
 
-A `net_hypergraph` object (as from
-[`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md)
+A `net_hg` object (as from
+[`network_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md)
 and
 [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)):
 a list with `hyperedges` (list of sorted node index vectors),
@@ -89,8 +83,8 @@ one weight per hyperedge: the number of windows collapsed into it),
 `size_distribution`, and `params` (`source = "window_hypergraph"`,
 `window`, `step`, `min_size`, `n_sequences`, `n_short_sequences`,
 `n_windows`, `n_empty_windows`, `n_dropped`). Use
-[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) for the
-tidy one-row-per-hyperedge table.
+[`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+for the tidy one-row-per-hyperedge table.
 
 ## Details
 
@@ -120,11 +114,11 @@ Conference on Machine Learning*, PMLR 97, 1172-1181.
 
 ## See also
 
-[`build_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/build_hypergraph.md),
+[`network_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md),
 [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
-[`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md),
-[`hypergraph_cluster()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_cluster.md),
-[`clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/clique_expansion.md)
+[`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md),
+[`hg_cluster()`](https://mohsaqr.github.io/hypernets/reference/hg_cluster.md),
+[`hg_clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/hg_clique_expansion.md)
 
 ## Examples
 
@@ -132,22 +126,13 @@ Conference on Machine Learning*, PMLR 97, 1172-1181.
 hg <- window_hypergraph(human_long, action = "code",
                         actor = "session_id", time = "timestamp",
                         window = 3L)
+#> Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone): unused argument (timezone = timezone)
 hg
-#> Hypergraph: 9 nodes, 129 hyperedges
-#> Size distribution:
-#>   size_1   : 9
-#>   size_2   : 36
-#>   size_3   : 84
-#> Source: windowed sequences, window = 3, step = 1 (9942 windows from 429 sequences)
-edges <- as.data.frame(hg)
+#> Error: object 'hg' not found
+edges <- hg_get(hg)
+#> Error: object 'hg' not found
 head(edges)
-#>   hyperedge size                      states weight
-#> 1        h1    1                     Command    177
-#> 2        h2    2            Command, Correct    143
-#> 3        h3    3 Command, Correct, Frustrate     56
-#> 4        h4    3   Command, Correct, Inquire     71
-#> 5        h5    3 Command, Correct, Interrupt     38
-#> 6        h6    3    Command, Correct, Refine     42
+#> Error: object 'edges' not found
 
 # Tumbling windows over wide-format sequences
 wide <- data.frame(
@@ -155,8 +140,11 @@ wide <- data.frame(
   t3 = c("test", "code"), t4 = c("plan", "debug")
 )
 window_hypergraph(wide, window = 2L, step = 2L)
-#> Hypergraph: 4 nodes, 4 hyperedges
-#> Size distribution:
-#>   size_2   : 4
+#> Hypergraph: 4 nodes, 4 hyperedges (sizes 2: 4)
 #> Source: windowed sequences, window = 2, step = 2 (4 windows from 2 sequences)
+#>  hyperedge size     members weight
+#>         h1    2 code, debug      1
+#>         h2    2  code, plan      1
+#>         h3    2  code, test      1
+#>         h4    2  plan, test      1
 ```

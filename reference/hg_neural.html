@@ -17,7 +17,7 @@ Needs the suggested torch package."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ Needs the suggested torch package."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -75,21 +76,6 @@ Needs the suggested <span class="pkg">torch</span> package.</p>
 <span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">hypergraph_neural</span><span class="op">(</span></span>
-<span>  <span class="va">hg</span>,</span>
-<span>  <span class="va">labels</span>,</span>
-<span>  features <span class="op">=</span> <span class="st">"incidence"</span>,</span>
-<span>  hidden <span class="op">=</span> <span class="fl">128L</span>,</span>
-<span>  epochs <span class="op">=</span> <span class="fl">600L</span>,</span>
-<span>  lr <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  weight_decay <span class="op">=</span> <span class="fl">5e-04</span>,</span>
-<span>  dropout <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  validation <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  edge_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -98,7 +84,7 @@ Needs the suggested <span class="pkg">torch</span> package.</p>
 
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
-<dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code> (or any hypernets <code>net_hypergraph</code>),
+<dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code> (or any hypernets <code>net_hg</code>),
 dense or sparse.</p></dd>
 
 

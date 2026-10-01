@@ -10,10 +10,6 @@ distinct hyperedges. Sampling probabilities can be unequal.
 hg_sample_uniform(n, m, k, prob = NULL, seed = NULL)
 
 hg_sample_regular(n, m, k, prob = NULL, seed = NULL)
-
-hypergraph_sample_uniform(n, m, k, prob = NULL, seed = NULL)
-
-hypergraph_sample_regular(n, m, k, prob = NULL, seed = NULL)
 ```
 
 ## Arguments
@@ -46,7 +42,12 @@ hypergraph_sample_regular(n, m, k, prob = NULL, seed = NULL)
 
 ## Value
 
-A `net_hypergraph`.
+A `net_hg`.
+
+## References
+
+Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+1.0.0.
 
 ## Examples
 

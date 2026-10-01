@@ -22,17 +22,6 @@ hg_project(
   edge_source = NULL,
   directed = FALSE
 )
-
-hypergraph_project(
-  hg,
-  method = c("clique", "association", "citation"),
-  weighted = TRUE,
-  what = c("edges", "matrix"),
-  duplicate_edges = c("count", "collapse"),
-  self_association = FALSE,
-  edge_source = NULL,
-  directed = FALSE
-)
 ```
 
 ## Arguments
@@ -42,7 +31,7 @@ hypergraph_project(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any hypernets `net_hypergraph`.
+  or any hypernets `net_hg`.
 
 - method:
 

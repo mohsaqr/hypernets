@@ -17,7 +17,7 @@ itself); weight = &quot;binary&quot; gives the unweighted membership hypergraph
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ itself); weight = &quot;binary&quot; gives the unweighted membership hypergraph
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -85,7 +86,7 @@ rownames (the item IDs). No missing values; no all-zero rows.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>net_hypergraph</code> (from <code><a href="group_hypergraph.html">group_hypergraph()</a></code>) with one
+    <p>A <code>net_hg</code> (from <code><a href="group_hypergraph.html">group_hypergraph()</a></code>) with one
 hyperedge per item, each of size <code>k + 1</code>, plus a <code>knn</code> field recording
 <code>k</code> and the weighting. Accepted by <code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_centrality.html">hg_centrality()</a></code>,
 <code><a href="hg_cluster.html">hg_cluster()</a></code>, and <code><a href="hg_classify.html">hg_classify()</a></code>.</p>
@@ -103,6 +104,12 @@ L2-normalized embeddings, so normalized encoder output (the default of
 with similarity &lt;= 0 – a non-positive incidence weight would invalidate
 the random-walk machinery downstream; use <code>weight = "binary"</code> or a
 smaller <code>k</code> instead.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Feng, Y., You, H., Zhang, Z., Ji, R., &amp; Gao, Y. (2019). Hypergraph neural
+networks. <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>,
+33(01), 3558-3565. <a href="https://doi.org/10.1609/aaai.v33i01.33013558" class="external-link">doi:10.1609/aaai.v33i01.33013558</a></p>
     </div>
 
     <div class="section level2">

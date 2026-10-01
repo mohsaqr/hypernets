@@ -42,4 +42,16 @@ hg <- text_hypergraph(covid_abstracts, column = "abstract", id = "doc")
 hg
 #> Text hypergraph: 165 documents, 4114 words (documents as nodes, weight = n)
 #> Hyperedges: 4114 (words); sizes 1-165, median 1
+#>                 doc        word count weight
+#>  2-s2.0-85085897904      access     1      1
+#>  2-s2.0-85085897904     affects     2      2
+#>  2-s2.0-85085897904         all     2      2
+#>  2-s2.0-85085897904 alternative     1      1
+#>  2-s2.0-85085897904    american     1      1
+#>  2-s2.0-85085897904         and     6      6
+#>  2-s2.0-85085897904         any     1      1
+#>  2-s2.0-85085897904       apart     1      1
+#>  2-s2.0-85085897904         are     3      3
+#>  2-s2.0-85085897904     article     1      1
+#> ... 17876 more rows
 ```

@@ -46,6 +46,18 @@ hg <- text_hypergraph(
 hg
 #> Text hypergraph: 165 documents, 1453 words (documents as nodes, weight = tfidf)
 #> Hyperedges: 1453 (words); sizes 1-140, median 4
+#>                 doc        word count   weight
+#>  2-s2.0-85085897904      access     1 3.472930
+#>  2-s2.0-85085897904     affects     2 9.005100
+#>  2-s2.0-85085897904 alternative     1 4.166078
+#>  2-s2.0-85085897904    american     1 3.809403
+#>  2-s2.0-85085897904 association     1 3.547038
+#>  2-s2.0-85085897904   available     1 4.032546
+#>  2-s2.0-85085897904   awareness     1 4.166078
+#>  2-s2.0-85085897904      cannot     1 4.166078
+#>  2-s2.0-85085897904        care     1 3.714093
+#>  2-s2.0-85085897904      caused     1 3.914763
+#> ... 10372 more rows
 ```
 
 The corpus becomes 165 vertices connected by 1,453 word-hyperedges. The
@@ -244,6 +256,18 @@ word-level view never requires re-tokenizing:
 dual_hypergraph(hg)
 #> Text hypergraph: 165 documents, 1453 words (words as nodes, weight = tfidf)
 #> Hyperedges: 165 (documents); sizes 22-121, median 63
+#>                 doc        word count   weight
+#>  2-s2.0-85085897904      access     1 3.472930
+#>  2-s2.0-85085897904     affects     2 9.005100
+#>  2-s2.0-85085897904 alternative     1 4.166078
+#>  2-s2.0-85085897904    american     1 3.809403
+#>  2-s2.0-85085897904 association     1 3.547038
+#>  2-s2.0-85085897904   available     1 4.032546
+#>  2-s2.0-85085897904   awareness     1 4.166078
+#>  2-s2.0-85085897904      cannot     1 4.166078
+#>  2-s2.0-85085897904        care     1 3.714093
+#>  2-s2.0-85085897904      caused     1 3.914763
+#> ... 10372 more rows
 ```
 
 Finally,

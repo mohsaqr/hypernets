@@ -25,29 +25,8 @@ hg_motifs(
   multiedges = TRUE
 )
 
-hypergraph_motifs(
-  hg,
-  n = 1000L,
-  seed = NULL,
-  what = c("test", "counts", "draws"),
-  alternative = c("two_sided", "greater", "less"),
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
-
 # S3 method for class 'hypernets_motifs'
-as.data.frame(
-  x,
-  row.names = NULL,
-  optional = FALSE,
-  what = c("test", "draws"),
-  ...
-)
+hg_get(x, what = c("test", "draws"), ...)
 
 # S3 method for class 'hypernets_motifs'
 plot(x, motif = c("Y", "T", "O"), ...)
@@ -57,7 +36,7 @@ plot(x, motif = c("Y", "T", "O"), ...)
 
 - hg:
 
-  A 3-uniform `net_hypergraph` or a
+  A 3-uniform `net_hg` or a
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md).
 
 - n:
@@ -81,23 +60,19 @@ plot(x, motif = c("Y", "T", "O"), ...)
 - start, end, step, window, at:
 
   Measurement grid passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - snapshot_mode, multiedges:
 
   Snapshot `mode` (`"active"` or `"cumulative"`) and multi-edge handling
   passed to
-  [`hypergraph_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_snapshots.md)
+  [`hg_snapshots()`](https://mohsaqr.github.io/hypernets/reference/hg_snapshots.md)
   when `hg` is temporal.
 
 - x:
 
   A `hypernets_motifs` test table.
-
-- row.names, optional:
-
-  Unused; present for the base S3 contract.
 
 - ...:
 
@@ -110,13 +85,16 @@ plot(x, motif = c("Y", "T", "O"), ...)
 
 ## Value
 
-A tidy data frame. Test output includes observed count, null mean and
-standard deviation, z-score, empirical p-value, relative abundance
-`delta`, and the normalized motif profile used by HypergraphX.
+A tidy data frame. The test table has one row per motif: `motif`,
+`count` (observed), `expected` and `null_sd` (mean and standard
+deviation of the null counts), `z`, `p_value` (empirical), `delta`
+(relative abundance), `normalized_delta` (the motif profile used by
+HypergraphX), `n_null` (null draws) and `method`.
 
-For `as.data.frame`, the test table (`what = "test"`) or every null
-count (`what = "draws"`, columns `run`, `motif`, `count`) as a plain
-data.frame.
+For
+[`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md),
+the test table (`what = "test"`) or every null count (`what = "draws"`,
+columns `run`, `motif`, `count`) as a plain data.frame.
 
 For `plot`, a ggplot object: the null distribution of the motif count as
 a histogram with the observed count as a vertical line and the z-score

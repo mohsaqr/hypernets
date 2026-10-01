@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -40,6 +41,8 @@
       <small class="dont-index">Source: <a href="https://github.com/mohsaqr/hypernets/blob/main/EXPANSION-PLAN.md" class="external-link"><code>EXPANSION-PLAN.md</code></a></small>
     </div>
 
+
+<p>Superseded by ROADMAP.md (2026-09-29); kept as history.</p>
 <div id="expansion-plan--higher-order-networks" class="section level1">
 
 <p>Owner decisions taken 2026-08-25, <strong>substantially revised 2026-08-26</strong>. This is the consolidated roadmap reconciling <code>Nestimate/todo/COVERAGE-CATCHUP.md</code>, <code>../texthypergraph/TODO.md</code>, and the HON-1..15 / EG-1..13 sections of <code>Nestimate/TODO.md</code>.</p>
@@ -51,14 +54,14 @@
 </blockquote>
 <p><strong>What disproved decision 2, within hours of taking it:</strong></p>
 <ul><li>
-<code><a href="reference/build_hypergraph.html">build_hypergraph()</a></code> needs clique enumeration, which lives in Nestimate’s <code>simplicial.R</code>. Scaffolding hypernets therefore required <strong>copying a 171-line closure</strong> into <code>hypernets/R/utils.R</code> behind an internal <code><a href="reference/build_simplicial.html">build_simplicial()</a></code> shim. “Zero shared infrastructure” was false on day one.</li>
-<li>B1 (<code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code>), the first feature built after the split, takes <strong>the same <code>action</code>/<code>actor</code>/<code>time</code> sequence input as <code><a href="reference/build_hon.html">build_hon()</a></code></strong>. It is a sequence verb that emits hyperedges, and it had no natural home: it went into hypernets, but hypernets had an equal claim.</li>
+<code>build_hypergraph()</code> needs clique enumeration, which lives in Nestimate’s <code>simplicial.R</code>. Scaffolding hypernets therefore required <strong>copying a 171-line closure</strong> into <code>hypernets/R/utils.R</code> behind an internal <code>build_simplicial()</code> shim. “Zero shared infrastructure” was false on day one.</li>
+<li>B1 (<code><a href="reference/window_hypergraph.html">window_hypergraph()</a></code>), the first feature built after the split, takes <strong>the same <code>action</code>/<code>actor</code>/<code>time</code> sequence input as <code>build_hon()</code></strong>. It is a sequence verb that emits hyperedges, and it had no natural home: it went into hypernets, but hypernets had an equal claim.</li>
 <li>Nestimate has <strong>zero internal consumers</strong> of its own 1,956-line simplicial /TDA family once <code>hypergraph.R</code> departs — while <code>build_simplicial(type = "pathway")</code> dispatches on hypernets’ <code>net_hon</code>, <code>net_hypa</code> and <code>net_mogen</code>. The TDA layer already read hypernets classes.</li>
 <li>The literature the plan itself cites (Battiston et al. 2020; Bianconi 2021; Tian &amp; Zafarani 2024) treats memory networks, simplicial complexes and hypergraphs as <strong>one field</strong>, called higher-order networks.</li>
 <li>
-<code>hypernets</code> and <code>hypernets</code> are three characters apart, both ending in <code>nets</code>, both higher-order packages by the same author. That is a usability defect independent of the architecture.</li>
+<code>honets</code> and <code>hypernets</code> are three characters apart, both ending in <code>nets</code>, both higher-order packages by the same author. That is a usability defect independent of the architecture.</li>
 </ul><p>The split had put a boundary through the middle of a field rather than between fields.</p>
-<p><strong>Decision now in force:</strong> hypernets is <em>the</em> higher-order networks package, covering all three structure families under one taxonomy (see <code><a href="reference/hypernets-package.html">?hypernets</a></code> and <code>CLAUDE.md</code>). hypernets 0.1.2 is folded in and retired — nothing was thrown away: its ten R files, tests, equivalence suite and both tutorials moved across, and 223 lines of duplication were <strong>deleted</strong> rather than maintained. Nestimate imports one sibling instead of two.</p>
+<p><strong>Decision now in force:</strong> honets (renamed hypernets at 0.4.0, 2026-09-07) is <em>the</em> higher-order networks package, covering all three structure families under one taxonomy (see <code><a href="reference/hypernets-package.html">?hypernets</a></code> and <code>CLAUDE.md</code>). The short-lived hypergraph package <code>hypernets</code> 0.1.2 is folded in and retired — nothing was thrown away: its ten R files, tests, equivalence suite and both tutorials moved across, and 223 lines of duplication were <strong>deleted</strong> rather than maintained. Nestimate imports one sibling instead of two.</p>
 </div>
 <div class="section level2">
 <h2 id="family-map-after-the-consolidation">Family map after the consolidation<a class="anchor" aria-label="anchor" href="#family-map-after-the-consolidation"></a></h2>
@@ -74,12 +77,13 @@
 </tr><tr><td>idiographic</td>
 <td>person-specific temporal models</td>
 <td>delegated</td>
-</tr><tr><td><strong>hypernets</strong></td>
+</tr><tr><td>
+<strong>honets</strong> (now hypernets)</td>
 <td><strong>higher-order networks: memory + simplicial + hypergraph</strong></td>
 <td><strong>0.2.0 (T0 done for all three families)</strong></td>
-</tr><tr><td><del>hypernets</del></td>
+</tr><tr><td><del>hypernets 0.1.2</del></td>
 <td><del>hypergraphs</del></td>
-<td><strong>retired 2026-08-26, folded into hypernets</strong></td>
+<td><strong>retired 2026-08-26, folded into honets</strong></td>
 </tr></tbody></table></div>
 <div class="section level2">
 <h2 id="track-a--hypernets-higher-order--sequence-paradigm">Track A — hypernets (higher-order / sequence paradigm)<a class="anchor" aria-label="anchor" href="#track-a--hypernets-higher-order--sequence-paradigm"></a></h2>
@@ -99,7 +103,7 @@
 <td>Efron &amp; Tibshirani (1993); Good (2005); Benjamini &amp; Hochberg (1995)</td>
 </tr><tr><td>A2</td>
 <td>
-<strong>DONE 2026-08-25.</strong> Higher-order centralities projected to first-order states, plus <code>project = FALSE</code> for context-level values, <code>projection =</code> (scaled/last/first/all) and <code>sort_by =</code>. <code><a href="reference/build_hon.html">build_hon()</a></code> also gained the long-format <code>action</code>/<code>actor</code>/<code>time</code> interface.</td>
+<strong>DONE 2026-08-25.</strong> Higher-order centralities projected to first-order states, plus <code>project = FALSE</code> for context-level values, <code>projection =</code> (scaled/last/first/all) and <code>sort_by =</code>. <code>build_hon()</code> also gained the long-format <code>action</code>/<code>actor</code>/<code>time</code> interface.</td>
 <td><code>hon_centrality(hon, type = c("pagerank", "betweenness", "closeness"))</code></td>
 <td>pathpy 2.2.0 on identical topologies (k = 1,2,3 + 8 random corpora): betweenness/closeness exact &lt; 1e-10, PageRank to pathpy’s own tol = 1e-6; igraph for the unprojected kernels. Found and fixed a duplicate-cell bug in the distance projection.</td>
 <td>Scholtes, Wider &amp; Garas (2016) EPJ B 89:61</td>
@@ -127,13 +131,13 @@
 <th>Reference</th>
 </tr></thead><tbody><tr><td>B0</td>
 <td>
-<strong>T0 scaffold — DONE this session:</strong> moved <code>hypergraph.R</code>, <code>hypergraph_centrality.R</code>, <code>hypergraph_laplacian.R</code>, <code>hypergraph_measures.R</code>, <code>bipartite_groups.R</code>, <code>clique_expansion.R</code> (+ helpers <code>.wrap_netobject</code>, <code>.validate_mcml_matrix</code>, <code>.extract_edges_from_matrix</code>, and the simplicial-clique closure behind an internal <code><a href="reference/build_simplicial.html">build_simplicial()</a></code> shim) verbatim from Nestimate 0.9.0</td>
+<strong>T0 scaffold — DONE this session:</strong> moved <code>hypergraph.R</code>, <code>hypergraph_centrality.R</code>, <code>hypergraph_laplacian.R</code>, <code>hypergraph_measures.R</code>, <code>bipartite_groups.R</code>, <code>clique_expansion.R</code> (+ helpers <code>.wrap_netobject</code>, <code>.validate_mcml_matrix</code>, <code>.extract_edges_from_matrix</code>, and the simplicial-clique closure behind an internal <code>build_simplicial()</code> shim) verbatim from Nestimate 0.9.0</td>
 <td>8 exports, 11 S3 methods</td>
 <td>exact <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> identity vs Nestimate proven (61 assertions, incl. RNG paths); 281 shipped tests + 682 equiv assertions green; quick check 0 errors / 0 warnings</td>
 <td>—</td>
 </tr><tr><td>B1</td>
 <td>
-<strong>DONE 2026-08-25.</strong> Windowed sequence hyperedges (tumbling/sliding window w, hyperedge = distinct states in window, weight = window count; incidence cells = occurrence totals, i.e. EDVW). Shipped as a dedicated constructor <code>window_hypergraph(data, window, step, action, actor, time, min_size)</code> rather than an input mode of <code><a href="reference/build_hypergraph.html">build_hypergraph()</a></code> (whose adjacency-typed first argument and clique args don’t transfer); Laplacian family defaults <code>edge_weights</code> to the window counts; new tidy <code><a href="reference/as.data.frame.net_hypergraph.html">as.data.frame.net_hypergraph()</a></code> accessor.</td>
+<strong>DONE 2026-08-25.</strong> Windowed sequence hyperedges (tumbling/sliding window w, hyperedge = distinct states in window, weight = window count; incidence cells = occurrence totals, i.e. EDVW). Shipped as a dedicated constructor <code>window_hypergraph(data, window, step, action, actor, time, min_size)</code> rather than an input mode of <code>build_hypergraph()</code> (whose adjacency-typed first argument and clique args don’t transfer); Laplacian family defaults <code>edge_weights</code> to the window counts; new tidy <code>as.data.frame.net_hypergraph()</code> accessor.</td>
 <td><code>window_hypergraph(data, window = w)</code></td>
 <td>wtna co-occurrence oracle (w = 2 tumbling, off-diagonals), bipartite_groups whole-sequence reduction, conservation invariants — all green; identity vs Nestimate re-verified after the edge-weight default change</td>
 <td>Ding et al. (2020) EMNLP (HyperGAT construction)</td>
@@ -155,7 +159,7 @@
 <td>
 <code>HyperG::knn_hypergraph</code> for unweighted construction; vignette-first before freezing the API</td>
 <td>texthypergraph/TODO.md</td>
-</tr></tbody></table><p>Small carried-over items: <code><a href="reference/dual_hypergraph.html">dual_hypergraph()</a></code> (hypernets, when a use-case appears), XGI second oracle for shipped centralities (hypernets equiv suite), <code><a href="reference/wasserstein_distance.html">wasserstein_distance()</a></code> (<strong>done 2026-09-02</strong> in hypernets’ simplicial family), random hypergraph samplers (<strong>done 2026-09-02</strong> with HyperG parity; hypernets owns simulation as part of its hypergraph family), per the simulation/computation split).</p>
+</tr></tbody></table><p>Small carried-over items: <code><a href="reference/dual_hypergraph.html">dual_hypergraph()</a></code> (hypernets, when a use-case appears), XGI second oracle for shipped centralities (hypernets equiv suite), <code>wasserstein_distance()</code> (<strong>done 2026-09-02</strong> in hypernets’ simplicial family), random hypergraph samplers (<strong>done 2026-09-02</strong> with HyperG parity; hypernets owns simulation as part of its hypergraph family), per the simulation/computation split).</p>
 <p>Suggested order: B0 → B1 → B2 (all done) → B3 → B4.</p>
 </div>
 <div class="section level2">
@@ -171,7 +175,7 @@
 </td>
 </tr><tr><td>C2</td>
 <td>
-<strong>DONE 2026-09-02.</strong> <code><a href="reference/wasserstein_distance.html">wasserstein_distance()</a></code> for persistence diagrams</td>
+<strong>DONE 2026-09-02.</strong> <code>wasserstein_distance()</code> for persistence diagrams</td>
 <td>finite Wasserstein order and configurable ground metric; native exact Hungarian assignment</td>
 </tr><tr><td>C3</td>
 <td>Convert the inherited bare-name <code>aes()</code> plot code to the <code>.data</code> pronoun</td>
@@ -194,6 +198,7 @@
 <li><label><input type="checkbox">Archive the <code>hypernets</code> GitHub repo with a README pointing at hypernets.</label></li>
 </ul></div>
 </div>
+
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

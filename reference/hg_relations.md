@@ -19,13 +19,6 @@ hg_relations(
   similarity = c("none", "association", "cosine", "jaccard", "inclusion", "equivalence"),
   what = c("edges", "network")
 )
-
-hypergraph_relations(
-  hg,
-  clusters,
-  similarity = c("none", "association", "cosine", "jaccard", "inclusion", "equivalence"),
-  what = c("edges", "network")
-)
 ```
 
 ## Arguments

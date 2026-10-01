@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -110,7 +111,19 @@ abstracts are dropped — a word seen once cannot connect anything.</p>
 <span><span class="co">#&gt; vocabulary pruned to 1453 of 4032 words, retaining 81.71% of tokens</span></span>
 <span><span class="va">hg</span></span>
 <span><span class="co">#&gt; Text hypergraph: 165 documents, 1453 words (documents as nodes, weight = tfidf)</span></span>
-<span><span class="co">#&gt; Hyperedges: 1453 (words); sizes 1-140, median 4</span></span></code></pre></div>
+<span><span class="co">#&gt; Hyperedges: 1453 (words); sizes 1-140, median 4</span></span>
+<span><span class="co">#&gt;                 doc        word count   weight</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      access     1 3.472930</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904     affects     2 9.005100</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904 alternative     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904    american     1 3.809403</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904 association     1 3.547038</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904   available     1 4.032546</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904   awareness     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      cannot     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904        care     1 3.714093</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      caused     1 3.914763</span></span>
+<span><span class="co">#&gt; ... 10372 more rows</span></span></code></pre></div>
 <p>The corpus becomes 165 vertices connected by 1,453 word-hyperedges.
 The median word touches 4 abstracts; the largest hyperedge spans 140 of
 the 165 — a near-universal term that tf-idf weighting correspondingly
@@ -277,7 +290,19 @@ word-level view never requires re-tokenizing:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/dual_hypergraph.html">dual_hypergraph</a></span><span class="op">(</span><span class="va">hg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Text hypergraph: 165 documents, 1453 words (words as nodes, weight = tfidf)</span></span>
-<span><span class="co">#&gt; Hyperedges: 165 (documents); sizes 22-121, median 63</span></span></code></pre></div>
+<span><span class="co">#&gt; Hyperedges: 165 (documents); sizes 22-121, median 63</span></span>
+<span><span class="co">#&gt;                 doc        word count   weight</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      access     1 3.472930</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904     affects     2 9.005100</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904 alternative     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904    american     1 3.809403</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904 association     1 3.547038</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904   available     1 4.032546</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904   awareness     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      cannot     1 4.166078</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904        care     1 3.714093</span></span>
+<span><span class="co">#&gt;  2-s2.0-85085897904      caused     1 3.914763</span></span>
+<span><span class="co">#&gt; ... 10372 more rows</span></span></code></pre></div>
 <p>Finally, <code><a href="../reference/hg_null_test.html">hg_null_test()</a></code> asks whether observed structure
 exceeds what the degree sequences alone imply: it rewires the binary
 membership by degree-preserving checkerboard swaps (Gotelli 2000) and

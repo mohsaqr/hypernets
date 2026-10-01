@@ -18,17 +18,6 @@ hg_sample_sbm(
   absolute_purity = TRUE,
   seed = NULL
 )
-
-hypergraph_sample_sbm(
-  n = NULL,
-  P,
-  block_sizes,
-  d,
-  impurity = 0L,
-  variable_size = FALSE,
-  absolute_purity = TRUE,
-  seed = NULL
-)
 ```
 
 ## Arguments
@@ -72,14 +61,19 @@ hypergraph_sample_sbm(
 
 ## Value
 
-A `net_hypergraph`; `$blocks` records each node's planted block.
+A `net_hg`; `$blocks` records each node's planted block.
+
+## References
+
+Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+1.0.0.
 
 ## Examples
 
 ``` r
 P <- matrix(c(.5, .05, .05, .5), 2, 2)
 h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-as.data.frame(h, what = "nodes")
+hg_get(h, what = "nodes")
 #>    node degree block
 #> 1    V1      9     1
 #> 2    V2      9     1

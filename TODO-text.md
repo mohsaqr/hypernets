@@ -1,5 +1,7 @@
 # hypernets text and hypergraph backlog
 
+Superseded by ROADMAP.md (2026-09-29); kept as history.
+
 This is the maintained backlog after the texthypergraph merge.
 Historical Nestimate-era tasks are recorded in `ROADMAP-text.md`;
 hypernets does not depend on Nestimate and no work in this list requires
@@ -25,10 +27,9 @@ Chien et al. (2022): AllDeepSets and AllSetTransformer.
 
 ## Statistical and ecosystem completions
 
-Add
-[`wasserstein_distance()`](https://mohsaqr.github.io/hypernets/reference/wasserstein_distance.md)
-for persistence diagrams, using the SimplicialComplex/GUDHI finite-order
-and ground-metric conventions and an exact native assignment solver.
+Add `wasserstein_distance()` for persistence diagrams, using the
+SimplicialComplex/GUDHI finite-order and ground-metric conventions and
+an exact native assignment solver.
 
 Add random hypergraph generators: Bernoulli-incidence G(n,p), SBM,
 k-uniform and k-regular, with `hg_*` and `hypergraph_*` names.
@@ -51,9 +52,8 @@ output.
 
 Ship one dedicated embedding wrapper under both
 [`hg_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md)
-and
-[`hypergraph_embed()`](https://mohsaqr.github.io/hypernets/reference/hg_embed.md),
-delegating to the existing spectral/NMF engine.
+and `hypergraph_embed()`, delegating to the existing spectral/NMF
+engine.
 
 ## Legal Hypergraphs reproduction
 

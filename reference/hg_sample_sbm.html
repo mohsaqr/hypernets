@@ -13,7 +13,7 @@ hypergraph SBM construction used by HyperG."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@ hypergraph SBM construction used by HyperG."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -57,17 +58,6 @@ hypergraph SBM construction used by HyperG.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hg_sample_sbm</span><span class="op">(</span></span>
-<span>  n <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">P</span>,</span>
-<span>  <span class="va">block_sizes</span>,</span>
-<span>  <span class="va">d</span>,</span>
-<span>  impurity <span class="op">=</span> <span class="fl">0L</span>,</span>
-<span>  variable_size <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  absolute_purity <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">hypergraph_sample_sbm</span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">P</span>,</span>
 <span>  <span class="va">block_sizes</span>,</span>
@@ -121,14 +111,19 @@ restored on exit.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>net_hypergraph</code>; <code>$blocks</code> records each node's planted block.</p>
+    <p>A <code>net_hg</code>; <code>$blocks</code> records each node's planted block.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+1.0.0.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">P</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.5</span>, <span class="fl">.05</span>, <span class="fl">.05</span>, <span class="fl">.5</span><span class="op">)</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">h</span> <span class="op">&lt;-</span> <span class="fu">hg_sample_sbm</span><span class="op">(</span>P <span class="op">=</span> <span class="va">P</span>, block_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, d <span class="op">=</span> <span class="fl">3</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">h</span>, what <span class="op">=</span> <span class="st">"nodes"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">h</span>, what <span class="op">=</span> <span class="st">"nodes"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    node degree block</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    V1      9     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2    V2      9     1</span>

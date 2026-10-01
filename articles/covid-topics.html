@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -166,11 +167,11 @@ document and its cluster label.</p>
 the hypergraph and the partition and returns a data frame with one row
 per cluster and word, containing the score, the word’s share and the
 number of cluster documents that contain the word. The print method
-shows one row per cluster with its words joined;
-<code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> returns the long form. The default score,
-<code>type = "mass"</code>, is the summed incidence weight that a
-cluster’s documents place on the word, which under
-<code>weight = "n"</code> is the word’s count within the cluster.</p>
+shows one row per cluster with its words joined; the returned table
+itself is the long form. The default score, <code>type = "mass"</code>,
+is the summed incidence weight that a cluster’s documents place on the
+word, which under <code>weight = "n"</code> is the word’s count within
+the cluster.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hg_keywords.html">hg_keywords</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span><span class="op">)</span></span></code></pre></div>
 <p>Under the default ranking every cluster lists the same words:
@@ -222,24 +223,35 @@ per topic.</p>
 <div class="section level2">
 <h2 id="topic-coherence-and-exclusivity">Topic coherence and exclusivity<a class="anchor" aria-label="anchor" href="#topic-coherence-and-exclusivity"></a>
 </h2>
-<p><code><a href="../reference/hg_topic_quality.html">hg_topic_quality()</a></code> scores each topic’s owned vocabulary
-on two axes. Coherence is the mean normalised pointwise mutual
-information between pairs of the topic’s top words, computed on their
-co-occurrence within the topic’s documents: 1 when the words always
-occur together, 0 at independence, negative when they avoid each other.
-Exclusivity is the mean share of the same words, the fraction of each
-word’s corpus count that the topic holds. The top words are the ten that
-<code><a href="../reference/hg_keywords.html">hg_keywords()</a></code> ranks by share with the support floor
-given.</p>
+<p><code><a href="../reference/hg_topic_quality.html">hg_topic_quality()</a></code> scores each topic’s top words on two
+axes, with the definitions the structural topic model uses (Roberts,
+Stewart &amp; Tingley 2019), so a hypergraph clustering and a
+probabilistic topic model can be compared on the same numbers. The top
+words are the most probable words of the topic’s documents.</p>
+<ul>
+<li>
+<strong>Coherence</strong> is UMass (Mimno et al. 2011): for every
+pair of top words, the log of how often the rarer word’s documents also
+contain the other, counted over the whole corpus and summed. It is never
+positive; closer to zero means the words turn up in the same
+documents.</li>
+<li>
+<strong>Exclusivity</strong> is FREX (Bischof &amp; Airoldi 2012): a
+weighted harmonic mean of how frequent each top word is in the topic and
+how exclusive it is to the topic, summed over the top words. Higher
+means the topic owns its words rather than sharing them with the rest of
+the corpus.</li>
+</ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">quality</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hg_topic_quality.html">hg_topic_quality</a></span><span class="op">(</span><span class="va">hg</span>, <span class="va">topics</span>, min_docs <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="va">quality</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">quality</span><span class="op">)</span></span></code></pre></div>
-<p>Exclusivity is high for every topic because the words are selected by
-share. Coherence separates them: the topics whose top words co-occur in
-most of their documents describe a single kind of study; the topics with
-low coherence collect abstracts that share a vocabulary but not a
-subject.</p>
+<p>A topic high on both axes has a vocabulary that co-occurs and that no
+other topic uses; a topic low on coherence gathers abstracts that share
+words but not a subject. <code>coherence = "npmi"</code> gives
+normalised PMI instead (Bouma 2009; Lau, Newman &amp; Baldwin 2014), and
+<code>words =</code> scores the top words of a topic model fitted
+elsewhere with the same measures.</p>
 </div>
 <div class="section level2">
 <h2 id="soft-membership">Soft membership<a class="anchor" aria-label="anchor" href="#soft-membership"></a>

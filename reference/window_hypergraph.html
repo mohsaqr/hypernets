@@ -6,20 +6,20 @@ state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (window_counts); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra &amp;amp; Raphael 2019) that
-hypergraph_cluster() with type = "random_walk" uses directly. The
+hg_cluster() with type = "random_walk" uses directly. The
 window counts are the default hyperedge weights of the whole Laplacian
-family (hypergraph_laplacian(), hypergraph_cluster(),
-hypergraph_transduction()).'><meta property="og:description" content='Builds a hypergraph from categorical sequence data: a fixed-size window
+family (hg_laplacian(), hg_cluster(),
+hg_classify()).'><meta property="og:description" content='Builds a hypergraph from categorical sequence data: a fixed-size window
 moves over each sequence and the distinct states observed inside one
 window form one hyperedge (Ding et al. 2020). Windows whose distinct
 state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (window_counts); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra &amp;amp; Raphael 2019) that
-hypergraph_cluster() with type = "random_walk" uses directly. The
+hg_cluster() with type = "random_walk" uses directly. The
 window counts are the default hyperedge weights of the whole Laplacian
-family (hypergraph_laplacian(), hypergraph_cluster(),
-hypergraph_transduction()).'></head><body>
+family (hg_laplacian(), hg_cluster(),
+hg_classify()).'></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -27,7 +27,7 @@ hypergraph_transduction()).'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,7 @@ hypergraph_transduction()).'></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -69,10 +70,10 @@ state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (<code>window_counts</code>); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra &amp; Raphael 2019) that
-<code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code> with <code>type = "random_walk"</code> uses directly. The
+<code><a href="hg_cluster.html">hg_cluster()</a></code> with <code>type = "random_walk"</code> uses directly. The
 window counts are the default hyperedge weights of the whole Laplacian
-family (<code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></code>, <code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>,
-<code><a href="hypergraph_transduction.html">hypergraph_transduction()</a></code>).</p>
+family (<code><a href="hg_laplacian.html">hg_laplacian()</a></code>, <code><a href="hg_cluster.html">hg_cluster()</a></code>,
+<code><a href="hg_classify.html">hg_classify()</a></code>).</p>
     </div>
 
     <div class="section level2">
@@ -84,6 +85,9 @@ family (<code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></co
 <span>  action <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  actor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  session <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  time_threshold <span class="op">=</span> <span class="fl">900</span>,</span>
+<span>  timezone <span class="op">=</span> <span class="st">"UTC"</span>,</span>
 <span>  min_size <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  min_weight <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -94,10 +98,9 @@ family (<code><a href="hypergraph_laplacian.html">hypergraph_laplacian()</a></co
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>Sequence data: a wide data.frame or character matrix (one
-sequence per row, trailing <code>NA</code>s stripped), a list of character
-vectors, or a long data.frame together with <code>action</code> (and optionally
-<code>actor</code>, <code>time</code>).</p></dd>
+<dd><p>Sequences in any form described in <a href="sequence-input.html">sequence-input</a>: a long
+event table, a wide data.frame or character matrix (one sequence per
+row, trailing <code>NA</code>s stripped), or a list of character vectors.</p></dd>
 
 
 <dt id="arg-window">window<a class="anchor" aria-label="anchor" href="#arg-window"></a></dt>
@@ -109,20 +112,9 @@ vectors, or a long data.frame together with <code>action</code> (and optionally
 <code>1</code> slides, <code>window</code> tumbles.</p></dd>
 
 
-<dt id="arg-action">action<a class="anchor" aria-label="anchor" href="#arg-action"></a></dt>
-<dd><p>Character or NULL. Long format only: column holding the
-categorical state of each event.</p></dd>
-
-
-<dt id="arg-actor">actor<a class="anchor" aria-label="anchor" href="#arg-actor"></a></dt>
-<dd><p>Character or NULL. Long format only: column grouping events
-into sequences (one sequence per actor). <code>NULL</code> treats all rows as one
-sequence.</p></dd>
-
-
-<dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
-<dd><p>Character or NULL. Long format only: column ordering events
-within each actor. <code>NULL</code> keeps row order.</p></dd>
+<dt id="arg-action-actor-time-session-time-threshold-timezone">action, actor, time, session, time_threshold, timezone<a class="anchor" aria-label="anchor" href="#arg-action-actor-time-session-time-threshold-timezone"></a></dt>
+<dd><p>Long-format
+arguments, as in <a href="sequence-input.html">sequence-input</a>.</p></dd>
 
 
 <dt id="arg-min-size">min_size<a class="anchor" aria-label="anchor" href="#arg-min-size"></a></dt>
@@ -141,7 +133,7 @@ is recorded in <code>params$n_dropped</code>; with both at their defaults,
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>net_hypergraph</code> object (as from <code><a href="build_hypergraph.html">build_hypergraph()</a></code> and
+    <p>A <code>net_hg</code> object (as from <code><a href="network_hypergraph.html">network_hypergraph()</a></code> and
 <code><a href="group_hypergraph.html">group_hypergraph()</a></code>): a list with <code>hyperedges</code> (list of sorted node
 index vectors), <code>incidence</code> (numeric node x hyperedge matrix of
 within-window occurrence totals), <code>nodes</code>, <code>n_nodes</code>, <code>n_hyperedges</code>,
@@ -149,7 +141,7 @@ within-window occurrence totals), <code>nodes</code>, <code>n_nodes</code>, <cod
 windows collapsed into it), <code>size_distribution</code>, and <code>params</code>
 (<code>source = "window_hypergraph"</code>, <code>window</code>, <code>step</code>, <code>min_size</code>,
 <code>n_sequences</code>, <code>n_short_sequences</code>, <code>n_windows</code>, <code>n_empty_windows</code>,
-<code>n_dropped</code>). Use <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> for the tidy one-row-per-hyperedge
+<code>n_dropped</code>). Use <code><a href="hg_get.html">hg_get()</a></code> for the tidy one-row-per-hyperedge
 table.</p>
     </div>
     <div class="section level2">
@@ -177,8 +169,8 @@ International Conference on Machine Learning</em>, PMLR 97, 1172-1181.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="build_hypergraph.html">build_hypergraph()</a></code>, <code><a href="group_hypergraph.html">group_hypergraph()</a></code>,
-<code><a href="hypergraph_measures.html">hypergraph_measures()</a></code>, <code><a href="hypergraph_cluster.html">hypergraph_cluster()</a></code>, <code><a href="clique_expansion.html">clique_expansion()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="network_hypergraph.html">network_hypergraph()</a></code>, <code><a href="group_hypergraph.html">group_hypergraph()</a></code>,
+<code><a href="hg_measures.html">hg_measures()</a></code>, <code><a href="hg_cluster.html">hg_cluster()</a></code>, <code><a href="hg_clique_expansion.html">hg_clique_expansion()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -186,22 +178,13 @@ International Conference on Machine Learning</em>, PMLR 97, 1172-1181.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">hg</span> <span class="op">&lt;-</span> <span class="fu">window_hypergraph</span><span class="op">(</span><span class="va">human_long</span>, action <span class="op">=</span> <span class="st">"code"</span>,</span></span>
 <span class="r-in"><span>                        actor <span class="op">=</span> <span class="st">"session_id"</span>, time <span class="op">=</span> <span class="st">"timestamp"</span>,</span></span>
 <span class="r-in"><span>                        window <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in Nestimate::prepare(data[columns], actor = actor, action = action,     time = time, session = session, time_threshold = time_threshold,     timezone = timezone):</span> unused argument (timezone = timezone)</span>
 <span class="r-in"><span><span class="va">hg</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 9 nodes, 129 hyperedges</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Size distribution:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   size_1   : 9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   size_2   : 36</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   size_3   : 84</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Source: windowed sequences, window = 3, step = 1 (9942 windows from 429 sequences)</span>
-<span class="r-in"><span><span class="va">edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">hg</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hg' not found</span>
+<span class="r-in"><span><span class="va">edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">hg</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hg' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">edges</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   hyperedge size                      states weight</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        h1    1                     Command    177</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        h2    2            Command, Correct    143</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        h3    3 Command, Correct, Frustrate     56</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        h4    3   Command, Correct, Inquire     71</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        h5    3 Command, Correct, Interrupt     38</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        h6    3    Command, Correct, Refine     42</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'edges' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Tumbling windows over wide-format sequences</span></span></span>
 <span class="r-in"><span><span class="va">wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
@@ -209,10 +192,13 @@ International Conference on Machine Learning</em>, PMLR 97, 1172-1181.</p>
 <span class="r-in"><span>  t3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"test"</span>, <span class="st">"code"</span><span class="op">)</span>, t4 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"plan"</span>, <span class="st">"debug"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">window_hypergraph</span><span class="op">(</span><span class="va">wide</span>, window <span class="op">=</span> <span class="fl">2L</span>, step <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 4 nodes, 4 hyperedges</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Size distribution:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   size_2   : 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Hypergraph: 4 nodes, 4 hyperedges (sizes 2: 4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Source: windowed sequences, window = 2, step = 2 (4 windows from 2 sequences)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  hyperedge size     members weight</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h1    2 code, debug      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h2    2  code, plan      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h3    2  code, test      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         h4    2  plan, test      1</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

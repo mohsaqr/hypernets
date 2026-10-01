@@ -14,19 +14,13 @@ how much the choice of representation changes what a node looks like.
 
 ``` r
 hg_representations(hg, graph = c("clique", "citation"), edge_source = NULL)
-
-hypergraph_representations(
-  hg,
-  graph = c("clique", "citation"),
-  edge_source = NULL
-)
 ```
 
 ## Arguments
 
 - hg:
 
-  A static `net_hypergraph`, typically a snapshot of a
+  A static `net_hg`, typically a snapshot of a
   [`temporal_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/temporal_hypergraph.md).
 
 - graph:

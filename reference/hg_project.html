@@ -19,7 +19,7 @@ hyperedge's contribution by \(|e|-1\), following Coupette et al. (2024):"></head
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ hyperedge's contribution by \(|e|-1\), following Coupette et al. (2024):"></head
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -74,17 +75,6 @@ hyperedge's contribution by \(|e|-1\), following Coupette et al. (2024):</p>
 <span>  self_association <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  edge_source <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  directed <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">hypergraph_project</span><span class="op">(</span></span>
-<span>  <span class="va">hg</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clique"</span>, <span class="st">"association"</span>, <span class="st">"citation"</span><span class="op">)</span>,</span>
-<span>  weighted <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"edges"</span>, <span class="st">"matrix"</span><span class="op">)</span>,</span>
-<span>  duplicate_edges <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"collapse"</span><span class="op">)</span>,</span>
-<span>  self_association <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  edge_source <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  directed <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,7 +84,7 @@ hyperedge's contribution by \(|e|-1\), following Coupette et al. (2024):</p>
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
 <dd><p>A <code><a href="text_hypergraph.html">text_hypergraph()</a></code>, <code><a href="knn_hypergraph.html">knn_hypergraph()</a></code>, or any hypernets
-<code>net_hypergraph</code>.</p></dd>
+<code>net_hg</code>.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>

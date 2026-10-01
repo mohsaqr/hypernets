@@ -17,7 +17,7 @@ cardinality before duplicate-edge collapse."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">hypernets</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ cardinality before duplicate-edge collapse."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covid-topics.html">Topic structure of the COVID-19 education literature as a document-word hypergraph</a></li>
+    <li><a class="dropdown-item" href="../articles/topic-mixtures.html">Mixed-membership topics of the COVID-19 education literature</a></li>
     <li><a class="dropdown-item" href="../articles/text-hypergraphs.html">Hypergraph analysis of a text corpus</a></li>
     <li><a class="dropdown-item" href="../articles/text-constructions.html">Windowed and embedding hypergraphs</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -77,29 +78,8 @@ cardinality before duplicate-edge collapse.</p>
 <span>  multiedges <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">hypergraph_motifs</span><span class="op">(</span></span>
-<span>  <span class="va">hg</span>,</span>
-<span>  n <span class="op">=</span> <span class="fl">1000L</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"test"</span>, <span class="st">"counts"</span>, <span class="st">"draws"</span><span class="op">)</span>,</span>
-<span>  alternative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"two_sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span><span class="op">)</span>,</span>
-<span>  start <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  end <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  step <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  window <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  at <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  snapshot_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"active"</span>, <span class="st">"cumulative"</span><span class="op">)</span>,</span>
-<span>  multiedges <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># S3 method for class 'hypernets_motifs'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
-<span>  row.names <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  optional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"test"</span>, <span class="st">"draws"</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu"><a href="hg_get.html">hg_get</a></span><span class="op">(</span><span class="va">x</span>, what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"test"</span>, <span class="st">"draws"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'hypernets_motifs'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, motif <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Y"</span>, <span class="st">"T"</span>, <span class="st">"O"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
@@ -110,7 +90,7 @@ cardinality before duplicate-edge collapse.</p>
 
 
 <dl><dt id="arg-hg">hg<a class="anchor" aria-label="anchor" href="#arg-hg"></a></dt>
-<dd><p>A 3-uniform <code>net_hypergraph</code> or a <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code>.</p></dd>
+<dd><p>A 3-uniform <code>net_hg</code> or a <code><a href="temporal_hypergraph.html">temporal_hypergraph()</a></code>.</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
@@ -133,21 +113,17 @@ counts only, or <code>"draws"</code> for every null count.</p></dd>
 
 <dt id="arg-start-end-step-window-at">start, end, step, window, at<a class="anchor" aria-label="anchor" href="#arg-start-end-step-window-at"></a></dt>
 <dd><p>Measurement grid passed to
-<code><a href="hypergraph_snapshots.html">hypergraph_snapshots()</a></code> when <code>hg</code> is temporal.</p></dd>
+<code><a href="hg_snapshots.html">hg_snapshots()</a></code> when <code>hg</code> is temporal.</p></dd>
 
 
 <dt id="arg-snapshot-mode-multiedges">snapshot_mode, multiedges<a class="anchor" aria-label="anchor" href="#arg-snapshot-mode-multiedges"></a></dt>
 <dd><p>Snapshot <code>mode</code> (<code>"active"</code> or
 <code>"cumulative"</code>) and multi-edge handling passed to
-<code><a href="hypergraph_snapshots.html">hypergraph_snapshots()</a></code> when <code>hg</code> is temporal.</p></dd>
+<code><a href="hg_snapshots.html">hg_snapshots()</a></code> when <code>hg</code> is temporal.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A <code>hypernets_motifs</code> test table.</p></dd>
-
-
-<dt id="arg-row-names-optional">row.names, optional<a class="anchor" aria-label="anchor" href="#arg-row-names-optional"></a></dt>
-<dd><p>Unused; present for the base S3 contract.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -161,10 +137,12 @@ counts only, or <code>"draws"</code> for every null count.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A tidy data frame. Test output includes observed count, null mean
-and standard deviation, z-score, empirical p-value, relative abundance
-<code>delta</code>, and the normalized motif profile used by HypergraphX.</p>
-<p>For <code>as.data.frame</code>, the test table (<code>what = "test"</code>) or every null
+    <p>A tidy data frame. The test table has one row per motif:
+<code>motif</code>, <code>count</code> (observed), <code>expected</code> and <code>null_sd</code> (mean and
+standard deviation of the null counts), <code>z</code>, <code>p_value</code> (empirical),
+<code>delta</code> (relative abundance), <code>normalized_delta</code> (the motif profile used
+by HypergraphX), <code>n_null</code> (null draws) and <code>method</code>.</p>
+<p>For <code><a href="hg_get.html">hg_get()</a></code>, the test table (<code>what = "test"</code>) or every null
 count (<code>what = "draws"</code>, columns <code>run</code>, <code>motif</code>, <code>count</code>) as a plain
 data.frame.</p>
 <p>For <code>plot</code>, a ggplot object: the null distribution of the motif

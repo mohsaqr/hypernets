@@ -115,6 +115,12 @@ kept), or the same data.frame with `column` replaced. `NA` and
 low-content texts become `""`. Raises `hypernets_bad_input` for a
 malformed `x`, `column` or switch.
 
+## References
+
+Manning, C. D., Raghavan, P., & Schütze, H. (2008). *Introduction to
+Information Retrieval*. Cambridge University Press.
+[doi:10.1017/CBO9780511809071](https://doi.org/10.1017/CBO9780511809071)
+
 ## Examples
 
 ``` r

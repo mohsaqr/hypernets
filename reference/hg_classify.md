@@ -1,9 +1,14 @@
-# Transductive label spreading on a hypergraph, as a tidy table
+# Transductive label spreading on a hypergraph
 
-Calls the in-package
-[`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md)
-engine (Zhou et al. 2006): labels known for a few nodes spread over the
-hypergraph structure to classify every node.
+Semi-supervised classification of hypergraph nodes by the regularization
+framework of Zhou et al. (2006): given labels for a subset of nodes, the
+scores `F = (1 - xi) * (I - xi * S)^{-1} Y` spread the labels over the
+hypergraph, where `S = I - L` is the normalized similarity operator of
+the chosen Laplacian and `Y` is the label indicator matrix. Each node is
+assigned the class with the highest score. This is the non-neural
+ancestor of hypergraph-attention text classifiers: with documents as
+hyperedges over words (or vice versa) it classifies unlabeled nodes from
+a handful of labeled ones.
 
 ## Usage
 
@@ -13,15 +18,8 @@ hg_classify(
   labels,
   xi = 0.99,
   type = c("zhou", "random_walk"),
-  normalization = c("none", "class_mass")
-)
-
-hypergraph_classify(
-  hg,
-  labels,
-  xi = 0.99,
-  type = c("zhou", "random_walk"),
-  normalization = c("none", "class_mass")
+  normalization = c("none", "class_mass"),
+  edge_weights = NULL
 )
 ```
 
@@ -31,7 +29,7 @@ hypergraph_classify(
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any hypernets `net_hypergraph`).
+  (or any hypernets `net_hg`).
 
 - labels:
 
@@ -40,10 +38,16 @@ hypergraph_classify(
   tidy data.frame with a `node` column and a `label`, `cluster` or
   `predicted` column.
 
-- xi, type:
+- xi:
+
+  Numeric in `(0, 1)`. Spreading coefficient (default `0.99`); larger
+  values weight the hypergraph structure more relative to the initial
+  labels.
+
+- type, edge_weights:
 
   Passed to
-  [`hypergraph_transduction()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_transduction.md).
+  [`hg_laplacian()`](https://mohsaqr.github.io/hypernets/reference/hg_laplacian.md).
 
 - normalization:
 
@@ -57,6 +61,18 @@ hypergraph_classify(
 
 A base `data.frame`, one row per node, with columns `node`, `label` (the
 given label or `NA`), `predicted`, `score`, and `margin`.
+
+## Details
+
+The result is one row per node with its given and predicted label.
+
+## References
+
+Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. *NeurIPS 19*.
+
+Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
+using Gaussian fields and harmonic functions. *ICML 20*.
 
 ## Examples
 

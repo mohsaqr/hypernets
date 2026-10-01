@@ -22,16 +22,6 @@ hg_null_test(
   seed = NULL,
   alternative = c("two_sided", "greater", "less")
 )
-
-hypergraph_null_test(
-  hg,
-  statistic = c("pairwise_participation", "density", "avg_edge_size", "avg_jaccard",
-    "repeated_edges", "repeated_pairs"),
-  method = c("swap", "configuration", "assignment"),
-  n = 199L,
-  seed = NULL,
-  alternative = c("two_sided", "greater", "less")
-)
 ```
 
 ## Arguments
@@ -41,7 +31,7 @@ hypergraph_null_test(
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md),
   [`knn_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/knn_hypergraph.md),
-  or any hypernets `net_hypergraph`.
+  or any hypernets `net_hg`.
 
 - statistic:
 

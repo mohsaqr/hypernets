@@ -29,18 +29,6 @@ print(x, ...)
 
 # S3 method for class 'hypernets_keywords'
 plot(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
-
-hypergraph_keywords(
-  hg,
-  clusters,
-  n = 10L,
-  type = NULL,
-  sort_by = c("score", "share"),
-  min_docs = 1L,
-  centrality = c("pagerank", "clique", "Z", "H"),
-  scores = NULL,
-  collapse = FALSE
-)
 ```
 
 ## Arguments
@@ -83,7 +71,7 @@ hypergraph_keywords(
 - centrality:
 
   For `type = "centrality"`, the
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md)
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md)
   measure: `"pagerank"` (default; it reads the incidence weights and
   does not tie on words present in every document, as the clique measure
   does), `"clique"`, `"Z"` or `"H"`.
@@ -138,10 +126,11 @@ and `n_docs` (the cluster's documents containing the word), ranked by
 at least `min_docs` documents appear. With `collapse = TRUE`: one row
 per type and cluster, columns `type`, `cluster`, `size` and `words`. The
 print method shows the collapsed view, truncated to the console width;
-[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) is the
-long form. Raises `hypernets_bad_input` for unknown node names, a `type`
-that needs the token layer on a hypergraph without one, or a malformed
-`scores` table.
+the returned table itself is the long form. Raises `hypernets_bad_input`
+for unknown node names, a `type` that needs the token layer on a
+hypergraph without one, a malformed `scores` table, or a bag-of-words
+`text_hypergraph(nodes = "word")`, whose hyperedges are documents rather
+than words.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) returns a
 ggplot: one panel per cluster (rows) and score type (columns), each with
@@ -167,7 +156,7 @@ collapsed table.
 - `"centrality"`: the word's centrality within the cluster's own word
   hypergraph (words as nodes, the cluster's documents as hyperedges,
   incidence = the stored weights), from
-  [`hypergraph_centrality()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_centrality.md)
+  [`hg_centrality()`](https://mohsaqr.github.io/hypernets/reference/hg_centrality.md)
   with the measure named in `centrality`.
 
 `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer
@@ -206,12 +195,12 @@ hg_keywords(hg, topics, n = 3)
 #>  type cluster   size words                  
 #>  mass Cluster 1 2    soup, carrots, cold    
 #>  mass Cluster 2 2    stars, telescope, aimed
-#> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()
+#> 6 rows in the returned long table (rank, score, share, n_docs)
 hg_keywords(hg, topics, n = 3, type = "ctfidf")
 #>  type   cluster   size words                  
 #>  ctfidf Cluster 1 2    soup, carrots, cold    
 #>  ctfidf Cluster 2 2    stars, telescope, aimed
-#> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()
+#> 6 rows in the returned long table (rank, score, share, n_docs)
 words <- hg_keywords(hg, topics, n = 4,
                      type = c("frequency", "ctfidf", "centrality"))
 plot(words)
@@ -221,5 +210,5 @@ hg_keywords(hg, topics, n = 3, sort_by = "share", min_docs = 1)
 #>  type cluster   size words                  
 #>  mass Cluster 1 2    soup, carrots, cold    
 #>  mass Cluster 2 2    stars, telescope, aimed
-#> 6 rows in the long form (rank, score, share, n_docs): as.data.frame()
+#> 6 rows in the returned long table (rank, score, share, n_docs)
 ```

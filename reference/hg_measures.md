@@ -1,12 +1,16 @@
-# Structural measures of a hypergraph, as tidy tables
+# Structural measures for a hypergraph
 
-Delegates to
-[`hypergraph_measures()`](https://mohsaqr.github.io/hypernets/reference/hypergraph_measures.md)
-and returns the requested slice as a tidy data.frame.
+Computes a comprehensive structural-statistics suite for a
+[net_hg](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md):
+node-level, hyperedge-level, and global measures. All measures are
+derived in a few BLAS calls on the incidence matrix.
 
 ## Usage
 
 ``` r
+# S3 method for class 'net_hg_measures'
+print(x, ...)
+
 hg_measures(
   hg,
   what = c("nodes", "edges", "overlap", "summary", "distribution", "components"),
@@ -16,11 +20,19 @@ hg_measures(
 
 ## Arguments
 
+- x:
+
+  A `hg_measures` object.
+
+- ...:
+
+  Additional arguments (ignored).
+
 - hg:
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any hypernets `net_hypergraph`).
+  (or any hypernets `net_hg`).
 
 - what:
 
@@ -43,8 +55,47 @@ hg_measures(
 
 ## Value
 
+The input `x` invisibly.
+
 A base `data.frame`, one row per node, edge, edge pair, measure,
 distinct value, or component according to `what`.
+
+## Details
+
+`what =` selects which table is returned, as a tidy data.frame.
+
+All measures are computed via standard matrix operations on the binary
+incidence \\B = (b\_{ij})\\ where \\b\_{ij} = 1\\ iff node \\i\\ is in
+hyperedge \\j\\:
+
+- `hyperdegree = rowSums(B)`, `edge_sizes = colSums(B)`
+
+- `co_degree = tcrossprod(B)` (with zero diagonal)
+
+- `edge_pairwise_overlap = crossprod(B)` (with zero diagonal)
+
+- `overlap_coefficient[i, j] = overlap[i, j] / min(edge_sizes[i], edge_sizes[j])`
+
+- `jaccard[i, j] = overlap[i, j] / (edge_sizes[i] + edge_sizes[j] - overlap[i, j])`
+
+Empty hypergraph (`n_hyperedges == 0`) returns trivial zeros and empty
+matrices.
+
+## References
+
+Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
+hypergraph mining: patterns, tools, and generators. *ACM Computing
+Surveys*, 57(8), 203.
+[doi:10.1145/3719002](https://doi.org/10.1145/3719002)
+
+Do, M. T., Yoon, S., Hooi, B., & Shin, K. (2020). Structural patterns
+and generative models of real-world hypergraphs. arXiv:2006.07060.
+
+## See also
+
+[`network_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/network_hypergraph.md),
+[`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md),
+[`hg_clique_expansion()`](https://mohsaqr.github.io/hypernets/reference/hg_clique_expansion.md).
 
 ## Examples
 

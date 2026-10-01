@@ -24,21 +24,6 @@ hg_neural(
   seed = 1L,
   verbose = FALSE
 )
-
-hypergraph_neural(
-  hg,
-  labels,
-  features = "incidence",
-  hidden = 128L,
-  epochs = 600L,
-  lr = 0.01,
-  weight_decay = 5e-04,
-  dropout = 0.5,
-  validation = 0.1,
-  edge_weights = NULL,
-  seed = 1L,
-  verbose = FALSE
-)
 ```
 
 ## Arguments
@@ -47,7 +32,7 @@ hypergraph_neural(
 
   A
   [`text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/text_hypergraph.md)
-  (or any hypernets `net_hypergraph`), dense or sparse.
+  (or any hypernets `net_hg`), dense or sparse.
 
 - labels:
 

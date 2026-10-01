@@ -146,7 +146,7 @@ text_hypergraph(
 
 ## Value
 
-An object of class `c("text_hypergraph", "net_hypergraph")` – a
+An object of class `c("text_hypergraph", "net_hg")` – a
 [`group_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/group_hypergraph.md)
 hypergraph accepted by every hypernets hypergraph verb and by
 [`hg_measures()`](https://mohsaqr.github.io/hypernets/reference/hg_measures.md),
@@ -155,7 +155,7 @@ hypergraph accepted by every hypernets hypergraph verb and by
 and
 [`hg_classify()`](https://mohsaqr.github.io/hypernets/reference/hg_classify.md)
 – with a `text` field recording the corpus tables. Use
-[`as.data.frame.text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/as.data.frame.text_hypergraph.md)
+[`hg_get.text_hypergraph()`](https://mohsaqr.github.io/hypernets/reference/hg_get.text_hypergraph.md)
 for the tidy weight table, and its `what` argument for the document and
 vocabulary tables.
 
@@ -250,41 +250,65 @@ hg <- text_hypergraph(corpus, weight = "tfidf")
 hg
 #> Text hypergraph: 4 documents, 23 words (documents as nodes, weight = tfidf)
 #> Hyperedges: 23 (words); sizes 1-3, median 1
-as.data.frame(hg)
-#>          doc        word n   weight
-#> 1  cooking_1         and 1 1.916291
-#> 2  cooking_1     carrots 1 1.916291
-#> 3  cooking_1      onions 1 1.916291
-#> 4  cooking_1      simmer 1 1.916291
-#> 5  cooking_1        soup 1 1.510826
-#> 6  cooking_1         the 1 1.223144
-#> 7  cooking_1        with 1 1.916291
-#> 8  cooking_2           a 1 1.510826
-#> 9  cooking_2       needs 1 1.916291
-#> 10 cooking_2          of 1 1.916291
-#> 11 cooking_2       pinch 1 1.916291
-#> 12 cooking_2      recipe 1 1.916291
-#> 13 cooking_2        salt 1 1.916291
-#> 14 cooking_2        soup 1 1.510826
-#> 15 cooking_2        this 1 1.916291
-#> 16   space_1           a 1 1.510826
-#> 17   space_1     distant 1 1.916291
-#> 18   space_1      galaxy 1 1.916291
-#> 19   space_1    revealed 1 1.916291
-#> 20   space_1   telescope 1 1.510826
-#> 21   space_1         the 1 1.223144
-#> 22   space_2       aimed 1 1.916291
-#> 23   space_2 astronomers 1 1.916291
-#> 24   space_2          at 1 1.916291
-#> 25   space_2       night 1 1.916291
-#> 26   space_2         sky 1 1.916291
-#> 27   space_2   telescope 1 1.510826
-#> 28   space_2         the 2 2.446287
+#>        doc    word count   weight
+#>  cooking_1     and     1 1.916291
+#>  cooking_1 carrots     1 1.916291
+#>  cooking_1  onions     1 1.916291
+#>  cooking_1  simmer     1 1.916291
+#>  cooking_1    soup     1 1.510826
+#>  cooking_1     the     1 1.223144
+#>  cooking_1    with     1 1.916291
+#>  cooking_2       a     1 1.510826
+#>  cooking_2   needs     1 1.916291
+#>  cooking_2      of     1 1.916291
+#> ... 18 more rows
+hg_get(hg)
+#>          doc        word count   weight
+#> 1  cooking_1         and     1 1.916291
+#> 2  cooking_1     carrots     1 1.916291
+#> 3  cooking_1      onions     1 1.916291
+#> 4  cooking_1      simmer     1 1.916291
+#> 5  cooking_1        soup     1 1.510826
+#> 6  cooking_1         the     1 1.223144
+#> 7  cooking_1        with     1 1.916291
+#> 8  cooking_2           a     1 1.510826
+#> 9  cooking_2       needs     1 1.916291
+#> 10 cooking_2          of     1 1.916291
+#> 11 cooking_2       pinch     1 1.916291
+#> 12 cooking_2      recipe     1 1.916291
+#> 13 cooking_2        salt     1 1.916291
+#> 14 cooking_2        soup     1 1.510826
+#> 15 cooking_2        this     1 1.916291
+#> 16   space_1           a     1 1.510826
+#> 17   space_1     distant     1 1.916291
+#> 18   space_1      galaxy     1 1.916291
+#> 19   space_1    revealed     1 1.916291
+#> 20   space_1   telescope     1 1.510826
+#> 21   space_1         the     1 1.223144
+#> 22   space_2       aimed     1 1.916291
+#> 23   space_2 astronomers     1 1.916291
+#> 24   space_2          at     1 1.916291
+#> 25   space_2       night     1 1.916291
+#> 26   space_2         sky     1 1.916291
+#> 27   space_2   telescope     1 1.510826
+#> 28   space_2         the     2 2.446287
 
 win <- text_hypergraph(corpus, construction = "window", window = 3)
 win
 #> Text hypergraph: 4 documents, 23 words (windowed hyperedges: w = 3, sliding, 21 windows)
 #> Hyperedges: 20 (distinct windows); sizes 3-3, median 3
+#>                edge     word weight
+#>    a+distant+galaxy        a      1
+#>    a+distant+galaxy  distant      1
+#>    a+distant+galaxy   galaxy      1
+#>  a+distant+revealed        a      1
+#>  a+distant+revealed  distant      1
+#>  a+distant+revealed revealed      1
+#>       a+needs+pinch        a      1
+#>       a+needs+pinch    needs      1
+#>       a+needs+pinch    pinch      1
+#>      a+needs+recipe        a      1
+#> ... 50 more rows
 
 # knn from precomputed embeddings (sbert-free, offline)
 emb <- matrix(c(1, 0,  0.9, 0.1,  0, 1,  0.1, 0.9),
@@ -293,4 +317,13 @@ emb <- matrix(c(1, 0,  0.9, 0.1,  0, 1,  0.1, 0.9),
 text_hypergraph(corpus, construction = "knn", k = 1, embeddings = emb)
 #> Text hypergraph: 4 documents (kNN embedding hyperedges: k = 1, cosine)
 #> Hyperedges: 4 (kNN neighborhoods); sizes 2-2, median 2
+#>        doc      edge    weight
+#>  cooking_1 cooking_1 1.0000000
+#>  cooking_2 cooking_1 0.9938837
+#>  cooking_1 cooking_2 0.9938837
+#>  cooking_2 cooking_2 1.0000000
+#>    space_1   space_1 1.0000000
+#>    space_2   space_1 0.9938837
+#>    space_1   space_2 0.9938837
+#>    space_2   space_2 1.0000000
 ```

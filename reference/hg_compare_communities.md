@@ -14,19 +14,10 @@ balance between the two largest clusters).
 hg_compare_communities(..., hg = NULL, edge_source = NULL)
 
 # S3 method for class 'hypernets_community_comparison'
-print(x, ...)
+print(x, n = 10L, ...)
 
 # S3 method for class 'hypernets_community_comparison'
-as.data.frame(
-  x,
-  row.names = NULL,
-  optional = FALSE,
-  what = c("summary", "similarity", "sizes", "quality", "matrix"),
-  ...
-)
-
-# S3 method for class 'hypernets_community_comparison'
-summary(object, ...)
+hg_get(x, what = c("summary", "similarity", "sizes", "quality"), ...)
 
 # S3 method for class 'hypernets_community_comparison'
 plot(x, what = c("sizes", "similarity"), ...)
@@ -40,8 +31,8 @@ plot(x, what = c("sizes", "similarity"), ...)
 
 - hg:
 
-  Optional: the static `net_hypergraph` the fits were computed on. When
-  given, every medoid is scored with
+  Optional: the static `net_hg` the fits were computed on. When given,
+  every medoid is scored with
   [`hg_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md)
   on the projection its own fit used, and the scores are available as
   `what = "quality"`.
@@ -56,32 +47,26 @@ plot(x, what = c("sizes", "similarity"), ...)
 
   A `hypernets_community_comparison` object.
 
-- row.names, optional:
+- n:
 
-  Unused; present for the base S3 contract.
+  Number of rows of the default table to print. Default `10`.
 
 - what:
 
-  Which table: `"summary"` (default), `"similarity"`, `"sizes"`,
-  `"quality"`, or `"matrix"` for the similarity as a square matrix with
-  AMI below and ARI above the diagonal (the layout of
-  [`plot()`](https://rdrr.io/r/graphics/plot.default.html)).
-
-- object:
-
-  A `hypernets_community_comparison` object.
+  Which table: `"summary"` (default), `"similarity"`, `"sizes"` or
+  `"quality"`.
 
 ## Value
 
 A `hypernets_community_comparison` object.
-[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) returns
-its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
-`n_communities`, `n_singletons`, `n_nontrivial`, `largest`, `second` and
-`balance` = second / largest), `"similarity"` (one row per pair of fits
-with `model_a`, `model_b`, `ami`, `ari`, `nmi`, on the nodes the two
-medoids share), `"sizes"` (one row per community of every medoid with
-`model`, `rank`, `n_nodes`) or, when `hg` was given, `"quality"` (one
-row per fit with the columns of
+[`hg_get()`](https://mohsaqr.github.io/hypernets/reference/hg_get.md)
+returns its `"summary"` (default; one row per fit with `model`,
+`medoid_seed`, `n_communities`, `n_singletons`, `n_nontrivial`,
+`largest_size`, `second_size` and `balance` = second / largest),
+`"similarity"` (one row per pair of fits with `model_a`, `model_b`,
+`ami`, `ari`, `nmi`, on the nodes the two medoids share), `"sizes"` (one
+row per community of every medoid with `model`, `rank`, `n_nodes`) or,
+when `hg` was given, `"quality"` (one row per fit with the columns of
 [`hg_community_quality()`](https://mohsaqr.github.io/hypernets/reference/hg_community_quality.md)).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 cluster-size distributions (`what = "sizes"`, the number of communities
@@ -111,8 +96,8 @@ if (requireNamespace("igraph", quietly = TRUE)) {
   binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,
                            duplicate_edges = "collapse")
   comparison <- hg_compare_communities(mh = multi, bh = binary)
-  as.data.frame(comparison)
-  as.data.frame(comparison, what = "similarity")
+  hg_get(comparison)
+  hg_get(comparison, what = "similarity")
 }
 #>   model_a model_b n_nodes ami ari nmi
 #> 1      mh      bh       6   1   1   1
