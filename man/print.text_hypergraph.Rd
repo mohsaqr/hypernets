@@ -4,10 +4,12 @@
 \alias{print.text_hypergraph}
 \title{Print a text hypergraph}
 \usage{
-\method{print}{text_hypergraph}(x, ...)
+\method{print}{text_hypergraph}(x, n = 10L, ...)
 }
 \arguments{
 \item{x}{A \code{\link[=text_hypergraph]{text_hypergraph()}} object.}
+
+\item{n}{Number of rows of the default table to print. Default \code{10}.}
 
 \item{...}{Unused.}
 }

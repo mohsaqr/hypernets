@@ -1,4 +1,4 @@
-# ---- clique_expansion() tests --------------------------------------------
+# ---- hg_clique_expansion() tests --------------------------------------------
 
 # Helpers ------------------------------------------------------------------
 
@@ -17,24 +17,24 @@
       size_distribution = setNames(1L, "size_3"),
       params            = list(source = "test")
     ),
-    class = "net_hypergraph"
+    class = "net_hg"
   )
 }
 
 # Structure ----------------------------------------------------------------
 
 test_that("returns a netobject + cograph_network", {
-  net <- clique_expansion(.ce_hg_one_triangle())
+  net <- hg_clique_expansion(.ce_hg_one_triangle())
   expect_s3_class(net, "netobject")
   expect_s3_class(net, "cograph_network")
-  expect_identical(net$method, "clique_expansion")
+  expect_identical(net$method, "hg_clique_expansion")
   expect_false(net$directed)
 })
 
 # Weight semantics: single triangle ----------------------------------------
 
 test_that("single triangle becomes K3 with all unit weights", {
-  net <- clique_expansion(.ce_hg_one_triangle())
+  net <- hg_clique_expansion(.ce_hg_one_triangle())
   W <- net$weights
   expect_equal(W["A", "B"], 1)
   expect_equal(W["A", "C"], 1)
@@ -57,8 +57,8 @@ test_that("pair shared by k hyperedges has weight k", {
          n_nodes = 4L, n_hyperedges = 2L,
          size_distribution = setNames(2L, "size_3"),
          params = list()),
-    class = "net_hypergraph")
-  W <- clique_expansion(hg)$weights
+    class = "net_hg")
+  W <- hg_clique_expansion(hg)$weights
   expect_equal(W["A", "B"], 2)  # shared by both
   expect_equal(W["A", "C"], 1)  # only h1
   expect_equal(W["B", "C"], 1)  # only h1
@@ -80,8 +80,8 @@ test_that("size-2 hyperedges become single edges", {
          nodes = c("A", "B", "C"), n_nodes = 3L, n_hyperedges = 2L,
          size_distribution = setNames(2L, "size_2"),
          params = list()),
-    class = "net_hypergraph")
-  W <- clique_expansion(hg)$weights
+    class = "net_hg")
+  W <- hg_clique_expansion(hg)$weights
   expect_equal(W["A", "B"], 1)
   expect_equal(W["B", "C"], 1)
   expect_equal(W["A", "C"], 0)
@@ -95,8 +95,8 @@ test_that("empty hypergraph -> all-zero adjacency", {
     list(hyperedges = list(), incidence = inc,
          nodes = c("A", "B", "C"), n_nodes = 3L, n_hyperedges = 0L,
          size_distribution = integer(0), params = list()),
-    class = "net_hypergraph")
-  net <- clique_expansion(hg)
+    class = "net_hg")
+  net <- hg_clique_expansion(hg)
   expect_equal(sum(net$weights), 0)
   expect_equal(dim(net$weights), c(3L, 3L))
   expect_equal(net$n_edges, 0L)
@@ -112,9 +112,9 @@ test_that("weighted=FALSE binarises incidence before projecting", {
          nodes = c("A", "B", "C"), n_nodes = 3L, n_hyperedges = 1L,
          size_distribution = setNames(1L, "size_3"),
          params = list()),
-    class = "net_hypergraph")
-  W_w  <- clique_expansion(hg, weighted = TRUE)$weights
-  W_uw <- clique_expansion(hg, weighted = FALSE)$weights
+    class = "net_hg")
+  W_w  <- hg_clique_expansion(hg, weighted = TRUE)$weights
+  W_uw <- hg_clique_expansion(hg, weighted = FALSE)$weights
   # Weighted: W[A,B] = 2*5 = 10
   expect_equal(W_w["A", "B"], 10)
   expect_equal(W_w["A", "C"], 6)
@@ -127,7 +127,7 @@ test_that("weighted=FALSE binarises incidence before projecting", {
 
 # Roundtrip with group_hypergraph -----------------------------------------
 
-test_that("group_hypergraph -> clique_expansion is consistent", {
+test_that("group_hypergraph -> hg_clique_expansion is consistent", {
   # 3 sessions: S1=(A,B,C), S2=(A,B), S3=(B,C,D)
   d <- data.frame(
     member  = c("A", "B", "C",  "A", "B",  "B", "C", "D"),
@@ -135,7 +135,7 @@ test_that("group_hypergraph -> clique_expansion is consistent", {
     stringsAsFactors = FALSE
   )
   hg <- group_hypergraph(d, "member", "session")
-  W  <- clique_expansion(hg)$weights
+  W  <- hg_clique_expansion(hg)$weights
   # AB shared by S1 and S2 => 2;  BC by S1 and S3 => 2;  CD by S3 => 1
   expect_equal(W["A", "B"], 2)
   expect_equal(W["B", "C"], 2)
@@ -143,9 +143,9 @@ test_that("group_hypergraph -> clique_expansion is consistent", {
   expect_equal(W["A", "D"], 0)  # never together
 })
 
-# Roundtrip: build_hypergraph then expand ---------------------------------
+# Roundtrip: network_hypergraph then expand ---------------------------------
 
-test_that("build_hypergraph(p=0) -> clique_expansion preserves the graph", {
+test_that("network_hypergraph(p=0) -> hg_clique_expansion preserves the graph", {
   # Pure pairwise (p=0) hypergraph from a network. Expanding back must
   # match the binarised input adjacency.
   set.seed(7)
@@ -155,28 +155,28 @@ test_that("build_hypergraph(p=0) -> clique_expansion preserves the graph", {
   adj <- ((adj + t(adj)) > 0) * 1
   storage.mode(adj) <- "double"
   rownames(adj) <- colnames(adj) <- LETTERS[seq_len(n)]
-  hg  <- build_hypergraph(adj, p = 0, include_pairwise = TRUE)
-  W   <- clique_expansion(hg)$weights
+  hg  <- network_hypergraph(adj, p = 0, include_pairwise = TRUE)
+  W   <- hg_clique_expansion(hg)$weights
   expect_equal(W, adj, ignore_attr = TRUE)
 })
 
 # Input validation --------------------------------------------------------
 
-test_that("rejects non-net_hypergraph input", {
-  expect_error(clique_expansion(matrix(0, 3, 3)),
-               "net_hypergraph")
-  expect_error(clique_expansion(list()), "net_hypergraph")
+test_that("rejects non-net_hg input", {
+  expect_error(hg_clique_expansion(matrix(0, 3, 3)),
+               "net_hg")
+  expect_error(hg_clique_expansion(list()), "net_hg")
 })
 
 test_that("rejects non-logical weighted argument", {
-  expect_error(clique_expansion(.ce_hg_one_triangle(), weighted = "yes"))
+  expect_error(hg_clique_expansion(.ce_hg_one_triangle(), weighted = "yes"))
 })
 
 # Records provenance in $params -------------------------------------------
 
 test_that("params records source, weighted flag, hyperedge count + size dist", {
-  net <- clique_expansion(.ce_hg_one_triangle(), weighted = TRUE)
-  expect_equal(net$params$source, "clique_expansion")
+  net <- hg_clique_expansion(.ce_hg_one_triangle(), weighted = TRUE)
+  expect_equal(net$params$source, "hg_clique_expansion")
   expect_true(net$params$weighted)
   expect_equal(net$params$n_hyperedges, 1L)
   expect_equal(unname(net$params$hypergraph_size_distribution), 1L)

@@ -4,10 +4,12 @@
 \alias{print.net_hon_communities}
 \title{Print a memory-network community result}
 \usage{
-\method{print}{net_hon_communities}(x, ...)
+\method{print}{net_hon_communities}(x, n = 10L, ...)
 }
 \arguments{
 \item{x}{A \code{net_hon_communities} object.}
+
+\item{n}{Number of rows of the default table to print. Default \code{10}.}
 
 \item{...}{Ignored.}
 }
@@ -20,5 +22,5 @@ Print a memory-network community result
 \examples{
 seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
              c("c", "h", "d", "c", "h", "d", "c"))
-print(hon_communities(build_hon(seqs, max_order = 2L), trials = 2L))
+print(hg_communities(hon(seqs, max_order = 2L), trials = 2L))
 }

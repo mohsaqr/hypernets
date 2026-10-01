@@ -40,7 +40,7 @@ test_that("HNHN trains and reports normalization", {
   corpus <- c(a1 = "apple pear fruit", a2 = "pear fruit sweet",
               b1 = "orbit star galaxy", b2 = "star galaxy space")
   hg <- text_hypergraph(corpus)
-  fit <- hypergraph_hnhn(
+  fit <- hg_hnhn(
     hg, c(a1 = "food", b1 = "space"), hidden = 8, alpha = -0.5,
     beta = 0.5, epochs = 10, validation = 0, seed = 1
   )

@@ -1,6 +1,6 @@
 # ---- Bipartite group hypergraph (EG-6) -----------------------------------
 # Direct constructor: long-format event data with member + group columns
-# becomes a net_hypergraph where each group is a hyperedge spanning all
+# becomes a net_hg where each group is a hyperedge spanning all
 # members that appeared in it.
 
 # Explode a delimited membership column into one row per member. Bibliographic
@@ -36,7 +36,7 @@
 
 #' Hypergraph from co-occurrence data or an edge list
 #'
-#' Constructs a [net_hypergraph][build_hypergraph] the way a network is
+#' Constructs a [net_hg][network_hypergraph] the way a network is
 #' defined from data. **Co-presence data** name an `actor` and a `group`:
 #' every actor sharing one value of `group` (a session, a team, a citation
 #' block) belongs to one hyperedge. An **edge
@@ -44,7 +44,7 @@
 #' An optional `weight` column produces a weighted incidence matrix.
 #'
 #' @param data Data frame in long format, one row per actor-in-group or per
-#'   edge; or a clustering of sequences from Nestimate -- a mixture Markov
+#'   edge; or a clustering of sequences -- a mixture Markov
 #'   fit (`net_mmm`), a distance clustering (`net_clustering`), or the
 #'   per-cluster networks built from either (`netobject_group`). See
 #'   "Clustered sequences" below.
@@ -83,13 +83,13 @@
 #'   set before counting, and a sequence left with no state is not counted.
 #'   `NULL` (default) keeps every state.
 #'
-#' @return A `net_hypergraph` object with the same structure produced by
-#'   [build_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
+#' @return A `net_hg` object with the same structure produced by
+#'   [network_hypergraph()] (`hyperedges`, `incidence`, `nodes`, `n_nodes`,
 #'   `n_hyperedges`, `size_distribution`, `params`), plus `edge_data` when
 #'   `data` carries hyperedge attributes (see Details). The `params` list
 #'   records `source = "group_hypergraph"` and the original column names.
 #'   For clustered sequences the object also has `group_sizes` and
-#'   `state_counts` (read them with `as.data.frame()`) and `params` records
+#'   `state_counts` (read them with `hg_get()`) and `params` records
 #'   `source = "clustered_sequences"`, `top`, `states` and
 #'   `unit = "sequences"`.
 #'
@@ -100,13 +100,13 @@
 #' edges AB, AC, BC. This avoids information loss when group interactions are
 #' the primary unit of analysis (Perc et al. 2013).
 #'
-#' Unlike [build_hypergraph()] (which derives hyperedges from a network's
+#' Unlike [network_hypergraph()] (which derives hyperedges from a network's
 #' clique structure), `group_hypergraph()` takes group memberships
 #' directly. The two functions are complementary:
 #' \itemize{
 #'   \item `group_hypergraph()` - when group membership is observed
 #'     (sessions, transactions, co-authorships).
-#'   \item `build_hypergraph()` - when only pairwise interactions are
+#'   \item `network_hypergraph()` - when only pairwise interactions are
 #'     observed and triadic structure must be inferred from triangles.
 #' }
 #'
@@ -114,27 +114,26 @@
 #' silently.
 #'
 #' @section Clustered sequences:
-#' Given a Nestimate clustering, every sequence of every group is reduced to
+#' Given a clustering of sequences, every sequence of every group is reduced to
 #' the set of its distinct states (order and repetition dropped; `NA` and
 #' empty cells ignored), and the `top` most frequent sets of each group
 #' become hyperedges -- frequent-itemset support counting with each sequence
 #' as one transaction (Agrawal & Srikant 1994), restricted to the sets that
 #' occur exactly. Sets of equal count are ranked by their name (states
 #' sorted and joined by `" + "`). Groups are named `"Cluster 1"`,
-#' `"Cluster 2"`, ... for a `net_mmm` or `net_clustering`, as Nestimate's
-#' `build_network()` names them, and by the list names of a
-#' `netobject_group`, so names given with Nestimate's `rename_models()`
-#' carry through. Integer-coded states are decoded to their labels. The
-#' objects are read by their structure; Nestimate is not needed.
+#' `"Cluster 2"`, ... for a `net_mmm` or `net_clustering`, and by the list
+#' names of a `netobject_group`, so renamed groups carry through.
+#' Integer-coded states are decoded to their labels. The objects are read
+#' by their structure; the package that fitted them is not needed.
 #'
 #' The hyperedges are named `"<group>: <set>"` and carry `group`, `set` and
 #' `count` (sequences with exactly that set) as hyperedge attributes, so
 #' `plot()` colours and titles them by `count` in `"sequences"`, and
 #' `plot(hg, group = "Cluster 1")` draws one group's sets with each node
 #' sized by the sequences of that group containing the state. Read the
-#' tables with `as.data.frame(hg, what = "sets")` (one row per hyperedge:
+#' tables with `hg_get(hg, what = "sets")` (one row per hyperedge:
 #' its group, set, size, count and share of the group's sequences) and
-#' `as.data.frame(hg, what = "state_counts")` (one row per group and
+#' `hg_get(hg, what = "state_counts")` (one row per group and
 #' state). A malformed clustering (no `$data`, assignments that do not match
 #' it, unnamed networks) raises `hypernets_bad_input`.
 #'
@@ -145,7 +144,7 @@
 #' use it. Columns that vary within a hyperedge describe memberships, not
 #' hyperedges, and are left out.
 #'
-#' @seealso [build_hypergraph()] for the clique-based constructor,
+#' @seealso [network_hypergraph()] for the clique-based constructor,
 #'   [temporal_hypergraph()] for the same inputs with a clock.
 #'
 #' @examples
@@ -162,7 +161,7 @@
 #' contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
 #' group_hypergraph(contacts, from = "from", to = "to")
 #'
-#' # a clustering of sequences, shaped as Nestimate's cluster_mmm() returns it
+#' # a clustering of sequences, shaped as a mixture Markov fit (net_mmm)
 #' fit <- structure(list(
 #'   data = data.frame(V1 = c("a", "a", "b", "a", "c"),
 #'                     V2 = c("b", "b", "c", "c", "a"),
@@ -170,7 +169,7 @@
 #'   assignments = c(1L, 1L, 2L, 1L, 2L), k = 2L
 #' ), class = "net_mmm")
 #' sets <- group_hypergraph(fit, top = 3)
-#' as.data.frame(sets, what = "sets")
+#' hg_get(sets, what = "sets")
 #' plot(sets, group = "Cluster 1")
 #'
 #' @references
@@ -395,7 +394,7 @@ group_hypergraph <- function(data, actor = NULL, group = NULL, weight = NULL,
     )
   )
   if (!is.null(edge_data)) out$edge_data <- edge_data
-  structure(out, class = "net_hypergraph")
+  structure(out, class = "net_hg")
 }
 
 # ---- Frequent state sets of clustered sequences --------------------------

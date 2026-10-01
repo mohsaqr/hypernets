@@ -101,3 +101,25 @@ test_that("hg_neural argument contracts are enforced", {
     "one positive number per hyperedge"
   )
 })
+
+test_that(".thg_general_triplet keeps every cell of packed Matrix storage", {
+  # Matrix coerces a symmetric matrix to dsTMatrix (upper triangle only) and a
+  # unit-triangular one without its diagonal; the torch conversion read the
+  # triplet directly and silently dropped those cells (HyperGCN propagated
+  # through an upper-triangular adjacency).
+  dense_back <- function(t) {
+    m <- matrix(0, nrow(t), ncol(t))
+    m[cbind(t@i + 1L, t@j + 1L)] <- t@x
+    m
+  }
+  sym <- matrix(c(2, 1, 0, 1, 3, 4, 0, 4, 5), 3)
+  expect_identical(dense_back(.thg_general_triplet(sym)), sym)
+  expect_identical(dense_back(.thg_general_triplet(Matrix::Matrix(sym, sparse = TRUE))), sym)
+  tri <- Matrix::sparseMatrix(i = c(1, 1), j = c(2, 3), x = c(5, 6), dims = c(3, 3),
+                              triangular = TRUE)
+  tri <- Matrix::triu(tri) + Matrix::Diagonal(3)
+  unit <- methods::as(Matrix::Matrix(as.matrix(tri), sparse = TRUE), "triangularMatrix")
+  expect_identical(dense_back(.thg_general_triplet(unit)), as.matrix(tri) + 0)
+  rect <- Matrix::sparseMatrix(i = c(1, 2), j = c(2, 1), x = c(7, 8), dims = c(2, 3))
+  expect_identical(dense_back(.thg_general_triplet(rect)), as.matrix(rect) + 0)
+})

@@ -3,14 +3,11 @@
 \name{hg_topic_sizes}
 \alias{hg_topic_sizes}
 \alias{plot.hypernets_topic_sizes}
-\alias{hypergraph_topic_sizes}
 \title{Topic sizes}
 \usage{
 hg_topic_sizes(hg, clusters, weights = NULL)
 
 \method{plot}{hypernets_topic_sizes}(x, ...)
-
-hypergraph_topic_sizes(hg, clusters, weights = NULL)
 }
 \arguments{
 \item{hg}{The document hypergraph the clustering was computed on.}

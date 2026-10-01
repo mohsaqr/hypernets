@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_subset.R
 \name{hg_subset}
 \alias{hg_subset}
-\alias{hypergraph_subset}
 \title{Sub-hypergraph by hyperedges, nodes or hyperedge attributes}
 \usage{
 hg_subset(
@@ -13,19 +12,10 @@ hg_subset(
   size = NULL,
   drop_isolated = TRUE
 )
-
-hypergraph_subset(
-  hg,
-  edges = NULL,
-  nodes = NULL,
-  where = NULL,
-  size = NULL,
-  drop_isolated = TRUE
-)
 }
 \arguments{
-\item{hg}{A \code{net_hypergraph} (from \code{\link[=group_hypergraph]{group_hypergraph()}},
-\code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}}, \code{\link[=text_hypergraph]{text_hypergraph()}}, ...).}
+\item{hg}{A \code{net_hg} (from \code{\link[=group_hypergraph]{group_hypergraph()}},
+\code{\link[=hg_snapshot]{hg_snapshot()}}, \code{\link[=text_hypergraph]{text_hypergraph()}}, ...).}
 
 \item{edges}{Hyperedge names to keep: a character vector, or a data.frame
 with an \code{edge} column such as the table \code{\link[=hg_edge_centrality]{hg_edge_centrality()}} or
@@ -47,13 +37,13 @@ members): \code{size = 3} keeps the hyperedges with exactly three members, the
 Default \code{TRUE}. Ignored when \code{nodes} is given.}
 }
 \value{
-A \code{net_hypergraph} whose incidence matrix is the selected
+A \code{net_hg} whose incidence matrix is the selected
 sub-matrix of the input, sparse if the input is sparse. Edge metadata
 (\code{edge_data}) and duplicate multiplicities (\code{edge_multiplicity}) are
 subset alongside.
 }
 \description{
-Keeps part of a hypergraph and returns it as a \code{net_hypergraph} with the
+Keeps part of a hypergraph and returns it as a \code{net_hg} with the
 same incidence weights, edge metadata and multiplicities. Three selectors
 combine by intersection. \code{edges} names the hyperedges to keep. \code{nodes}
 keeps the hyperedges whose members all lie in the set, the induced

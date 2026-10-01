@@ -8,12 +8,16 @@
 #' `c(stop_words_en(), "study", "results")`.
 #'
 #' @return A sorted character vector of lowercase English function words.
+#' @references
+#' Manning, C. D., Raghavan, P., & Schütze, H. (2008). *Introduction to
+#' Information Retrieval*. Cambridge University Press.
+#' \doi{10.1017/CBO9780511809071}
 #' @examples
 #' hg <- text_hypergraph(
 #'   c(a = "the salt and the soup", b = "the soup and the stars"),
 #'   stop_words = stop_words_en()
 #' )
-#' as.data.frame(hg, what = "vocabulary")
+#' hg_get(hg, what = "vocabulary")
 #' @export
 stop_words_en <- function() {
   sort(c(

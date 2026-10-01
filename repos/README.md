@@ -1,6 +1,8 @@
 # Package and repository map
 
-Maintained 2026-09-02; synced with the code 2026-09-29. Runtime dependencies are deliberately separated from
+Maintained 2026-09-02; synced with the code 2026-09-29 (every "In use"
+below was re-checked by grepping `tests/` and `local_testing_and_equivalence/`
+for a call to that tool; upstream versions re-checked on PyPI/CRAN/GitHub). Runtime dependencies are deliberately separated from
 equivalence oracles and research references. Oracles are local-test tools,
 never hypernets runtime dependencies.
 
@@ -9,9 +11,9 @@ never hypernets runtime dependencies.
 | Package | Relationship to hypernets | Note |
 |---|---|---|
 | cograph | Imported graph/plot engine after a hypergraph is projected; no export collisions | [`cograph.md`](cograph.md) |
-| Dynet | Separate temporal-network peer; never a dependency | [`dynet.md`](dynet.md) |
+| Dynet | Separate temporal-network peer; never a dependency (installed 0.4.10; source `../Dyna` and r-universe 0.5.1; not on CRAN) | [`dynet.md`](dynet.md) |
 | sbert | Suggested native embedding frontend for kNN text hypergraphs | [`sbert.md`](sbert.md) |
-| Nestimate | Historical source and identity oracle only; hypernets has no runtime dependency | [`nestimate-hypergraph-module.md`](nestimate-hypergraph-module.md) |
+| Nestimate | Historical source and identity oracle; no runtime dependency in DESCRIPTION as of 2026-09-29. ROADMAP.md Phase 0b (decided 2026-09-29) plans `Imports: Nestimate (>= 0.8.5)` | [`nestimate-hypergraph-module.md`](nestimate-hypergraph-module.md) |
 
 ## Equivalence oracles
 

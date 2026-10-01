@@ -22,10 +22,13 @@ test_that("Infomap ensemble returns AMI medoid and all representations", {
   expect_equal(nrow(fit$partitions), 18)
   expect_true(fit$medoid_run %in% 1:3)
   expect_equal(unname(diag(fit$similarity$ami)), rep(1, 3))
-  medoid <- as.data.frame(fit)
+  medoid <- hg_get(fit)
   expect_equal(medoid, fit$medoid)
-  ami <- as.data.frame(fit, what = "ami")
-  expect_equal(nrow(ami), 9)
+  ami <- hg_get(fit, what = "ami")
+  # 0.6.0: one row per distinct pair of runs (3 runs -> 3 pairs), no diagonal
+  expect_identical(names(ami), c("run_a", "run_b", "ami"))
+  expect_equal(nrow(ami), 3)
+  expect_equal(ami$ami, fit$similarity$ami[upper.tri(fit$similarity$ami)])
 })
 
 test_that("paper partition quality is exact on disconnected cliques", {

@@ -17,7 +17,7 @@
 
 \item{at}{Snapshot time; defaults to the end of observation.}
 
-\item{mode}{Snapshot mode passed to \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}}.}
+\item{mode}{Snapshot mode passed to \code{\link[=hg_snapshot]{hg_snapshot()}}.}
 
 \item{method}{Projection weighting passed to \code{\link[=hg_project]{hg_project()}}.}
 

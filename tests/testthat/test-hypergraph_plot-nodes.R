@@ -1,6 +1,6 @@
 testthat::skip_on_cran()
 
-# Node overlays of plot.net_hypergraph(): circles sized by a value, direction
+# Node overlays of plot.net_hg(): circles sized by a value, direction
 # triangles, transition arrows, haloed labels.
 
 .nodes_fixture <- function() {

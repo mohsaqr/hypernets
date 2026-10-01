@@ -23,7 +23,7 @@ test_that("constant columns become hyperedge attributes and travel into subsets"
   expect_identical(names(thg$edge_data),
                    c("edge", "start", "end", "sector", "pending"))
   expect_identical(thg$params$attributes, c("sector", "pending"))
-  snap <- hypergraph_snapshot(thg, at = 4)
+  snap <- hg_snapshot(thg, at = 4)
   expect_identical(snap$edge_data$edge, colnames(snap$incidence))
   expect_identical(snap$edge_data$sector, c("oil", "oil"))
   sub <- hg_subset(snap, edges = "C")
@@ -40,8 +40,8 @@ test_that("sparse temporal hypergraphs give sparse snapshots identical to dense"
                         start = "constituted", end = "concluded",
                         sparse = sparse, nodes = universe)
   }
-  dense <- hypergraph_snapshot(build(FALSE), at = 2)
-  sparse <- hypergraph_snapshot(build(TRUE), at = 2)
+  dense <- hg_snapshot(build(FALSE), at = 2)
+  sparse <- hg_snapshot(build(TRUE), at = 2)
   expect_true(methods::is(sparse$incidence, "sparseMatrix"))
   expect_false(methods::is(dense$incidence, "sparseMatrix"))
   expect_identical(as.matrix(sparse$incidence) * 1, dense$incidence * 1)
@@ -49,7 +49,7 @@ test_that("sparse temporal hypergraphs give sparse snapshots identical to dense"
   expect_identical(sparse$nodes, dense$nodes)
   expect_true("zz" %in% sparse$nodes)
   # empty snapshot keeps the universe, in both storages
-  none <- hypergraph_snapshot(build(TRUE), at = 0.5)
+  none <- hg_snapshot(build(TRUE), at = 0.5)
   expect_identical(none$n_hyperedges, 0L)
   expect_identical(none$n_nodes, 8L)
   expect_true(methods::is(none$incidence, "sparseMatrix"))
@@ -63,7 +63,7 @@ test_that("duplicate collapse works on sparse incidence and keeps metadata", {
   )
   thg <- temporal_hypergraph(dat, actor = "member", group = "event",
                              time = "time", sparse = TRUE)
-  simple <- hypergraph_snapshot(thg, 1, multiedges = FALSE)
+  simple <- hg_snapshot(thg, 1, multiedges = FALSE)
   expect_identical(simple$n_hyperedges, 1L)
   expect_identical(simple$edge_multiplicity, 3L)
   expect_identical(simple$edge_data$label, "x")

@@ -19,7 +19,7 @@ testthat::skip_on_cran()
 
 test_that("the ring community figure fits at 6, 8 and 10 inches", {
   skip_if_not_installed("png")
-  comm <- hon_communities(build_hon(ring_sequences, max_order = 2L),
+  comm <- hg_communities(hon(ring_sequences, max_order = 2L),
                           trials = 3L, seed = 1L)
   p <- plot(comm)
   ink <- do.call(rbind, lapply(c(6, 8, 10), function(width) {
@@ -30,7 +30,7 @@ test_that("the ring community figure fits at 6, 8 and 10 inches", {
 })
 
 test_that("the community boxes clear the labels of the nodes at the rim", {
-  comm <- hon_communities(build_hon(ring_sequences, max_order = 2L),
+  comm <- hg_communities(hon(ring_sequences, max_order = 2L),
                           trials = 3L, seed = 1L)
   p <- plot(comm)
   boxes <- Filter(function(l) inherits(l$geom, "GeomLabel"), p$layers)[[1L]]$data

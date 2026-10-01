@@ -2,34 +2,30 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_classify}
 \alias{hg_classify}
-\alias{hypergraph_classify}
-\title{Transductive label spreading on a hypergraph, as a tidy table}
+\title{Transductive label spreading on a hypergraph}
 \usage{
 hg_classify(
   hg,
   labels,
   xi = 0.99,
   type = c("zhou", "random_walk"),
-  normalization = c("none", "class_mass")
-)
-
-hypergraph_classify(
-  hg,
-  labels,
-  xi = 0.99,
-  type = c("zhou", "random_walk"),
-  normalization = c("none", "class_mass")
+  normalization = c("none", "class_mass"),
+  edge_weights = NULL
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
 
 \item{labels}{The known labels: a named character vector (names are
 node identifiers -- documents under \code{nodes = "doc"} -- values their
 class labels), or a tidy data.frame with a \code{node} column and a
 \code{label}, \code{cluster} or \code{predicted} column.}
 
-\item{xi, type}{Passed to \code{\link[=hypergraph_transduction]{hypergraph_transduction()}}.}
+\item{xi}{Numeric in \verb{(0, 1)}. Spreading coefficient (default \code{0.99});
+larger values weight the hypergraph structure more relative to the
+initial labels.}
+
+\item{type, edge_weights}{Passed to \code{\link[=hg_laplacian]{hg_laplacian()}}.}
 
 \item{normalization}{Decision rule for turning spread scores into
 predictions: \code{"none"} (default, the raw Zhou 2006 argmax) or
@@ -42,9 +38,18 @@ A base \code{data.frame}, one row per node, with columns \code{node},
 \code{label} (the given label or \code{NA}), \code{predicted}, \code{score}, and \code{margin}.
 }
 \description{
-Calls the in-package \code{\link[=hypergraph_transduction]{hypergraph_transduction()}} engine (Zhou et al. 2006):
-labels known for a few nodes spread over the hypergraph structure to
-classify every node.
+Semi-supervised classification of hypergraph nodes by the regularization
+framework of Zhou et al. (2006): given labels for a subset of nodes, the
+scores \verb{F = (1 - xi) * (I - xi * S)^\{-1\} Y} spread the labels over the
+hypergraph, where \code{S = I - L} is the normalized similarity operator of
+the chosen Laplacian and \code{Y} is the label indicator matrix. Each node is
+assigned the class with the highest score. This is the non-neural
+ancestor of hypergraph-attention text classifiers: with documents as
+hyperedges over words (or vice versa) it classifies unlabeled nodes from
+a handful of labeled ones.
+}
+\details{
+The result is one row per node with its given and predicted label.
 }
 \examples{
 hg <- text_hypergraph(c(
@@ -54,4 +59,11 @@ hg <- text_hypergraph(c(
   space_2 = "astronomers aimed the telescope at the stars all night"
 ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
 hg_classify(hg, labels = c(cooking_1 = "cooking", space_1 = "space"))
+}
+\references{
+Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. \emph{NeurIPS 19}.
+
+Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
+using Gaussian fields and harmonic functions. \emph{ICML 20}.
 }

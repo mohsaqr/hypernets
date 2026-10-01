@@ -26,8 +26,8 @@ test_that("sparse construction reproduces the dense incidence exactly", {
       expect_identical(hg$sparse$nodes, hg$dense$nodes)
       expect_identical(hg$sparse$size_distribution,
                        hg$dense$size_distribution)
-      sparse_table <- as.data.frame(hg$sparse)
-      dense_table <- as.data.frame(hg$dense)
+      sparse_table <- hg_get(hg$sparse)
+      dense_table <- hg_get(hg$dense)
       expect_identical(sparse_table, dense_table)
     }
   }
@@ -101,7 +101,7 @@ test_that("sparse clustering recovers the same planted partition", {
     sparse_hg, k = 2, type = "zhou", edge_weights = NULL, nstart = 25L,
     seed = 1
   )
-  dense_fit <- hypergraph_cluster(dense_hg, k = 2, seed = 1)
+  dense_fit <- .hg_cluster_fit(dense_hg, k = 2, seed = 1)
   expect_equal(fit$eigenvalues[seq_len(3)],
                dense_fit$eigenvalues[seq_len(3)], tolerance = 1e-8)
   expect_equal(fit$pi, dense_fit$pi, tolerance = 1e-10)

@@ -94,7 +94,7 @@
 #' pairs of equal-size hyperedges while preserving every node degree and edge
 #' cardinality before duplicate-edge collapse.
 #'
-#' @param hg A 3-uniform `net_hypergraph` or a [temporal_hypergraph()].
+#' @param hg A 3-uniform `net_hg` or a [temporal_hypergraph()].
 #' @param n Number of configuration-model draws. The paper uses 1000.
 #' @param seed Optional reproducibility seed; the caller's RNG state is
 #'   restored on exit.
@@ -102,13 +102,15 @@
 #'   counts only, or `"draws"` for every null count.
 #' @param alternative Empirical permutation-test direction.
 #' @param start,end,step,window,at Measurement grid passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal.
+#'   [hg_snapshots()] when `hg` is temporal.
 #' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
 #'   `"cumulative"`) and multi-edge handling passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal.
-#' @return A tidy data frame. Test output includes observed count, null mean
-#'   and standard deviation, z-score, empirical p-value, relative abundance
-#'   `delta`, and the normalized motif profile used by HypergraphX.
+#'   [hg_snapshots()] when `hg` is temporal.
+#' @return A tidy data frame. The test table has one row per motif:
+#'   `motif`, `count` (observed), `expected` and `null_sd` (mean and
+#'   standard deviation of the null counts), `z`, `p_value` (empirical),
+#'   `delta` (relative abundance), `normalized_delta` (the motif profile used
+#'   by HypergraphX), `n_null` (null draws) and `method`.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #' hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #' 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
@@ -129,7 +131,7 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
   alternative <- match.arg(alternative)
   snapshot_mode <- .thg_check_mode(snapshot_mode, "hg_motifs", "snapshot_mode")
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+    snaps <- hg_snapshots(hg, start = start, end = end, step = step,
                                   window = window, at = at, mode = snapshot_mode,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
@@ -195,11 +197,11 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
   delta_norm <- sqrt(sum(delta^2))
   normalized_delta <- if (delta_norm > 0) delta / delta_norm else rep(0, 3L)
   out <- data.frame(
-    motif = names(observed), observed = as.integer(observed),
-    null_mean = as.numeric(null_mean), null_sd = as.numeric(null_sd),
+    motif = names(observed), count = as.integer(observed),
+    expected = as.numeric(null_mean), null_sd = as.numeric(null_sd),
     z = as.numeric(z), p_value = (1 + extreme) / (n + 1),
     delta = as.numeric(delta), normalized_delta = as.numeric(normalized_delta),
-    n = n, method = "configuration_mcmc", row.names = NULL
+    n_null = n, method = "configuration_mcmc", row.names = NULL
   )
   attr(out, "draws") <- data.frame(
     run = rep(seq_len(n), each = 3L), motif = rep(names(observed), n),
@@ -210,25 +212,23 @@ hg_motifs <- function(hg, n = 1000L, seed = NULL,
 }
 
 #' @rdname hg_motifs
-#' @export
-hypergraph_motifs <- hg_motifs
-
-#' @rdname hg_motifs
 #' @param x A `hypernets_motifs` test table.
-#' @param row.names,optional Unused; present for the base S3 contract.
 #' @param ... Unused; for S3 consistency.
-#' @return For `as.data.frame`, the test table (`what = "test"`) or every null
+#' @return For `hg_get()`, the test table (`what = "test"`) or every null
 #'   count (`what = "draws"`, columns `run`, `motif`, `count`) as a plain
 #'   data.frame.
 #' @export
-as.data.frame.hypernets_motifs <- function(x, row.names = NULL, optional = FALSE,
-                                        what = c("test", "draws"), ...) {
+hg_get.hypernets_motifs <- function(x, what = c("test", "draws"), ...) {
   what <- match.arg(what)
   if (identical(what, "draws")) return(attr(x, "draws"))
   attr(x, "draws") <- NULL
   class(x) <- "data.frame"
   x
 }
+
+#' @rdname result-summary
+#' @export
+summary.hypernets_motifs <- function(object, ...) .ho_summary(object)
 
 #' @rdname hg_motifs
 #' @param motif Which motif's null distribution to draw: `"Y"` (default),
@@ -239,17 +239,17 @@ as.data.frame.hypernets_motifs <- function(x, row.names = NULL, optional = FALSE
 #' @export
 plot.hypernets_motifs <- function(x, motif = c("Y", "T", "O"), ...) {
   motif <- match.arg(motif)
-  draws <- as.data.frame(x, what = "draws")
-  test <- as.data.frame(x)
+  draws <- hg_get(x, what = "draws")
+  test <- hg_get(x)
   null <- draws[draws$motif == motif, , drop = FALSE]
   row <- test[test$motif == motif, , drop = FALSE]
-  label <- sprintf("observed = %d\nz = %.2f", row$observed, row$z)
+  label <- sprintf("observed = %d\nz = %.2f", row$count, row$z)
   ggplot2::ggplot(null, ggplot2::aes(x = .data$count)) +
     ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(.data$count) / nrow(null)),
                             bins = 30, fill = "#999999", colour = "white") +
-    ggplot2::geom_vline(xintercept = row$observed, colour = .thg_okabe_ito[[5L]],
+    ggplot2::geom_vline(xintercept = row$count, colour = .thg_okabe_ito[[5L]],
                         linewidth = 1) +
-    ggplot2::annotate("text", x = row$observed, y = Inf, label = label,
+    ggplot2::annotate("text", x = row$count, y = Inf, label = label,
                       hjust = 1.1, vjust = 1.5, size = 3.5) +
     ggplot2::labs(x = sprintf("count of motif %s", motif),
                   y = "probability under the null") +

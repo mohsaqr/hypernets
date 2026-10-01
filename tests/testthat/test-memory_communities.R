@@ -1,4 +1,4 @@
-# Tests for hon_communities(): the map equation for memory networks
+# Tests for hg_communities(): the map equation for memory networks
 # (Rosvall et al. 2014; Edler, Bohlin & Rosvall 2017).
 
 # ---- fixtures ---------------------------------------------------------------
@@ -88,12 +88,12 @@
 test_that("codelength reproduces Edler et al. (2017) Eq. 31 and Eq. 32", {
   for (r in c(1, 0.5, 0.1)) {
     hon <- .cm_fake_hon(.cm_edler(r))
-    one <- hon_communities(hon, partition = c(a = 1, b = 1, "b -> i" = 1,
+    one <- hg_communities(hon, partition = c(a = 1, b = 1, "b -> i" = 1,
                                               c = 1, d = 1, "d -> i" = 1))
-    two <- hon_communities(hon, partition = c(a = 1, b = 1, "b -> i" = 1,
+    two <- hg_communities(hon, partition = c(a = 1, b = 1, "b -> i" = 1,
                                               c = 2, d = 2, "d -> i" = 2))
-    cl1 <- as.data.frame(one, what = "codelength")
-    cl2 <- as.data.frame(two, what = "codelength")
+    cl1 <- hg_get(one, what = "codelength")
+    cl2 <- hg_get(two, what = "codelength")
     # Eq. 31: shared codewords for the centre give H(1/6,1/6,1/6,1/6,2/6)
     eq31 <- .cm_H(c(1, 1, 1, 1, 2) / 6)
     # Eq. 32: (r/6) H(r/12, r/12) + 2 (6 + r)/12 H(1/6, 1/6, 1/6, r/12)
@@ -104,10 +104,10 @@ test_that("codelength reproduces Edler et al. (2017) Eq. 31 and Eq. 32", {
   }
   # the paper's printed approximations
   expect_equal(round(.cm_H(c(1, 1, 1, 1, 2) / 6), 2), 2.25)
-  two_r1 <- hon_communities(.cm_fake_hon(.cm_edler(1)),
+  two_r1 <- hg_communities(.cm_fake_hon(.cm_edler(1)),
                             partition = c(a = 1, b = 1, "b -> i" = 1,
                                           c = 2, d = 2, "d -> i" = 2))
-  expect_equal(round(as.data.frame(two_r1, what = "codelength")$codelength[1L],
+  expect_equal(round(hg_get(two_r1, what = "codelength")$codelength[1L],
                      2), 2.44)
 })
 
@@ -158,22 +158,22 @@ test_that("first-order map equation matches Rosvall & Bergstrom (2008) by hand",
 # ---- flow and invariants ----------------------------------------------------
 
 test_that("flows are distributions and the one-module code is H(physical flow)", {
-  hon <- build_hon(.cm_sim_ring(n_seq = 60L, seed = 2L), max_order = 2L)
+  hon <- hon(.cm_sim_ring(n_seq = 60L, seed = 2L), max_order = 2L)
   fl <- hypernets:::.hcm_flow(unname(hon$weights), 0.15)
   expect_equal(sum(fl$flow), 1, tolerance = 1e-12)
   expect_equal(sum(fl$node_flow), 1, tolerance = 1e-12)
   expect_true(all(fl$flow >= 0))
-  comm <- hon_communities(hon, partition = stats::setNames(
+  comm <- hg_communities(hon, partition = stats::setNames(
     rep(1L, nrow(hon$weights)), rownames(hon$weights)))
-  phys <- as.data.frame(comm, what = "physical")
-  cl <- as.data.frame(comm, what = "codelength")
+  phys <- hg_get(comm, what = "physical")
+  cl <- hg_get(comm, what = "codelength")
   expect_equal(cl$codelength[1L], .cm_H(phys$flow), tolerance = 1e-12)
   expect_equal(cl$one_level_codelength[1L], .cm_H(phys$flow),
                tolerance = 1e-12)
 })
 
 test_that("relabelling modules or reordering states leaves the codelength", {
-  hon <- build_hon(.cm_sim_ring(n_seq = 60L, seed = 3L), max_order = 2L)
+  hon <- hon(.cm_sim_ring(n_seq = 60L, seed = 3L), max_order = 2L)
   fl <- hypernets:::.hcm_flow(unname(hon$weights), 0.15)
   states <- rownames(hon$weights)
   phys <- match(sub("^.* -> ", "", states), unique(sub("^.* -> ", "", states)))
@@ -193,7 +193,7 @@ test_that("relabelling modules or reordering states leaves the codelength", {
 # ---- search -----------------------------------------------------------------
 
 test_that("the search finds the brute-force optimum on a small memory network", {
-  hon <- build_hon(.cm_toy_seqs, max_order = 2L)
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
   states <- rownames(hon$weights)
   phys <- match(sub("^.* -> ", "", states), unique(sub("^.* -> ", "", states)))
   fl <- hypernets:::.hcm_flow(unname(hon$weights), 0.15)
@@ -202,8 +202,8 @@ test_that("the search finds the brute-force optimum on a small memory network", 
   brute <- min(vapply(parts, function(p) {
     hypernets:::.hcm_codelength(fl, phys, p)$codelength
   }, numeric(1L)))
-  comm <- hon_communities(hon, trials = 5L)
-  found <- as.data.frame(comm, what = "codelength")$codelength[1L]
+  comm <- hg_communities(hon, trials = 5L)
+  found <- hg_get(comm, what = "codelength")$codelength[1L]
   expect_equal(found, brute, tolerance = 1e-10)
 })
 
@@ -211,18 +211,18 @@ test_that("the bundled ring data are the planted-module simulation", {
   expect_identical(ring_sequences, .cm_sim_ring(seed = 1L))
   # the bundled truth agrees with the rule it states, on every state it lists
   expect_identical(ring_communities$community,
-                   .cm_ring_truth(ring_communities$state))
+                   .cm_ring_truth(ring_communities$node))
   expect_false(anyNA(ring_communities$community))
 })
 
 test_that("the planted groups of ring_sequences are recovered", {
   skip_on_cran()
-  comm <- hon_communities(build_hon(ring_sequences, max_order = 2L),
+  comm <- hg_communities(hon(ring_sequences, max_order = 2L),
                           trials = 10L, seed = 1L)
-  agree <- hg_agreement(as.data.frame(comm), ring_communities, node = "state",
-                        label = c("module", "community"))
+  agree <- hg_agreement(hg_get(comm), ring_communities, node = "node",
+                        label = "community")
   expect_gt(agree$ari, 0.95)
-  codes <- as.data.frame(comm, what = "codelength")
+  codes <- hg_get(comm, what = "codelength")
   expect_lt(codes$codelength[1L], codes$codelength[2L] - 1)
 })
 
@@ -230,15 +230,15 @@ test_that("planted memory modules are recovered where first order fails", {
   skip_on_cran()
   # five simulated data sets, each searched from its own seed
   res <- lapply(1:5, function(s) {
-    hon <- build_hon(.cm_sim_ring(seed = s), max_order = 2L)
-    comm <- hon_communities(hon, trials = 5L, seed = s)
-    st <- as.data.frame(comm)
-    truth <- .cm_ring_truth(st$state)
+    hon <- hon(.cm_sim_ring(seed = s), max_order = 2L)
+    comm <- hg_communities(hon, trials = 5L, seed = s)
+    st <- hg_get(comm)
+    truth <- .cm_ring_truth(st$node)
     known <- !is.na(truth)
-    cl <- as.data.frame(comm, what = "codelength")
+    cl <- hg_get(comm, what = "codelength")
     data.frame(memory = cl$codelength[1L], first = cl$codelength[2L],
-               k_first = cl$n_modules[2L],
-               ari = hypernets:::.thg_ari(st$module[known], truth[known]))
+               k_first = cl$n_communities[2L],
+               ari = hypernets:::.thg_ari(st$community[known], truth[known]))
   })
   res <- do.call(rbind, res)
   expect_true(all(res$memory < res$first - 1))
@@ -248,25 +248,26 @@ test_that("planted memory modules are recovered where first order fails", {
 
 test_that("overlap: shared physical nodes sit in two modules", {
   skip_on_cran()
-  hon <- build_hon(.cm_sim_ring(seed = 1L), max_order = 2L)
-  comm <- hon_communities(hon, trials = 3L)
-  over <- as.data.frame(comm, what = "physical", overlapping = TRUE)
-  expect_setequal(unique(over$physical), c("s1", "s2", "s3", "s4"))
-  expect_true(all(over$n_modules == 2L))
-  shares <- tapply(over$share, over$physical, sum)
+  hon <- hon(.cm_sim_ring(seed = 1L), max_order = 2L)
+  comm <- hg_communities(hon, trials = 3L)
+  over <- hg_get(comm, what = "physical", overlapping = TRUE)
+  expect_setequal(unique(over$state), c("s1", "s2", "s3", "s4"))
+  expect_true(all(over$n_communities == 2L))
+  shares <- tapply(over$share, over$state, sum)
   expect_equal(as.numeric(shares), rep(1, 4), tolerance = 1e-12)
 })
 
 test_that("trials are seeded, reproducible, and restore the caller's RNG", {
-  hon <- build_hon(.cm_toy_seqs, max_order = 2L)
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
   set.seed(42)
   before <- .Random.seed
-  a <- hon_communities(hon, trials = 3L, seed = 7L)
+  a <- hg_communities(hon, trials = 3L, seed = 7L)
   expect_identical(.Random.seed, before)
-  b <- hon_communities(hon, trials = 3L, seed = 7L)
-  expect_identical(as.data.frame(a), as.data.frame(b))
-  tr <- as.data.frame(a, what = "trials")
-  expect_named(tr, c("trial", "codelength", "n_modules", "ari_to_best", "best"))
+  b <- hg_communities(hon, trials = 3L, seed = 7L)
+  expect_identical(hg_get(a), hg_get(b))
+  tr <- hg_get(a, what = "trials")
+  expect_named(tr, c("run", "codelength", "n_communities", "ari_to_best",
+                   "best"))
   expect_equal(nrow(tr), 3L)
   expect_equal(sum(tr$best), 1L)
 })
@@ -274,35 +275,34 @@ test_that("trials are seeded, reproducible, and restore the caller's RNG", {
 # ---- accessors and methods --------------------------------------------------
 
 test_that("as.data.frame returns tidy tables for every `what`", {
-  hon <- build_hon(.cm_toy_seqs, max_order = 2L)
-  comm <- hon_communities(hon, trials = 2L)
-  expect_named(as.data.frame(comm), c("state", "physical", "module", "flow"))
-  expect_named(as.data.frame(comm, what = "physical"),
-               c("physical", "module", "flow", "share", "n_modules"))
-  expect_named(as.data.frame(comm, what = "modules"),
-               c("module", "n_states", "n_physical", "flow", "exit_flow",
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
+  comm <- hg_communities(hon, trials = 2L)
+  expect_named(hg_get(comm), c("node", "state", "community", "flow"))
+  expect_named(hg_get(comm, what = "physical"),
+               c("state", "community", "flow", "share", "n_communities"))
+  expect_named(hg_get(comm, what = "modules"),
+               c("community", "n_nodes", "n_states", "flow", "exit_flow",
                  "enter_flow"))
-  expect_named(as.data.frame(comm, what = "first_order"),
-               c("physical", "module", "flow"))
-  cl <- as.data.frame(comm, what = "codelength")
+  expect_named(hg_get(comm, what = "first_order"),
+               c("state", "community", "flow"))
+  cl <- hg_get(comm, what = "codelength")
   expect_equal(cl$model, c("memory", "first_order"))
-  mods <- as.data.frame(comm, what = "modules")
+  mods <- hg_get(comm, what = "modules")
   expect_equal(sum(mods$flow), 1, tolerance = 1e-12)
   expect_equal(sum(mods$exit_flow), sum(mods$enter_flow), tolerance = 1e-12)
-  one <- as.data.frame(comm, module = 1L)
-  expect_true(all(one$module == 1L))
-  expect_equal(nrow(as.data.frame(comm, what = "physical", overlapping = TRUE)),
+  one <- hg_get(comm, community = 1L)
+  expect_true(all(one$community == 1L))
+  expect_equal(nrow(hg_get(comm, what = "physical", overlapping = TRUE)),
                2L)
 })
 
 test_that("print and summary are stable", {
-  hon <- build_hon(.cm_toy_seqs, max_order = 2L)
-  comm <- hon_communities(hon, trials = 2L)
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
+  comm <- hg_communities(hon, trials = 2L)
   expect_snapshot(print(comm))
-  expect_snapshot(out <- summary(comm))
-  out <- NULL
-  expect_output(out <- summary(comm), "Memory minus first-order")
-  expect_s3_class(out, "data.frame")
+  out <- summary(comm)
+  expect_s3_class(out, "hypernets_summary")
+  expect_identical(out$codelength, hg_get(comm, what = "codelength"))
 })
 
 # Physical-node centres as drawn: the mean of each node's disc outline, in
@@ -317,16 +317,16 @@ test_that("print and summary are stable", {
 
 test_that("the physical view is a community hypergraph with flow circles", {
   skip_on_cran()
-  hon <- build_hon(.cm_sim_ring(seed = 1L), max_order = 2L)
-  comm <- hon_communities(hon, trials = 3L)
+  hon <- hon(.cm_sim_ring(seed = 1L), max_order = 2L)
+  comm <- hg_communities(hon, trials = 3L)
   spec <- hypernets:::.hcm_physical_plot_data(comm)
-  phys <- as.data.frame(comm, what = "physical")
-  expect_setequal(spec$hypergraph$nodes, unique(phys$physical))
+  phys <- hg_get(comm, what = "physical")
+  expect_setequal(spec$hypergraph$nodes, unique(phys$state))
   expect_setequal(colnames(spec$hypergraph$incidence),
                   sprintf("Community %d", 1:4))
   expect_true(is.factor(spec$community))
   expect_identical(levels(spec$community), sprintf("Community %d", 1:4))
-  flow <- tapply(phys$flow, phys$physical, sum)
+  flow <- tapply(phys$flow, phys$state, sum)
   expect_equal(spec$sizes$value, as.numeric(flow[spec$sizes$node]))
   W1 <- comm$physical_weights
   expect_equal(nrow(spec$moves), sum(W1 > 0))
@@ -352,7 +352,7 @@ test_that("the physical view is a community hypergraph with flow circles", {
   expect_identical(p$theme$plot.caption.position, "plot")
   boxes <- Filter(function(l) inherits(l$geom, "GeomLabel"), p$layers)
   expect_length(boxes, 1L)
-  module_flow <- tapply(comm$states$flow, comm$states$module, sum)
+  module_flow <- tapply(comm$states$flow, comm$states$community, sum)
   # zero-flow modules hold no physical node and are not drawn
   module_flow <- module_flow[module_flow > 0]
   expect_setequal(boxes[[1L]]$data$label,
@@ -376,18 +376,18 @@ test_that("the physical view is a community hypergraph with flow circles", {
     hypernets:::.thg_in_convex(ring$x, ring$y, drawn$x[drawn$node == v],
                                drawn$y[drawn$node == v])
   }
-  shared <- phys[phys$n_modules > 1L, ]
-  expect_equal(length(unique(shared$physical)), 4L)
-  expect_true(all(mapply(inside, shared$physical, shared$module)))
-  single <- phys[phys$n_modules == 1L, ]
-  expect_true(all(mapply(inside, single$physical, single$module)))
+  shared <- phys[phys$n_communities > 1L, ]
+  expect_equal(length(unique(shared$state)), 4L)
+  expect_true(all(mapply(inside, shared$state, shared$community)))
+  single <- phys[phys$n_communities == 1L, ]
+  expect_true(all(mapply(inside, single$state, single$community)))
   group_of <- levels(hulls$hyperedge)[hull_fill$group]
   pebble_colour <- vapply(split(hull_fill$fill, group_of), unique,
                           character(1L))
-  expect_identical(unname(pebble_colour[sprintf("Community %d", single$module)]),
-                   unname(palette[sprintf("Community %d", single$module)]))
+  expect_identical(unname(pebble_colour[sprintf("Community %d", single$community)]),
+                   unname(palette[sprintf("Community %d", single$community)]))
 
-  # `...` reaches plot.net_hypergraph()
+  # `...` reaches plot.net_hg()
   outside <- plot(comm, arrow_style = "outside", seed = 2L)
   expect_s3_class(outside, "ggplot")
   expect_error(plot(comm, node_fill = "not a colour"),
@@ -396,14 +396,16 @@ test_that("the physical view is a community hypergraph with flow circles", {
 
 test_that("the physical view of human_long names its one-node community", {
   skip_on_cran()
-  human <- build_hon(human_long, action = "code", actor = "session_id",
-                     time = "order_in_session", max_order = 2L,
-                     min_freq = 10L)
-  comm <- hon_communities(human, trials = 3L)
+  # One trajectory per session, ordered within it (Nestimate's hon()
+  # reads sequences, not a long table).
+  ord <- order(human_long$session_id, human_long$order_in_session)
+  seqs <- split(human_long$code[ord], human_long$session_id[ord])
+  human <- hon(seqs, max_order = 2L, min_freq = 10L)
+  comm <- hg_communities(human, trials = 3L)
   p <- plot(comm)
   expect_s3_class(p, "ggplot")
-  lone <- as.data.frame(comm, what = "modules")
-  lone <- lone$module[lone$n_physical == 1L & lone$flow > 0]
+  lone <- hg_get(comm, what = "modules")
+  lone <- lone$community[lone$n_physical == 1L & lone$flow > 0]
   if (length(lone)) {
     expect_match(p$labels$caption,
                  sprintf("Community %d (", lone[1L]), fixed = TRUE)
@@ -415,19 +417,19 @@ test_that("the physical view of human_long names its one-node community", {
 
 test_that("the state view still delegates to cograph::overlay_communities", {
   skip_on_cran()
-  hon <- build_hon(.cm_sim_ring(seed = 1L), max_order = 2L)
-  comm <- hon_communities(hon, trials = 3L)
+  hon <- hon(.cm_sim_ring(seed = 1L), max_order = 2L)
+  comm <- hg_communities(hon, trials = 3L)
   okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
              "#D55E00", "#CC79A7", "#999999")
   st <- hypernets:::.hcm_state_plot_args(comm, FALSE)
-  zero <- as.data.frame(comm)$flow <= 0
+  zero <- hg_get(comm)$flow <= 0
   expect_equal(nrow(st$args$x), sum(!zero))
   expect_length(st$args$communities, 4L)
   expect_false(any(grepl("[", st$args$labels, fixed = TRUE)))
   expect_true(all(st$args$node_fill %in% okabe))
   expect_equal(st$n_hidden, sum(zero))
   all_states <- hypernets:::.hcm_state_plot_args(comm, TRUE)
-  expect_equal(nrow(all_states$args$x), nrow(as.data.frame(comm)))
+  expect_equal(nrow(all_states$args$x), nrow(hg_get(comm)))
   expect_length(all_states$args$communities, 8L)
   expect_equal(all_states$n_hidden, 0L)
 
@@ -450,20 +452,20 @@ test_that("the state view still delegates to cograph::overlay_communities", {
 # ---- error paths ------------------------------------------------------------
 
 test_that("bad input raises classed conditions", {
-  hon <- build_hon(.cm_toy_seqs, max_order = 2L)
-  expect_error(hon_communities(list()), class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, trials = 0), class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, trials = 1.5), class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, teleportation = 1),
+  hon <- hon(.cm_toy_seqs, max_order = 2L)
+  expect_error(hg_communities(list()), class = "hypernets_bad_input")
+  expect_error(hg_communities(hon, trials = 0), class = "hypernets_bad_input")
+  expect_error(hg_communities(hon, trials = 1.5), class = "hypernets_bad_input")
+  expect_error(hg_communities(hon, teleportation = 1),
                class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, seed = NA), class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, partition = c(a = 1)),
+  expect_error(hg_communities(hon, seed = NA), class = "hypernets_bad_input")
+  expect_error(hg_communities(hon, partition = c(a = 1)),
                class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, partition = 1:7),
+  expect_error(hg_communities(hon, partition = 1:7),
                class = "hypernets_bad_input")
-  expect_error(hon_communities(hon, partition = data.frame(x = 1)),
+  expect_error(hg_communities(hon, partition = data.frame(x = 1)),
                class = "hypernets_bad_input")
-  expect_error(plot(hon_communities(hon, trials = 1L), type = "nope"))
+  expect_error(plot(hg_communities(hon, trials = 1L), type = "nope"))
 })
 
 test_that("teleportation = 0 on a reducible walk is hypernets_not_ergodic", {
@@ -471,9 +473,9 @@ test_that("teleportation = 0 on a reducible walk is hypernets_not_ergodic", {
   s <- c("a", "b", "c", "d")
   W <- matrix(0, 4, 4, dimnames = list(s, s))
   W["a", "b"] <- W["b", "a"] <- W["c", "d"] <- W["d", "c"] <- 1
-  expect_error(hon_communities(.cm_fake_hon(W), teleportation = 0),
+  expect_error(hg_communities(.cm_fake_hon(W), teleportation = 0),
                class = "hypernets_not_ergodic")
   # with teleportation the flow exists and splits into the two cycles
-  comm <- hon_communities(.cm_fake_hon(W), trials = 2L)
-  expect_equal(nrow(as.data.frame(comm, what = "modules")), 2L)
+  comm <- hg_communities(.cm_fake_hon(W), trials = 2L)
+  expect_equal(nrow(hg_get(comm, what = "modules")), 2L)
 })

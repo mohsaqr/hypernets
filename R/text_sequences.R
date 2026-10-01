@@ -15,32 +15,29 @@
 #' carries whatever metadata came with the corpus (an author, a turn, a
 #' timestamp); [hg_cluster()] gives each document a topic. `hg_sequences()`
 #' joins the two, orders the documents within each actor and returns one row
-#' per document as `actor` / `time` / `action` -- the long shape
-#' [build_hon()], [bootstrap_hon()], [compare_hon()] and
-#' [window_hypergraph()] read through their own `action` / `actor` / `time`
-#' arguments, so no coercion is written at the call site:
+#' per document as `actor` / `time` / `action` -- the long event table
+#' every memory-network verb reads through its `action` / `actor` / `time`
+#' arguments ([hon()], [mogen()], [hypa()], [markov_order()],
+#' [hg_bootstrap()], [hg_compare()], [window_hypergraph()]):
 #'
 #' ```r
 #' seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-#' build_hon(seqs, action = "action", actor = "actor", time = "time")
+#' hon(seqs, action = "action", actor = "actor", time = "time")
 #' ```
 #'
 #' Those three column names are fixed, which is what makes the second call
-#' the same every time. The memory-family verbs that do not (yet) take the
-#' long form -- [build_mogen()], [build_hypa()], [markov_order_test()] --
-#' read a list of trajectories instead; pass the result of `hg_sequences()`
-#' to them only through one of the verbs above, since a long table handed to
-#' them bare is read as a *wide* one (one trajectory per row) and silently
-#' gives the wrong model.
+#' the same every time. Passing the long table without `action =` raises
+#' `hypernets_long_format`: read as wide (one trajectory per row) it would
+#' give the wrong model.
 #'
-#' This closes the one missing edge in the cross-family design: `pathways()`
-#' bridges the memory family to the others and [window_hypergraph()] bridges
+#' This closes the one missing edge in the cross-family design:
+#' `hg_get(x, what = "pathways")` bridges the memory family to the others and [window_hypergraph()] bridges
 #' sequences to hypergraphs, but until now the text family dead-ended at
 #' clustering and the caller had to assemble the sequence table themselves.
 #'
-#' @param hg A [text_hypergraph()] -- more generally, any `net_hypergraph`
+#' @param hg A [text_hypergraph()] -- more generally, any `net_hg`
 #'   carrying a documents table, the one reached with
-#'   `as.data.frame(hg, what = "documents")`.
+#'   `hg_get(hg, what = "documents")`.
 #' @param clusters A partition of the documents, as returned by
 #'   [hg_cluster()]: a data.frame with one row per node, a `node` column
 #'   holding document identifiers and a state column (`cluster` by default,
@@ -85,8 +82,8 @@
 #' clustering, classification, and embedding. \emph{Advances in Neural
 #' Information Processing Systems}, 19, 1601-1608.
 #'
-#' @seealso [hg_cluster()] for the partition, [build_hon()] and
-#'   [bootstrap_hon()] for what to do with the sequences,
+#' @seealso [hg_cluster()] for the partition, [hon()] and
+#'   [hg_bootstrap()] for what to do with the sequences,
 #'   [window_hypergraph()] to read them back into a hypergraph.
 #'
 #' @examples
@@ -115,10 +112,9 @@
 #' # A state that is already a column of the corpus needs no clustering.
 #' hg_sequences(hg, actor = "student", order_by = "turn", state = "phase")
 #'
-#' # Straight into the memory family, no further coercion.
+#' # Into the memory family: every memory verb reads the long table.
 #' seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-#' build_hon(seqs, action = "action", actor = "actor", time = "time",
-#'           max_order = 2L)
+#' hon(seqs, action = "action", actor = "actor", time = "time", max_order = 2L)
 #' @export
 hg_sequences <- function(hg, clusters = NULL, actor, order_by, state = NULL) {
   .thg_check_hg(hg)

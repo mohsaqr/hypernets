@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_pagerank.R
 \name{hg_pagerank}
 \alias{hg_pagerank}
-\alias{hypergraph_pagerank}
 \title{Hypergraph PageRank with edge-dependent vertex weights}
 \usage{
 hg_pagerank(
@@ -15,21 +14,10 @@ hg_pagerank(
   max_iter = 1000L,
   tol = 1e-12
 )
-
-hypergraph_pagerank(
-  hg,
-  damping = 0.85,
-  personalized = NULL,
-  edge_weights = NULL,
-  sort_by = NULL,
-  n = Inf,
-  max_iter = 1000L,
-  tol = 1e-12
-)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
-\code{net_hypergraph} (connected when \code{damping = 1}).}
+\code{net_hg} (connected when \code{damping = 1}).}
 
 \item{damping}{Probability of following the hypergraph walk (default
 \code{0.85}); \code{1 - damping} is the teleport probability. Must be in
@@ -43,10 +31,11 @@ vertex names; unnamed vertices get teleport probability 0. \code{NULL}
 (default) teleports uniformly.}
 
 \item{edge_weights}{Positive hyperedge weights (one per hyperedge), or
-\code{NULL} (default) for the Hayashi et al. heuristic used by the
-Laplacian engines: the population standard deviation of each edge's
-non-zero vertex weights plus one, which reduces to unit weights on a
-binary incidence.}
+\code{NULL} (default): a window hypergraph's window counts when present,
+otherwise the Hayashi et al. heuristic used by the Laplacian engines
+(the population standard deviation of each edge's non-zero vertex
+weights plus one, which reduces to unit weights on a binary
+incidence).}
 
 \item{sort_by}{\code{NULL} (default, vertex order) or \code{"pagerank"} to sort
 descending (ties broken by vertex name).}
@@ -78,9 +67,9 @@ incidence weights differ across the hyperedges a vertex belongs to
 (tested against the closed-form graph stationary distribution). With
 \code{damping = 1} and default \code{edge_weights}, the result equals the
 stationary distribution of the Hayashi et al. (2020) EDVW walk used by
-\code{\link[=hg_cluster]{hg_cluster()}} (tested at \code{1e-12} against \code{\link[=hypergraph_laplacian]{hypergraph_laplacian()}}), and
+\code{\link[=hg_cluster]{hg_cluster()}} (tested at \code{1e-12} against \code{\link[=hg_laplacian]{hg_laplacian()}}), and
 with uniform teleportation it equals
-\code{hypergraph_centrality(type = "pagerank")} (tested).
+\code{hg_centrality(type = "pagerank")} (tested).
 }
 \section{Conditions}{
  Raises \code{hypernets_bad_input} for broken contracts and

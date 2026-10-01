@@ -76,7 +76,8 @@
 }
 
 # Extract the label column from a tidy labeling: `predicted`
-# (classification results) first, else `cluster` (clustering results).
+# (classification results) first, else `cluster` / `community`
+# (clustering results: hg_cluster(); hg_communities(), hg_mmsbm()).
 .thg_labeling <- function(x, arg, node = "node", label = NULL) {
   stopifnot(
     "labelings must be data.frames" = is.data.frame(x),
@@ -92,14 +93,14 @@
     ))
   }
   column <- if (is.null(label)) {
-    intersect(c("predicted", "cluster", "label"), names(x))
+    intersect(c("predicted", "cluster", "community", "label"), names(x))
   } else {
     intersect(label, names(x))
   }
   if (length(column) == 0L) {
     stop(errorCondition(
       if (is.null(label)) {
-        sprintf(paste0("`%s` has no `predicted`, `cluster` or `label` ",
+        sprintf(paste0("`%s` has no `predicted`, `cluster`, `community` or `label` ",
                        "column; pass a result from hg_cluster(), ",
                        "hg_classify(), hg_neural() or hg_hypergat(), a ",
                        "table of known labels, or name the column with `label`"), arg)
@@ -132,12 +133,12 @@
 .thg_labels_input <- function(labels) {
   if (!is.data.frame(labels)) return(labels)
   stopifnot(
-    "a `labels` data.frame needs a `node` column and a `label`, `cluster` or `predicted` column" =
+    "a `labels` data.frame needs a `node` column and a `label`, `cluster`, `community` or `predicted` column" =
       "node" %in% names(labels) &&
-        length(intersect(c("label", "cluster", "predicted"),
+        length(intersect(c("label", "cluster", "community", "predicted"),
                          names(labels))) > 0L
   )
-  column <- intersect(c("label", "cluster", "predicted"), names(labels))
+  column <- intersect(c("label", "cluster", "community", "predicted"), names(labels))
   stats::setNames(as.character(labels[[column[[1]]]]),
                   as.character(labels$node))
 }
@@ -217,6 +218,14 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
   joined <- merge(.thg_labeling(x, "x", node[[1L]], label[[1L]]),
                   .thg_labeling(y, "y", node[[2L]], label[[2L]]),
                   by = "node", suffixes = c("_x", "_y"))
+  unlabelled <- is.na(joined$label_x) | is.na(joined$label_y)
+  if (any(unlabelled)) {
+    # table()-based indices drop NA labels; drop them for every column alike
+    warning(warningCondition(sprintf(
+      "%d node(s) without a label in `x` or `y` are left out of the comparison",
+      sum(unlabelled)), class = "hypernets_missing_labels", call = NULL))
+    joined <- joined[!unlabelled, , drop = FALSE]
+  }
   if (nrow(joined) == 0L) {
     stop(errorCondition(
       "`x` and `y` share no node names; nothing to compare",
@@ -259,43 +268,233 @@ hg_agreement <- function(x, y, what = c("summary", "table", "mapping"),
   out
 }
 
-#' Seed stability of a hypergraph clustering across resolutions
+#' Stability of a hypergraph clustering across resolutions
 #'
-#' Fits [hg_cluster()] twice per requested `k` with different k-means
-#' seeds and reports whether the partitions agree -- the reproducibility
-#' criterion for choosing a resolution: a partition that changes with
-#' the seed is not estimable from the data, whatever its eigengap looks
-#' like.
+#' Asks whether the partition [hg_cluster()] finds is a property of the data
+#' or of the particular sample, one resolution `k` at a time.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
+#' **`resample = "subset"` (default)** is cluster-wise subsampling stability
+#' (Hennig 2007; the subsetting scheme of Ben-Hur et al. 2002). The nodes
+#' (on a document hypergraph, the documents) are clustered once in full.
+#' Then, `n_boot` times, a subsample of `floor(fraction * n)` nodes is drawn
+#' without replacement, the sub-hypergraph is formed by restricting every
+#' hyperedge to the drawn nodes (hyperedges left empty are dropped; the
+#' incidence weights are kept, so a tf-idf corpus keeps the full corpus's
+#' idf), and it is clustered again with the same `k`, `type`, `seed` and
+#' `nstart`. Each original cluster, restricted to the drawn nodes, is matched
+#' to its most similar subsample cluster by the Jaccard coefficient
+#' \eqn{|A \cap B| / |A \cup B|} (0 when the cluster has no drawn member). A
+#' cluster's stability is its mean Jaccard over the subsamples. Hennig
+#' (2007) reads a mean of 0.5 or below as a dissolved cluster and 0.75 or
+#' above as a stable one. The subsamples are drawn once, up front, after
+#' `set.seed(seed)`, so they are the ones `fpc::clusterboot(bootmethod =
+#' "subset", subtuning = floor(fraction * n), seed = seed)` draws, and the
+#' same subsamples serve every `k`. The caller's random number stream is
+#' restored on exit.
+#'
+#' A subsample can disconnect the hypergraph (a word that tied two groups of
+#' documents may not be drawn); [hg_cluster()] cannot cut a disconnected
+#' hypergraph, so that run is not scored, is counted in `n_failed`, and a
+#' warning of class `hypernets_hypergraph_disconnected` reports the count.
+#'
+#' The `eigengap` column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
+#' consecutive eigenvalues of the full hypergraph's Laplacian (the `gap`
+#' column of `hg_cluster(what = "eigenvalues")`); the eigengap heuristic
+#' (von Luxburg 2007, Sec. 8.1) prefers the `k` where it is large relative
+#' to the gaps before it. Read it beside the stability: a `k` with a large
+#' gap and stable clusters is supported twice.
+#'
+#' **`resample = "seeds"`** keeps the check this verb made before 0.6.0: it
+#' fits the full hypergraph twice per `k` with the two k-means `seeds` and
+#' reports whether the partitions agree. It measures whether the solver is
+#' deterministic on this embedding, not whether the structure survives a
+#' change of sample, and it never resamples the data.
+#'
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
 #' @param k Vector of cluster counts to test, each at least 2.
-#' @param type `"zhou"` or `"random_walk"`, as in [hg_cluster()].
-#' @param seeds Two distinct k-means seeds (default `c(1L, 99L)`).
+#' @param type `"zhou"` or `"random_walk"`, the Laplacian of [hg_cluster()].
+#' @param resample `"subset"` (default) for subsampling stability, or
+#'   `"seeds"` for the two-seed solver check.
+#' @param n_boot Number of subsamples (default `100L`).
+#' @param fraction Share of the nodes in each subsample, strictly between 0
+#'   and 1 (default `0.5`, as in `fpc::clusterboot()`).
+#' @param seed Seed for the subsample draws and the k-means starts of every
+#'   fit (default `1L`).
+#' @param what For `resample = "subset"`: `"k"` (default) for one row per
+#'   resolution, or `"clusters"` for one row per resolution and cluster.
+#' @param seeds For `resample = "seeds"`: two distinct k-means seeds
+#'   (default `c(1L, 99L)`).
 #' @param nstart Number of k-means starts per fit (default `25L`).
-#' @return A base `data.frame`, one row per resolution, with columns `k`,
+#' @return A base `data.frame`.
+#'
+#'   `resample = "subset"`, `what = "k"`: one row per resolution with `k`,
+#'   `n_runs` (subsamples scored), `n_failed` (subsamples that disconnected
+#'   the hypergraph), `mean_jaccard` and `min_jaccard` (the mean and the
+#'   smallest of the clusters' stabilities), `n_stable` (clusters with
+#'   stability at least 0.75), `n_dissolved` (clusters with stability 0.5 or
+#'   below) and `eigengap`.
+#'
+#'   `resample = "subset"`, `what = "clusters"`: one row per resolution and
+#'   cluster of the full partition, with `k`, `cluster`, `size` (its nodes),
+#'   `jaccard` (its stability, `fpc::clusterboot()`'s `subsetmean`),
+#'   `n_dissolved` (subsamples with Jaccard 0.5 or below, `subsetbrd`),
+#'   `n_recovered` (subsamples with Jaccard above 0.75, `subsetrecover`) and
+#'   `n_runs`.
+#'
+#'   `resample = "seeds"`: one row per resolution with `k`,
 #'   `identical_partition` (are the two partitions literally identical,
-#'   labels included) and `ari` (their adjusted Rand index; 1 means the
-#'   same partition up to label names).
+#'   labels included) and `ari` (their adjusted Rand index).
+#'
+#'   Raises `hypernets_bad_input` for a `fraction` outside (0, 1), a
+#'   subsample too small to hold `k` clusters, a non-positive `n_boot`, or
+#'   `what = "clusters"` with `resample = "seeds"`.
+#' @references
+#' Hennig, C. (2007). Cluster-wise assessment of cluster stability.
+#' *Computational Statistics & Data Analysis*, 52(1), 258--271.
+#' \doi{10.1016/j.csda.2006.11.025}
+#'
+#' Ben-Hur, A., Elisseeff, A., & Guyon, I. (2002). A stability based method
+#' for discovering structure in clustered data. *Pacific Symposium on
+#' Biocomputing*, 7, 6--17. \doi{10.1142/9789812799623_0002}
+#'
+#' von Luxburg, U. (2007). A tutorial on spectral clustering. *Statistics and
+#' Computing*, 17(4), 395--416. \doi{10.1007/s11222-007-9033-z}
+#'
+#' Hubert, L., & Arabie, P. (1985). Comparing partitions. *Journal of
+#' Classification*, 2, 193--218.
 #' @examples
-#' hg <- text_hypergraph(c(
-#'   cooking_1 = "simmer the soup with onions and carrots",
-#'   cooking_2 = "this soup recipe needs salt on a cold night",
-#'   space_1 = "the telescope revealed a distant galaxy and stars",
-#'   space_2 = "astronomers aimed the telescope at the stars all night"
-#' ), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
-#' hg_stability(hg, k = 2, type = "random_walk")
+#' hg <- text_hypergraph(head(covid_abstracts, 40), column = "abstract",
+#'                       id = "doc", stop_words = stop_words_en(),
+#'                       min_count = 3)
+#' hg_stability(hg, k = 2:4, n_boot = 20)
+#' hg_stability(hg, k = 3, n_boot = 20, what = "clusters")
+#' hg_stability(hg, k = 2, resample = "seeds")
 #' @export
 hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
+                         resample = c("subset", "seeds"), n_boot = 100L,
+                         fraction = 0.5, seed = 1L,
+                         what = c("k", "clusters"),
                          seeds = c(1L, 99L), nstart = 25L) {
   .thg_check_hg(hg)
   type <- match.arg(type)
+  resample <- match.arg(resample)
+  what <- match.arg(what)
   stopifnot(
     "`k` must be a vector of cluster counts, each at least 2" =
-      is.numeric(k) && length(k) >= 1L && all(is.finite(k)) && all(k >= 2),
-    "`seeds` must be two distinct seeds" =
-      is.numeric(seeds) && length(seeds) == 2L &&
-        !isTRUE(all.equal(seeds[[1]], seeds[[2]]))
+      is.numeric(k) && length(k) >= 1L && all(is.finite(k)) && all(k >= 2)
   )
+  if (identical(resample, "seeds")) {
+    stopifnot(
+      "`seeds` must be two distinct seeds" =
+        is.numeric(seeds) && length(seeds) == 2L &&
+          !isTRUE(all.equal(seeds[[1]], seeds[[2]]))
+    )
+    if (identical(what, "clusters")) {
+      .thg_bad_input(paste0("`what = \"clusters\"` needs `resample = ",
+                            "\"subset\"`; the seed check has one row per k"))
+    }
+    return(.thg_seed_stability(hg, k, type, seeds, nstart))
+  }
+  if (!is.numeric(fraction) || length(fraction) != 1L || is.na(fraction) ||
+      fraction <= 0 || fraction >= 1) {
+    .thg_bad_input("`fraction` must be a single number strictly between 0 and 1")
+  }
+  if (!is.numeric(n_boot) || length(n_boot) != 1L || is.na(n_boot) ||
+      n_boot < 1) {
+    .thg_bad_input("`n_boot` must be a single number >= 1")
+  }
+  if (!is.numeric(seed) || length(seed) != 1L || is.na(seed)) {
+    .thg_bad_input("`seed` must be a single number")
+  }
+  n <- hg$n_nodes
+  m <- floor(fraction * n)
+  if (m <= max(k)) {
+    .thg_bad_input(sprintf(
+      "a subsample of floor(%s * %d) = %d nodes cannot hold k = %d clusters; raise `fraction`",
+      format(fraction), n, m, max(k)))
+  }
+
+  # the subsamples, drawn once from `seed` and shared by every k; the
+  # caller's stream is restored on exit (hg_cluster() also calls set.seed())
+  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  saved_seed <- if (had_seed) get(".Random.seed", envir = globalenv())
+  on.exit(.thg_rng_restore(had_seed, saved_seed), add = TRUE)
+  set.seed(seed)
+  draws <- lapply(seq_len(n_boot), \(b) sample(n, m))
+
+  full <- lapply(k, \(kk) {
+    fit <- hg_cluster(hg, k = kk, type = type, seed = seed, nstart = nstart)
+    stats::setNames(fit$cluster, fit$node)[hg$nodes]
+  })
+  spectrum <- hg_cluster(hg, k = max(k), type = type, seed = seed,
+                         nstart = nstart, what = "eigenvalues")
+
+  # one list per subsample: for every k, the Jaccard of each full cluster
+  # with its best-matching subsample cluster, or NULL when disconnected
+  runs <- lapply(draws, \(draw) {
+    sub <- .thg_restrict_nodes(hg, draw)
+    lapply(seq_along(k), \(i) {
+      fit <- tryCatch(
+        hg_cluster(sub, k = k[[i]], type = type, seed = seed,
+                   nstart = nstart),
+        hypernets_hypergraph_disconnected = function(e) NULL
+      )
+      if (is.null(fit)) return(NULL)
+      .thg_best_jaccard(full[[i]][sub$nodes],
+                        stats::setNames(fit$cluster, fit$node)[sub$nodes],
+                        .thg_kw_natural(unique(full[[i]])))
+    })
+  })
+
+  per_k <- lapply(seq_along(k), \(i) {
+    labels <- .thg_kw_natural(unique(full[[i]]))
+    scored <- Filter(Negate(is.null), lapply(runs, `[[`, i))
+    jaccard <- if (length(scored) > 0L) {
+      matrix(unlist(scored), nrow = length(labels))
+    } else {
+      matrix(numeric(0), nrow = length(labels), ncol = 0L)
+    }
+    data.frame(
+      k = k[[i]], cluster = labels,
+      size = as.integer(table(factor(full[[i]], levels = labels))),
+      jaccard = if (ncol(jaccard) > 0L) rowMeans(jaccard) else NA_real_,
+      n_dissolved = as.integer(rowSums(jaccard <= 0.5)),
+      n_recovered = as.integer(rowSums(jaccard > 0.75)),
+      n_runs = ncol(jaccard),
+      stringsAsFactors = FALSE
+    )
+  })
+  n_failed <- vapply(per_k, \(d) n_boot - d$n_runs[[1L]], numeric(1))
+  if (any(n_failed > 0)) {
+    warning(warningCondition(
+      sprintf(paste0("%s of %d subsamples disconnected the hypergraph and ",
+                     "were not scored (k = %s)"),
+              paste(unique(n_failed), collapse = "/"), as.integer(n_boot),
+              paste(k[n_failed > 0], collapse = ", ")),
+      class = "hypernets_hypergraph_disconnected", call = NULL
+    ))
+  }
+  if (identical(what, "clusters")) {
+    out <- do.call(rbind, per_k)
+    rownames(out) <- NULL
+    return(out)
+  }
+  out <- data.frame(
+    k = k,
+    n_runs = vapply(per_k, \(d) d$n_runs[[1L]], integer(1)),
+    n_failed = as.integer(n_failed),
+    mean_jaccard = vapply(per_k, \(d) mean(d$jaccard), numeric(1)),
+    min_jaccard = vapply(per_k, \(d) min(d$jaccard), numeric(1)),
+    n_stable = vapply(per_k, \(d) sum(d$jaccard >= 0.75), integer(1)),
+    n_dissolved = vapply(per_k, \(d) sum(d$jaccard <= 0.5), integer(1)),
+    eigengap = spectrum$gap[match(k, spectrum$index)]
+  )
+  rownames(out) <- NULL
+  out
+}
+
+# the pre-0.6.0 check: two k-means seeds on the full hypergraph
+.thg_seed_stability <- function(hg, k, type, seeds, nstart) {
   rows <- lapply(k, \(kk) {
     a <- hg_cluster(hg, k = kk, type = type, seed = seeds[[1]],
                     nstart = nstart)
@@ -309,6 +508,38 @@ hg_stability <- function(hg, k, type = c("zhou", "random_walk"),
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
   out
+}
+
+# Put back the random number stream saved as (had_seed, saved_seed).
+.thg_rng_restore <- function(had_seed, saved_seed) {
+  if (had_seed) {
+    assign(".Random.seed", saved_seed, envir = globalenv())
+  } else if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    rm(".Random.seed", envir = globalenv())
+  }
+}
+
+# The sub-hypergraph on the nodes `index` (in that order): every hyperedge
+# restricted to them, hyperedges left empty dropped, weights kept.
+.thg_restrict_nodes <- function(hg, index) {
+  incidence <- hg$incidence[index, , drop = FALSE]
+  keep_edge <- as.numeric(Matrix::colSums(incidence != 0)) > 0
+  .thg_rebuild(hg, incidence[, keep_edge, drop = FALSE], keep_edge)
+}
+
+# For each cluster label of `full` (named by node, restricted to the
+# subsample), the largest Jaccard coefficient with a cluster of `sub`
+# (Hennig 2007); 0 when the cluster has no member in the subsample.
+.thg_best_jaccard <- function(full, sub, labels) {
+  sub_labels <- unique(sub)
+  vapply(labels, \(j) {
+    a <- full == j
+    max(vapply(sub_labels, \(l) {
+      b <- sub == l
+      union <- sum(a | b)
+      if (union == 0L) 0 else sum(a & b) / union
+    }, numeric(1)), 0)
+  }, numeric(1))
 }
 
 #' Seed labels from a clustering, for spreading or training
@@ -349,17 +580,3 @@ hg_seeds <- function(embedding, n = 5L) {
     utils::head(g[order(-g$pi, g$node), , drop = FALSE], n)))
   stats::setNames(as.character(chosen$cluster), chosen$node)
 }
-
-# Long-form aliases. Keep these as direct bindings so both public names have
-# identical formals, bodies, and behavior without maintaining wrappers.
-#' @rdname hg_agreement
-#' @export
-hypergraph_agreement <- hg_agreement
-
-#' @rdname hg_stability
-#' @export
-hypergraph_stability <- hg_stability
-
-#' @rdname hg_seeds
-#' @export
-hypergraph_seeds <- hg_seeds

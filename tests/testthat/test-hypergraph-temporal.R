@@ -11,15 +11,15 @@ test_that("contact hypergraphs are instantaneous, and cumulative on request", {
   expect_equal(thg$times, 1:3)
   expect_equal(thg$format, "contact")
   expect_identical(thg$time_unit, "step")
-  snap_two <- hypergraph_snapshot(thg, 2)
+  snap_two <- hg_snapshot(thg, 2)
   expect_equal(snap_two$n_hyperedges, 1)
-  cumulative_two <- hypergraph_snapshot(thg, 2, mode = "cumulative")
+  cumulative_two <- hg_snapshot(thg, 2, mode = "cumulative")
   expect_equal(cumulative_two$n_hyperedges, 2)
-  snapshots <- hypergraph_snapshots(thg)
+  snapshots <- hg_snapshots(thg)
   expect_equal(length(snapshots), 3)
-  aggregate <- hypergraph_snapshot(thg, mode = "cumulative")
+  aggregate <- hg_snapshot(thg, mode = "cumulative")
   expect_equal(aggregate$n_hyperedges, 3)
-  memberships <- as.data.frame(thg)
+  memberships <- hg_get(thg)
   expect_equal(memberships, thg$memberships)
   # a column constant within each hyperedge is a hyperedge attribute
   expect_identical(thg$edge_data$source, c("s1", "s2", "s3"))
@@ -40,11 +40,11 @@ test_that("interval snapshots use closed intervals", {
   thg <- temporal_hypergraph(dat, actor = "arbitrator", group = "case",
                              start = "start", end = "end")
   expect_equal(thg$format, "interval")
-  active_two <- hypergraph_snapshot(thg, 2)
+  active_two <- hg_snapshot(thg, 2)
   expect_equal(active_two$n_hyperedges, 2)
-  active_three <- hypergraph_snapshot(thg, 3)
+  active_three <- hg_snapshot(thg, 3)
   expect_equal(active_three$n_hyperedges, 1)
-  cumulative_three <- hypergraph_snapshot(thg, 3, mode = "cumulative")
+  cumulative_three <- hg_snapshot(thg, 3, mode = "cumulative")
   expect_equal(cumulative_three$n_hyperedges, 2)
 })
 
@@ -54,7 +54,7 @@ test_that("an edge list gives hyperedges of size two", {
   thg <- temporal_hypergraph(contacts, from = "from", to = "to", time = "time")
   expect_equal(thg$edges, c("e1", "e2", "e3"))
   expect_equal(unname(thg$edge_data$kind), c("call", "mail", "call"))
-  snap <- hypergraph_snapshot(thg, 2, mode = "cumulative")
+  snap <- hg_snapshot(thg, 2, mode = "cumulative")
   expect_equal(snap$n_hyperedges, 2)
   expect_equal(snap$size_distribution, c(size_2 = 2L))
   static <- group_hypergraph(contacts, from = "from", to = "to")
@@ -72,8 +72,8 @@ test_that("snapshot duplicate handling records multiplicity", {
   )
   thg <- temporal_hypergraph(dat, actor = "member", group = "event",
                              time = "time")
-  multi <- hypergraph_snapshot(thg, 1, multiedges = TRUE)
-  simple <- hypergraph_snapshot(thg, 1, multiedges = FALSE)
+  multi <- hg_snapshot(thg, 1, multiedges = TRUE)
+  simple <- hg_snapshot(thg, 1, multiedges = FALSE)
   expect_equal(multi$n_hyperedges, 2)
   expect_equal(simple$n_hyperedges, 1)
   expect_equal(simple$edge_multiplicity, 2L)
@@ -89,7 +89,7 @@ test_that("temporal constructors reject invalid spells and read per-row times as
   expect_identical(th$edge_data$end, 2)
   expect_identical(th$memberships$end, c(1, 2))
   detected <- temporal_hypergraph(spread, actor = "member", group = "event")
-  expect_identical(as.data.frame(detected), as.data.frame(th))
+  expect_identical(hg_get(detected), hg_get(th))
   interval <- data.frame(member = "a", event = "e1", start = 2, end = 1)
   expect_error(temporal_hypergraph(interval, actor = "member", group = "event",
                                    start = "start", end = "end"),
@@ -166,11 +166,11 @@ test_that("calendar times become offsets from an origin in a reported unit", {
                                   time_unit = "hours")
   expect_identical(in_hours$times, c(0, 96, 192))
   # a date given later is converted, and refused on a numeric clock
-  snap <- hypergraph_snapshot(as_date, at = "2024-01-05")
+  snap <- hg_snapshot(as_date, at = "2024-01-05")
   expect_identical(snap$params$at, 4)
   numeric <- temporal_hypergraph(transform(dates, time = c(1, 5, 9)),
                                  from = "from", to = "to", time = "time")
-  expect_error(hypergraph_snapshot(numeric, at = as.Date("2024-01-05")),
+  expect_error(hg_snapshot(numeric, at = as.Date("2024-01-05")),
                class = "hypernets_bad_input")
   expect_error(temporal_hypergraph(transform(dates, time = c("yesterday", "today", "now")),
                                    from = "from", to = "to", time = "time"),
@@ -188,17 +188,17 @@ test_that("`time` is a contact clock and the cumulative view is a mode", {
                class = "hypernets_bad_input")
   contact <- temporal_hypergraph(dat, actor = "member", group = "event", time = "time")
   expect_identical(contact$format, "contact")
-  between <- hypergraph_snapshot(contact, at = 2)
+  between <- hg_snapshot(contact, at = 2)
   expect_identical(between$n_hyperedges, 0L)
-  cumulative <- hypergraph_snapshot(contact, at = 2, mode = "cumulative")
+  cumulative <- hg_snapshot(contact, at = 2, mode = "cumulative")
   expect_identical(cumulative$n_hyperedges, 1L)
   # INVARIANT: the cumulative snapshot at the end holds every hyperedge
-  at_end <- hypergraph_snapshot(contact, mode = "cumulative")
+  at_end <- hg_snapshot(contact, mode = "cumulative")
   expect_identical(at_end$n_hyperedges, length(contact$edges))
   printed <- capture.output(print(contact))
   expect_true(any(grepl("contact", printed)))
   expect_true(any(grepl("cumulative", printed)))
-  expect_warning(old <- hypergraph_snapshot(contact, mode = "all"),
+  expect_warning(old <- hg_snapshot(contact, mode = "all"),
                  class = "hypernets_deprecated")
   expect_identical(old$incidence, at_end$incidence)
 })
@@ -215,15 +215,15 @@ test_that("observation bounds clip the grid without rewriting memberships", {
   expect_identical(bounded$observation, c(start = 2, end = 8))
   expect_true(bounded$params$observation_explicit)
   # INVARIANT: the stored spells are the raw ones
-  expect_identical(as.data.frame(bounded), as.data.frame(open))
-  expect_error(hypergraph_snapshot(bounded, at = 1), class = "hypernets_outside_observation")
+  expect_identical(hg_get(bounded), hg_get(open))
+  expect_error(hg_snapshot(bounded, at = 1), class = "hypernets_outside_observation")
   expect_error(hg_growth(bounded, start = 9), class = "hypernets_outside_observation")
   expect_error(temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                                    start = "start", end = "end",
                                    observation_start = 5, observation_end = 2),
                class = "hypernets_bad_input")
   # the open-ended case is active through the end of observation
-  last <- hypergraph_snapshot(bounded)
+  last <- hg_snapshot(bounded)
   expect_identical(last$params$at, 8)
   expect_identical(last$n_hyperedges, 1L)
   clipped <- hg_growth(bounded, start = 0, end = 10)
@@ -244,21 +244,21 @@ test_that("the measurement grid follows step, window and at", {
   expect_identical(rolling$n_edges[1L], 3L)
   points <- hg_growth(thg, step = 1, window = 0)
   expect_identical(points$n_edges, c(1L, 1L, 1L, 0L, 0L, 1L))
-  whole <- hypergraph_snapshot(thg, window = "all")
+  whole <- hg_snapshot(thg, window = "all")
   expect_identical(whole$n_hyperedges, 4L)
-  snaps <- hypergraph_snapshots(thg, step = 2)
+  snaps <- hg_snapshots(thg, step = 2)
   expect_identical(names(snaps), c("0", "2", "4"))
   expect_identical(attr(snaps, "window"), 2)
   edges <- hg_edges(thg, step = 2)
   expect_identical(unique(edges$time), c(0, 2, 4))
-  instants <- hypergraph_snapshots(thg, at = c(5, 1))
+  instants <- hg_snapshots(thg, at = c(5, 1))
   expect_identical(names(instants), c("1", "5"))
   expect_error(hg_growth(thg, step = 2, window = "all"), class = "hypernets_bad_input")
   expect_error(hg_growth(thg, at = 1, step = 1), class = "hypernets_bad_input")
   expect_error(hg_growth(thg, step = 0), class = "hypernets_bad_input")
   expect_error(hg_growth(thg, window = -1), class = "hypernets_bad_input")
   expect_error(hg_growth(thg, start = 3, end = 1), class = "hypernets_bad_input")
-  expect_error(hypergraph_snapshot(thg, at = c(1, 2)), class = "hypernets_bad_input")
+  expect_error(hg_snapshot(thg, at = c(1, 2)), class = "hypernets_bad_input")
 })
 
 test_that("INVARIANT: hypernets and Dynet agree on which actor pairs are ever co-present", {
@@ -276,7 +276,7 @@ test_that("INVARIANT: hypernets and Dynet agree on which actor pairs are ever co
                               pmax(dynet_spells$from, dynet_spells$to)))
   thg <- temporal_hypergraph(log, actor = "student", group = "seminar",
                              start = "start", end = "end")
-  aggregate <- hypergraph_snapshot(thg, mode = "cumulative")
+  aggregate <- hg_snapshot(thg, mode = "cumulative")
   projection <- hg_project(aggregate)
   hypernets_pairs <- unique(paste(pmin(projection$from, projection$to),
                                pmax(projection$from, projection$to)))

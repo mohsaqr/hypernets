@@ -38,7 +38,7 @@ test_that("the datasets build the paper hypergraphs directly", {
   expect_identical(length(blocks$nodes), 3618L)
   expect_identical(length(blocks$edges), 46257L)
   expect_true("citing" %in% names(blocks$edge_data))
-  aggregate <- hypergraph_snapshot(blocks, mode = "cumulative")
+  aggregate <- hg_snapshot(blocks, mode = "cumulative")
   citing_block <- hg_subset(aggregate, where = c(citing = "153-001"))
   expect_identical(nrow(citing_block$edge_data), 68L)
 })

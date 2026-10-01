@@ -1,18 +1,18 @@
 # ---- Hypergraph structural measures (HON-9) ------------------------------
-# Node-level, hyperedge-level, and global statistics for a net_hypergraph.
+# Node-level, hyperedge-level, and global statistics for a net_hg.
 # All measures are fast matrix operations on the incidence matrix B.
 
 #' Structural measures for a hypergraph
 #'
 #' Computes a comprehensive structural-statistics suite for a
-#' [net_hypergraph][build_hypergraph]: node-level, hyperedge-level, and
+#' [net_hg][network_hypergraph]: node-level, hyperedge-level, and
 #' global measures. All measures are derived in a few BLAS calls on the
 #' incidence matrix.
 #'
-#' @param hg A `net_hypergraph` (from [build_hypergraph()] or
+#' @param hg A `net_hg` (from [network_hypergraph()] or
 #'   [group_hypergraph()]).
 #'
-#' @return An object of class `hypergraph_measures` (a named list) with
+#' @return An object of class `hg_measures` (a named list) with
 #'   components:
 #'
 #' \describe{
@@ -69,22 +69,8 @@
 #' Empty hypergraph (`n_hyperedges == 0`) returns trivial zeros and
 #' empty matrices.
 #'
-#' @seealso [build_hypergraph()], [group_hypergraph()],
-#'   [clique_expansion()].
-#'
-#' @examples
-#' df <- data.frame(
-#'   person  = c("A", "B", "C", "A", "B", "D", "C", "D"),
-#'   session = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3")
-#' )
-#' hg <- group_hypergraph(df, "person", "session")
-#' m  <- hypergraph_measures(hg)
-#' m
-#'
-#' # tidy accessors: per node, per hyperedge, and the whole hypergraph
-#' as.data.frame(m, sort_by = "hyperdegree")
-#' as.data.frame(m, what = "edges")
-#' as.data.frame(m, what = "global")
+#' @seealso [network_hypergraph()], [group_hypergraph()],
+#'   [hg_clique_expansion()].
 #'
 #' @references
 #' Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
@@ -94,9 +80,9 @@
 #' Do, M. T., Yoon, S., Hooi, B., & Shin, K. (2020). Structural patterns
 #' and generative models of real-world hypergraphs. arXiv:2006.07060.
 #'
-#' @export
-hypergraph_measures <- function(hg) {
-  stopifnot(inherits(hg, "net_hypergraph"))
+#' @noRd
+.hg_measures_fit <- function(hg) {
+  stopifnot(inherits(hg, "net_hg"))
 
   B <- hg$incidence
   n <- hg$n_nodes
@@ -124,7 +110,7 @@ hypergraph_measures <- function(hg) {
         n_nodes                = n,
         n_hyperedges           = 0L
       ),
-      class = "net_hypergraph_measures"
+      class = "net_hg_measures"
     ))
   }
 
@@ -209,16 +195,16 @@ hypergraph_measures <- function(hg) {
       n_nodes                = n,
       n_hyperedges           = m
     ),
-    class = "net_hypergraph_measures"
+    class = "net_hg_measures"
   )
 }
 
-#' @param x A `hypergraph_measures` object.
+#' @param x A `hg_measures` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x` invisibly.
-#' @rdname hypergraph_measures
+#' @rdname hg_measures
 #' @export
-print.net_hypergraph_measures <- function(x, ...) {
+print.net_hg_measures <- function(x, ...) {
   cat(sprintf("Hypergraph measures: %d nodes, %d hyperedges\n",
               x$n_nodes, x$n_hyperedges))
   cat(sprintf("  Density:                %.4f\n", x$density))
@@ -251,11 +237,9 @@ print.net_hypergraph_measures <- function(x, ...) {
   invisible(x)
 }
 
-#' Coerce a net_hypergraph_measures to a tidy table
+#' Tables of a hypergraph measures fit
 #'
-#' @param x A `net_hypergraph_measures` object.
-#' @param row.names Ignored (S3 consistency).
-#' @param optional Ignored (S3 consistency).
+#' @param x A `net_hg_measures` object.
 #' @param ... Additional arguments (ignored).
 #' @param what `"nodes"` (default) for the per-node measures, `"edges"` for
 #'   the per-hyperedge measures, or `"global"` for the whole-hypergraph
@@ -270,9 +254,9 @@ print.net_hypergraph_measures <- function(x, ...) {
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @export
-as.data.frame.net_hypergraph_measures <- function(
-    x, row.names = NULL, optional = FALSE, ...,
-    what = c("nodes", "edges", "global"), sort_by = NULL, top = NULL) {
+hg_get.net_hg_measures <- function(
+    x, what = c("nodes", "edges", "global"), ..., sort_by = NULL,
+    top = NULL) {
   what <- match.arg(what)
   out <- switch(
     what,

@@ -1,5 +1,5 @@
 # Random hypergraph generators. The model definitions follow HyperG's four
-# core samplers, but return hypernets' net_hypergraph representation and use
+# core samplers, but return hypernets' net_hg representation and use
 # names that do not mask HyperG when both packages are loaded.
 
 #' Sample Bernoulli-Incidence Random Hypergraphs
@@ -18,7 +18,7 @@
 #' @param lambda Optional Poisson mean for `m`.
 #' @param seed Optional reproducibility seed. The caller's RNG state is
 #'   restored on exit.
-#' @return A `net_hypergraph` with binary incidence and model parameters in
+#' @return A `net_hg` with binary incidence and model parameters in
 #'   `$params`.
 #' @references
 #' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
@@ -71,11 +71,14 @@ hg_sample_gnp <- function(n, m = NULL, p, lambda = NULL, seed = NULL) {
 #' @param absolute_purity If true, impurity replacements must come from
 #'   outside the endpoint blocks; otherwise any nonmember may be used.
 #' @inheritParams hg_sample_gnp
-#' @return A `net_hypergraph`; `$blocks` records each node's planted block.
+#' @return A `net_hg`; `$blocks` records each node's planted block.
+#' @references
+#' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+#' 1.0.0.
 #' @examples
 #' P <- matrix(c(.5, .05, .05, .5), 2, 2)
 #' h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-#' as.data.frame(h, what = "nodes")
+#' hg_get(h, what = "nodes")
 #' @export
 hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
                           variable_size = FALSE, absolute_purity = TRUE,
@@ -175,7 +178,10 @@ hg_sample_sbm <- function(n = NULL, P, block_sizes, d, impurity = 0L,
 #' @param prob Sampling weights: length `n` for the uniform model and length
 #'   `m` for the regular model. `NULL` is uniform.
 #' @inheritParams hg_sample_gnp
-#' @return A `net_hypergraph`.
+#' @return A `net_hg`.
+#' @references
+#' Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+#' 1.0.0.
 #' @examples
 #' u <- hg_sample_uniform(20, 8, k = 3, seed = 1)
 #' r <- hg_sample_regular(20, 8, k = 2, seed = 1)
@@ -220,21 +226,6 @@ hg_sample_regular <- function(n, m, k, prob = NULL, seed = NULL) {
     list(model = "regular", n = n, m = m, k = k, prob = prob, seed = seed)
   )
 }
-
-# Descriptive aliases coexist with the concise hg_* family without taking
-# HyperG's sample_* names.
-#' @rdname hg_sample_gnp
-#' @export
-hypergraph_sample_gnp <- hg_sample_gnp
-#' @rdname hg_sample_sbm
-#' @export
-hypergraph_sample_sbm <- hg_sample_sbm
-#' @rdname hg_sample_uniform
-#' @export
-hypergraph_sample_uniform <- hg_sample_uniform
-#' @rdname hg_sample_uniform
-#' @export
-hypergraph_sample_regular <- hg_sample_regular
 
 #' @noRd
 .hgr_count <- function(x, name, minimum) {
@@ -326,5 +317,5 @@ hypergraph_sample_regular <- hg_sample_regular
     n_hyperedges = m,
     size_distribution = size_dist,
     params = params
-  ), class = "net_hypergraph")
+  ), class = "net_hg")
 }

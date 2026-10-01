@@ -444,7 +444,7 @@
 #' structure a speck in the middle. Packing keeps every component at its own
 #' size and the frame spent on structure.
 #'
-#' @param x A `net_hypergraph` with at least one hyperedge of two or more
+#' @param x A `net_hg` with at least one hyperedge of two or more
 #'   members. Draw a part of a large hypergraph by passing [hg_subset()]
 #'   first.
 #' @param layout `"bipartite"` (default; a Fruchterman-Reingold layout of the
@@ -545,12 +545,13 @@
 #'   data.frame with `from`, `to` and a weight, read like `direction`. Line
 #'   width follows the weight; a node followed by itself gets a small loop
 #'   below it. Rows naming a node that is not in the hypergraph are skipped.
-#'   The width legend is titled "<Unit> making the transition" when `unit` is
-#'   given and "Transition weight" otherwise.
+#'   The width legend is titled with the capitalised `unit` followed by
+#'   "making the transition" when `unit` is given, and "Transition weight"
+#'   otherwise.
 #' @param size_title What the node area shows (e.g. `"trials with the
-#'   event"`): the caption reads "Circle area: <size_title>." and the point
-#'   size legend is titled with it. `NULL` (default) uses "<unit> with the
-#'   event" when there is a unit, and otherwise says the area is
+#'   event"`): the caption reads "Circle area: " followed by it and the point
+#'   size legend is titled with it. `NULL` (default) uses the unit followed
+#'   by "with the event" when there is a unit, and otherwise says the area is
 #'   proportional to the event value.
 #' @param titles Write a title box beside every hyperedge, just outside its
 #'   pebble on the side facing away from the centre of the figure. `NULL`
@@ -573,7 +574,7 @@
 #' @param unit The word for what the values count (e.g. `"trials"`,
 #'   `"steps"`). It titles the `color_by` legend (capitalised, unless
 #'   `legend_title` is given), follows the number in each title box, and
-#'   names the node area ("<unit> with the event") and the transition
+#'   names the node area ("trials with the event") and the transition
 #'   widths. `NULL` (default) is the unit the hypergraph records
 #'   (`"sequences"` for [group_hypergraph()] of a clustering), else the
 #'   name of the hyperedges' count attribute described above, else those
@@ -663,7 +664,7 @@
 #'                            trials = c(200, 120, 80, 190))
 #' plot(trial_groups, node_sizes = event_trials)
 #' @export
-plot.net_hypergraph <- function(x, layout = c("bipartite", "spring", "circle"),
+plot.net_hg <- function(x, layout = c("bipartite", "spring", "circle"),
                                 center = NULL, seed = 1L, color_by = NULL,
                                 linetype_by = NULL,
                                 labels = TRUE, label_size = 4.2,

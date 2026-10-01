@@ -52,7 +52,7 @@ test_that("a netobject_group keeps its (renamed) group names", {
   grouped <- .coerce_grouped_sequences(.cs_group(c("Short", "Long")))
   expect_identical(names(grouped), c("Short", "Long"))
   hg <- group_hypergraph(.cs_group(c("Short", "Long")))
-  expect_setequal(unique(as.data.frame(hg, what = "sets")$group), c("Short", "Long"))
+  expect_setequal(unique(hg_get(hg, what = "sets")$group), c("Short", "Long"))
 })
 
 test_that("integer-coded states are decoded to labels", {
@@ -66,28 +66,28 @@ test_that("integer-coded states are decoded to labels", {
 test_that("top sets and counts match a hand count", {
   # Cluster 1: {a,b} {a,b} {a,b,c} {a,b}  -> a+b: 3, a+b+c: 1
   # Cluster 2: {a,b,c} {a,b,c} {b,c}      -> a+b+c: 2, b+c: 1
-  sets <- as.data.frame(group_hypergraph(.cs_mmm()), what = "sets")
+  sets <- hg_get(group_hypergraph(.cs_mmm()), what = "sets")
   expect_identical(sets$group, c("Cluster 1", "Cluster 1", "Cluster 2", "Cluster 2"))
   expect_identical(sets$set, c("a + b", "a + b + c", "a + b + c", "b + c"))
   expect_identical(sets$count, c(3L, 1L, 2L, 1L))
   expect_identical(sets$size, c(2L, 3L, 3L, 2L))
   expect_equal(sets$share, c(3 / 4, 1 / 4, 2 / 3, 1 / 3))
-  states <- as.data.frame(group_hypergraph(.cs_mmm()), what = "state_counts")
+  states <- hg_get(group_hypergraph(.cs_mmm()), what = "state_counts")
   expect_identical(states$count[states$group == "Cluster 1"], c(4L, 4L, 1L))
   expect_identical(states$node[states$group == "Cluster 1"], c("a", "b", "c"))
 })
 
 test_that("top keeps the most frequent sets; ties go by set name", {
-  sets <- as.data.frame(group_hypergraph(.cs_mmm(), top = 1), what = "sets")
+  sets <- hg_get(group_hypergraph(.cs_mmm(), top = 1), what = "sets")
   expect_identical(sets$set, c("a + b", "a + b + c"))
   tie <- structure(list(data = data.frame(V1 = c("c", "a", "b"), V2 = c("d", "b", "c")),
                         assignments = c(1L, 1L, 1L), k = 1L), class = "net_mmm")
-  expect_identical(as.data.frame(group_hypergraph(tie, top = 2), what = "sets")$set,
+  expect_identical(hg_get(group_hypergraph(tie, top = 2), what = "sets")$set,
                    c("a + b", "b + c"))
 })
 
 test_that("states keeps a subset of states before counting", {
-  sets <- as.data.frame(group_hypergraph(.cs_mmm(), states = c("a", "c")), what = "sets")
+  sets <- hg_get(group_hypergraph(.cs_mmm(), states = c("a", "c")), what = "sets")
   # Cluster 1: {a} x3, {a,c}; Cluster 2: {a,c} {a,c} {c}
   expect_identical(sets$set, c("a", "a + c", "a + c", "c"))
   expect_identical(sets$count, c(3L, 1L, 2L, 1L))
@@ -100,7 +100,7 @@ test_that("the three classes give the same hypergraph", {
   expect_identical(a$incidence, b$incidence)
   expect_identical(a$incidence, c$incidence)
   expect_identical(a$edge_data, c$edge_data)
-  expect_identical(as.data.frame(a, what = "sets"), as.data.frame(c, what = "sets"))
+  expect_identical(hg_get(a, what = "sets"), hg_get(c, what = "sets"))
 })
 
 test_that("invariant: counts never exceed group sizes, shares sum to at most 1", {
@@ -108,7 +108,7 @@ test_that("invariant: counts never exceed group sizes, shares sum to at most 1",
   d <- as.data.frame(matrix(sample(letters[1:4], 200, TRUE), 40, 5))
   x <- structure(list(data = d, assignments = sample(1:3, 40, TRUE), k = 3L),
                  class = "net_mmm")
-  sets <- as.data.frame(group_hypergraph(x, top = 50), what = "sets")
+  sets <- hg_get(group_hypergraph(x, top = 50), what = "sets")
   totals <- tapply(sets$count, sets$group, sum)
   expect_identical(as.integer(totals), as.integer(tabulate(x$assignments, 3L)))
   expect_true(all(abs(tapply(sets$share, sets$group, sum) - 1) < 1e-12))
@@ -117,7 +117,7 @@ test_that("invariant: counts never exceed group sizes, shares sum to at most 1",
   y <- x
   y$data <- d[perm, ]
   y$assignments <- x$assignments[perm]
-  expect_identical(as.data.frame(group_hypergraph(y, top = 50), what = "sets"), sets)
+  expect_identical(hg_get(group_hypergraph(y, top = 50), what = "sets"), sets)
 })
 
 test_that("plot(group =) draws one group's sets, sized and titled", {
@@ -162,13 +162,16 @@ test_that("malformed input raises hypernets_bad_input", {
   expect_error(group_hypergraph(.cs_data(), "V1", "V2", states = "a"),
                class = "hypernets_bad_input")
   plain <- group_hypergraph(data.frame(a = c("x", "y"), g = c("1", "1")), "a", "g")
-  expect_error(as.data.frame(plain, what = "sets"), class = "hypernets_bad_input")
-  expect_error(as.data.frame(plain, what = "state_counts"), class = "hypernets_bad_input")
+  expect_error(hg_get(plain, what = "sets"), class = "hypernets_bad_input")
+  expect_error(hg_get(plain, what = "state_counts"), class = "hypernets_bad_input")
 })
 
 test_that("data.frame input is unchanged (frozen before the clustering branch)", {
   frozen <- readRDS(test_path("fixtures", "group_hypergraph_frozen.rds"))
-  df <- data.frame(person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Carol", "Dave", "Eve"),
+  # Frozen when the class was net_hypergraph; the rename to net_hg (0.6.0) is
+  # names only, so relabel the class and compare everything else as is.
+  frozen <- lapply(frozen, \(x) structure(x, class = "net_hg"))
+  df <-data.frame(person = c("Alice", "Bob", "Carol", "Alice", "Bob", "Dave", "Carol", "Dave", "Eve"),
                    session = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3"),
                    w = c(1, 2, 3, 1, 1, 2, 2, 1, 5), day = c(1, 1, 1, 2, 2, 3, 3, 3, 3))
   now <- list(

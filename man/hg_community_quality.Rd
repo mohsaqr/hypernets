@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_communities.R
 \name{hg_community_quality}
 \alias{hg_community_quality}
-\alias{hypergraph_community_quality}
 \title{Quality of a projected-hypergraph partition}
 \usage{
 hg_community_quality(
@@ -13,18 +12,9 @@ hg_community_quality(
   self_association = FALSE,
   edge_source = NULL
 )
-
-hypergraph_community_quality(
-  hg,
-  partition,
-  method = c("association", "citation"),
-  duplicate_edges = c("count", "collapse"),
-  self_association = FALSE,
-  edge_source = NULL
-)
 }
 \arguments{
-\item{hg}{A static \code{net_hypergraph}.}
+\item{hg}{A static \code{net_hg}.}
 
 \item{partition}{An \code{\link[=hg_communities]{hg_communities()}} result, a tidy node/label table, or a
 named label vector.}
@@ -44,4 +34,16 @@ Reports graph-partition diagnostics on the association projection:
 unweighted coverage, weighted coverage, performance, weighted modularity,
 and conductance. Conductance is the maximum (worst) community conductance
 \eqn{cut(S, \bar S) / min(vol(S), vol(\bar S))}; lower is better.
+}
+\references{
+Fortunato, S. (2010). Community detection in graphs. \emph{Physics Reports},
+486(3-5), 75-174. \doi{10.1016/j.physrep.2009.11.002}
+
+Newman, M. E. J., & Girvan, M. (2004). Finding and evaluating community
+structure in networks. \emph{Physical Review E}, 69, 026113.
+\doi{10.1103/PhysRevE.69.026113}
+
+Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
+\emph{Philosophical Transactions of the Royal Society A}, 382, 20230141.
+\doi{10.1098/rsta.2023.0141}
 }

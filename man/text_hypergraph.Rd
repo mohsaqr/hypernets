@@ -103,11 +103,11 @@ agree with the dense engines (tested), while tensor centralities and
 the null test currently require the dense representation.}
 }
 \value{
-An object of class \code{c("text_hypergraph", "net_hypergraph")} -- a
+An object of class \code{c("text_hypergraph", "net_hg")} -- a
 \code{\link[=group_hypergraph]{group_hypergraph()}} hypergraph accepted by every hypernets
 hypergraph verb and by \code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_centrality]{hg_centrality()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, and \code{\link[=hg_classify]{hg_classify()}} -- with a \code{text} field recording the
-corpus tables. Use \code{\link[=as.data.frame.text_hypergraph]{as.data.frame.text_hypergraph()}} for the tidy
+corpus tables. Use \code{\link[=hg_get.text_hypergraph]{hg_get.text_hypergraph()}} for the tidy
 weight table, and its \code{what} argument for the document and vocabulary
 tables.
 }
@@ -183,7 +183,7 @@ corpus <- c(
 )
 hg <- text_hypergraph(corpus, weight = "tfidf")
 hg
-as.data.frame(hg)
+hg_get(hg)
 
 win <- text_hypergraph(corpus, construction = "window", window = 3)
 win

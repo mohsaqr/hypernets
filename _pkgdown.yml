@@ -9,59 +9,69 @@ reference:
   contents:
   - hypernets-package
 
+- title: Reading results
+  desc: One reader for every object.
+  contents:
+  - hg_get
+  - starts_with("hg_get.")
+
 - title: Memory networks
   desc: A node is a state plus the memory of how it was reached.
   contents:
-  - build_hon
-  - build_honem
-  - build_hypa
-  - build_mogen
-  - hon_centrality
-  - hon_communities
-  - bootstrap_hon
-  - compare_hon
-  - markov_order_test
-  - markov_stability
-  - path_dependence
-  - mogen_transitions
-  - path_counts
-  - pathways
+  - sequence-input
+  - hon
+  - honem
+  - mogen
+  - hypa
+  - hypa.default
+  - hg_centrality
+  - hg_centrality.net_hon
+  - hg_communities
+  - hg_communities.net_hon
+  - hg_bootstrap
+  - hg_compare
+  - markov_order
+  - hg_markov_stability
+  - memory
 
 - title: Simplicial complexes
   desc: A set of mutually related nodes together with every subset.
   contents:
-  - build_simplicial
-  - betti_numbers
-  - euler_characteristic
-  - simplicial_degree
-  - q_analysis
-  - persistent_homology
-  - persistence_landscape
-  - bottleneck_distance
-  - wasserstein_distance
-  - verify_simplicial
+  - simplicial
+  - hg_betti
+  - hg_euler
+  - hg_degree
+  - hg_qanalysis
+  - hg_homology
+  - hg_landscape
+  - hg_bottleneck
+  - hg_wasserstein
 
 - title: Hypergraphs
   desc: An arbitrary set of nodes bound as a unit.
 - subtitle: Constructors
   contents:
-  - build_hypergraph
+  - network_hypergraph
   - window_hypergraph
   - group_hypergraph
   - knn_hypergraph
   - dual_hypergraph
   - temporal_hypergraph
-  - hypergraph_snapshot
-  - hypergraph_snapshots
+  - hg_snapshot
+  - hg_snapshots
   - hg_subset
   - hg_sample_gnp
   - hg_sample_sbm
   - hg_sample_uniform
+  - hg_write_hif
 - subtitle: Measures and centralities
   contents:
-  - hypergraph_measures
-  - hypergraph_centrality
+  - hg_measures
+  - hg_centrality.net_hg
   - hg_pagerank
+  - hg_transitivity
+  - hg_assortativity
+  - hg_degree_correlation
   - hg_edges
   - hg_edge_centrality
   - hg_growth
@@ -69,25 +79,26 @@ reference:
   - hg_motifs
 - subtitle: Spectral methods
   contents:
-  - hypergraph_laplacian
-  - hypergraph_cluster
-  - hypergraph_joint_cluster
+  - hg_laplacian
+  - hg_cluster
+  - hg_joint_cluster
   - hg_embed
-  - hypergraph_transduction
+  - hg_classify
 - subtitle: Projections
   contents:
-  - clique_expansion
+  - hg_clique_expansion
   - hg_project
   - hg_line_graph
 - subtitle: Communities
   contents:
-  - hg_communities
+  - hg_communities.net_hg
   - hg_community_quality
+  - hg_modularity
   - hg_compare_communities
 - subtitle: Null models and neural networks
   contents:
   - hg_null_test
-  - hg_hypa
+  - hypa.net_hg
   - hg_neural
   - hg_hypergat
   - heterogeneous_hgat
@@ -108,24 +119,28 @@ reference:
   - hg_sequences
   - hg_relations
   - hg_topic_sizes
+  - hg_topics
+  - hg_topic_search
   - hg_topic_quality
+  - hg_cocluster
   - hg_membership
+  - hg_mmsbm
   - hg_stability
   - hg_agreement
   - hg_seeds
   - hg_classify
 
-- title: Methods and accessors
+- title: Methods
   contents:
   - starts_with("print.")
   - starts_with("summary.")
   - starts_with("plot.")
-  - starts_with("as.data.frame.")
 
 - title: Data
   contents:
   - long-data
   - covid_abstracts
+  - covid_sample
   - covid_embeddings
   - icsid_tribunals
   - gfcc_decisions
@@ -138,6 +153,7 @@ articles:
   navbar: ~
   contents:
   - covid-topics
+  - topic-mixtures
   - text-hypergraphs
   - text-constructions
 - title: Benchmarks

@@ -54,13 +54,13 @@
 #' hyperedge neurons. \emph{ICML Graph Representation Learning and Beyond
 #' Workshop}.
 #' @export
-hypergraph_hnhn <- function(
+hg_hnhn <- function(
     hg, labels, features = "incidence", hidden = 128L,
     alpha = 0, beta = 0, epochs = 200L, lr = 0.01,
     weight_decay = 5e-4, dropout = 0.5, validation = 0.1,
     seed = 1L, verbose = FALSE) {
   if (!requireNamespace("torch", quietly = TRUE)) {
-    stop(errorCondition("hypergraph_hnhn() needs the torch package",
+    stop(errorCondition("hg_hnhn() needs the torch package",
                         class = "hypernets_missing_torch", call = NULL))
   }
   problem <- .thg_neural_problem(hg, labels, features)
@@ -103,6 +103,3 @@ hypergraph_hnhn <- function(
   out
 }
 
-#' @rdname hypergraph_hnhn
-#' @export
-hg_hnhn <- hypergraph_hnhn

@@ -2,10 +2,9 @@
 #'
 #' Returns the node coordinates computed by hypernets' existing hypergraph
 #' spectral or symmetric-NMF engine without exposing the incidental k-means
-#' assignments produced by [hg_cluster()]. This is the direct embedding verb;
-#' `hg_embed()` and `hypergraph_embed()` are identical names for it.
+#' assignments produced by [hg_cluster()].
 #'
-#' @param hg Any hypernets `net_hypergraph`.
+#' @param hg Any hypernets `net_hg`.
 #' @param dimensions Number of embedding coordinates, between 2 and
 #'   `n_nodes - 1`.
 #' @param type Laplacian type: `"zhou"` or `"random_walk"`.
@@ -18,6 +17,15 @@
 #' @param max_iter,tol SymNMF iteration controls.
 #' @return A data frame with `node`, stationary mass `pi`, and
 #'   `dim1` through `dim<dimensions>`.
+#' @references
+#' Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+#' clustering, classification, and embedding. *Advances in Neural
+#' Information Processing Systems 19*.
+#'
+#' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+#' random walks, Laplacians, and clustering. *Proceedings of the 29th ACM
+#' International Conference on Information and Knowledge Management*,
+#' 495-504. \doi{10.1145/3340531.3412034}
 #' @examples
 #' h <- group_hypergraph(
 #'   data.frame(node = c("a", "b", "c", "b", "c", "d"),
@@ -47,7 +55,3 @@ hg_embed <- function(hg, dimensions = 2L,
   attr(out, "laplacian") <- type
   out
 }
-
-#' @rdname hg_embed
-#' @export
-hypergraph_embed <- hg_embed

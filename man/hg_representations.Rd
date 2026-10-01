@@ -2,19 +2,12 @@
 % Please edit documentation in R/hypergraph_representations.R
 \name{hg_representations}
 \alias{hg_representations}
-\alias{hypergraph_representations}
 \title{Graph and hypergraph representations of the same data}
 \usage{
 hg_representations(hg, graph = c("clique", "citation"), edge_source = NULL)
-
-hypergraph_representations(
-  hg,
-  graph = c("clique", "citation"),
-  edge_source = NULL
-)
 }
 \arguments{
-\item{hg}{A static \code{net_hypergraph}, typically a snapshot of a
+\item{hg}{A static \code{net_hg}, typically a snapshot of a
 \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{graph}{\code{"clique"} (default) or \code{"citation"}, the graph projection

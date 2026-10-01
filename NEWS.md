@@ -1,3 +1,425 @@
+# hypernets 0.6.0
+
+* **One naming grammar and one reader.** Constructors (and `markov_order()`, `memory()`) are bare nouns,
+  every other verb is `hg_*()`, and every table of every object is read with
+  `hg_get(x, what = )`. No `build_*()`, no `hon_*()` and no `as.data.frame()`
+  method remains; no export shares a name with an imported package.
+  Every number is unchanged: the memory and simplicial verbs return the
+  estimator's objects as before, and each old accessor table is
+  `identical()` to its `hg_get()` replacement (58 tables checked against
+  the previous build; the one difference is `hg_degree()`'s reset row
+  names).
+
+  | Before | After |
+  |---|---|
+  | `as.data.frame(x, what = )` (every class) | `hg_get(x, what = )` |
+  | `build_hon()` | `hon()` |
+  | `build_honem()` | `honem()` |
+  | `build_mogen()` | `mogen()` |
+  | `build_hypa()` | `hypa()` on sequences (on a hypergraph: the pair HYPA, as before) |
+  | `build_simplicial()` | `simplicial()` (now verifies a clique complex; see below) |
+  | `markov_order_test()` | `markov_order()` |
+  | `path_dependence()` | `memory()` |
+  | `markov_stability()` | `hg_markov_stability()` |
+  | `persistent_homology()` | `hg_homology()` |
+  | `persistence_landscape()` | `hg_landscape()` |
+  | `bottleneck_distance()` | `hg_bottleneck()` |
+  | `wasserstein_distance()` | `hg_wasserstein()` |
+  | `betti_numbers()` | `hg_betti()` |
+  | `euler_characteristic()` | `hg_euler()` |
+  | `q_analysis()` | `hg_qanalysis()` |
+  | `simplicial_degree()` | `hg_degree()`, or `hg_get(sc, what = "degree")` |
+  | `verify_simplicial()` | folded into `simplicial(verify = TRUE)` |
+  | `bootstrap_hon()` | `hg_bootstrap()` |
+  | `compare_hon()` | `hg_compare()` |
+  | `hon_centrality()` | `hg_centrality()` on a memory network |
+  | `hon_communities()` | `hg_communities()` on a memory network |
+  | `mogen_transitions(mg, order =)` | `hg_get(mg, what = "transitions", order =)` |
+  | `path_counts(data, k =)` | `hg_get(mogen(data), what = "paths", k =)` |
+  | `pathways(x)` | `hg_get(x, what = "pathways")` (a one-column table, `pathway`) |
+
+  - **`hg_get(x, what = NULL, ...)`** is an S3 generic with a method for
+    every result class, including the memory and simplicial classes;
+    `what = NULL` is the primary table, and filters, `sort_by` and `top`
+    keep their names. An object without a method raises
+    `hypernets_bad_input` naming its class. Print methods now point at
+    `hg_get()`.
+  - **One verb per idea.** `hg_centrality()`, `hg_communities()` and
+    `hypa()` dispatch on the class of their input: a memory network
+    (`net_hon`, or sequences for `hypa()`) or a hypergraph (`net_hg`).
+    Each method keeps its arguments and defaults; an argument that only the
+    other method takes raises `hypernets_bad_input` instead of being
+    ignored. The first argument of the three is now `x` (was `hg` / `hon`).
+  - **Every sequence-taking verb reads every input form**: a long event
+    table (`action =`, `actor =`, `time =`, and new `session =`), a wide
+    data frame, a list of sequences, or a model object (netobject,
+    netobject_group, tna, cograph_network). `hon(long, action =, actor =,
+    time =)` is back and is `identical()` to building the relative
+    transition network with an infinite session gap and passing it on. A
+    position column is passed as `time`. A long table passed without
+    `action =` raises `hypernets_long_format` again, now recognising the
+    usual column names by role (`code`/`state`/`event`, `session_id`/`user`,
+    `timestamp`/`order`, ...).
+  - **`hg_get(mg, what = "paths", k =)`** reads k-state path counts off the
+    fitted order-(k - 1) layer of a `mogen()` model (`k` up to the highest
+    fitted order plus one); it equals the old raw-data counter on sequences
+    without internal gaps. `hg_get(x, what = "pathways")` works on `hon()`,
+    `mogen()` and sequence `hypa()` fits.
+  - **`simplicial()` checks a clique complex on construction**: its
+    simplices against igraph's cliques of the same thresholded graph (when
+    igraph is installed) and its Euler characteristic against the
+    alternating Betti sum. A failure raises the warning
+    `hypernets_simplicial_unverified`; `verify = FALSE` skips the check.
+  - Dropped: `hypa(k =)`, the deprecated alias of `order`, now raises
+    `hypernets_bad_input`.
+
+* **One vocabulary for table columns, and prints that show the table.**
+  Every table `hg_get()` returns names the same quantity the same way:
+  `count`, `expected`, `z`, `p_value`, `p_adj`, `significant`,
+  `log_likelihood`, `df`, `aic`, `bic`, `community`, `run`, `dimension`,
+  `node`, `members`. Renamed columns (old -> new):
+  - `markov_order()`: `loglik` -> `log_likelihood`, `AIC`/`BIC` ->
+    `aic`/`bic`, `p_permutation` -> `p_value`. `mogen()`: `dof` -> `df`,
+    `layer_dof` -> `layer_df`. `hg_markov_stability()`: `stationary_prob`
+    -> `stationary`. `memory()`: `n` -> `count`, `H_order1`, `H_orderk`,
+    `H_drop` -> `entropy_first_order`, `entropy_order_k`, `entropy_drop`,
+    `KL` -> `kl` (and `sort_by = "kl"`), `top_o1`/`top_ok` ->
+    `top_first_order`/`top_order_k`. `honem()` variance: `dim` ->
+    `dimension`. `hon()` nodes: `id`, `node` (the duplicated `label` and
+    `name` are gone).
+  - `hypa()`: `observed` -> `count`, `p_tail` -> `p_adj`, `anomaly` ->
+    `direction`, `p_adjusted_under`/`p_adjusted_over` ->
+    `p_adj_under`/`p_adj_over`. `hg_compare()`: `prob_<group>` ->
+    `probability_<group>`.
+  - `hg_communities()` on a memory network: the memory node is `node`, its
+    physical state `state`, the cluster `community` (was `state`,
+    `physical`, `module`); `n_modules` -> `n_communities`, `trial` -> `run`,
+    `n_states`/`n_physical` -> `n_nodes`/`n_states`; the filter argument is
+    `community =` and a given `partition` data frame has `node` and
+    `community`. The dataset `ring_communities` has `node` for `state`.
+  - Hypergraphs: the edge table's `states` -> `members`; temporal
+    memberships `member` -> `node` (`edge` stays, as in HIF);
+    `hg_mmsbm()` `u` -> `membership_weight`, `w` -> `affinity`, restarts
+    `start`/`loglik`/`ari_best` -> `run`/`log_likelihood`/`ari_to_best`;
+    `hg_motifs()` `observed`/`null_mean`/`n` -> `count`/`expected`/`n_null`;
+    `hg_compare_communities()` `largest`/`second` ->
+    `largest_size`/`second_size`, and `what = "matrix"` is gone (the
+    `similarity` table holds the same values).
+  - Text hypergraphs: `n` -> `count` in the weights and vocabulary tables.
+  - Simplicial complexes: `id`/`dim` -> `simplex`/`dimension`, the filter
+    argument `dim =` -> `dimension =`; the validation table `set` ->
+    `members`, `validated` -> `significant`.
+
+  Every result prints a header line with its main settings, then the first
+  rows of its default table (`print(x, n = )` for more). The results of
+  `hon()`, `honem()`, `mogen()`, `markov_order()`, `memory()`,
+  `hg_markov_stability()`, `hg_homology()`, `hg_landscape()` and
+  `hg_qanalysis()` carry the class `hypernets_result` in front of the
+  estimator's classes for this; plot() and the estimator's own verbs are
+  the estimator's.
+
+  `summary()` on a result returns every table of the result as a list of
+  data frames named after the `what` values of `hg_get()`, so
+  `summary(x)$validation` is the data frame `hg_get(x, what =
+  "validation")` returns; overall figures are added as further tables
+  (`overall` for `memory()`, `markov_order()` and `hg_compare()`,
+  `by_order` for `hg_bootstrap()` and `hg_compare()`, `communities` for
+  `hg_mmsbm()`). The result itself is not changed. This replaces the
+  printed reports of the estimators' summaries and the single tables the
+  bootstrap, comparison, community and mixed-membership summaries
+  returned.
+
+* **Sequences are built exactly as in the tna family.** Every verb that
+  reads a long event table (`hon()`, `mogen()`, `hypa()`, `markov_order()`,
+  `memory()`, `hg_markov_stability()`, `hg_bootstrap()`, `hg_compare()`
+  through the group model, `simplicial(type = "window")`,
+  `window_hypergraph()`) builds the sequences that
+  `Nestimate::build_network(method = "relative")` builds from the same
+  arguments (`identical()`, tested on six call patterns of `human_long`):
+  - new `time_threshold = 900` and `timezone = "UTC"`: with `time`, a gap
+    of more than 900 seconds starts a new sequence; `time_threshold =
+    FALSE` keeps one sequence per actor or session. On `human_long` ordered
+    by `timestamp` this gives 526 sequences instead of 429.
+  - a column named `action`, `time`, `session` or `session_id` is used when
+    its argument is `NULL`; `session = FALSE` switches session detection
+    off (with `actor = "project"`, 34 sequences instead of the 429 sessions
+    detected).
+  - `actor` and `session` may name several columns.
+  - a missing actor or session raises `hypernets_bad_input` (rows were
+    dropped before); without `actor`, the message
+    `hypernets_single_sequence` says all events form one sequence.
+  - `window_hypergraph()` gains `session`, `time_threshold` and `timezone`.
+
+* **`hg_markov_stability()` refuses a chain that is not irreducible.** It
+  used to return return and passage times of the order of 10^15 steps with a
+  plain warning. A chain with a transient or absorbing state, several closed
+  classes, or a state with no outgoing transition now raises
+  `hypernets_not_ergodic` naming those states. `plot()` of a stability
+  result draws one panel of bars per measure, every state included (the
+  estimator's plot dropped states beyond its eight colours), and
+  `plot(x, what = "passage_time")` the first-passage heatmap through cograph.
+
+* **`hg_topics()`: a mixed-membership topic model.** The document-word
+  counts of a hypergraph are factorized by the multiplicative updates that
+  minimise the Kullback-Leibler divergence (Lee & Seung 1999, 2001), which
+  is probabilistic latent semantic analysis (Hofmann 1999; Gaussier &
+  Goutte 2005): every document is a mixture of topics and every topic a
+  distribution over words. The fit keeps the best of `nstart` seeded starts
+  (`parallel = TRUE` gives the same result) and reports each topic's
+  agreement across the starts by the matched average Jaccard of its top
+  words (Greene, O'Callaghan & Cunningham 2014), topics matched by the
+  Hungarian method. `hg_get(fit, what = "topics" | "shares" | "words" |
+  "documents" | "restarts")`, with `print`, `summary` and `plot`. The
+  updates agree with scikit-learn's KL solver to 1e-11 after 200 steps
+  (local oracle).
+  - `hg_topic_quality(hg, topics = fit)` scores a topic model: UMass or NPMI
+    coherence of its most probable words and FREX from its word
+    distributions, both identical to stm on the same beta (local oracle).
+  - `hg_cluster(algorithm = "symnmf", what = "membership")` returns the
+    graded memberships of the symmetric factorization (Kuang, Ding & Park
+    2012), each node's row normalised to sum to one.
+  - New dataset `covid_sample`: a seeded simple random sample of 1,000
+    abstracts from the COVID-19 education corpus of the sbert package
+    (`data-raw/covid_sample.R`), and a new vignette, "Mixed-membership
+    topics of the COVID-19 education literature", built on it. The
+    existing vignette and `covid_abstracts` are unchanged.
+
+* **Group models of memory networks.** `hon(data, ..., group =)` takes a
+  column name or one label per sequence and returns one memory network per
+  group (`net_hon_group`); `hg_get()` stacks their tables with a `group`
+  column. `hg_compare()` takes the group model (`groups =` picks two when
+  there are more) instead of two data sets and repeated settings, and
+  `hg_bootstrap()` on a group model bootstraps every group. Sequence
+  `hypa()` gains `type = c("all", "over", "under")`, `order_by = c("sig",
+  "ratio", "freq", "path")` and `n` for its printed view, and
+  `hg_get(fit, what = "over" / "under", order_by =, top =)` sorts each
+  direction by its own tail.
+
+* **Simplicial complexes from sequences.**
+  - `simplicial(type = "window", window =, min_count =)` builds the
+    co-occurrence complex of windows of consecutive actions (Salnikov et al.
+    2018), from the same sequence input as the memory verbs. A set of
+    actions seen in at least `min_count` windows is a simplex with all its
+    faces.
+  - `simplicial(type = "window", validate = TRUE)` needs no count
+    threshold: a set of actions becomes a simplex when it occurs in more
+    windows than a null model predicts, with Benjamini-Hochberg control over
+    all possible sets of each size (`alpha = 0.05`). The default
+    `null = "swap"` is swap randomization (Gionis et al. 2007): every window
+    keeps its number of actions and every action its number of windows.
+    `n_null = NULL` takes enough shuffles for a single set of any size to
+    pass (at least 999); fewer raise `hypernets_low_resolution`. On
+    `human_long` (window 3, 1680 shuffles) 30 sets pass under each of five
+    seeds, 2 more under some, and the Betti numbers are (1, 3, 0) under all
+    five. `null = "hypergeometric"` is the statistically validated
+    hypergraph of Musciotto, Battiston & Mantegna (2021), with the exact
+    p-value of their Eq. 3; its null lets an action fall into windows
+    independently of the others, so with few actions it expects more
+    co-occurrence than the windows hold (1.7 times for pairs and 2.9 times
+    for triples on `human_long`, where no set passes, also when the
+    sessions are pooled by project or into one sequence). It suits sparse
+    co-occurrence, each set expected in less than one window, and warns
+    `hypernets_dense_cooccurrence` otherwise.
+    `hg_get(sc, what = "validation")` returns the tests.
+  - `hg_homology()` of a window complex computes persistence over the count
+    filtration (Petri et al. 2013): a simplex enters at the largest number
+    of windows of any set containing it, and the Betti curve at count `t`
+    is the Betti numbers of the complex with `min_count = t`.
+  - `plot()` of a complex draws its maximal simplices, all of them, the
+    most significant (validated), most frequent (window) or closest
+    (Vietoris-Rips) first, in Okabe-Ito colours; `dismantled = TRUE` draws
+    one panel per simplex and `top =` limits the number. It used to hand the
+    complex to cograph, which drew faces as well and only the first ten.
+  - `simplicial(type = "clique")` takes sequences with `actor`, `action`
+    and `time` and builds their relative transition network.
+  - `simplicial(type = "vr")` and `hg_homology(type = "vr")` take points (a
+    non-square table or matrix, a data frame of coordinates, or a `dist`
+    object) as well as distances.
+  - `hg_get(sc, what = "betti")` tabulates the Betti numbers; `plot()` of a
+    persistence landscape draws the landscapes that are not zero, with one
+    colour and line type each.
+  - `simplicial(type = "clique", direction = "both")` joins a pair only
+    when both directed weights reach `threshold`, and then reproduces the
+    cliques of `tna::cliques()` exactly (24 of 24 size and threshold
+    combinations on two data sets). `"either"` (default) is the previous
+    rule. The clique complex now cites Giusti, Ghrist & Bassett (2016).
+
+* **The memory and simplicial families are Nestimate's; hypernets imports
+  it.** hypernets now `Imports: Nestimate (>= 0.8.5)` and re-exports
+  Nestimate's `build_hon()`, `build_honem()`, `build_hypa()`, `build_mogen()`,
+  `markov_order_test()`, `markov_stability()`, `path_dependence()`,
+  `mogen_transitions()`, `path_counts()`, `pathways()`, `build_simplicial()`,
+  `persistent_homology()`, `q_analysis()`, `betti_numbers()`,
+  `euler_characteristic()`, `simplicial_degree()`, `verify_simplicial()`,
+  `bottleneck_distance()` and `persistence_landscape()` instead of carrying
+  copies (the copies matched CRAN Nestimate 0.8.5 on 22 of 23 calls at
+  tolerance 0; `markov_stability()` differed only by Nestimate's rounding).
+  Nestimate does not depend on hypernets. hypernets keeps `as.data.frame()`
+  for Nestimate's classes (Nestimate has none) and its own verbs on top of
+  them: `bootstrap_hon()`, `compare_hon()`, `hon_centrality()`,
+  `hon_communities()`, `wasserstein_distance()`. Loading both packages now
+  masks nothing and overwrites no S3 method. Result classes are Nestimate's
+  (`simplicial_complex`, `persistent_homology`, `q_analysis`,
+  `persistence_landscape`; the 0.5.x `net_*` simplicial names are gone).
+  Lost with the hypernets copies, because Nestimate lacks them:
+  - `build_hon(action =, actor =, time =)` long input -- build the network
+    with `Nestimate::build_network(data, method = "relative", actor =,
+    action =, time =, time_threshold = Inf)` and pass it to `build_hon()`
+    (identical matrix); `bootstrap_hon()` / `compare_hon()` still take the
+    long form directly.
+  - the long-format guard on `build_hon()`, `build_mogen()`, `build_hypa()`,
+    `markov_order_test()` (a long table passed bare is read as wide).
+  - `top =` on `mogen_transitions()` and `simplicial_degree()`
+    (`as.data.frame(x, top =)` still truncates); validation of
+    `path_counts(top =)`.
+  - hypernets' `markov_stability()` rewrite: the reducible-chain error
+    (`hypernets_not_ergodic`), classed input errors, list-of-sequences
+    input, unrounded `$stability`, and its landscape / states / passage /
+    network plots.
+
+* **`hg_mmsbm()`: probabilistic (mixed) membership.** Hy-MMSBM (Ruggeri,
+  Contisciani, Battiston & De Bacco 2023): every node (a document, in a text
+  hypergraph) gets a probability of belonging to each of `k` communities,
+  fitted by the authors' EM with `nstart` restarts; hyperedges of any size
+  are fitted exactly (no truncation unless `max_size` is set).
+  `as.data.frame(fit, what = "membership" / "nodes" / "affinity" /
+  "restarts")`; the restarts table reports each start's log-likelihood,
+  convergence and ARI with the kept partition, so instability is visible.
+  Local oracle against the authors' code (commit 6a12077): one EM step to
+  4.8e-15, log-likelihood to 1.1e-15, full fits to 2.1e-12. Two deliberate
+  deviations: restarts are compared by the paper's Eq. 5 log-likelihood (the
+  authors' CLI uses an inconsistent C = 1 form), and the default stopping
+  rule is on normalised memberships (`criterion = "membership"`), because
+  the authors' parameter-change rule never fires under their default priors
+  (the likelihood is invariant to u -> cu, w -> w/c^2); theirs is
+  `criterion = "parameters"`. New warning class `hypernets_isolated_nodes`.
+
+* **Hypergraph clustering, assortativity and Katz centrality.**
+  `hg_transitivity()` (local clustering: projection, Watts & Strogatz 1998;
+  extra overlap, Zhou & Nakhleh 2011 / Klimm et al. 2021; two-node
+  union / min / max, Latapy et al. 2008), `hg_assortativity()` (Chodrow
+  2020: uniform, top-2, top-bottom; rank or degree scale),
+  `hg_degree_correlation()` (Lotito et al. 2023), and
+  `hg_centrality(type = "katz", alpha =)` (Katz 1953 on the
+  Estrada & Rodriguez-Velazquez 2006 hypergraph adjacency). Local oracles:
+  XGI 0.10.2 (to 2.2e-16), hypergraphx 1.8.0, igraph `alpha_centrality`.
+  Undefined coefficients are `NA` (XGI reports 0); XGI's exact uniform
+  assortativity weights hyperedges by m(m-1) and so differs from Chodrow's
+  definition on mixed sizes (asserted). Estrada & Rodriguez-Velazquez's
+  global C2(H) is not included (no oracle; see `workinprogress/`).
+
+* **`hg_modularity()` and `hg_communities(type = "irmm")`.** Hypergraph
+  modularity of a partition (Kaminski et al. 2019; `type = "linear"`,
+  `"majority"`, `"strict"` as in HyperNetX) as a tidy score or per-community
+  table, and IRMM community detection (Kumar et al. 2020) inside the existing
+  `hg_communities()` ensemble (seeded runs, AMI medoid, comparison with
+  Infomap through `hg_compare_communities()`; `as.data.frame(fit, what =
+  "weights")` gives the reweighted hyperedges). Local oracle: HyperNetX
+  2.4.3, 90 scores to 5.6e-16; IRMM passes replayed step by step to
+  4.4e-16. (HyperNetX truncates fractional weights in its degree tax; our
+  value equals HNX on the same weights rescaled to integers.)
+
+* **`hg_write_hif()` / `hg_read_hif()`** read and write the Hypergraph
+  Interchange Format (Coll et al. 2025): schema-valid (official JSON
+  schema), doubles lossless, `window_counts` as edge weights, node / edge /
+  incidence attributes kept (`as.data.frame(hg, what = "node_data" /
+  "incidence_data")`); round-tripped through XGI 0.10.2 and HyperNetX
+  2.4.3. Directed HIF is refused.
+
+* **Fixes and small API changes found while writing the 0.6.0 documents.**
+  - `hg_pagerank()` ignored a window hypergraph's `window_counts` and used
+    the SD+1 heuristic, so it disagreed with `hg_centrality(type =
+    "pagerank")` and the Laplacian walk (by 0.018 on `ring_sequences`,
+    window 3). It now uses the package-wide default: explicit
+    `edge_weights`, else `window_counts`, else the heuristic. The sparse
+    walk operators follow the same rule (they matter for
+    `hg_read_hif(sparse = TRUE)` files with edge weights).
+  - `hg_write_hif()` wrote missing attribute values as `null`; they are now
+    omitted, so read -> write is a fixed point for files where only some
+    records carry an attribute. `as.data.frame(hg, what = "edge_data")` is
+    new, and `print()` names HIF as the source of a read hypergraph.
+  - `hg_topic_quality(words =)` also takes `hg_keywords()` output (its
+    `cluster` column is the topic) and the character matrix
+    `topicmodels::terms()` returns, as they are.
+  - `as.data.frame(<hg_communities>, what = "ami" / "ari" / "nmi")` returns
+    one row per distinct pair of runs (`run_a`, `run_b`, value) instead of
+    the full matrix with `Var1` / `Var2` and the diagonal.
+  - `hg_mmsbm()` normalised memberships that EM had driven to zero or to
+    subnormal remnants, reporting exact 1/3, 1/2 ... "mixtures" for them,
+    and left exact-zero rows `NA` without a warning. A node whose row total
+    is below working precision relative to the largest row now has no
+    membership (`NA`), is counted in `print()`, and raises
+    `hypernets_collapsed_membership`. Subnormal affinities are returned as 0.
+  - `hg_keywords()` and `hg_agreement()` accept a `community` column (the
+    `hg_communities()` medoid, `hg_mmsbm()` node table). `hg_agreement()`
+    left NA-labelled nodes in `n` and `agreement` while the indices dropped
+    them; they are now dropped for every column, with a
+    `hypernets_missing_labels` warning.
+  - `?hg_assortativity` states that `"top_2"` and `"top_bottom"` are
+    positive on random hypergraphs (order statistics), so 0 is not their
+    null value.
+
+* **Bug fix: the neural verbs lost half of every symmetric matrix.**
+  `.thg_torch_sparse()` coerced to `"TsparseMatrix"` and read its triplets;
+  Matrix stores a symmetric matrix as `dsTMatrix` (upper triangle only) and a
+  unit-triangular one without its diagonal, so those cells were dropped
+  silently. `hg_hypergcn()` therefore propagated through an
+  upper-triangular adjacency in all three methods (logits off by up to 0.83
+  against the official HyperGCN code), and any symmetric `features` matrix
+  given to `hg_hnhn()`, `hg_allset()` or `hg_neural()` was truncated. The
+  conversion now expands to a general matrix first. Found by the new DHG /
+  official-code oracle (`local_testing_and_equivalence/test-oracle-hypergcn-hnhn.R`),
+  which now agrees to about 6e-8.
+
+* **Topic measures match stm; stability resamples documents.**
+  - `hg_topic_quality()` now defaults to UMass coherence (Mimno et al. 2011)
+    and FREX exclusivity (Bischof & Airoldi 2012) computed exactly as
+    `stm::semanticCoherence()` / `stm::exclusivity()` (local oracle: max
+    difference 0 on 80 abstracts); `coherence = "npmi"` gives corpus NPMI
+    (Bouma 2009; Lau et al. 2014; text2vec oracle to 1e-8). The previous
+    within-cluster NPMI and mean share are `coherence = "npmi_cluster",
+    exclusivity = "share", sort_by = "share"` (identical output). `words =`
+    scores topic word lists from another model (e.g. topicmodels, stm) with
+    the same measures. New columns `coherence_type`, `exclusivity_type`.
+  - `hg_stability()` defaults to `resample = "subset"`: Hennig's (2007)
+    subsampling stability, the per-cluster best-match Jaccard over `n_boot`
+    node subsamples (fpc `clusterboot(bootmethod = "subset")` oracle, max
+    difference 1.1e-16), plus the eigengap (von Luxburg 2007) per `k`. The
+    old two-seed comparison, which never resampled the data and so measured
+    only solver determinism, is `resample = "seeds"`.
+  - `hg_cocluster()` (new): spectral co-clustering of a bipartite incidence,
+    nodes and hyperedges together (Dhillon 2001; sklearn
+    `SpectralCoclustering` oracle).
+  - `hg_keywords()` on a word-node bag hypergraph (`nodes = "word"`) raised
+    no error and returned document ids in its `word` column; it now raises
+    `hypernets_bad_input`.
+
+* **Hypergraph verbs are `hg_*()`; the class is `net_hg`.** hypernets will
+  import Nestimate (ROADMAP Phase 0b), which keeps its own
+  `build_hypergraph()`, `hypergraph_*()` verbs and `net_hypergraph` class, so
+  both packages load in every session. Shared names would mask each other's
+  verbs and overwrite each other's S3 methods (measured with both loaded: 26
+  masked, 32 overwritten). hypernets was never released, so the renames
+  below break no published code.
+
+  | Was | Is |
+  |---|---|
+  | `build_hypergraph()` | `network_hypergraph()` (the `<source>_hypergraph()` rule) |
+  | `clique_expansion()` | `hg_clique_expansion()` (Nestimate's `clique_expansion()` accepts only its own class) |
+  | 27 `hypergraph_*()` aliases of `hg_*()` (`hypergraph_pagerank`, `hypergraph_motifs`, ...) | removed; use the `hg_*()` name |
+  | `hypergraph_allset()`, `hypergraph_hypergcn()`, `hypergraph_hnhn()`, `hypergraph_snapshot(s)()`, `hypergraph_laplacian()`, `hypergraph_joint_cluster()` | `hg_allset()`, `hg_hypergcn()`, `hg_hnhn()`, `hg_snapshot(s)()`, `hg_laplacian()`, `hg_joint_cluster()` |
+  | `hypergraph_alldeepsets()`, `hypergraph_allset_transformer()` | `hg_allset(model = "deepsets" / "transformer")` |
+  | engines `hypergraph_centrality()`, `hypergraph_cluster()`, `hypergraph_measures()`, `hypergraph_transduction()` | internal; `hg_centrality()`, `hg_cluster()`, `hg_measures()`, `hg_classify()` are the verbs and now carry the engines' documentation and references |
+  | class `net_hypergraph` (+ `_cluster`, `_transduction`, `_measures`, `_snapshots`) | `net_hg` (+ the same suffixes) |
+
+  `hg_centrality()` gains the engine's `"pagerank"` and `"subhypergraph"`
+  types with `damping` and `edge_weights`; `hg_classify()` gains
+  `edge_weights`. Both are `identical()` to the engine (new tests). No
+  computed value changes: the R8 transduction guard still gives 0.8451, and
+  the Nestimate identity tests pass with a names-only normalizer.
+  `tests/testthat/test-api-names.R` fails if an export or S3 registration
+  reintroduces a Nestimate hypergraph name.
+
 # hypernets 0.5.1
 
 * **`group_hypergraph()` reads Nestimate clusterings directly.** A mixture

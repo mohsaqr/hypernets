@@ -8,12 +8,12 @@ dual_hypergraph(hg)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
-\code{net_hypergraph}.}
+\code{net_hg}.}
 }
 \value{
 A hypergraph whose incidence is the transpose of \code{hg}'s: a
 \code{text_hypergraph} with flipped \code{nodes} for bag constructions, otherwise
-a \code{net_hypergraph}. Accepted by all \verb{hg_*} verbs.
+a \code{net_hg}. Accepted by all \verb{hg_*} verbs.
 }
 \description{
 Returns the dual hypergraph: every hyperedge becomes a vertex and every
@@ -21,7 +21,7 @@ vertex becomes a hyperedge, with the transposed weighted incidence. For a
 bag-construction \code{\link[=text_hypergraph]{text_hypergraph()}}, the dual is identical to rebuilding
 with the opposite \code{nodes} orientation (tested), so document-level and
 word-level analyses can share one constructed object. Duals of windowed
-and kNN hypergraphs are returned as plain \code{net_hypergraph} objects (their
+and kNN hypergraphs are returned as plain \code{net_hg} objects (their
 corpus bookkeeping does not transpose meaningfully).
 }
 \examples{
@@ -29,4 +29,8 @@ hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 dual <- dual_hypergraph(hg)
 dual
 hg_measures(dual, what = "edges")
+}
+\references{
+Berge, C. (1989). \emph{Hypergraphs: Combinatorics of Finite Sets}.
+North-Holland Mathematical Library 45. North-Holland.
 }

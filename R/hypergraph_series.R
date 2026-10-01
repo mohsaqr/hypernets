@@ -21,7 +21,7 @@
 #' with a `start` column, otherwise from the first hyperedge that contains
 #' it.
 #'
-#' @inheritParams hypergraph_snapshots
+#' @inheritParams hg_snapshots
 #' @param x A [temporal_hypergraph()].
 #' @param components Also report the connectivity of the measured hypergraph
 #'   at each time: the number of connected components, the share of its nodes
@@ -68,12 +68,12 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
   mem <- x$memberships
   edge_index <- match(mem$edge, ed$edge)
   # Signature of each hyperedge's member set, for the distinct-edge count.
-  members_by_edge <- split(mem$member, factor(edge_index, levels = seq_len(nrow(ed))))
+  members_by_edge <- split(mem$node, factor(edge_index, levels = seq_len(nrow(ed))))
   signature <- vapply(members_by_edge, function(v) paste(sort(unique(v)), collapse = "\r"),
                       character(1L))
   size <- lengths(members_by_edge)
   # Node entry: the node table's own start when given, else first membership.
-  first_membership <- tapply(mem$start, mem$member, min)
+  first_membership <- tapply(mem$start, mem$node, min)
   node_start <- first_membership[x$nodes]
   if (!is.null(x$node_data) && any(!is.na(x$node_data$start))) {
     given <- !is.na(x$node_data$start)
@@ -86,16 +86,16 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
   count <- function(t, mode_here) {
     if (!membership_times) {
       keep <- .thg_edges_in_window(x, t, grid$window, mode_here, grid$closed)
-      return(c(n_nodes = length(unique(mem$member[keep[edge_index]])),
+      return(c(n_nodes = length(unique(mem$node[keep[edge_index]])),
                n_edges = sum(keep),
                n_edges_distinct = length(unique(signature[keep])),
                n_memberships = sum(size[keep])))
     }
     present <- .thg_memberships_in_window(x, t, grid$window, mode_here, grid$closed)
-    present_signature <- tapply(mem$member[present], edge_index[present], function(v) {
+    present_signature <- tapply(mem$node[present], edge_index[present], function(v) {
       paste(sort(unique(v)), collapse = "\r")
     })
-    c(n_nodes = length(unique(mem$member[present])),
+    c(n_nodes = length(unique(mem$node[present])),
       n_edges = length(unique(edge_index[present])),
       n_edges_distinct = length(unique(present_signature)),
       n_memberships = sum(present))
@@ -149,10 +149,6 @@ hg_growth <- function(x, start = NULL, end = NULL, step = NULL, window = NULL,
   attr(out, "origin") <- x$origin
   out
 }
-
-#' @rdname hg_growth
-#' @export
-hypergraph_growth <- hg_growth
 
 # Connected components of a static hypergraph through shared hyperedges:
 # their number, the share of nodes in the largest, and its diameter.
@@ -258,7 +254,7 @@ hypergraph_growth <- hg_growth
 #' @return For `plot`, a ggplot object.
 #' @export
 plot.hypernets_series <- function(x, columns = NULL, facets = TRUE, ...) {
-  d <- as.data.frame(x)
+  d <- .ho_plain(x)
   numeric_columns <- setdiff(names(d)[vapply(d, is.numeric, logical(1L))], "time")
   columns <- columns %||% numeric_columns
   unknown <- setdiff(columns, numeric_columns)
@@ -318,7 +314,7 @@ plot.hypernets_series <- function(x, columns = NULL, facets = TRUE, ...) {
 #' @keywords internal
 #' @export
 plot.hypernets_distribution <- function(x, log = TRUE, ...) {
-  d <- as.data.frame(x)
+  d <- .ho_plain(x)
   group <- intersect(c("time", "s", "series"), names(d))
   d$series <- if (length(group)) {
     factor(as.character(d[[group[[1L]]]]), levels = unique(as.character(d[[group[[1L]]]])))

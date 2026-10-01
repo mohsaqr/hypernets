@@ -219,7 +219,7 @@
 #'     present at that instant only. The cumulative view in which every
 #'     hyperedge stays once it has appeared (the point-aggregation model of
 #'     Coupette et al. 2024) is a snapshot `mode`, not a property of the
-#'     data: ask for it with `mode = "cumulative"` in [hypergraph_snapshot()],
+#'     data: ask for it with `mode = "cumulative"` in [hg_snapshot()],
 #'     [hg_growth()] and [hg_edges()].}
 #' }
 #'
@@ -258,7 +258,7 @@
 #' is known independently of the log, with Dynet's meaning: they bound the
 #' snapshot times and the measurement grid, and an open-ended hyperedge is
 #' active through `observation_end`, but the stored memberships are never
-#' rewritten and `as.data.frame()` returns the original spells. Without them
+#' rewritten and `hg_get()` returns the original spells. Without them
 #' the window is the span of the data.
 #'
 #' Every other column that is constant within a hyperedge is kept as a
@@ -309,7 +309,7 @@
 #'   `edge`, `start`, `end`, `weight`), the edge metadata (`edge`, `start`,
 #'   `end` and the hyperedge attributes), the node universe with entry
 #'   times, the sorted event times, `format` (`"interval"` or `"contact"`),
-#'   `time_unit`, `origin` and the `observation` bounds. `as.data.frame(x,
+#'   `time_unit`, `origin` and the `observation` bounds. `hg_get(x,
 #'   what = "memberships" | "edges" | "nodes")` returns the three tables;
 #'   `summary()` the one-row description.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
@@ -325,15 +325,15 @@
 #' thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
 #'                            start = "constituted", end = "concluded")
 #' thg
-#' hypergraph_snapshot(thg, at = 3)
+#' hg_snapshot(thg, at = 3)
 #'
 #' # a contact log on a calendar: instants at each date, cumulative on request
 #' contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
 #'                        date = as.Date(c("2024-01-01", "2024-01-05", "2024-01-09")))
 #' calls <- temporal_hypergraph(contacts, from = "from", to = "to", time = "date")
 #' calls
-#' hypergraph_snapshot(calls, at = as.Date("2024-01-05"))
-#' hypergraph_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
+#' hg_snapshot(calls, at = as.Date("2024-01-05"))
+#' hg_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
 #' @export
 temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
                                 group = NULL, time = NULL, start = NULL,
@@ -375,14 +375,14 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
   if (edge_list) {
     edge_id <- paste0("e", seq_len(nrow(data)))
     memberships <- data.frame(
-      member = c(as.character(data[[from]]), as.character(data[[to]])),
+      node = c(as.character(data[[from]]), as.character(data[[to]])),
       edge = c(edge_id, edge_id),
       stringsAsFactors = FALSE
     )
     rows <- c(seq_len(nrow(data)), seq_len(nrow(data)))
   } else {
     memberships <- data.frame(
-      member = as.character(data[[actor]]),
+      node = as.character(data[[actor]]),
       edge = as.character(data[[group]]),
       stringsAsFactors = FALSE
     )
@@ -394,7 +394,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     as.numeric(data[[weight]][rows])
   for (column in candidates) memberships[[column]] <- data[[column]][rows]
 
-  keep <- !is.na(memberships$member) & nzchar(memberships$member) &
+  keep <- !is.na(memberships$node) & nzchar(memberships$node) &
     !is.na(memberships$edge) & nzchar(memberships$edge) &
     !is.na(memberships$start) & !is.na(memberships$weight)
   memberships <- memberships[keep, , drop = FALSE]
@@ -408,7 +408,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 
   # One clock for every time the object holds: hyperedge starts and ends and
   # the node entry times share the origin and the unit.
-  observed_nodes <- sort(unique(memberships$member))
+  observed_nodes <- sort(unique(memberships$node))
   node_data <- .thg_node_universe(nodes, observed_nodes)
   clock_columns <- list(start = memberships$start)
   if (!is.null(end)) clock_columns$end <- memberships$end
@@ -458,7 +458,8 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     bad_interval <- !is.na(edge_data$end) & edge_data$end < edge_data$start
     if (any(bad_interval)) .thg_bad_input("every interval must satisfy `end >= start`")
   }
-  memberships <- memberships[, c("member", "edge", "start", "end", "weight"), drop = FALSE]
+  memberships <- memberships[, c("node", "edge", "start", "end", "weight"),
+                             drop = FALSE]
 
   times <- sort(unique(c(edge_data$start, edge_data$end[!is.na(edge_data$end)],
                          memberships$start, memberships$end[!is.na(memberships$end)])))
@@ -642,7 +643,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
     n_nodes = n, n_hyperedges = 0L, size_distribution = integer(),
     params = list(source = "group_hypergraph", member = "member",
                   group = "edge", weight = NULL)
-  ), class = "net_hypergraph")
+  ), class = "net_hg")
 }
 
 .thg_collapse_duplicate_edges <- function(hg) {
@@ -791,11 +792,11 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
   ed <- x$edge_data
   d <- x$memberships[.thg_memberships_in_window(x, t, window, mode, closed), , drop = FALSE]
   sparse <- isTRUE(x$params$sparse)
-  universe <- .thg_snapshot_nodes(x, t + window, d$member)
+  universe <- .thg_snapshot_nodes(x, t + window, d$node)
   if (nrow(d) == 0L) {
     hg <- .thg_empty_hypergraph(universe, sparse)
   } else {
-    hg <- group_hypergraph(d, actor = "member", group = "edge", weight = "weight",
+    hg <- group_hypergraph(d, actor = "node", group = "edge", weight = "weight",
                            nodes = universe, sparse = sparse)
     hg$edge_data <- ed[match(colnames(hg$incidence), ed$edge), , drop = FALSE]
     rownames(hg$edge_data) <- NULL
@@ -828,7 +829,7 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 
 #' Extract one snapshot from a temporal hypergraph
 #'
-#' A snapshot is a static `net_hypergraph` holding the hyperedges a window
+#' A snapshot is a static `net_hg` holding the hyperedges a window
 #' measures. `mode = "active"` follows the format: an interval hyperedge is
 #' active on its closed interval, a contact hyperedge at its instant.
 #' `mode = "cumulative"` keeps every hyperedge begun by the end of the
@@ -846,17 +847,17 @@ temporal_hypergraph <- function(data, from = NULL, to = NULL, actor = NULL,
 #' @param multiedges Keep distinct edge identities with identical member sets?
 #'   `TRUE` matches a multi-hypergraph; `FALSE` collapses them to one edge and
 #'   records their counts in `edge_multiplicity`.
-#' @return A static `net_hypergraph` usable by every hypernets hypergraph verb;
+#' @return A static `net_hg` usable by every hypernets hypergraph verb;
 #'   its `params` record `at`, `window`, `temporal_mode` and the clock.
 #' @export
-hypergraph_snapshot <- function(x, at = NULL, window = 0,
+hg_snapshot <- function(x, at = NULL, window = 0,
                                 mode = c("active", "cumulative"),
                                 multiedges = TRUE) {
   .thg_check_temporal(x)
-  mode <- .thg_check_mode(mode, "hypergraph_snapshot")
+  mode <- .thg_check_mode(mode, "hg_snapshot")
   .thg_check_multiedges(multiedges)
   if (!is.null(at) && length(at) != 1L) {
-    .thg_bad_input("`at` must be one time value; use hypergraph_snapshots() for several")
+    .thg_bad_input("`at` must be one time value; use hg_snapshots() for several")
   }
   whole <- is.character(window) && length(window) == 1L && !is.na(window) &&
     identical(tolower(window), "all")
@@ -876,7 +877,7 @@ hypergraph_snapshot <- function(x, at = NULL, window = 0,
 #' names instants directly. Without `step` and `at`, the grid is the event
 #' times of the hypergraph, each looked at as a point.
 #'
-#' @inheritParams hypergraph_snapshot
+#' @inheritParams hg_snapshot
 #' @param start,end Bounds of the measured period, as numbers on the
 #'   hypergraph's clock or dates for a calendar hypergraph. Default: the
 #'   observation window.
@@ -887,8 +888,8 @@ hypergraph_snapshot <- function(x, at = NULL, window = 0,
 #'   (a point sample); larger than `step` gives a rolling window; `"all"`
 #'   measures the whole period as one window.
 #' @param at Instants to measure instead of a grid; may be a vector.
-#' @return A named list of `net_hypergraph` objects with class
-#'   `net_hypergraph_snapshots`, named by the window starts on the
+#' @return A named list of `net_hg` objects with class
+#'   `net_hg_snapshots`, named by the window starts on the
 #'   hypergraph's clock.
 #' @examples
 #' seats <- data.frame(
@@ -898,26 +899,26 @@ hypergraph_snapshot <- function(x, at = NULL, window = 0,
 #' )
 #' thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
 #'                            start = "constituted", end = "concluded")
-#' yearly <- hypergraph_snapshots(thg, step = 2)
+#' yearly <- hg_snapshots(thg, step = 2)
 #' names(yearly)
 #' @export
-hypergraph_snapshots <- function(x, start = NULL, end = NULL, step = NULL,
+hg_snapshots <- function(x, start = NULL, end = NULL, step = NULL,
                                  window = NULL, mode = c("active", "cumulative"),
                                  at = NULL, multiedges = TRUE) {
   .thg_check_temporal(x)
-  mode <- .thg_check_mode(mode, "hypergraph_snapshots")
+  mode <- .thg_check_mode(mode, "hg_snapshots")
   .thg_check_multiedges(multiedges)
   grid <- .thg_grid(x, start, end, step, window, at)
   out <- lapply(grid$times, function(t) {
     .thg_snapshot_at(x, t, grid$window, mode, multiedges, grid$closed)
   })
   names(out) <- make.unique(as.character(grid$times))
-  structure(out, class = c("net_hypergraph_snapshots", "list"),
+  structure(out, class = c("net_hg_snapshots", "list"),
             time_unit = x$time_unit, origin = x$origin, window = grid$window)
 }
 
 #' @export
-print.net_temporal_hypergraph <- function(x, ...) {
+print.net_temporal_hypergraph <- function(x, n = 10L, ...) {
   cat(sprintf("Temporal hypergraph: %d nodes, %d hyperedges, %d event times\n",
               length(x$nodes), length(x$edges), length(x$times)))
   cat(if (isTRUE(x$params$membership_times)) {
@@ -933,6 +934,7 @@ print.net_temporal_hypergraph <- function(x, ...) {
               .thg_clock_label(x$origin, x$time_unit),
               format(x$observation[["start"]]), format(x$observation[["end"]]),
               if (isTRUE(x$params$observation_explicit)) " (declared)" else ""))
+  .ho_print_table(x, n)
   invisible(x)
 }
 
@@ -961,7 +963,6 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 #' Tidy tables of a temporal hypergraph
 #'
 #' @param x A [temporal_hypergraph()].
-#' @param row.names,optional Ignored; present for compatibility.
 #' @param what `"memberships"` (default) for one row per node-in-hyperedge
 #'   spell (`member`, `edge`, `start`, `end`, `weight`), `"edges"` for one
 #'   row per hyperedge with its clock and attributes, `"nodes"` for the node
@@ -969,10 +970,9 @@ summary.net_temporal_hypergraph <- function(object, ...) {
 #' @param ... Ignored.
 #' @return A base `data.frame`.
 #' @export
-as.data.frame.net_temporal_hypergraph <- function(x, row.names = NULL,
-                                                   optional = FALSE,
-                                                   what = c("memberships", "edges",
-                                                            "nodes"), ...) {
+hg_get.net_temporal_hypergraph <- function(x, what = c("memberships",
+                                                       "edges", "nodes"),
+                                           ...) {
   what <- match.arg(what)
   switch(what, memberships = x$memberships, edges = x$edge_data, nodes = x$node_data)
 }
@@ -981,7 +981,7 @@ as.data.frame.net_temporal_hypergraph <- function(x, row.names = NULL,
 #'
 #' @param x A [temporal_hypergraph()].
 #' @param at Snapshot time; defaults to the end of observation.
-#' @param mode Snapshot mode passed to [hypergraph_snapshot()].
+#' @param mode Snapshot mode passed to [hg_snapshot()].
 #' @param method Projection weighting passed to [hg_project()].
 #' @param ... Additional arguments passed to [cograph::splot()].
 #' @return The cograph plot object, invisibly when rendered interactively.
@@ -991,7 +991,7 @@ plot.net_temporal_hypergraph <- function(x, at = NULL,
                                          method = c("association", "clique"), ...) {
   mode <- .thg_check_mode(mode, "plot")
   method <- match.arg(method)
-  hg <- hypergraph_snapshot(x, at = at, mode = mode)
+  hg <- hg_snapshot(x, at = at, mode = mode)
   if (hg$n_nodes == 0L) .thg_bad_input("the selected snapshot has no active nodes")
   projection <- if (identical(method, "association")) {
     hg_project(hg, method = "association", what = "matrix")
@@ -1000,12 +1000,3 @@ plot.net_temporal_hypergraph <- function(x, at = NULL,
   }
   cograph::splot(as.matrix(projection), directed = FALSE, ...)
 }
-
-# Compact aliases retain identical bodies and formals.
-#' @rdname hypergraph_snapshot
-#' @export
-hg_snapshot <- hypergraph_snapshot
-
-#' @rdname hypergraph_snapshots
-#' @export
-hg_snapshots <- hypergraph_snapshots

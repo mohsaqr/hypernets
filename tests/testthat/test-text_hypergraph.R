@@ -5,14 +5,14 @@ tiny_corpus <- c(a = "salt and soup", b = "soup and stars")
 test_that("counts and the weights table are exact for a hand-built corpus", {
   hg <- text_hypergraph(tiny_corpus)
   expect_s3_class(hg, "text_hypergraph")
-  expect_s3_class(hg, "net_hypergraph")
-  tab <- as.data.frame(hg)
+  expect_s3_class(hg, "net_hg")
+  tab <- hg_get(hg)
   expect_identical(
     tab,
     data.frame(
       doc = c("a", "a", "a", "b", "b", "b"),
       word = c("and", "salt", "soup", "and", "soup", "stars"),
-      n = 1L,
+      count = 1L,
       weight = 1
     )
   )
@@ -20,14 +20,14 @@ test_that("counts and the weights table are exact for a hand-built corpus", {
 
 test_that("repeated tokens are counted, not deduplicated", {
   hg <- text_hypergraph(c(d = "soup soup onion"))
-  tab <- as.data.frame(hg)
-  expect_identical(tab$n, c(1L, 2L))
+  tab <- hg_get(hg)
+  expect_identical(tab$count, c(1L, 2L))
   expect_identical(tab$word, c("onion", "soup"))
 })
 
 test_that("tf-idf matches the hand-computed smoothed formula", {
   hg <- text_hypergraph(tiny_corpus, weight = "tfidf")
-  tab <- as.data.frame(hg)
+  tab <- hg_get(hg)
   # N = 2; df(and) = df(soup) = 2 -> idf = log(3/3) + 1 = 1
   # df(salt) = df(stars) = 1 -> idf = log(3/2) + 1
   rare <- log(3 / 2) + 1
@@ -35,7 +35,7 @@ test_that("tf-idf matches the hand-computed smoothed formula", {
     tab$weight,
     c(1, rare, 1, 1, 1, rare)
   )
-  vocab <- as.data.frame(hg, what = "vocabulary")
+  vocab <- hg_get(hg, what = "vocabulary")
   expect_identical(vocab$word, c("and", "salt", "soup", "stars"))
   expect_identical(vocab$doc_freq, c(2L, 1L, 2L, 1L))
   expect_equal(vocab$idf, c(1, rare, 1, rare))
@@ -55,8 +55,8 @@ test_that("node orientation controls which entity is the vertex set", {
 test_that("total incidence weight equals the weights table in both modes", {
   doc_hg <- text_hypergraph(tiny_corpus, nodes = "doc", weight = "tfidf")
   word_hg <- text_hypergraph(tiny_corpus, nodes = "word", weight = "tfidf")
-  doc_tab <- as.data.frame(doc_hg)
-  word_tab <- as.data.frame(word_hg)
+  doc_tab <- hg_get(doc_hg)
+  word_tab <- hg_get(word_hg)
   expect_equal(sum(doc_hg$incidence), sum(doc_tab$weight))
   expect_equal(sum(word_hg$incidence), sum(word_tab$weight))
   expect_true(all(doc_hg$incidence >= 0))
@@ -64,11 +64,11 @@ test_that("total incidence weight equals the weights table in both modes", {
 
 test_that("stop words and min_count filter the vocabulary", {
   hg <- text_hypergraph(tiny_corpus, stop_words = "and")
-  vocab <- as.data.frame(hg, what = "vocabulary")
+  vocab <- hg_get(hg, what = "vocabulary")
   expect_false("and" %in% vocab$word)
 
   hg2 <- text_hypergraph(tiny_corpus, min_count = 2L)
-  vocab2 <- as.data.frame(hg2, what = "vocabulary")
+  vocab2 <- hg_get(hg2, what = "vocabulary")
   expect_identical(vocab2$word, c("and", "soup"))
 })
 
@@ -79,7 +79,7 @@ test_that("data.frame input keeps IDs and carries metadata into documents", {
     year = c(2020L, 2021L)
   )
   hg <- text_hypergraph(articles, column = "abstract", id = "key")
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   expect_identical(docs$doc, c("x1", "x2"))
   expect_identical(docs$year, c(2020L, 2021L))
   expect_identical(docs$n_tokens, c(3L, 3L))
@@ -92,7 +92,7 @@ test_that("documents emptied by filtering are dropped with a classed warning", {
                           stop_words = "and"),
     class = "hypernets_dropped_documents"
   )
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   expect_identical(docs$doc, c("a", "c"))
 })
 
@@ -134,7 +134,7 @@ test_that("covid_abstracts dataset is intact", {
 
 test_that("curly apostrophes keep possessives as one token", {
   hg <- text_hypergraph(c(d = "the children\u2019s teacher's plan"))
-  vocab <- as.data.frame(hg, what = "vocabulary")
+  vocab <- hg_get(hg, what = "vocabulary")
   expect_identical(vocab$word, c("children's", "plan", "teacher's", "the"))
 })
 
@@ -174,19 +174,19 @@ test_that("text_hypergraph(min_chars) gates the vocabulary", {
          "a coal fired plant emits carbon dioxide")
   vocab <- function(k) {
     hg <- text_hypergraph(x, min_count = 1L, min_chars = k)
-    sort(as.data.frame(hg, what = "vocabulary")$word)
+    sort(hg_get(hg, what = "vocabulary")$word)
   }
   expect_true(all(c("a", "j", "m", "n") %in% vocab(1)))
   expect_false(any(nchar(vocab(3)) < 3))
   expect_true(all(c("energy", "carbon", "wathelet") %in% vocab(3)))
   # the default keeps everything
-  expect_identical(vocab(1), sort(as.data.frame(
+  expect_identical(vocab(1), sort(hg_get(
     text_hypergraph(x, min_count = 1L), what = "vocabulary")$word))
 })
 
 test_that("text_hypergraph(min_chars) shrinks the vocabulary monotonically", {
   x <- c("a bo cat food plates schools", "cat food and plates for schools")
-  sizes <- vapply(1:6, \(k) nrow(as.data.frame(
+  sizes <- vapply(1:6, \(k) nrow(hg_get(
     text_hypergraph(x, min_count = 1L, min_chars = k), what = "vocabulary")),
     integer(1))
   expect_false(is.unsorted(rev(sizes)))
@@ -300,7 +300,7 @@ test_that("max_words and coverage prune the constructor's vocabulary", {
   expect_gte(covered$text$token_share, 0.9)
   expect_identical(full$text$token_share, 1)
   # the kept vocabulary is exactly the surviving hyperedges
-  expect_setequal(as.data.frame(capped, what = "vocabulary")$word,
+  expect_setequal(hg_get(capped, what = "vocabulary")$word,
                   colnames(capped$incidence))
   # pruning announces itself
   expect_message(
@@ -330,4 +330,13 @@ test_that("the vocabulary filters reject bad input", {
     text_hypergraph(corpus, column = "text", id = "id", min_count = 99L),
     class = "hypernets_empty_corpus"
   )
+})
+
+test_that("covid_sample holds 1,000 distinct abstracts", {
+  expect_identical(dim(covid_sample), c(1000L, 4L))
+  expect_named(covid_sample, c("doc", "title", "abstract", "year"))
+  expect_identical(anyDuplicated(covid_sample$doc), 0L)
+  expect_identical(anyDuplicated(covid_sample$abstract), 0L)
+  expect_true(all(nchar(covid_sample$abstract) >= 400))
+  expect_true(all(covid_sample$year >= 2020L & covid_sample$year <= 2024L))
 })

@@ -10,13 +10,13 @@
 #' Hypergraph eigenvector centralities
 #'
 #' Computes one or more eigenvector-style centralities on a
-#' [net_hypergraph][build_hypergraph]: *clique-motif* (CEC),
+#' [net_hg][network_hypergraph]: *clique-motif* (CEC),
 #' *Z-eigenvector* (ZEC), and *H-eigenvector* (HEC). Each variant
 #' captures influence differently - CEC flattens group structure via
 #' clique expansion, while ZEC and HEC propagate through the
 #' higher-order groups directly.
 #'
-#' @param hg A `net_hypergraph` (from [build_hypergraph()],
+#' @param hg A `net_hg` (from [network_hypergraph()],
 #'   [group_hypergraph()], or [window_hypergraph()]).
 #' @param type Character vector, any subset of
 #'   `c("clique", "Z", "H", "pagerank", "subhypergraph")`. The default computes the three
@@ -57,7 +57,7 @@
 #' clique-expanded pairwise graph \eqn{W} where
 #' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
 #' eigenvector of \eqn{W}. Equivalent to running
-#' `igraph::eigen_centrality()` on [clique_expansion()] output.
+#' `igraph::eigen_centrality()` on [hg_clique_expansion()] output.
 #'
 #' **Z-eigenvector centrality (ZEC)**: solves the linear
 #' eigen-equation on the hyperedge tensor,
@@ -88,7 +88,7 @@
 #' no hyperedge (possible after `min_weight`/`min_size` filtering)
 #' teleport from every step and receive only teleportation mass. The
 #' undamped stationary distribution of the same walk is the `pi` column
-#' reported by [hypergraph_cluster()].
+#' reported by [hg_cluster()].
 #'
 #' **Subhypergraph centrality** (`"subhypergraph"`): the logarithm of the
 #' diagonal of the matrix exponential of the clique adjacency derived from
@@ -97,24 +97,8 @@
 #' factorial penalty for length and matches the implementation used by
 #' HypergraphX 1.5 in the legal-hypergraphs analysis.
 #'
-#' @seealso [build_hypergraph()], [clique_expansion()],
-#'   [hypergraph_measures()].
-#'
-#' @examples
-#' df <- data.frame(
-#'   member  = c("A", "B", "C", "A", "B", "D", "C", "D", "E"),
-#'   session = c("S1", "S1", "S1", "S2", "S2", "S3", "S3", "S3", "S3")
-#' )
-#' hg <- group_hypergraph(df, "member", "session")
-#'
-#' # One row per node, one column per variant - compare across the columns
-#' hypergraph_centrality(hg)
-#'
-#' # Ranked by one of them
-#' hypergraph_centrality(hg, sort_by = "clique")
-#'
-#' # PageRank of the EDVW random walk
-#' hypergraph_centrality(hg, type = "pagerank")
+#' @seealso [network_hypergraph()], [hg_clique_expansion()],
+#'   [hg_measures()].
 #'
 #' @references
 #' Benson, A. R. (2019). Three hypergraph eigenvector centralities.
@@ -141,8 +125,8 @@
 #'   equations remain in the unit suite for deterministic validation without
 #'   Python.
 #'
-#' @export
-hypergraph_centrality <- function(hg,
+#' @noRd
+.hg_centrality_fit <- function(hg,
                                    type     = c("clique", "Z", "H"),
                                    max_iter = 1000L,
                                    tol      = 1e-8,
@@ -152,7 +136,7 @@ hypergraph_centrality <- function(hg,
                                    sort_by = NULL,
                                    top = NULL) {
   stopifnot(
-    inherits(hg, "net_hypergraph"),
+    inherits(hg, "net_hg"),
     is.numeric(max_iter), length(max_iter) == 1L, max_iter > 0,
     is.numeric(tol), length(tol) == 1L, tol > 0,
     is.logical(normalize), length(normalize) == 1L,

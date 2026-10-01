@@ -18,6 +18,29 @@
 #' hg
 "covid_abstracts"
 
+#' A random sample of 1,000 COVID-19 education research abstracts
+#'
+#' A simple random sample of 1,000 abstracts from the Scopus export of
+#' COVID-19 education research that the `sbert` package also uses
+#' (4,187 records, 2020--2024). Records without an abstract of at least 400
+#' characters are excluded before sampling, and an abstract that appears
+#' twice is kept once. The years are represented in the proportions of the
+#' source. Rebuilt by `data-raw/covid_sample.R`.
+#'
+#' @format A data frame with 1,000 rows and 4 columns:
+#' \describe{
+#'   \item{doc}{Scopus EID, the unique document identifier.}
+#'   \item{title}{Article title.}
+#'   \item{abstract}{Abstract text (each at least 400 characters).}
+#'   \item{year}{Publication year (integer, 2020--2024).}
+#' }
+#' @source Scopus export of COVID-19 education research, 2020--2024.
+#' @examples
+#' hg <- text_hypergraph(covid_sample, column = "abstract", id = "doc",
+#'                       stop_words = stop_words_en(), min_count = 5)
+#' hg
+"covid_sample"
+
 #' Sentence embeddings of the COVID-19 abstracts
 #'
 #' Sentence embeddings of [covid_abstracts]' abstract texts, computed with

@@ -2,17 +2,9 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_relations}
 \alias{hg_relations}
-\alias{hypergraph_relations}
 \title{Relations between topics: a weighted network of shared vocabulary}
 \usage{
 hg_relations(
-  hg,
-  clusters,
-  similarity = c("none", "association", "cosine", "jaccard", "inclusion", "equivalence"),
-  what = c("edges", "network")
-)
-
-hypergraph_relations(
   hg,
   clusters,
   similarity = c("none", "association", "cosine", "jaccard", "inclusion", "equivalence"),

@@ -39,26 +39,29 @@ test_that("hg_compare_communities tabulates sizes, similarity and summaries", {
   cmp <- hg_compare_communities(mh = mh, bh = bh)
   expect_s3_class(cmp, "hypernets_community_comparison")
   expect_identical(cmp$models, c("mh", "bh"))
-  s <- as.data.frame(cmp)
+  s <- hg_get(cmp)
   expect_identical(names(s), c("model", "medoid_seed", "n_runs", "n_communities",
-                               "n_singletons", "n_nontrivial", "largest",
-                               "second", "balance"))
+                               "n_singletons", "n_nontrivial", "largest_size",
+                               "second_size", "balance"))
   expect_identical(s$n_communities, c(2L, 2L))
   expect_equal(s$balance, c(1, 1))
-  sim <- as.data.frame(cmp, what = "similarity")
+  sim <- hg_get(cmp, what = "similarity")
   expect_identical(names(sim), c("model_a", "model_b", "n_nodes", "ami", "ari", "nmi"))
   expect_equal(sim$ari, 1)
   expect_equal(sim$ami, 1)
-  sizes <- as.data.frame(cmp, what = "sizes")
+  sizes <- hg_get(cmp, what = "sizes")
   expect_identical(sizes$n_nodes, c(3L, 3L, 3L, 3L))
   cmp_summary <- summary(cmp)
-  expect_identical(cmp_summary, s)
+  expect_identical(cmp_summary$summary, s)
   expect_output(print(cmp), "2 representations")
   sizes_plot <- plot(cmp)
   expect_s3_class(sizes_plot, "ggplot")
   similarity_plot <- plot(cmp, what = "similarity")
   expect_s3_class(similarity_plot, "ggplot")
-  m <- as.data.frame(cmp, what = "matrix")
+  # the heatmap's matrix: AMI below, ARI above the diagonal; the table is
+  # the similarity data frame
+  expect_error(hg_get(cmp, what = "matrix"))
+  m <- .thg_similarity_matrix(cmp)
   expect_identical(dimnames(m), list(c("mh", "bh"), c("mh", "bh")))
   expect_equal(m["bh", "mh"], sim$ami)
   expect_equal(m["mh", "bh"], sim$ari)
@@ -68,7 +71,7 @@ test_that("hg_compare_communities tabulates sizes, similarity and summaries", {
   expect_identical(from_list$summary, cmp$summary)
   expect_error(hg_compare_communities(mh = mh), class = "hypernets_bad_input")
   expect_error(hg_compare_communities(mh, bh), class = "hypernets_bad_input")
-  expect_error(as.data.frame(cmp, what = "quality"), class = "hypernets_bad_input")
+  expect_error(hg_get(cmp, what = "quality"), class = "hypernets_bad_input")
 })
 
 test_that("quality scores each medoid on its own projection", {
@@ -78,7 +81,7 @@ test_that("quality scores each medoid on its own projection", {
   mgu <- hg_communities(hg, n_runs = 2, trials = 2, seeds = 1:2,
                         method = "citation")
   cmp <- hg_compare_communities(mh = mh, mgu = mgu, hg = hg)
-  q <- as.data.frame(cmp, what = "quality")
+  q <- hg_get(cmp, what = "quality")
   expect_identical(q$model, c("mh", "mgu"))
   expect_identical(names(q)[1:3], c("model", "coverage", "weighted_coverage"))
   # two disjoint triangles: the association medoid is the perfect cut

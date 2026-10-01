@@ -1,0 +1,87 @@
+diff --git a/R/memory_hon.R b/R/memory_hon.R
+index d243cd2..b80021c 100644
+--- a/R/memory_hon.R
++++ b/R/memory_hon.R
+@@ -1104,6 +1104,15 @@
+ #'   \code{time} orders events within an actor (row order when
+ #'   \code{NULL}). Leave all three \code{NULL} for wide, list, or model
+ #'   input. Same interface as \code{\link{bootstrap_hon}()}.
++#' @param by \code{NULL} (default) for one pooled network, or the unit to
++#'   fit one network per: the name of a column of a (wide or long)
++#'   \code{data.frame}, or, for list input, a vector with one entry per
++#'   trajectory. Each unit (an actor: a student, a team, a project) gets its
++#'   own BuildHON model fitted on its own trajectories alone, and the result
++#'   is a \code{net_hon_group} -- see \code{\link{net_hon_group}} for the
++#'   container, the support guard and the design rationale.
++#' @param min_transitions,keep_sparse Support guard for \code{by}; see
++#'   \code{\link{net_hon_group}}. Refused without \code{by}.
+ #' @param max_order Integer. Maximum order of the HON. Default 5.
+ #'   The algorithm may produce lower-order nodes if the data do not
+ #'   justify higher orders.
+@@ -1117,7 +1126,11 @@
+ #'   pruning) or \code{"hon"} (original BuildHON with eager observation
+ #'   building).
+ #'
+-#' @return An S3 object of class \code{"net_hon"} containing:
++#' @return With \code{by = NULL}, an S3 object of class \code{"net_hon"}
++#'   (below). With \code{by}, a \code{net_hon_group} holding one
++#'   \code{net_hon} per unit (\code{\link{net_hon_group}}).
++#'
++#'   A \code{"net_hon"} contains:
+ #' \describe{
+ #'   \item{matrix}{Weighted adjacency matrix (rows = from, cols = to).
+ #'     Rows and columns use readable arrow notation (e.g., \code{"A -> B"}).}
+@@ -1190,7 +1203,22 @@
+ #' @export
+ build_hon <- function(data, max_order = 5L, min_freq = 1L,
+                       collapse_repeats = FALSE, method = "hon+",
+-                      action = NULL, actor = NULL, time = NULL) {
++                      action = NULL, actor = NULL, time = NULL,
++                      by = NULL, min_transitions = NULL,
++                      keep_sparse = FALSE) {
++  # --- One network per unit (idiographic): see memory_hon_group.R ---
++  if (!is.null(by)) {
++    return(.hon_group_build(
++      data, by = by, max_order = max_order, min_freq = min_freq,
++      collapse_repeats = collapse_repeats, method = method,
++      action = action, actor = actor, time = time,
++      min_transitions = min_transitions, keep_sparse = keep_sparse))
++  }
++  if (!is.null(min_transitions) || !isFALSE(keep_sparse)) {
++    stop(errorCondition(
++      "`min_transitions` and `keep_sparse` guard per-unit models and need `by`.",
++      class = "hypernets_bad_input", call = NULL))
++  }
+   # --- Long format: one event per row (same contract as bootstrap_hon) ---
+   if (!is.null(action)) {
+     method <- match.arg(method, c("hon+", "hon"))
+diff --git a/R/memory_inference.R b/R/memory_inference.R
+index 0a2549a..f868aa0 100644
+--- a/R/memory_inference.R
++++ b/R/memory_inference.R
+@@ -27,10 +27,12 @@
+ #'   long data.frame with `action`).
+ #' @param action,actor,time Long-format column names or NULL.
+ #' @param collapse_repeats Logical, as in build_hon().
+-#' @return List of character trajectories (length >= 1).
++#' @param allow_empty Logical. Return an empty list instead of erroring when
++#'   no trajectory has two states.
++#' @return List of character trajectories (length >= 1 unless allow_empty).
+ #' @noRd
+ .hi_parse <- function(data, action = NULL, actor = NULL, time = NULL,
+-                      collapse_repeats = FALSE) {
++                      collapse_repeats = FALSE, allow_empty = FALSE) {
+   if (!is.null(action)) {
+     stopifnot(
+       "`data` must be a data.frame when `action` is given" =
+@@ -69,7 +71,9 @@
+     })
+   }
+   trajectories <- trajectories[lengths(trajectories) >= 2L]
+-  if (length(trajectories) == 0L) {
++  # allow_empty: the per-unit support count in build_hon(by =) must see a
++  # unit with no transition as zero support, not as an error.
++  if (length(trajectories) == 0L && !isTRUE(allow_empty)) {
+     stop("No valid trajectories (each must have at least 2 states).",
+          call. = FALSE)
+   }

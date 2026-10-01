@@ -27,12 +27,12 @@
 
 #' Stable Infomap communities of a hypergraph projection
 #'
-#' Builds the normalized association graph of Coupette et al. (2024), runs
+#' The hypergraph method of [hg_communities()]. Builds the normalized association graph of Coupette et al. (2024), runs
 #' Infomap repeatedly, compares every pair of partitions with AMI, ARI and
 #' NMI, and returns the run with the largest summed AMI as the medoid. The
 #' paper uses 50 seeds and 100 Infomap trials per seed, which are the defaults.
 #'
-#' @param hg A static `net_hypergraph`.
+#' @param x A static `net_hg`.
 #' @param n_runs Number of independent seeded Infomap runs (default 50).
 #' @param trials Infomap trials within each run (default 100).
 #' @param seeds Integer seeds. `NULL` uses `seq_len(n_runs)`.
@@ -46,12 +46,49 @@
 #'   binary/multi and self-association representations.
 #' @param directed For `method = "citation"`: run Infomap with directed flow
 #'   on the source-to-member graph? Default `FALSE`.
+#' @param type The community algorithm: `"infomap"` (default; Infomap on the
+#'   projection chosen by `method`, as in Coupette et al. 2024) or `"irmm"`
+#'   (iteratively reweighted modularity maximisation, Kumar et al. 2020:
+#'   Louvain on the random-walk clique reduction
+#'   \eqn{A = H W (D_e - I)^{-1} H^T}, then every hyperedge is reweighted
+#'   to \eqn{w'(e) = \frac{1}{m}\sum_{i=1}^{c} \frac{\delta(e) + c}{k_i(e) + 1}}
+#'   and averaged with its previous weight, until the largest weight change
+#'   is at most `delta`). IRMM reads the hypergraph directly, so `trials`,
+#'   `method`, `duplicate_edges`, `self_association`, `edge_source` and
+#'   `directed` do not apply to it and raise `hypernets_bad_input` when
+#'   supplied. Each of the `n_runs` runs is one full IRMM fit whose Louvain
+#'   steps draw from R's RNG under that run's seed (the caller's RNG state is
+#'   restored); igraph is required.
+#' @param delta For `type = "irmm"`: stop when no hyperedge weight changes by
+#'   more than `delta` in a pass (default 0.01, the paper's threshold).
+#' @param max_iter For `type = "irmm"`: maximum reweighting passes (default
+#'   50). A run that hits it is flagged `converged = FALSE` in the `"runs"`
+#'   table and raises one `hypernets_no_converge` warning.
+#' @param edge_weights For `type = "irmm"`: initial positive hyperedge
+#'   weights (one per hyperedge, or one value recycled). `NULL` uses the
+#'   window counts of a [window_hypergraph()], else unit weights.
 #' @return An `hg_communities` object containing `medoid` (a tidy node/community
 #'   table), all `partitions`, AMI/ARI/NMI similarity matrices, run metadata,
-#'   community sizes, and the graph `projection` Infomap ran on.
+#'   community sizes, and the graph `projection` Infomap ran on. For
+#'   `type = "irmm"` the `"runs"` table has `run`, `seed`, `n_communities`,
+#'   `iterations`, `converged`, `max_weight_change` and `modularity` (the
+#'   linear hypergraph modularity of [hg_modularity()]), `projection` is the
+#'   reweighted clique reduction of the medoid run, and
+#'   `hg_get(fit, what = "weights")` gives one row per hyperedge with
+#'   `edge`, `size`, `initial_weight` and the medoid run's final `weight`.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
 #' hypergraphs. *Philosophical Transactions of the Royal Society A*,
 #' 382(2270), 20230141. \doi{10.1098/rsta.2023.0141}
+#'
+#' Kumar, T., Vaidyanathan, S., Ananthapadmanabhan, H., Parthasarathy, S., &
+#' Ravindran, B. (2020). Hypergraph clustering by iteratively reweighted
+#' modularity maximization. *Applied Network Science*, 5, 52.
+#' \doi{10.1007/s41109-020-00300-3}
+#'
+#' Blondel, V. D., Guillaume, J.-L., Lambiotte, R., & Lefebvre, E. (2008).
+#' Fast unfolding of communities in large networks. *Journal of Statistical
+#' Mechanics*, 2008(10), P10008. \doi{10.1088/1742-5468/2008/10/P10008}
+#' @seealso [hg_modularity()] to score any partition.
 #' @examples
 #' dat <- data.frame(
 #'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
@@ -60,15 +97,41 @@
 #' h <- group_hypergraph(dat, "member", "edge")
 #' if (requireNamespace("igraph", quietly = TRUE)) {
 #'   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
-#'   as.data.frame(fit)
+#'   hg_get(fit)
+#'   irmm <- hg_communities(h, type = "irmm", n_runs = 3, seeds = 1:3)
+#'   hg_get(irmm)
+#'   hg_get(irmm, what = "runs")
 #' }
+#' @param ... Must be empty: an argument that only the memory-network
+#'   method takes raises `hypernets_bad_input`.
 #' @export
-hg_communities <- function(hg, n_runs = 50L, trials = 100L, seeds = NULL,
-                           method = c("association", "citation"),
-                           duplicate_edges = c("count", "collapse"),
-                           self_association = FALSE, edge_source = NULL,
-                           directed = FALSE) {
+hg_communities.net_hg <- function(x, n_runs = 50L, trials = 100L,
+                                  seeds = NULL,
+                                  method = c("association", "citation"),
+                                  duplicate_edges = c("count", "collapse"),
+                                  self_association = FALSE,
+                                  edge_source = NULL, directed = FALSE,
+                                  type = c("infomap", "irmm"), delta = 0.01,
+                                  max_iter = 50L, edge_weights = NULL, ...) {
+  .ho_no_dots(..., .for = "a hypergraph")
+  hg <- x
   .thg_check_hg(hg)
+  type <- match.arg(type)
+  foreign <- intersect(names(match.call())[-1L], if (identical(type, "irmm")) {
+    c("trials", "method", "duplicate_edges", "self_association",
+      "edge_source", "directed")
+  } else {
+    c("delta", "max_iter", "edge_weights")
+  })
+  if (length(foreign)) {
+    .thg_bad_input(sprintf("%s: not used by `type = \"%s\"`",
+                           paste0("`", foreign, "`", collapse = ", "), type))
+  }
+  if (identical(type, "irmm")) {
+    return(.hg_irmm_communities(hg, n_runs = n_runs, seeds = seeds,
+                                delta = delta, max_iter = max_iter,
+                                edge_weights = edge_weights))
+  }
   method <- match.arg(method)
   duplicate_edges <- match.arg(duplicate_edges)
   if (!is.logical(directed) || length(directed) != 1L || is.na(directed)) {
@@ -194,16 +257,17 @@ hg_communities <- function(hg, n_runs = 50L, trials = 100L, seeds = NULL,
 #'
 #' @param ... Named `hg_communities` fits, or one named list of them. The
 #'   names label the representations (`bh`, `mhs`, `bgu`, ...).
-#' @param hg Optional: the static `net_hypergraph` the fits were computed on.
+#' @param hg Optional: the static `net_hg` the fits were computed on.
 #'   When given, every medoid is scored with [hg_community_quality()] on the
 #'   projection its own fit used, and the scores are available as
 #'   `what = "quality"`.
 #' @param edge_source Hyperedge sources for the citation and self-association
 #'   projections when scoring, as in [hg_project()].
-#' @return A `hypernets_community_comparison` object. `as.data.frame()` returns
+#' @return A `hypernets_community_comparison` object. `hg_get()` returns
 #'   its `"summary"` (default; one row per fit with `model`, `medoid_seed`,
-#'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest`, `second`
-#'   and `balance` = second / largest), `"similarity"` (one row per pair of
+#'   `n_communities`, `n_singletons`, `n_nontrivial`, `largest_size`,
+#'   `second_size` and `balance` = second / largest), `"similarity"` (one
+#'   row per pair of
 #'   fits with `model_a`, `model_b`, `ami`, `ari`, `nmi`, on the nodes the
 #'   two medoids share), `"sizes"` (one row per community of every medoid
 #'   with `model`, `rank`, `n_nodes`) or, when `hg` was given, `"quality"`
@@ -226,8 +290,8 @@ hg_communities <- function(hg, n_runs = 50L, trials = 100L, seeds = NULL,
 #'   binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,
 #'                            duplicate_edges = "collapse")
 #'   comparison <- hg_compare_communities(mh = multi, bh = binary)
-#'   as.data.frame(comparison)
-#'   as.data.frame(comparison, what = "similarity")
+#'   hg_get(comparison)
+#'   hg_get(comparison, what = "similarity")
 #' }
 #' @export
 hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
@@ -250,8 +314,8 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
       model = model, medoid_seed = fit$runs$seed[fit$medoid_run],
       n_runs = nrow(fit$runs), n_communities = length(sizes),
       n_singletons = sum(sizes == 1L), n_nontrivial = sum(sizes > 1L),
-      largest = sizes[[1L]],
-      second = if (length(sizes) > 1L) sizes[[2L]] else NA_integer_,
+      largest_size = sizes[[1L]],
+      second_size = if (length(sizes) > 1L) sizes[[2L]] else NA_integer_,
       balance = if (length(sizes) > 1L) sizes[[2L]] / sizes[[1L]] else NA_real_,
       stringsAsFactors = FALSE
     )
@@ -294,29 +358,26 @@ hg_compare_communities <- function(..., hg = NULL, edge_source = NULL) {
 
 #' @rdname hg_compare_communities
 #' @param x A `hypernets_community_comparison` object.
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @export
-print.hypernets_community_comparison <- function(x, ...) {
+print.hypernets_community_comparison <- function(x, n = 10L, ...) {
   cat(sprintf("Community comparison across %d representations: %s\n",
               length(x$models), paste(x$models, collapse = ", ")))
-  print(x$summary, row.names = FALSE)
+  .ho_print_table(x, n)
   invisible(x)
 }
 
 #' @rdname hg_compare_communities
-#' @param row.names,optional Unused; present for the base S3 contract.
-#' @param what Which table: `"summary"` (default), `"similarity"`, `"sizes"`,
-#'   `"quality"`, or `"matrix"` for the similarity as a square matrix with
-#'   AMI below and ARI above the diagonal (the layout of `plot()`).
+#' @param what Which table: `"summary"` (default), `"similarity"`, `"sizes"`
+#'   or `"quality"`.
 #' @export
-as.data.frame.hypernets_community_comparison <- function(x, row.names = NULL,
-                                                      optional = FALSE,
-                                                      what = c("summary",
-                                                               "similarity",
-                                                               "sizes",
-                                                               "quality",
-                                                               "matrix"), ...) {
+hg_get.hypernets_community_comparison <- function(x,
+                                                  what = c("summary",
+                                                           "similarity",
+                                                           "sizes",
+                                                           "quality"),
+                                                  ...) {
   what <- match.arg(what)
-  if (identical(what, "matrix")) return(.thg_similarity_matrix(x))
   out <- x[[what]]
   if (is.null(out)) {
     .thg_bad_input("quality scores need the hypergraph: hg_compare_communities(..., hg = )")
@@ -325,12 +386,15 @@ as.data.frame.hypernets_community_comparison <- function(x, row.names = NULL,
   out
 }
 
-#' @rdname hg_compare_communities
-#' @param object A `hypernets_community_comparison` object.
+#' @rdname result-summary
 #' @export
 summary.hypernets_community_comparison <- function(object, ...) {
-  as.data.frame(object, what = "summary")
+  .ho_summary(object)
 }
+
+#' @rdname result-summary
+#' @export
+summary.hg_communities <- function(object, ...) .ho_summary(object)
 
 #' @rdname hg_compare_communities
 #' @param ... For `plot`, unused.
@@ -340,7 +404,7 @@ plot.hypernets_community_comparison <- function(x, what = c("sizes", "similarity
                                              ...) {
   what <- match.arg(what)
   if (identical(what, "sizes")) {
-    sizes <- as.data.frame(x, what = "sizes")
+    sizes <- hg_get(x, what = "sizes")
     curve <- do.call(rbind, lapply(split(sizes, sizes$model), function(d) {
       s <- sort(d$n_nodes)
       distinct <- unique(s)
@@ -369,7 +433,7 @@ plot.hypernets_community_comparison <- function(x, what = c("sizes", "similarity
   # AMI below the diagonal, ARI above it, as in the paper's Figure 8c;
   # cograph draws the matrix.
   cograph::plot_heatmap(
-    as.data.frame(x, what = "matrix"), show_values = TRUE, limits = c(0, 1),
+    .thg_similarity_matrix(x), show_values = TRUE, limits = c(0, 1),
     colors = .thg_okabe_ito_ramp(), na_color = "white", show_diagonal = FALSE,
     legend_title = "AMI (below)\nARI (above)", axis_text_angle = 0,
     value_size = 3
@@ -387,37 +451,70 @@ plot.hypernets_community_comparison <- function(x, what = c("sizes", "similarity
   m
 }
 
-#' @rdname hg_communities
+#' @rdname hg_get.hg_communities
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @export
-print.hg_communities <- function(x, ...) {
-  cat(sprintf("Hypergraph Infomap ensemble: %d nodes, %d runs\n",
-              nrow(x$medoid), nrow(x$runs)))
-  cat(sprintf("AMI medoid: run %d (seed %d), %d communities\n",
-              x$medoid_run, x$runs$seed[x$medoid_run], nrow(x$sizes)))
+print.hg_communities <- function(x, n = 10L, ...) {
+  algorithm <- if (identical(x$params$type, "irmm")) "IRMM" else "Infomap"
+  cat(sprintf(paste0("Hypergraph %s communities: %d nodes, %d communities ",
+                     "(the medoid of %d runs, run %d, seed %d)\n"),
+              algorithm, nrow(x$medoid), nrow(x$sizes), nrow(x$runs),
+              x$medoid_run, x$runs$seed[x$medoid_run]))
+  .ho_print_table(x, n)
   invisible(x)
 }
 
-#' @rdname hg_communities
+#' Tables of a hypergraph community ensemble
+#'
+#' Reads, prints and plots the result of [hg_communities()] on a hypergraph.
+#'
 #' @param x An `hg_communities` object.
-#' @param row.names,optional Unused; present for the base S3 contract.
-#' @param what Component to return: `"medoid"`, `"partitions"`, `"runs"`,
-#'   `"sizes"`, `"ami"`, `"ari"`, or `"nmi"`.
+#' @param what Table to return: `"medoid"` (default: one row per node with
+#'   its community in the AMI-medoid run), `"partitions"`, `"runs"`,
+#'   `"sizes"`, `"ami"`, `"ari"`, `"nmi"`, or (IRMM fits only) `"weights"`.
+#'   The three similarity tables have one row per distinct pair of runs
+#'   (`run_a`, `run_b`, and the similarity), without the diagonal.
+#' @param ... For `plot()`, additional arguments passed to
+#'   [cograph::splot()]; otherwise unused.
+#' @return `hg_get()`: a base data.frame. `print()`: `x`, invisibly.
+#'   `plot()`: the cograph plot of the projection, coloured by the medoid
+#'   communities.
+#' @examples
+#' dat <- data.frame(
+#'   member = c("a", "b", "c", "a", "b", "c", "x", "y", "z", "x", "y", "z"),
+#'   edge = rep(paste0("e", 1:4), each = 3)
+#' )
+#' h <- group_hypergraph(dat, "member", "edge")
+#' if (requireNamespace("igraph", quietly = TRUE)) {
+#'   fit <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2)
+#'   hg_get(fit, what = "runs")
+#' }
 #' @export
-as.data.frame.hg_communities <- function(x, row.names = NULL, optional = FALSE,
-                                         what = c("medoid", "partitions", "runs",
-                                                  "sizes", "ami", "ari", "nmi"),
-                                         ...) {
+hg_get.hg_communities <- function(x, what = c("medoid", "partitions", "runs",
+                                              "sizes", "ami", "ari", "nmi",
+                                              "weights"),
+                                  ...) {
   what <- match.arg(what)
+  if (identical(what, "weights") && is.null(x$weights)) {
+    .thg_bad_input("`what = \"weights\"` needs an `hg_communities(type = \"irmm\")` fit")
+  }
   if (what %in% c("ami", "ari", "nmi")) {
-    return(as.data.frame(as.table(x$similarity[[what]]),
-                         stringsAsFactors = FALSE,
-                         responseName = what))
+    # one row per distinct pair of runs (a < b); the diagonal is 1 by
+    # definition and the matrix is symmetric, so neither carries information
+    m <- x$similarity[[what]]
+    pairs <- which(upper.tri(m), arr.ind = TRUE)
+    runs <- rownames(m) %||% paste0("run_", seq_len(nrow(m)))
+    out <- data.frame(run_a = runs[pairs[, "row"]], run_b = runs[pairs[, "col"]],
+                      stringsAsFactors = FALSE)
+    out[[what]] <- m[pairs]
+    out <- out[order(pairs[, "row"], pairs[, "col"]), , drop = FALSE]
+    rownames(out) <- NULL
+    return(out)
   }
   x[[what]]
 }
 
-#' @rdname hg_communities
-#' @param ... Additional arguments passed to [cograph::splot()].
+#' @rdname hg_get.hg_communities
 #' @export
 plot.hg_communities <- function(x, ...) {
   membership <- x$medoid$community[match(rownames(x$projection), x$medoid$node)]
@@ -432,13 +529,24 @@ plot.hg_communities <- function(x, ...) {
 #' and conductance. Conductance is the maximum (worst) community conductance
 #' \eqn{cut(S, \bar S) / min(vol(S), vol(\bar S))}; lower is better.
 #'
-#' @param hg A static `net_hypergraph`.
+#' @param hg A static `net_hg`.
 #' @param partition An [hg_communities()] result, a tidy node/label table, or a
 #'   named label vector.
 #' @param method The projection the partition is scored on: the
 #'   `"association"` graph (default) or the undirected `"citation"` graph.
-#' @inheritParams hg_communities
+#' @inheritParams hg_communities.net_hg
 #' @return A one-row data frame.
+#' @references
+#' Fortunato, S. (2010). Community detection in graphs. *Physics Reports*,
+#' 486(3-5), 75-174. \doi{10.1016/j.physrep.2009.11.002}
+#'
+#' Newman, M. E. J., & Girvan, M. (2004). Finding and evaluating community
+#' structure in networks. *Physical Review E*, 69, 026113.
+#' \doi{10.1103/PhysRevE.69.026113}
+#'
+#' Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal hypergraphs.
+#' *Philosophical Transactions of the Royal Society A*, 382, 20230141.
+#' \doi{10.1098/rsta.2023.0141}
 #' @export
 hg_community_quality <- function(hg, partition,
                                  method = c("association", "citation"),
@@ -497,11 +605,3 @@ hg_community_quality <- function(hg, partition,
     n_communities = length(unique(labels)), row.names = NULL
   )
 }
-
-#' @rdname hg_communities
-#' @export
-hypergraph_communities <- hg_communities
-
-#' @rdname hg_community_quality
-#' @export
-hypergraph_community_quality <- hg_community_quality

@@ -7,9 +7,9 @@
 hg_sequences(hg, clusters = NULL, actor, order_by, state = NULL)
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} -- more generally, any \code{net_hypergraph}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} -- more generally, any \code{net_hg}
 carrying a documents table, the one reached with
-\code{as.data.frame(hg, what = "documents")}.}
+\code{hg_get(hg, what = "documents")}.}
 
 \item{clusters}{A partition of the documents, as returned by
 \code{\link[=hg_cluster]{hg_cluster()}}: a data.frame with one row per node, a \code{node} column
@@ -48,26 +48,23 @@ table the memory family consumes. Each document of a \code{\link[=text_hypergrap
 carries whatever metadata came with the corpus (an author, a turn, a
 timestamp); \code{\link[=hg_cluster]{hg_cluster()}} gives each document a topic. \code{hg_sequences()}
 joins the two, orders the documents within each actor and returns one row
-per document as \code{actor} / \code{time} / \code{action} -- the long shape
-\code{\link[=build_hon]{build_hon()}}, \code{\link[=bootstrap_hon]{bootstrap_hon()}}, \code{\link[=compare_hon]{compare_hon()}} and
-\code{\link[=window_hypergraph]{window_hypergraph()}} read through their own \code{action} / \code{actor} / \code{time}
-arguments, so no coercion is written at the call site:
+per document as \code{actor} / \code{time} / \code{action} -- the long event table
+every memory-network verb reads through its \code{action} / \code{actor} / \code{time}
+arguments (\code{\link[=hon]{hon()}}, \code{\link[=mogen]{mogen()}}, \code{\link[=hypa]{hypa()}}, \code{\link[=markov_order]{markov_order()}},
+\code{\link[=hg_bootstrap]{hg_bootstrap()}}, \code{\link[=hg_compare]{hg_compare()}}, \code{\link[=window_hypergraph]{window_hypergraph()}}):
 }
 \details{
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-build_hon(seqs, action = "action", actor = "actor", time = "time")
+hon(seqs, action = "action", actor = "actor", time = "time")
 }\if{html}{\out{</div>}}
 
 Those three column names are fixed, which is what makes the second call
-the same every time. The memory-family verbs that do not (yet) take the
-long form -- \code{\link[=build_mogen]{build_mogen()}}, \code{\link[=build_hypa]{build_hypa()}}, \code{\link[=markov_order_test]{markov_order_test()}} --
-read a list of trajectories instead; pass the result of \code{hg_sequences()}
-to them only through one of the verbs above, since a long table handed to
-them bare is read as a \emph{wide} one (one trajectory per row) and silently
-gives the wrong model.
+the same every time. Passing the long table without \verb{action =} raises
+\code{hypernets_long_format}: read as wide (one trajectory per row) it would
+give the wrong model.
 
-This closes the one missing edge in the cross-family design: \code{pathways()}
-bridges the memory family to the others and \code{\link[=window_hypergraph]{window_hypergraph()}} bridges
+This closes the one missing edge in the cross-family design:
+\code{hg_get(x, what = "pathways")} bridges the memory family to the others and \code{\link[=window_hypergraph]{window_hypergraph()}} bridges
 sequences to hypergraphs, but until now the text family dead-ended at
 clustering and the caller had to assemble the sequence table themselves.
 }
@@ -107,10 +104,9 @@ hg_sequences(hg, topics, actor = "student", order_by = "turn")
 # A state that is already a column of the corpus needs no clustering.
 hg_sequences(hg, actor = "student", order_by = "turn", state = "phase")
 
-# Straight into the memory family, no further coercion.
+# Into the memory family: every memory verb reads the long table.
 seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
-build_hon(seqs, action = "action", actor = "actor", time = "time",
-          max_order = 2L)
+hon(seqs, action = "action", actor = "actor", time = "time", max_order = 2L)
 }
 \references{
 Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
@@ -122,7 +118,7 @@ clustering, classification, and embedding. \emph{Advances in Neural
 Information Processing Systems}, 19, 1601-1608.
 }
 \seealso{
-\code{\link[=hg_cluster]{hg_cluster()}} for the partition, \code{\link[=build_hon]{build_hon()}} and
-\code{\link[=bootstrap_hon]{bootstrap_hon()}} for what to do with the sequences,
+\code{\link[=hg_cluster]{hg_cluster()}} for the partition, \code{\link[=hon]{hon()}} and
+\code{\link[=hg_bootstrap]{hg_bootstrap()}} for what to do with the sequences,
 \code{\link[=window_hypergraph]{window_hypergraph()}} to read them back into a hypergraph.
 }

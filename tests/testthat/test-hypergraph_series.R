@@ -56,10 +56,10 @@ test_that("a node universe with entry times drives node counts and snapshots", {
   expect_identical(thg$nodes, c("a", "b", "c", "d", "z"))
   g <- hg_growth(thg, mode = "cumulative")
   expect_identical(g$n_nodes, c(3L, 4L, 5L))
-  snap <- hypergraph_snapshot(thg, at = 1)
+  snap <- hg_snapshot(thg, at = 1)
   expect_identical(snap$nodes, c("a", "b", "z"))
   expect_identical(snap$n_hyperedges, 1L)
-  all_snap <- hypergraph_snapshot(thg, mode = "cumulative")
+  all_snap <- hg_snapshot(thg, mode = "cumulative")
   expect_identical(all_snap$n_nodes, 5L)
   # the node table's first column is the name; `time` also gives the entry
   named <- data.frame(key = c("a", "b", "c", "d", "z"), time = c(1, 1, 2, 3, 0))
@@ -74,7 +74,7 @@ test_that("a node universe with entry times drives node counts and snapshots", {
                class = "hypernets_bad_input")
   # a bare universe keeps every node in every snapshot
   bare <- .growing_thg(nodes = c("a", "b", "c", "d", "z"))
-  bare_snap <- hypergraph_snapshot(bare, at = 1)
+  bare_snap <- hg_snapshot(bare, at = 1)
   expect_identical(bare_snap$n_nodes, 5L)
   bare_growth <- hg_growth(bare, mode = "cumulative")
   expect_identical(bare_growth$n_nodes, c(2L, 3L, 4L))
@@ -89,7 +89,7 @@ test_that("component statistics follow the shared-hyperedge connectivity", {
   expect_equal(g$largest_component, rep(1, 5))
   expect_identical(g$diameter, c(1L, 2L, 2L, 2L, 1L))
 
-  snap <- hypergraph_snapshot(.interval_thg(), at = 4)
+  snap <- hg_snapshot(.interval_thg(), at = 4)
   comp <- hg_measures(snap, what = "components")
   expect_identical(names(comp), c("component", "n_nodes", "n_edges", "share", "diameter"))
   expect_identical(comp$n_nodes, 5L)
@@ -103,7 +103,7 @@ test_that("component statistics follow the shared-hyperedge connectivity", {
                start = 1, end = 2),
     actor = "arbitrator", group = "case", start = "start", end = "end"
   )
-  apart_snap <- hypergraph_snapshot(apart, at = 1)
+  apart_snap <- hg_snapshot(apart, at = 1)
   two <- hg_measures(apart_snap, what = "components")
   expect_identical(two$component, 1:2)
   expect_identical(two$n_nodes, c(3L, 3L))
@@ -130,7 +130,7 @@ test_that("series and distribution tables plot", {
   columns_plot <- plot(g, columns = c("n_nodes", "n_edges"), facets = FALSE)
   expect_s3_class(columns_plot, "ggplot")
   expect_error(plot(g, columns = "nope"), class = "hypernets_bad_input")
-  snap <- hypergraph_snapshot(.interval_thg(), at = 2)
+  snap <- hg_snapshot(.interval_thg(), at = 2)
   d <- hg_measures(snap, what = "distribution", measure = "n_neighbors")
   expect_s3_class(d, "hypernets_distribution")
   expect_identical(attr(d, "measure"), "n_neighbors")

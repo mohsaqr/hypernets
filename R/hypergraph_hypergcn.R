@@ -186,14 +186,14 @@
 #' P. (2019). HyperGCN: A new method of training graph convolutional
 #' networks on hypergraphs. \emph{NeurIPS 32}.
 #' @export
-hypergraph_hypergcn <- function(
+hg_hypergcn <- function(
     hg, labels, features = "incidence",
     method = c("hypergcn", "fast", "one"), hidden = 128L,
     epochs = 200L, lr = 0.01, weight_decay = 5e-4, dropout = 0.5,
     validation = 0.1, edge_weights = NULL, seed = 1L, verbose = FALSE) {
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop(errorCondition(
-      "hypergraph_hypergcn() needs the torch package",
+      "hg_hypergcn() needs the torch package",
       class = "hypernets_missing_torch", call = NULL
     ))
   }
@@ -251,6 +251,3 @@ hypergraph_hypergcn <- function(
   out
 }
 
-#' @rdname hypergraph_hypergcn
-#' @export
-hg_hypergcn <- hypergraph_hypergcn

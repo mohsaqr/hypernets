@@ -31,7 +31,7 @@
 #' eigenvalues in `[0, 2]`; for a binary incidence with unit hyperedge
 #' weights they coincide.
 #'
-#' @param hg A `net_hypergraph` from [build_hypergraph()] or
+#' @param hg A `net_hg` from [network_hypergraph()] or
 #'   [group_hypergraph()]. Must be connected and have at least one
 #'   hyperedge.
 #' @param type Character. `"zhou"` (default) for the Zhou et al. (2006)
@@ -72,11 +72,11 @@
 #' )
 #' hg <- group_hypergraph(events, actor = "person", group = "meeting",
 #'                        weight = "hours")
-#' L <- hypergraph_laplacian(hg, type = "random_walk")
+#' L <- hg_laplacian(hg, type = "random_walk")
 #' range(eigen(L, symmetric = TRUE, only.values = TRUE)$values)
 #'
 #' @export
-hypergraph_laplacian <- function(hg,
+hg_laplacian <- function(hg,
                                  type = c("zhou", "random_walk"),
                                  edge_weights = NULL) {
   type <- match.arg(type)
@@ -108,9 +108,9 @@ hypergraph_laplacian <- function(hg,
 #' `seed` fixes the result. Report stability across seeds for consequential
 #' results.
 #'
-#' @param hg A connected `net_hypergraph`.
+#' @param hg A connected `net_hg`.
 #' @param k Integer number of clusters, `2 <= k <= n_nodes - 1`.
-#' @param type,edge_weights Passed to [hypergraph_laplacian()].
+#' @param type,edge_weights Passed to [hg_laplacian()].
 #' @param algorithm Character. `"spectral"` (default; RDC-Spec) or
 #'   `"symnmf"` (RDC-Sym).
 #' @param nstart Integer. Random restarts (default 25).
@@ -119,7 +119,7 @@ hypergraph_laplacian <- function(hg,
 #'   `algorithm = "symnmf"`.
 #' @param tol Relative objective tolerance for `algorithm = "symnmf"`.
 #'
-#' @return An object of class `net_hypergraph_cluster`: a list with
+#' @return An object of class `net_hg_cluster`: a list with
 #'   `$clusters` (data.frame, one row per node: `node`, `cluster` - labels
 #'   `"Cluster 1"`, `"Cluster 2"`, ... ordered by first appearance),
 #'   `$embedding` (node x k row-normalized spectral embedding used by
@@ -127,7 +127,7 @@ hypergraph_laplacian <- function(hg,
 #'   Laplacian spectrum, increasing), `$eigengap` (gap after the k-th
 #'   eigenvalue), `$sizes` (data.frame `cluster`/`size`), `$pi`
 #'   (stationary distribution) and `$params`. Has `print`, `summary`,
-#'   `plot` and `as.data.frame` methods; `as.data.frame()` returns one row
+#'   `plot` and `hg_get()` methods; `hg_get()` returns one row
 #'   per node with `node`, `cluster`, the stationary probability `pi`, and
 #'   the embedding coordinates.
 #'
@@ -139,20 +139,8 @@ hypergraph_laplacian <- function(hg,
 #' Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
 #' edge-dependent vertex weights. \emph{ICML 2019}.
 #'
-#' @examples
-#' events <- data.frame(
-#'   person = c("a", "b", "c", "a", "b", "c", "d", "e", "f",
-#'              "d", "e", "f", "c", "d"),
-#'   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
-#'               "m4", "m4", "m4", "m5", "m5")
-#' )
-#' hg <- group_hypergraph(events, actor = "person", group = "meeting")
-#' cl <- hypergraph_cluster(hg, k = 2, seed = 1)
-#' cl
-#' as.data.frame(cl)
-#'
-#' @export
-hypergraph_cluster <- function(hg, k,
+#' @noRd
+.hg_cluster_fit <- function(hg, k,
                                type = c("zhou", "random_walk"),
                                edge_weights = NULL,
                                nstart = 25L,
@@ -243,7 +231,7 @@ hypergraph_cluster <- function(hg, k,
                       seed = seed, max_iter = as.integer(max_iter), tol = tol),
                  diagnostics)
     ),
-    class = "net_hypergraph_cluster"
+    class = "net_hg_cluster"
   )
 }
 
@@ -259,7 +247,7 @@ hypergraph_cluster <- function(hg, k,
 #' hyperedges over words (or vice versa) it classifies unlabeled nodes from
 #' a handful of labeled ones.
 #'
-#' @param hg A connected `net_hypergraph`.
+#' @param hg A connected `net_hg`.
 #' @param labels Node labels. Either a named vector (names = node names,
 #'   values = class labels) covering a subset of nodes, or a full-length
 #'   vector aligned with `hg$nodes` with `NA` for unlabeled nodes. At least
@@ -267,7 +255,7 @@ hypergraph_cluster <- function(hg, k,
 #' @param xi Numeric in `(0, 1)`. Spreading coefficient (default `0.99`);
 #'   larger values weight the hypergraph structure more relative to the
 #'   initial labels.
-#' @param type,edge_weights Passed to [hypergraph_laplacian()].
+#' @param type,edge_weights Passed to [hg_laplacian()].
 #' @param normalization Decision rule applied to the score matrix before
 #'   the argmax. `"none"` (default) is the raw Zhou (2006) rule.
 #'   `"class_mass"` divides each class column by its total spread mass
@@ -275,13 +263,13 @@ hypergraph_cluster <- function(hg, k,
 #'   when the labeled seeds are class-imbalanced, where the raw rule can
 #'   collapse every prediction onto the majority class.
 #'
-#' @return An object of class `net_hypergraph_transduction`: a list with
+#' @return An object of class `net_hg_transduction`: a list with
 #'   `$predictions` (data.frame, one row per node: `node`, `label` (given,
 #'   `NA` if unlabeled), `predicted`, `score` (winning class score),
 #'   `margin` (winning minus runner-up score)), `$classes`, `$scores`
 #'   (node x class score matrix), `$xi`, `$type`, `$normalization`,
-#'   `$n_labeled` and `$params`. Has `print`, `summary`, `plot` and `as.data.frame` methods;
-#'   `as.data.frame(x, what = "scores")` returns the tidy long score table.
+#'   `$n_labeled` and `$params`. Has `print`, `summary`, `plot` and `hg_get()` methods;
+#'   `hg_get(x, what = "scores")` returns the tidy long score table.
 #'
 #' @references
 #' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
@@ -290,20 +278,8 @@ hypergraph_cluster <- function(hg, k,
 #' Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
 #' using Gaussian fields and harmonic functions. \emph{ICML 20}.
 #'
-#' @examples
-#' events <- data.frame(
-#'   person = c("a", "b", "c", "a", "b", "c", "d", "e", "f",
-#'              "d", "e", "f", "c", "d"),
-#'   meeting = c("m1", "m1", "m1", "m2", "m2", "m2", "m3", "m3", "m3",
-#'               "m4", "m4", "m4", "m5", "m5")
-#' )
-#' hg <- group_hypergraph(events, actor = "person", group = "meeting")
-#' tr <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"))
-#' tr
-#' as.data.frame(tr)
-#'
-#' @export
-hypergraph_transduction <- function(hg, labels, xi = 0.99,
+#' @noRd
+.hg_transduction_fit <- function(hg, labels, xi = 0.99,
                                     type = c("zhou", "random_walk"),
                                     edge_weights = NULL,
                                     normalization = c("none", "class_mass")) {
@@ -362,7 +338,7 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
       n_nodes     = n,
       params      = list(edge_weights = parts$w)
     ),
-    class = "net_hypergraph_transduction"
+    class = "net_hg_transduction"
   )
 }
 
@@ -373,7 +349,7 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
 # column by its total spread mass (class-mass normalization, Zhu et al.
 # 2003), which prevents an imbalanced seed set from collapsing every
 # prediction onto the majority class. `score` and `margin` are reported on
-# the matrix the argmax actually used. Shared by hypergraph_transduction(),
+# the matrix the argmax actually used. Shared by .hg_transduction_fit(),
 # its sparse counterpart, and the neural classifiers (hg_neural, hg_hypergat).
 .hl_score_predictions <- function(F_scores, lab, normalization) {
   decision <- if (identical(normalization, "class_mass")) {
@@ -405,12 +381,12 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
   )
 }
 
-#' Validate a net_hypergraph for spectral work (connected, non-degenerate)
+#' Validate a net_hg for spectral work (connected, non-degenerate)
 #' @noRd
 .hl_validate_hg <- function(hg) {
   stopifnot(
-    "`hg` must be a net_hypergraph (build_hypergraph/group_hypergraph)" =
-      inherits(hg, "net_hypergraph"),
+    "`hg` must be a net_hg (network_hypergraph/group_hypergraph)" =
+      inherits(hg, "net_hg"),
     "`hg` must have at least 2 nodes" = hg$n_nodes >= 2L,
     "`hg` must have at least 1 hyperedge" = hg$n_hyperedges >= 1L
   )
@@ -469,7 +445,7 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
     pi_v <- d_v / sum(d_v)
   } else {
     # Hayashi EDVW random walk on the weighted incidence; the transition
-    # matrix is shared with hypergraph_centrality(type = "pagerank")
+    # matrix is shared with .hg_centrality_fit(type = "pagerank")
     rw <- .hl_rw_transition(hg, edge_weights)
     w <- rw$w
     P <- rw$P
@@ -497,17 +473,17 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
   list(L = L, pi = pi_v, w = w)
 }
 
-#' EDVW random-walk transition matrix of a net_hypergraph
+#' EDVW random-walk transition matrix of a net_hg
 #'
 #' `P[v, u] = sum_e w(e) 1[v in e] / d(v) * gamma_e(u) / delta(e)`
 #' (Chitra & Raphael 2019; Hayashi et al. 2020). Shared by .hl_build's
-#' random_walk branch and hypergraph_centrality(type = "pagerank").
+#' random_walk branch and hg_centrality(type = "pagerank").
 #' Default hyperedge weights: window counts when present
 #' (window_hypergraph), else the Hayashi dispersion heuristic. Rows of
 #' nodes that sit in no hyperedge (d_v = 0) come back NaN; callers that
 #' tolerate such nodes (PageRank teleportation) must replace them.
 #'
-#' @param hg A `net_hypergraph`.
+#' @param hg A `net_hg`.
 #' @param edge_weights NULL or positive numeric vector, one per hyperedge.
 #' @return list(P, w, d_v, nodes).
 #' @noRd
@@ -544,15 +520,15 @@ hypergraph_transduction <- function(hg, labels, xi = 0.99,
   edge_weights
 }
 
-# ---- S3: net_hypergraph_cluster ----------------------------------------
+# ---- S3: net_hg_cluster ----------------------------------------
 
-#' Print method for net_hypergraph_cluster
+#' Print method for net_hg_cluster
 #'
-#' @param x A `net_hypergraph_cluster` object.
+#' @param x A `net_hg_cluster` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input object, invisibly.
 #' @export
-print.net_hypergraph_cluster <- function(x, ...) {
+print.net_hg_cluster <- function(x, ...) {
   algorithm <- x$algorithm %||% "spectral"
   label <- switch(algorithm, spectral = "RDC-Spec spectral",
                   symnmf = "RDC-Sym symmetric-NMF", algorithm)
@@ -573,23 +549,24 @@ print.net_hypergraph_cluster <- function(x, ...) {
   invisible(x)
 }
 
-#' Summary method for net_hypergraph_cluster
+#' Summary method for net_hg_cluster
 #'
-#' @param object A `net_hypergraph_cluster` object.
+#' @param object A `net_hg_cluster` object.
 #' @param ... Additional arguments (ignored).
 #' @return A data.frame, one row per cluster: `cluster`, `size`, `share`.
 #'   Returned **invisibly**: `summary(x)` prints the summary and nothing
 #'   else; assign the result to keep the table.
 #' @export
-summary.net_hypergraph_cluster <- function(object, ...) {
+summary.net_hg_cluster <- function(object, ...) {
   out <- object$sizes
   out$share <- out$size / sum(out$size)
   invisible(out)
 }
 
-#' Coerce a net_hypergraph_cluster to a data.frame
+#' Assignment table of a hypergraph clustering fit
 #'
-#' @param x A `net_hypergraph_cluster` object.
+#' @param x A `net_hg_cluster` object.
+#' @param what `"assignments"`, the only table.
 #' @param ... Additional arguments (ignored).
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
@@ -599,13 +576,14 @@ summary.net_hypergraph_cluster <- function(object, ...) {
 #'   Laplacian's random walk) and the spectral-embedding or NMF-factor coordinates
 #'   `dim1..dimk`.
 #' @export
-as.data.frame.net_hypergraph_cluster <- function(x, ..., top = NULL) {
+hg_get.net_hg_cluster <- function(x, what = "assignments", ..., top = NULL) {
+  match.arg(what, "assignments")
   out <- x$clusters
   out$pi <- as.numeric(x$pi)
   .ho_top(cbind(out, as.data.frame(x$embedding), row.names = NULL), top)
 }
 
-#' Plot method for net_hypergraph_cluster
+#' Plot method for net_hg_cluster
 #'
 #' Two diagnostic panels. `"spectrum"`: scree plot of the Laplacian
 #' spectrum with the k used for clustering marked - the eigengap after k
@@ -615,7 +593,7 @@ as.data.frame.net_hypergraph_cluster <- function(x, ..., top = NULL) {
 #' k-means actually clustered. `"both"` (default) arranges the two side
 #' by side (via gridExtra when available, base grid viewports otherwise).
 #'
-#' @param x A `net_hypergraph_cluster` object.
+#' @param x A `net_hg_cluster` object.
 #' @param what Character. `"both"` (default), `"spectrum"`, or
 #'   `"embedding"`.
 #' @param n_values Integer. How many smallest eigenvalues to show in the
@@ -626,7 +604,7 @@ as.data.frame.net_hypergraph_cluster <- function(x, ..., top = NULL) {
 #'   the current device), otherwise the two panels are drawn via grid
 #'   viewports and the list of the two ggplots is returned invisibly.
 #' @export
-plot.net_hypergraph_cluster <- function(x,
+plot.net_hg_cluster <- function(x,
                                         what = c("both", "spectrum",
                                                  "embedding"),
                                         n_values = NULL, ...) {
@@ -668,7 +646,7 @@ plot.net_hypergraph_cluster <- function(x,
     ggplot2::theme(legend.position = "bottom")
   if (what == "spectrum") return(p_spec)
 
-  df_e <- as.data.frame(x)
+  df_e <- hg_get(x)
   p_emb <- ggplot2::ggplot(df_e, ggplot2::aes(x = .data$dim1,
                                               y = .data$dim2,
                                               color = .data$cluster,
@@ -714,15 +692,15 @@ plot.net_hypergraph_cluster <- function(x,
   invisible(list(spectrum = p_spec, embedding = p_emb))
 }
 
-# ---- S3: net_hypergraph_transduction -----------------------------------
+# ---- S3: net_hg_transduction -----------------------------------
 
-#' Print method for net_hypergraph_transduction
+#' Print method for net_hg_transduction
 #'
-#' @param x A `net_hypergraph_transduction` object.
+#' @param x A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @return The input object, invisibly.
 #' @export
-print.net_hypergraph_transduction <- function(x, ...) {
+print.net_hg_transduction <- function(x, ...) {
   cat("Hypergraph transductive label spreading (", x$type,
       " Laplacian, xi = ", format(x$xi), ")\n", sep = "")
   tab <- table(x$predictions$predicted)
@@ -734,9 +712,9 @@ print.net_hypergraph_transduction <- function(x, ...) {
   invisible(x)
 }
 
-#' Summary method for net_hypergraph_transduction
+#' Summary method for net_hg_transduction
 #'
-#' @param object A `net_hypergraph_transduction` object.
+#' @param object A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @return A data.frame, one row per class: `class`, `n_labeled`,
 #'   `n_predicted`, `mean_margin` (mean winning margin among the nodes
@@ -744,7 +722,7 @@ print.net_hypergraph_transduction <- function(x, ...) {
 #'   Returned **invisibly**: `summary(x)` prints the summary and nothing
 #'   else; assign the result to keep the table.
 #' @export
-summary.net_hypergraph_transduction <- function(object, ...) {
+summary.net_hg_transduction <- function(object, ...) {
   p <- object$predictions
   out <- do.call(rbind, lapply(object$classes, function(cl) {
     sel <- p$predicted == cl
@@ -760,11 +738,9 @@ summary.net_hypergraph_transduction <- function(object, ...) {
   invisible(out)
 }
 
-#' Coerce a net_hypergraph_transduction to a data.frame
+#' Tables of a hypergraph transduction fit
 #'
-#' @param x A `net_hypergraph_transduction` object.
-#' @param row.names Ignored (present for S3 consistency with the generic).
-#' @param optional Ignored (present for S3 consistency with the generic).
+#' @param x A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @param what Character. `"predictions"` (default) for the one-row-per-node
 #'   table, `"scores"` for the tidy long score table (one row per node x
@@ -774,9 +750,8 @@ summary.net_hypergraph_transduction <- function(object, ...) {
 #'   `top` compose. Default `NULL` returns every row.
 #' @return A data.frame as selected by `what`.
 #' @export
-as.data.frame.net_hypergraph_transduction <- function(
-    x, row.names = NULL, optional = FALSE, ...,
-    what = c("predictions", "scores"), top = NULL) {
+hg_get.net_hg_transduction <- function(
+    x, what = c("predictions", "scores"), ..., top = NULL) {
   what <- match.arg(what)
   if (what == "predictions") return(.ho_top(x$predictions, top))
   .ho_top(data.frame(
@@ -787,7 +762,7 @@ as.data.frame.net_hypergraph_transduction <- function(
   ), top)
 }
 
-#' Plot method for net_hypergraph_transduction
+#' Plot method for net_hg_transduction
 #'
 #' Heatmap of the full node-by-class score matrix: rows are nodes (grouped
 #' by predicted class), columns are classes, tile shading and printed
@@ -797,12 +772,12 @@ as.data.frame.net_hypergraph_transduction <- function(
 #' panel. Rows whose winning and runner-up scores are close (small
 #' `margin`) are the assignments to distrust.
 #'
-#' @param x A `net_hypergraph_transduction` object.
+#' @param x A `net_hg_transduction` object.
 #' @param ... Additional arguments (ignored).
 #' @return A ggplot object, invisibly printable.
 #' @export
-plot.net_hypergraph_transduction <- function(x, ...) {
-  sc <- as.data.frame(x, what = "scores")
+plot.net_hg_transduction <- function(x, ...) {
+  sc <- hg_get(x, what = "scores")
   p <- x$predictions
   sc$seeded <- !is.na(p$label[match(sc$node, p$node)]) &
     p$label[match(sc$node, p$node)] == sc$class

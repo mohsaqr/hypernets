@@ -2,16 +2,13 @@
 % Please edit documentation in R/hypergraph_project.R
 \name{hg_line_graph}
 \alias{hg_line_graph}
-\alias{hypergraph_line_graph}
 \title{The s-line graph of a hypergraph}
 \usage{
 hg_line_graph(hg, s = 1, what = c("edges", "matrix"))
-
-hypergraph_line_graph(hg, s = 1, what = c("edges", "matrix"))
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
-\code{net_hypergraph}.}
+\code{net_hg}.}
 
 \item{s}{Minimum number of shared vertices for two hyperedges to be
 adjacent. A single integer of at least 1; \code{1} (default) is the ordinary

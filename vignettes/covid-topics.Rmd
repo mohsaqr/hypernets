@@ -115,7 +115,7 @@ head(topics)
 and the partition and returns a data frame with one row per cluster and
 word, containing the score, the word's share and the number of cluster
 documents that contain the word. The print method shows one row per
-cluster with its words joined; `as.data.frame()` returns the long form.
+cluster with its words joined; the returned table itself is the long form.
 The default score, `type = "mass"`, is the summed incidence weight that a
 cluster's documents place on the word, which under `weight = "n"` is the
 word's count within the cluster.
@@ -177,14 +177,20 @@ plot(sizes)
 
 ## Topic coherence and exclusivity
 
-`hg_topic_quality()` scores each topic's owned vocabulary on two axes.
-Coherence is the mean normalised pointwise mutual information between
-pairs of the topic's top words, computed on their co-occurrence within the
-topic's documents: 1 when the words always occur together, 0 at
-independence, negative when they avoid each other. Exclusivity is the mean
-share of the same words, the fraction of each word's corpus count that the
-topic holds. The top words are the ten that `hg_keywords()` ranks by share
-with the support floor given.
+`hg_topic_quality()` scores each topic's top words on two axes, with the
+definitions the structural topic model uses (Roberts, Stewart & Tingley
+2019), so a hypergraph clustering and a probabilistic topic model can be
+compared on the same numbers. The top words are the most probable words of
+the topic's documents.
+
+* **Coherence** is UMass (Mimno et al. 2011): for every pair of top words,
+  the log of how often the rarer word's documents also contain the other,
+  counted over the whole corpus and summed. It is never positive; closer to
+  zero means the words turn up in the same documents.
+* **Exclusivity** is FREX (Bischof & Airoldi 2012): a weighted harmonic
+  mean of how frequent each top word is in the topic and how exclusive it is
+  to the topic, summed over the top words. Higher means the topic owns its
+  words rather than sharing them with the rest of the corpus.
 
 ```{r quality, fig.width = 7, fig.height = 5}
 quality <- hg_topic_quality(hg, topics, min_docs = 15)
@@ -192,11 +198,11 @@ quality
 plot(quality)
 ```
 
-Exclusivity is high for every topic because the words are selected by
-share. Coherence separates them: the topics whose top words co-occur in
-most of their documents describe a single kind of study; the topics with
-low coherence collect abstracts that share a vocabulary but not a
-subject.
+A topic high on both axes has a vocabulary that co-occurs and that no
+other topic uses; a topic low on coherence gathers abstracts that share
+words but not a subject. `coherence = "npmi"` gives normalised PMI instead
+(Bouma 2009; Lau, Newman & Baldwin 2014), and `words =` scores the top
+words of a topic model fitted elsewhere with the same measures.
 
 ## Soft membership
 

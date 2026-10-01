@@ -3,31 +3,22 @@
 \name{hg_compare_communities}
 \alias{hg_compare_communities}
 \alias{print.hypernets_community_comparison}
-\alias{as.data.frame.hypernets_community_comparison}
-\alias{summary.hypernets_community_comparison}
+\alias{hg_get.hypernets_community_comparison}
 \alias{plot.hypernets_community_comparison}
 \title{Compare community structure across representations}
 \usage{
 hg_compare_communities(..., hg = NULL, edge_source = NULL)
 
-\method{print}{hypernets_community_comparison}(x, ...)
+\method{print}{hypernets_community_comparison}(x, n = 10L, ...)
 
-\method{as.data.frame}{hypernets_community_comparison}(
-  x,
-  row.names = NULL,
-  optional = FALSE,
-  what = c("summary", "similarity", "sizes", "quality", "matrix"),
-  ...
-)
-
-\method{summary}{hypernets_community_comparison}(object, ...)
+\method{hg_get}{hypernets_community_comparison}(x, what = c("summary", "similarity", "sizes", "quality"), ...)
 
 \method{plot}{hypernets_community_comparison}(x, what = c("sizes", "similarity"), ...)
 }
 \arguments{
 \item{...}{For \code{plot}, unused.}
 
-\item{hg}{Optional: the static \code{net_hypergraph} the fits were computed on.
+\item{hg}{Optional: the static \code{net_hg} the fits were computed on.
 When given, every medoid is scored with \code{\link[=hg_community_quality]{hg_community_quality()}} on the
 projection its own fit used, and the scores are available as
 \code{what = "quality"}.}
@@ -37,19 +28,17 @@ projections when scoring, as in \code{\link[=hg_project]{hg_project()}}.}
 
 \item{x}{A \code{hypernets_community_comparison} object.}
 
-\item{row.names, optional}{Unused; present for the base S3 contract.}
+\item{n}{Number of rows of the default table to print. Default \code{10}.}
 
-\item{what}{Which table: \code{"summary"} (default), \code{"similarity"}, \code{"sizes"},
-\code{"quality"}, or \code{"matrix"} for the similarity as a square matrix with
-AMI below and ARI above the diagonal (the layout of \code{plot()}).}
-
-\item{object}{A \code{hypernets_community_comparison} object.}
+\item{what}{Which table: \code{"summary"} (default), \code{"similarity"}, \code{"sizes"}
+or \code{"quality"}.}
 }
 \value{
-A \code{hypernets_community_comparison} object. \code{as.data.frame()} returns
+A \code{hypernets_community_comparison} object. \code{hg_get()} returns
 its \code{"summary"} (default; one row per fit with \code{model}, \code{medoid_seed},
-\code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest}, \code{second}
-and \code{balance} = second / largest), \code{"similarity"} (one row per pair of
+\code{n_communities}, \code{n_singletons}, \code{n_nontrivial}, \code{largest_size},
+\code{second_size} and \code{balance} = second / largest), \code{"similarity"} (one
+row per pair of
 fits with \code{model_a}, \code{model_b}, \code{ami}, \code{ari}, \code{nmi}, on the nodes the
 two medoids share), \code{"sizes"} (one row per community of every medoid
 with \code{model}, \code{rank}, \code{n_nodes}) or, when \code{hg} was given, \code{"quality"}
@@ -79,8 +68,8 @@ if (requireNamespace("igraph", quietly = TRUE)) {
   binary <- hg_communities(h, n_runs = 2, trials = 2, seeds = 1:2,
                            duplicate_edges = "collapse")
   comparison <- hg_compare_communities(mh = multi, bh = binary)
-  as.data.frame(comparison)
-  as.data.frame(comparison, what = "similarity")
+  hg_get(comparison)
+  hg_get(comparison, what = "similarity")
 }
 }
 \references{

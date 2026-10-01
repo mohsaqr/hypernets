@@ -2,7 +2,7 @@
 % Please edit documentation in R/text_verbs.R
 \name{hg_cluster}
 \alias{hg_cluster}
-\title{Spectral clustering of a hypergraph, as a tidy table}
+\title{Spectral or symmetric-NMF clustering of hypergraph vertices}
 \usage{
 hg_cluster(
   hg,
@@ -11,7 +11,7 @@ hg_cluster(
   edge_weights = NULL,
   seed = NULL,
   nstart = 25L,
-  what = c("clusters", "embedding", "eigenvalues"),
+  what = c("clusters", "embedding", "eigenvalues", "membership"),
   n = Inf,
   algorithm = c("spectral", "symnmf"),
   max_iter = 500L,
@@ -19,13 +19,13 @@ hg_cluster(
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
 
 \item{k}{Number of clusters (explicit by design; there is no correct
 default).}
 
-\item{type}{\code{"zhou"} or \code{"random_walk"}, as in
-\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.}
+\item{type}{The Laplacian, as in \code{\link[=hg_laplacian]{hg_laplacian()}}: \code{"zhou"} (Zhou et al.
+2006) or \code{"random_walk"} (Hayashi et al. 2020).}
 
 \item{edge_weights}{Hyperedge weights for the Laplacian: \code{NULL}
 (default, every hyperedge counts once), a positive numeric vector with
@@ -47,7 +47,10 @@ embedding used by k-means (\code{dim1..dimk} -- plot these to map the
 corpus) and the stationary weight \code{pi}, or \code{"eigenvalues"} for the
 Laplacian spectrum (dense engines return all \code{n} values; the sparse
 engine returns the \code{k + 1} it computed -- raise \code{k} for an eigengap
-scan).}
+scan), or, with \code{algorithm = "symnmf"}, \code{"membership"} for the graded
+membership of every node in every cluster: the node's row of the
+non-negative factor, normalised to sum to one (Kuang, Ding & Park
+2012).}
 
 \item{n}{For \code{what = "eigenvalues"}, how many rows to keep, leading first
 (default \code{Inf}, all of them). The spectrum carries one eigenvalue per
@@ -55,12 +58,13 @@ node, so a corpus of a few thousand documents returns a few thousand
 rows, and only the leading ones carry the gap that decides how many
 groups the structure supports. Ignored for the other values of \code{what}.}
 
-\item{algorithm}{\code{"spectral"} (RDC-Spec) or \code{"symnmf"} (RDC-Sym), as in
-\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}. SymNMF currently requires a dense incidence
-matrix because its paper objective factorizes a dense node similarity.}
+\item{algorithm}{Character. \code{"spectral"} (default; RDC-Spec) or
+\code{"symnmf"} (RDC-Sym).}
 
-\item{max_iter, tol}{SymNMF convergence controls passed to
-\code{\link[=hypergraph_cluster]{hypergraph_cluster()}}.}
+\item{max_iter}{Maximum multiplicative-update iterations for
+\code{algorithm = "symnmf"}.}
+
+\item{tol}{Relative objective tolerance for \code{algorithm = "symnmf"}.}
 }
 \value{
 A base \code{data.frame}. For \code{what = "clusters"}: one row per node,
@@ -68,13 +72,32 @@ columns \code{node} and \code{cluster}. For \code{what = "embedding"}: \code{nod
 \code{cluster}, \code{pi}, \code{dim1..dimk}. For \code{what = "eigenvalues"}: one row
 per eigenvalue, columns \code{index}, \code{value} (ascending) and \code{gap} (the
 distance to the next eigenvalue -- large gaps indicate supported
-cluster counts; \code{NA} on the last row).
+cluster counts; \code{NA} on the last row). For \code{what = "membership"}: one
+row per node and cluster, columns \code{node}, \code{cluster} and \code{membership}
+(summing to one over a node's clusters); a node's largest membership
+is its cluster in \code{what = "clusters"}.
 }
 \description{
-Calls the in-package \code{\link[=hypergraph_cluster]{hypergraph_cluster()}} engine (Zhou et al. 2006 normalized
-Laplacian, or the Hayashi et al. 2020 random-walk Laplacian with
-edge-dependent vertex weights -- the natural choice for tf-idf-weighted
-text hypergraphs).
+Partitions the nodes of a hypergraph into \code{k} clusters with either of
+Hayashi et al.'s (2020) representative-digraph algorithms. \code{algorithm = "spectral"} (RDC-Spec) row-normalizes the \code{k} smallest Laplacian
+eigenvectors and applies k-means. \code{algorithm = "symnmf"} (RDC-Sym)
+computes a rank-\code{k} non-negative factorization \verb{T ~= U U'} of the
+normalized similarity \code{T = I - L}, then assigns each vertex to the
+largest entry in its row of \code{U}, exactly as Algorithm 2 specifies.
+With \code{type = "random_walk"} and a weighted
+incidence (e.g. from \code{\link[=group_hypergraph]{group_hypergraph()}} with \verb{weight =}), the
+edge-dependent vertex weights genuinely change the partition - with
+edge-independent weights the walk collapses to a graph random walk
+(Chitra & Raphael 2019).
+}
+\details{
+Both solvers are stochastic: \code{nstart} initializations are used and a
+\code{seed} fixes the result. Report stability across seeds for consequential
+results.
+
+\code{type = "random_walk"} (Hayashi et al. 2020) is the natural choice for
+tf-idf-weighted text hypergraphs. \verb{what =} returns the cluster table,
+the embedding or the leading eigenvalues as a tidy data.frame.
 }
 \examples{
 hg <- text_hypergraph(c(
@@ -86,4 +109,17 @@ hg <- text_hypergraph(c(
 hg_cluster(hg, k = 2, type = "random_walk", seed = 1)
 hg_cluster(hg, k = 2, seed = 1, what = "embedding")
 hg_cluster(hg, k = 2, seed = 1, what = "eigenvalues", n = 5)
+}
+\references{
+Kuang, D., Ding, C., & Park, H. (2012). Symmetric nonnegative matrix
+factorization for graph clustering. \emph{Proceedings of the 2012 SIAM
+International Conference on Data Mining}, 106-117.
+\doi{10.1137/1.9781611972825.10}
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
+\doi{10.1145/3340531.3412034}
+
+Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+edge-dependent vertex weights. \emph{ICML 2019}.
 }

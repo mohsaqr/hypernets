@@ -39,7 +39,7 @@ seq_hg <- function() {
 # The hand-written join the verb replaces: merge the documents table onto the
 # cluster assignments, sort by actor then turn, split the state by actor.
 hand_written_join <- function(hg, clusters, actor, order_by) {
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   joined <- merge(docs, clusters, by.x = "doc", by.y = "node")
   joined <- joined[order(joined[[actor]], joined[[order_by]]), ]
   lapply(split(joined$cluster, joined[[actor]]), as.character)
@@ -79,7 +79,7 @@ test_that("hg_sequences() returns the canonical long sequence table", {
 test_that("hg_sequences() preserves every document and orders within actor", {
   hg <- seq_hg()
   topics <- hg_cluster(hg, k = 2L, seed = 1L)
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
 
   # Invariant 1: one row per document, none added, none dropped.
   seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
@@ -101,8 +101,8 @@ test_that("hg_sequences() preserves every document and orders within actor", {
   hg_shuffled <- text_hypergraph(shuffled, column = "text",
                                  stop_words = seq_stop)
   states <- data.frame(
-    node = as.data.frame(hg_shuffled, what = "documents")$doc,
-    cluster = as.data.frame(hg_shuffled, what = "documents")$phase,
+    node = hg_get(hg_shuffled, what = "documents")$doc,
+    cluster = hg_get(hg_shuffled, what = "documents")$phase,
     stringsAsFactors = FALSE
   )
   expect_identical(
@@ -121,31 +121,33 @@ test_that("hg_sequences() takes a state already in the documents table", {
                                     times = 3L))
 })
 
-test_that("hg_sequences() feeds build_hon() with no further coercion", {
+test_that("hg_sequences() feeds hon() through build_network()", {
   hg <- seq_hg()
   topics <- hg_cluster(hg, k = 2L, seed = 1L)
   seqs <- hg_sequences(hg, topics, actor = "student", order_by = "turn")
 
-  hon <- build_hon(seqs, action = "action", actor = "actor", time = "time",
-                   max_order = 2L)
+  net <- Nestimate::build_network(seqs, method = "relative", actor = "actor",
+                                  action = "action", time = "time",
+                                  time_threshold = Inf)
+  hon <- hon(net, max_order = 2L)
   expect_s3_class(hon, "net_hon")
   expect_identical(hon$n_trajectories, 3L)
 
   # The network is the one the hand-assembled list of sequences would give.
-  reference <- build_hon(hand_written_join(hg, topics, "student", "turn"),
+  reference <- hon(hand_written_join(hg, topics, "student", "turn"),
                          max_order = 2L)
   expect_identical(hon$matrix, reference$matrix)
   expect_identical(hon$edges, reference$edges)
 
   # The other verbs that take the long form read the same table: the
   # bootstrap, and the sequence -> hypergraph bridge.
-  boot <- bootstrap_hon(seqs, action = "action", actor = "actor",
+  boot <- hg_bootstrap(seqs, action = "action", actor = "actor",
                         time = "time", n_boot = 10L, max_order = 2L,
                         seed = 1L)
   expect_s3_class(boot, "net_hon_boot")
   wh <- window_hypergraph(seqs, window = 2L, action = "action",
                           actor = "actor", time = "time")
-  expect_s3_class(wh, "net_hypergraph")
+  expect_s3_class(wh, "net_hg")
 })
 
 test_that("hg_sequences() raises classed conditions on bad input", {
@@ -193,7 +195,7 @@ test_that("hg_sequences() raises classed conditions on bad input", {
 
 test_that("hg_sequences() refuses missing and ambiguous input", {
   hg <- seq_hg()
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   topics <- hg_cluster(hg, k = 2L, seed = 1L)
 
   gappy <- seq_posts
@@ -226,7 +228,7 @@ test_that("hg_sequences() refuses missing and ambiguous input", {
 
 test_that("hg_sequences() names the state column with `state`", {
   hg <- seq_hg()
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   states <- data.frame(node = docs$doc, topic = docs$phase,
                        stringsAsFactors = FALSE)
 
@@ -243,7 +245,7 @@ test_that("hg_sequences() names the state column with `state`", {
 
 test_that("hg_sequences() sorts calendar times and breaks ties by document", {
   hg <- seq_hg()
-  docs <- as.data.frame(hg, what = "documents")
+  docs <- hg_get(hg, what = "documents")
   dated <- seq_posts
   dated$when <- as.Date("2026-01-01") + rep(c(3L, 1L, 4L, 2L), times = 3L)
   hg_dated <- text_hypergraph(dated, column = "text", stop_words = seq_stop)
@@ -263,8 +265,8 @@ test_that("hg_sequences() sorts calendar times and breaks ties by document", {
   flat$turn <- 1L
   hg_flat <- text_hypergraph(flat, column = "text", stop_words = seq_stop)
   flat_states <- data.frame(
-    node = as.data.frame(hg_flat, what = "documents")$doc,
-    cluster = as.data.frame(hg_flat, what = "documents")$phase,
+    node = hg_get(hg_flat, what = "documents")$doc,
+    cluster = hg_get(hg_flat, what = "documents")$phase,
     stringsAsFactors = FALSE
   )
   expect_identical(

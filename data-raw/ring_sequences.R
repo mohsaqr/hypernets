@@ -49,22 +49,22 @@ pairs <- do.call(rbind, lapply(seq_len(n_groups), \(k) {
   both <- expand.grid(from = groups[[k]], to = groups[[k]],
                       stringsAsFactors = FALSE)
   both <- subset(both, from != to)
-  data.frame(state = paste(both$from, both$to, sep = " -> "), community = k)
+  data.frame(node = paste(both$from, both$to, sep = " -> "), community = k)
 }))
 private <- data.frame(
-  state = unlist(lapply(groups, \(g) setdiff(g, shared))),
+  node = unlist(lapply(groups, \(g) setdiff(g, shared))),
   community = rep(seq_len(n_groups), each = group_size - 2L)
 )
 ring_communities <- rbind(private, pairs)
 ring_communities <- ring_communities[order(ring_communities$community,
-                                           ring_communities$state), ]
+                                           ring_communities$node), ]
 rownames(ring_communities) <- NULL
 ring_communities$community <- as.integer(ring_communities$community)
 
 stopifnot(
   "one sequence per walk" = length(ring_sequences) == n_sequences,
   "every walk is 40 steps" = all(lengths(ring_sequences) == walk_length),
-  "no state has two communities" = !anyDuplicated(ring_communities$state),
+  "no node has two communities" = !anyDuplicated(ring_communities$node),
   "8 private + 4 x 12 ordered pairs" = nrow(ring_communities) == 56L
 )
 

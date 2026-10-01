@@ -9,14 +9,14 @@
 #' rows), `ai_long` the AI turns (8,551 rows). Each session's ordered
 #' codes form one categorical sequence, which makes the pair a natural
 #' two-cohort input for the higher-order verbs -- e.g.
-#' `bootstrap_hon(human_long, action = "code", actor = "session_id",
-#' time = "timestamp")` or `compare_hon(human_long, ai_long, ...)`.
+#' `hg_bootstrap(human_long, action = "code", actor = "session_id",
+#' time = "timestamp")` or `hg_compare(human_long, ai_long, ...)`.
 #'
 #' The same data feed all three structure families: the ordered codes are
 #' sequences for the memory family, a session is a natural hyperedge over
 #' the codes that co-occur in it ([group_hypergraph()]), and a fitted
 #' memory network becomes a pathway complex for the simplicial family
-#' ([build_simplicial()] with `type = "pathway"`).
+#' ([simplicial()] with `type = "pathway"`).
 #'
 #' @format Data frames in long format with 9 columns:
 #' \describe{
@@ -36,10 +36,10 @@
 #'   \url{https://saqr.me/blog/2026/human-ai-interaction-cograph/}
 #'
 #' @examples
-#' bs <- bootstrap_hon(human_long, action = "code", actor = "session_id",
+#' bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
 #'                     time = "timestamp", n_boot = 20, max_order = 2,
 #'                     seed = 1)
-#' rules <- as.data.frame(bs, order_min = 2)
+#' rules <- hg_get(bs, order_min = 2)
 #' head(rules)
 #'
 #' @name long-data
@@ -165,25 +165,25 @@ NULL
 #' @format A list of 200 character vectors, one walk each, 40 actions long,
 #'   over the 12 actions `s1`-`s4` and `p1_1`-`p4_2`.
 #' @source Simulated with seed 1 by `data-raw/ring_sequences.R`.
-#' @seealso [hon_communities()], which recovers the four groups from these
+#' @seealso [hg_communities()], which recovers the four groups from these
 #'   sequences.
 #' @examples
 #' length(ring_sequences)
-#' ring_hon <- build_hon(ring_sequences, max_order = 2L)
+#' ring_hon <- hon(ring_sequences, max_order = 2L)
 #' ring_hon
 "ring_sequences"
 
 #' Planted communities of the ring sequences
 #'
-#' The true community of every state a second-order network built from
-#' [ring_sequences] can hold. A state `"u -> v"` belongs to the one group
-#' holding both `u` and `v`; the first-order state of an action that is not
-#' shared (`"p1_1"`) belongs to that action's group. First-order states of
+#' The true community of every node a second-order network built from
+#' [ring_sequences] can hold. A node `"u -> v"` belongs to the one group
+#' holding both `u` and `v`; the first-order node of an action that is not
+#' shared (`"p1_1"`) belongs to that action's group. First-order nodes of
 #' the shared actions (`"s1"`, ...) have no single group and are not listed.
 #'
-#' @format A data frame with 56 rows (one per state) and 2 columns:
+#' @format A data frame with 56 rows (one per node) and 2 columns:
 #' \describe{
-#'   \item{state}{Character. A state label as [build_hon()] writes it.}
+#'   \item{node}{Character. A node label as [hon()] writes it.}
 #'   \item{community}{Integer. The planted group, 1 to 4.}
 #' }
 #' @source Built with [ring_sequences] by `data-raw/ring_sequences.R`.

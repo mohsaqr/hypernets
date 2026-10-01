@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_embed.R
 \name{hg_embed}
 \alias{hg_embed}
-\alias{hypergraph_embed}
 \title{Low-Dimensional Hypergraph Embedding}
 \usage{
 hg_embed(
@@ -15,20 +14,9 @@ hg_embed(
   max_iter = 500L,
   tol = 1e-06
 )
-
-hypergraph_embed(
-  hg,
-  dimensions = 2L,
-  type = c("zhou", "random_walk"),
-  method = c("spectral", "symnmf"),
-  seed = NULL,
-  nstart = 25L,
-  max_iter = 500L,
-  tol = 1e-06
-)
 }
 \arguments{
-\item{hg}{Any hypernets \code{net_hypergraph}.}
+\item{hg}{Any hypernets \code{net_hg}.}
 
 \item{dimensions}{Number of embedding coordinates, between 2 and
 \code{n_nodes - 1}.}
@@ -53,8 +41,7 @@ A data frame with \code{node}, stationary mass \code{pi}, and
 \description{
 Returns the node coordinates computed by hypernets' existing hypergraph
 spectral or symmetric-NMF engine without exposing the incidental k-means
-assignments produced by \code{\link[=hg_cluster]{hg_cluster()}}. This is the direct embedding verb;
-\code{hg_embed()} and \code{hypergraph_embed()} are identical names for it.
+assignments produced by \code{\link[=hg_cluster]{hg_cluster()}}.
 }
 \examples{
 h <- group_hypergraph(
@@ -63,4 +50,14 @@ h <- group_hypergraph(
   "node", "edge"
 )
 hg_embed(h, dimensions = 2)
+}
+\references{
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+clustering, classification, and embedding. \emph{Advances in Neural
+Information Processing Systems 19}.
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+random walks, Laplacians, and clustering. \emph{Proceedings of the 29th ACM
+International Conference on Information and Knowledge Management},
+495-504. \doi{10.1145/3340531.3412034}
 }

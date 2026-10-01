@@ -46,6 +46,6 @@ test_that("subhypergraph centrality has the closed form for one dyad", {
   h <- group_hypergraph(
     data.frame(member = c("a", "b"), event = "e1"), "member", "event"
   )
-  out <- hypergraph_centrality(h, type = "subhypergraph")
+  out <- .hg_centrality_fit(h, type = "subhypergraph")
   expect_equal(out$subhypergraph, rep(log(cosh(1)), 2), tolerance = 1e-12)
 })

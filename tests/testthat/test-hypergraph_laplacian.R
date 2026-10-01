@@ -1,5 +1,5 @@
-# ---- Tests for hypergraph_laplacian / hypergraph_cluster /
-# ---- hypergraph_transduction
+# ---- Tests for hg_laplacian / .hg_cluster_fit /
+# ---- .hg_transduction_fit
 
 # Two-community hypergraph with a bridge: {a,b,c} x2, {d,e,f} x2, {c,d}
 .hl_planted <- function() {
@@ -39,7 +39,7 @@ test_that("zhou Laplacian matches the paper formula computed brute-force", {
   Theta_bf <- outer(seq_len(n), seq_len(n), Vectorize(function(u, v) {
     sum(w * H[u, ] * H[v, ] / delta) / sqrt(d[u] * d[v])
   }))
-  L <- hypergraph_laplacian(hg, type = "zhou", edge_weights = w)
+  L <- hg_laplacian(hg, type = "zhou", edge_weights = w)
   expect_equal(unclass(L), diag(n) - Theta_bf,
                ignore_attr = TRUE, tolerance = 1e-12)
 })
@@ -63,7 +63,7 @@ test_that("random_walk Laplacian matches brute-force EDVW construction", {
   pi_bf <- pi_bf / sum(pi_bf)
   G <- diag(sqrt(pi_bf)) %*% P_bf %*% diag(1 / sqrt(pi_bf))
   L_bf <- diag(n) - (G + t(G)) / 2
-  L <- hypergraph_laplacian(hg, type = "random_walk")
+  L <- hg_laplacian(hg, type = "random_walk")
   expect_equal(unclass(L), L_bf, ignore_attr = TRUE, tolerance = 1e-10)
   expect_equal(attr(L, "edge_weights"), we, ignore_attr = TRUE)
 })
@@ -73,7 +73,7 @@ test_that("random_walk Laplacian matches brute-force EDVW construction", {
 test_that("both Laplacians are symmetric PSD with spectrum in [0, 2]", {
   for (hg in list(.hl_planted(), .hl_weighted())) {
     for (type in c("zhou", "random_walk")) {
-      L <- hypergraph_laplacian(hg, type = type)
+      L <- hg_laplacian(hg, type = type)
       expect_true(isSymmetric(unclass(L)))
       ev <- eigen(unclass(L), symmetric = TRUE, only.values = TRUE)$values
       expect_gte(min(ev), -1e-10)
@@ -88,8 +88,8 @@ test_that("both Laplacians are symmetric PSD with spectrum in [0, 2]", {
 
 test_that("binary incidence + unit weights: zhou == random_walk", {
   hg <- .hl_planted()
-  Lz <- hypergraph_laplacian(hg, type = "zhou")
-  Lrw <- hypergraph_laplacian(hg, type = "random_walk")
+  Lz <- hg_laplacian(hg, type = "zhou")
+  Lrw <- hg_laplacian(hg, type = "random_walk")
   expect_equal(unclass(Lz), unclass(Lrw), ignore_attr = TRUE,
                tolerance = 1e-10)
 })
@@ -101,20 +101,20 @@ test_that("Laplacian is permutation-equivariant in the node order", {
   hg2 <- hg
   hg2$incidence <- hg$incidence[perm, , drop = FALSE]
   hg2$nodes <- hg$nodes[perm]
-  laplacian_original <- hypergraph_laplacian(hg, type = "random_walk")
+  laplacian_original <- hg_laplacian(hg, type = "random_walk")
   L1 <- unclass(laplacian_original)
-  laplacian_permuted <- hypergraph_laplacian(hg2, type = "random_walk")
+  laplacian_permuted <- hg_laplacian(hg2, type = "random_walk")
   L2 <- unclass(laplacian_permuted)
   expect_equal(L2, L1[perm, perm], ignore_attr = TRUE, tolerance = 1e-12)
 })
 
 # ---- clustering --------------------------------------------------------
 
-test_that("hypergraph_cluster recovers the planted two communities", {
+test_that(".hg_cluster_fit recovers the planted two communities", {
   hg <- .hl_planted()
-  cl <- hypergraph_cluster(hg, k = 2, seed = 1)
-  expect_s3_class(cl, "net_hypergraph_cluster")
-  a <- as.data.frame(cl)
+  cl <- .hg_cluster_fit(hg, k = 2, seed = 1)
+  expect_s3_class(cl, "net_hg_cluster")
+  a <- hg_get(cl)
   expect_equal(names(a), c("node", "cluster", "pi", "dim1", "dim2"))
   expect_equal(nrow(a), 6L)
   expect_equal(sum(a$pi), 1, tolerance = 1e-10)
@@ -130,7 +130,7 @@ test_that("hypergraph_cluster recovers the planted two communities", {
 test_that("clustering is stable across seeds on separated structure", {
   hg <- .hl_planted()
   parts <- lapply(c(1L, 42L, 99L), function(s) {
-    as.data.frame(hypergraph_cluster(hg, k = 2, seed = s))$cluster
+    hg_get(.hg_cluster_fit(hg, k = 2, seed = s))$cluster
   })
   expect_identical(parts[[1]], parts[[2]])
   expect_identical(parts[[1]], parts[[3]])
@@ -138,15 +138,15 @@ test_that("clustering is stable across seeds on separated structure", {
 
 test_that("RDC-SymNMF follows Algorithm 2 and decreases Eq. 16", {
   hg <- .hl_planted()
-  cl <- hypergraph_cluster(hg, k = 2, type = "random_walk",
+  cl <- .hg_cluster_fit(hg, k = 2, type = "random_walk",
                            algorithm = "symnmf", nstart = 3, seed = 7,
                            max_iter = 1000, tol = 1e-8)
-  expect_s3_class(cl, "net_hypergraph_cluster")
+  expect_s3_class(cl, "net_hg_cluster")
   expect_identical(cl$algorithm, "symnmf")
   expect_true(all(cl$embedding >= 0))
   expect_equal(dim(cl$embedding), c(6L, 2L))
   expect_true(all(diff(cl$params$objective_history) <= 1e-8))
-  rw_laplacian <- hypergraph_laplacian(hg, "random_walk")
+  rw_laplacian <- hg_laplacian(hg, "random_walk")
   expect_equal(cl$params$objective,
                sum((diag(hg$n_nodes) -
                       unclass(rw_laplacian) -
@@ -163,8 +163,8 @@ test_that("RDC-SymNMF follows Algorithm 2 and decreases Eq. 16", {
 test_that("RDC-SymNMF is deterministic for a fixed seed", {
   args <- list(hg = .hl_planted(), k = 2, algorithm = "symnmf",
                nstart = 2, seed = 11, max_iter = 100)
-  a <- do.call(hypergraph_cluster, args)
-  b <- do.call(hypergraph_cluster, args)
+  a <- do.call(.hg_cluster_fit, args)
+  b <- do.call(.hg_cluster_fit, args)
   expect_identical(a$clusters, b$clusters)
   expect_equal(a$embedding, b$embedding)
   expect_equal(a$params$objective_history, b$params$objective_history)
@@ -178,11 +178,11 @@ test_that("J-NMF and JS-NMF implement Eqs. 18 and 19", {
   S[4:6, 4:6] <- 1
   diag(S) <- 0
   for (method in c("joint", "joint_symmetric")) {
-    fit <- hypergraph_joint_cluster(
+    fit <- hg_joint_cluster(
       hg, S, k = 2, method = method, nstart = 2, seed = 3,
       max_iter = 1000, tol = 1e-8
     )
-    expect_s3_class(fit, "net_hypergraph_cluster")
+    expect_s3_class(fit, "net_hg_cluster")
     expect_identical(fit$algorithm, method)
     expect_true(all(fit$embedding >= 0))
     expect_true(tail(fit$params$objective_history, 1) <=
@@ -195,7 +195,7 @@ test_that("J-NMF and JS-NMF implement Eqs. 18 and 19", {
         sum((S - M %*% t(Mt))^2) + sum((M - Mt)^2)
       expect_error(plot(fit, what = "spectrum"), "no Laplacian spectrum")
     } else {
-      rw_laplacian <- hypergraph_laplacian(hg, type = "random_walk")
+      rw_laplacian <- hg_laplacian(hg, type = "random_walk")
       C <- diag(hg$n_nodes) - unclass(rw_laplacian)
       expected_objective <- sum((C - M %*% t(fit$params$Mhat))^2) +
         sum((M - fit$params$Mhat)^2) +
@@ -232,17 +232,17 @@ test_that("joint clustering aligns named relations and validates inputs", {
   hg <- .hl_planted()
   S <- diag(hg$n_nodes)
   dimnames(S) <- list(rev(hg$nodes), rev(hg$nodes))
-  aligned_fit <- hypergraph_joint_cluster(
+  aligned_fit <- hg_joint_cluster(
     hg, S, 2, nstart = 1, seed = 1, max_iter = 2
   )
-  expect_s3_class(aligned_fit, "net_hypergraph_cluster")
-  expect_error(hypergraph_joint_cluster(hg, matrix(-1, 6, 6), 2),
+  expect_s3_class(aligned_fit, "net_hg_cluster")
+  expect_error(hg_joint_cluster(hg, matrix(-1, 6, 6), 2),
                "non-negative")
-  expect_error(hypergraph_joint_cluster(hg, diag(5), 2), "n_nodes")
+  expect_error(hg_joint_cluster(hg, diag(5), 2), "n_nodes")
 })
 
-test_that("summary.net_hypergraph_cluster returns tidy shares", {
-  cl <- hypergraph_cluster(.hl_planted(), k = 2, seed = 1)
+test_that("summary.net_hg_cluster returns tidy shares", {
+  cl <- .hg_cluster_fit(.hl_planted(), k = 2, seed = 1)
   s <- summary(cl)
   expect_true(is.data.frame(s))
   expect_equal(names(s), c("cluster", "size", "share"))
@@ -250,8 +250,8 @@ test_that("summary.net_hypergraph_cluster returns tidy shares", {
   expect_invisible(print(cl))
 })
 
-test_that("plot.net_hypergraph_cluster panels are ggplots", {
-  cl <- hypergraph_cluster(.hl_planted(), k = 2, seed = 1)
+test_that("plot.net_hg_cluster panels are ggplots", {
+  cl <- .hg_cluster_fit(.hl_planted(), k = 2, seed = 1)
   spectrum_plot <- plot(cl, what = "spectrum")
   expect_s3_class(spectrum_plot, "ggplot")
   embedding_plot <- plot(cl, what = "embedding")
@@ -262,7 +262,7 @@ test_that("plot.net_hypergraph_cluster panels are ggplots", {
 
 test_that("transduction closed form equals the Neumann series", {
   hg <- .hl_planted()
-  zhou_laplacian <- hypergraph_laplacian(hg, type = "zhou")
+  zhou_laplacian <- hg_laplacian(hg, type = "zhou")
   L <- unclass(zhou_laplacian)
   n <- nrow(L)
   S <- diag(n) - L
@@ -281,10 +281,10 @@ test_that("transduction closed form equals the Neumann series", {
 
 test_that("balanced seeds classify the planted communities correctly", {
   hg <- .hl_planted()
-  tr <- hypergraph_transduction(
+  tr <- .hg_transduction_fit(
     hg, labels = c(a = "x", b = "x", e = "y", f = "y"), xi = 0.9
   )
-  p <- as.data.frame(tr)
+  p <- hg_get(tr)
   expect_identical(p$predicted[p$node %in% c("a", "b", "c")],
                    rep("x", 3L))
   expect_identical(p$predicted[p$node %in% c("e", "f")], rep("y", 2L))
@@ -294,8 +294,8 @@ test_that("balanced seeds classify the planted communities correctly", {
 
 test_that("transduction score accessor is tidy long format", {
   hg <- .hl_planted()
-  tr <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"))
-  sc <- as.data.frame(tr, what = "scores")
+  tr <- .hg_transduction_fit(hg, labels = c(a = "x", d = "y"))
+  sc <- hg_get(tr, what = "scores")
   expect_equal(names(sc), c("node", "class", "score"))
   expect_equal(nrow(sc), hg$n_nodes * 2L)
   s <- summary(tr)
@@ -307,10 +307,10 @@ test_that("transduction score accessor is tidy long format", {
 
 test_that("transduction works with the random_walk Laplacian and weights", {
   hg <- .hl_weighted()
-  tr <- hypergraph_transduction(hg, labels = c(a = "x", e = "y"),
+  tr <- .hg_transduction_fit(hg, labels = c(a = "x", e = "y"),
                                 type = "random_walk")
-  expect_s3_class(tr, "net_hypergraph_transduction")
-  predictions <- as.data.frame(tr)
+  expect_s3_class(tr, "net_hg_transduction")
+  predictions <- hg_get(tr)
   expect_equal(nrow(predictions), hg$n_nodes)
 })
 
@@ -321,25 +321,25 @@ test_that("disconnected hypergraphs raise a classed condition", {
                        meeting = c("m1", "m1", "m2", "m2"),
                        stringsAsFactors = FALSE)
   hg <- group_hypergraph(events, actor = "person", group = "meeting")
-  expect_error(hypergraph_laplacian(hg),
+  expect_error(hg_laplacian(hg),
                class = "hypernets_hypergraph_disconnected")
-  expect_error(hypergraph_cluster(hg, k = 2),
+  expect_error(.hg_cluster_fit(hg, k = 2),
                class = "hypernets_hypergraph_disconnected")
 })
 
 test_that("argument contracts are enforced", {
   hg <- .hl_planted()
-  expect_error(hypergraph_cluster(hg, k = 1), "between 2 and")
-  expect_error(hypergraph_cluster(hg, k = 6), "between 2 and")
-  expect_error(hypergraph_laplacian(hg, edge_weights = c(1, 2)),
+  expect_error(.hg_cluster_fit(hg, k = 1), "between 2 and")
+  expect_error(.hg_cluster_fit(hg, k = 6), "between 2 and")
+  expect_error(hg_laplacian(hg, edge_weights = c(1, 2)),
                "one per hyperedge")
-  expect_error(hypergraph_laplacian(hg, edge_weights = rep(-1, 5)),
+  expect_error(hg_laplacian(hg, edge_weights = rep(-1, 5)),
                "positive")
-  expect_error(hypergraph_transduction(hg, labels = c(a = "x")),
+  expect_error(.hg_transduction_fit(hg, labels = c(a = "x")),
                "two distinct classes")
-  expect_error(hypergraph_transduction(hg, labels = c(zz = "x", a = "y")),
+  expect_error(.hg_transduction_fit(hg, labels = c(zz = "x", a = "y")),
                "Unknown node names")
-  expect_error(hypergraph_transduction(hg, labels = c(a = "x", d = "y"),
+  expect_error(.hg_transduction_fit(hg, labels = c(a = "x", d = "y"),
                                        xi = 1.5),
                "xi")
 })
@@ -376,8 +376,8 @@ test_that("class_mass predictions are invariant to per-class score scaling", {
 
 test_that("transduction engines accept normalization end to end", {
   hg <- .hl_planted()
-  raw <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"))
-  cmn <- hypergraph_transduction(hg, labels = c(a = "x", d = "y"),
+  raw <- .hg_transduction_fit(hg, labels = c(a = "x", d = "y"))
+  cmn <- .hg_transduction_fit(hg, labels = c(a = "x", d = "y"),
                                  normalization = "class_mass")
   # class_mass recovers the planted partition {a,b,c} / {d,e,f}; the raw
   # rule does not (y's larger spread mass pulls b and c across the bridge)
@@ -389,7 +389,7 @@ test_that("transduction engines accept normalization end to end", {
   expect_identical(raw$normalization, "none")
   # scores stay the raw spread scores under either rule
   expect_identical(cmn$scores, raw$scores)
-  expect_error(hypergraph_transduction(hg, labels = c(a = "x", d = "y"),
+  expect_error(.hg_transduction_fit(hg, labels = c(a = "x", d = "y"),
                                        normalization = "bogus"))
 })
 

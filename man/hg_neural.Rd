@@ -2,7 +2,6 @@
 % Please edit documentation in R/text_neural.R
 \name{hg_neural}
 \alias{hg_neural}
-\alias{hypergraph_neural}
 \title{Hypergraph neural network classifier (HGNN)}
 \usage{
 hg_neural(
@@ -19,24 +18,9 @@ hg_neural(
   seed = 1L,
   verbose = FALSE
 )
-
-hypergraph_neural(
-  hg,
-  labels,
-  features = "incidence",
-  hidden = 128L,
-  epochs = 600L,
-  lr = 0.01,
-  weight_decay = 5e-04,
-  dropout = 0.5,
-  validation = 0.1,
-  edge_weights = NULL,
-  seed = 1L,
-  verbose = FALSE
-)
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}),
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}),
 dense or sparse.}
 
 \item{labels}{The known labels: a named character vector (names are

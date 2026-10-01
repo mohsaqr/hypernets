@@ -2,19 +2,9 @@
 % Please edit documentation in R/agreement.R
 \name{hg_agreement}
 \alias{hg_agreement}
-\alias{hypergraph_agreement}
 \title{Agreement between two labelings of the same nodes}
 \usage{
 hg_agreement(
-  x,
-  y,
-  what = c("summary", "table", "mapping"),
-  method = "ari",
-  node = "node",
-  label = NULL
-)
-
-hypergraph_agreement(
   x,
   y,
   what = c("summary", "table", "mapping"),

@@ -4,7 +4,7 @@ test_that("hand-computed case is exact (sets, occurrence incidence, counts)", {
   # windows of c(a b a c), w = 2, step = 1: (a,b) (b,a) (a,c)
   # -> {a,b} from 2 windows, {a,c} from 1
   hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c")), window = 2L)
-  expect_s3_class(hg, "net_hypergraph")
+  expect_s3_class(hg, "net_hg")
   expect_identical(hg$nodes, c("a", "b", "c"))
   expect_identical(hg$hyperedges, list(c(1L, 2L), c(1L, 3L)))
   expect_identical(hg$window_counts, c(2L, 1L))
@@ -177,16 +177,16 @@ test_that("error paths: invalid arguments and empty results", {
 
 test_that("as.data.frame accessor is tidy for all constructors", {
   hg <- window_hypergraph(list(c("a", "b", "a", "c")), window = 2L)
-  df <- as.data.frame(hg)
-  expect_identical(names(df), c("hyperedge", "size", "states", "weight"))
+  df <- hg_get(hg)
+  expect_identical(names(df), c("hyperedge", "size", "members", "weight"))
   expect_identical(nrow(df), hg$n_hyperedges)
   expect_identical(df$weight, c(2, 1))
-  expect_identical(df$states, c("a, b", "a, c"))
+  expect_identical(df$members, c("a, b", "a, c"))
   # clique constructor: unweighted hyperedges -> NA weights
   adj <- matrix(1, 3, 3, dimnames = list(letters[1:3], letters[1:3]))
   diag(adj) <- 0
-  hg_c <- build_hypergraph(adj, p = 1, max_size = 3L)
-  df_c <- as.data.frame(hg_c)
+  hg_c <- network_hypergraph(adj, p = 1, max_size = 3L)
+  df_c <- hg_get(hg_c)
   expect_identical(nrow(df_c), hg_c$n_hyperedges)
   expect_true(all(is.na(df_c$weight)))
 })
@@ -210,33 +210,33 @@ test_that("Laplacian family defaults to window counts as hyperedge weights", {
   expect_true(length(unique(hg$window_counts)) > 1L)  # non-trivial weights
   for (ty in c("zhou", "random_walk")) {
     # for loop kept: two assertions over a 2-level argument, no data to grow
-    default_laplacian <- hypergraph_laplacian(hg, type = ty)
-    counts_laplacian <- hypergraph_laplacian(
+    default_laplacian <- hg_laplacian(hg, type = ty)
+    counts_laplacian <- hg_laplacian(
       hg, type = ty, edge_weights = as.numeric(hg$window_counts))
     expect_identical(default_laplacian, counts_laplacian)
   }
-  zhou_default <- hypergraph_laplacian(hg)
-  zhou_unit <- hypergraph_laplacian(hg, edge_weights = rep(1, hg$n_hyperedges))
+  zhou_default <- hg_laplacian(hg)
+  zhou_unit <- hg_laplacian(hg, edge_weights = rep(1, hg$n_hyperedges))
   expect_false(isTRUE(all.equal(
     zhou_default,
     zhou_unit,
     check.attributes = FALSE
   )))
-  cl <- hypergraph_cluster(hg, k = 2L, seed = 5)
-  expect_s3_class(cl, "net_hypergraph_cluster")
+  cl <- .hg_cluster_fit(hg, k = 2L, seed = 5)
+  expect_s3_class(cl, "net_hg_cluster")
 })
 
 test_that("downstream verbs consume windowed hypergraphs", {
   set.seed(23)
   seqs <- lapply(1:8, function(i) sample(letters[1:5], 10, replace = TRUE))
   hg <- window_hypergraph(seqs, window = 3L)
-  m <- hypergraph_measures(hg)
-  expect_s3_class(m, "net_hypergraph_measures")
-  ce <- hypergraph_centrality(hg, type = "clique")
+  m <- .hg_measures_fit(hg)
+  expect_s3_class(m, "net_hg_measures")
+  ce <- .hg_centrality_fit(hg, type = "clique")
   expect_s3_class(ce, "data.frame")
   expect_identical(nrow(ce), hg$n_nodes)
   expect_identical(ce$node, hg$nodes)
-  net <- clique_expansion(hg)
+  net <- hg_clique_expansion(hg)
   expect_s3_class(net, "netobject")
 })
 
@@ -244,8 +244,14 @@ test_that("works on the bundled human_long dataset (long format)", {
   data("human_long", package = "hypernets")
   hg <- window_hypergraph(human_long, action = "code", actor = "session_id",
                           time = "timestamp", window = 3L)
-  expect_s3_class(hg, "net_hypergraph")
-  expect_identical(hg$params$n_sequences, length(unique(human_long$session_id)))
+  expect_s3_class(hg, "net_hg")
+  # one sequence per session, split where a gap exceeds 900 seconds, as
+  # the same call builds them in the tna family
+  expect_identical(hg$params$n_sequences,
+                   nrow(.ho_sequence_input(human_long, action = "code",
+                                           actor = "session_id",
+                                           time = "timestamp")))
+  expect_gt(hg$params$n_sequences, length(unique(human_long$session_id)))
   expect_identical(sum(hg$window_counts) + hg$params$n_empty_windows,
                    hg$params$n_windows)
   expect_true(all(hg$nodes %in% unique(human_long$code)))
@@ -253,11 +259,11 @@ test_that("works on the bundled human_long dataset (long format)", {
 
 test_that("as.data.frame sort_by orders deterministically, largest first", {
   hg <- window_hypergraph(list(c("a", "b", "a", "b", "a", "c")), window = 2L)
-  df <- as.data.frame(hg, sort_by = "weight")
+  df <- hg_get(hg, sort_by = "weight")
   expect_true(all(diff(df$weight) <= 0))
-  expect_identical(df$states[1], "a, b")
+  expect_identical(df$members[1], "a, b")
   expect_identical(nrow(df), hg$n_hyperedges)
-  expect_error(as.data.frame(hg, sort_by = "nope"), "arg")
+  expect_error(hg_get(hg, sort_by = "nope"), "arg")
 })
 
 test_that("min_weight keeps only recurrent hyperedges", {
@@ -265,8 +271,8 @@ test_that("min_weight keeps only recurrent hyperedges", {
   hg <- window_hypergraph(list(c("a", "b", "a", "b", "a", "c")), window = 2L,
                           min_weight = 2L)
   expect_identical(hg$n_hyperedges, 1L)
-  hyperedges <- as.data.frame(hg)
-  expect_identical(hyperedges$states, "a, b")
+  hyperedges <- hg_get(hg)
+  expect_identical(hyperedges$members, "a, b")
   expect_identical(hg$params$n_dropped, 1L)
   expect_error(window_hypergraph(list(c("a", "b")), min_weight = 0L),
                "min_weight")

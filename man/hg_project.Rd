@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_project.R
 \name{hg_project}
 \alias{hg_project}
-\alias{hypergraph_project}
 \title{Project a hypergraph onto a weighted graph}
 \usage{
 hg_project(
@@ -15,21 +14,10 @@ hg_project(
   edge_source = NULL,
   directed = FALSE
 )
-
-hypergraph_project(
-  hg,
-  method = c("clique", "association", "citation"),
-  weighted = TRUE,
-  what = c("edges", "matrix"),
-  duplicate_edges = c("count", "collapse"),
-  self_association = FALSE,
-  edge_source = NULL,
-  directed = FALSE
-)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, or any hypernets
-\code{net_hypergraph}.}
+\code{net_hg}.}
 
 \item{method}{Weighting. \code{"clique"} (default) sums incidence products;
 \code{"association"} applies the \eqn{1/(|e|-1)} normalisation above;

@@ -4,10 +4,12 @@
 \alias{print.net_hon_compare}
 \title{Print method for net_hon_compare}
 \usage{
-\method{print}{net_hon_compare}(x, ...)
+\method{print}{net_hon_compare}(x, n = 10L, ...)
 }
 \arguments{
 \item{x}{A \code{net_hon_compare} object.}
+
+\item{n}{Number of rows of the default table to print. Default \code{10}.}
 
 \item{...}{Additional arguments (ignored).}
 }

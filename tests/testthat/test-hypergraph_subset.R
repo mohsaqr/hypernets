@@ -16,7 +16,7 @@ testthat::skip_on_cran()
 
 test_that("hg_subset keeps named hyperedges and their nodes", {
   out <- hg_subset(.subset_fixture(), edges = c("e1", "e2"))
-  expect_s3_class(out, "net_hypergraph")
+  expect_s3_class(out, "net_hg")
   expect_identical(colnames(out$incidence), c("e1", "e2"))
   expect_identical(out$nodes, c("a", "b", "c", "d"))
   expect_identical(out$n_hyperedges, 2L)

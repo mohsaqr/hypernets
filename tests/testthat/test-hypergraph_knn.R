@@ -86,9 +86,9 @@ test_that("text_hypergraph knn construction matches knn_hypergraph", {
   expect_identical(thg$incidence, direct$incidence)
   expect_s3_class(thg, "text_hypergraph")
   expect_identical(thg$text$construction, "knn")
-  vocab <- as.data.frame(thg, what = "vocabulary")
+  vocab <- hg_get(thg, what = "vocabulary")
   expect_identical(nrow(vocab), 0L)
-  tab <- as.data.frame(thg)
+  tab <- hg_get(thg)
   expect_identical(names(tab), c("doc", "edge", "weight"))
   expect_identical(nrow(tab), 12L)
 })
@@ -112,7 +112,7 @@ test_that("knn construction carries metadata and prints distinctly", {
   thg <- text_hypergraph(articles, column = "txt", id = "key",
                          construction = "knn", k = 1,
                          embeddings = two_pairs)
-  docs <- as.data.frame(thg, what = "documents")
+  docs <- hg_get(thg, what = "documents")
   expect_identical(docs$doc, c("a", "b", "c", "d"))
   expect_identical(docs$year, c(2020L, 2021L, 2022L, 2023L))
   expect_output(print(thg), "kNN embedding hyperedges: k = 1")

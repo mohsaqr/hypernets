@@ -47,7 +47,7 @@ test_that("AllDeepSets and AllSetTransformer train end to end", {
   hg <- text_hypergraph(corpus)
   labels <- c(a1 = "food", b1 = "space")
   for (model in c("deepsets", "transformer")) {
-    fit <- hypergraph_allset(
+    fit <- hg_allset(
       hg, labels, model = model, hidden = 8, heads = 2,
       epochs = 5, validation = 0, seed = 3
     )

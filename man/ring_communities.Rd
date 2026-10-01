@@ -5,9 +5,9 @@
 \alias{ring_communities}
 \title{Planted communities of the ring sequences}
 \format{
-A data frame with 56 rows (one per state) and 2 columns:
+A data frame with 56 rows (one per node) and 2 columns:
 \describe{
-\item{state}{Character. A state label as \code{\link[=build_hon]{build_hon()}} writes it.}
+\item{node}{Character. A node label as \code{\link[=hon]{hon()}} writes it.}
 \item{community}{Integer. The planted group, 1 to 4.}
 }
 }
@@ -18,10 +18,10 @@ Built with \link{ring_sequences} by \code{data-raw/ring_sequences.R}.
 ring_communities
 }
 \description{
-The true community of every state a second-order network built from
-\link{ring_sequences} can hold. A state \code{"u -> v"} belongs to the one group
-holding both \code{u} and \code{v}; the first-order state of an action that is not
-shared (\code{"p1_1"}) belongs to that action's group. First-order states of
+The true community of every node a second-order network built from
+\link{ring_sequences} can hold. A node \code{"u -> v"} belongs to the one group
+holding both \code{u} and \code{v}; the first-order node of an action that is not
+shared (\code{"p1_1"}) belongs to that action's group. First-order nodes of
 the shared actions (\code{"s1"}, ...) have no single group and are not listed.
 }
 \examples{

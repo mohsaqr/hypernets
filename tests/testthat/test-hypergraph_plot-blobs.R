@@ -1,6 +1,6 @@
 testthat::skip_on_cran()
 
-# The blob look of plot.net_hypergraph(): title boxes, notes, the point-size
+# The blob look of plot.net_hg(): title boxes, notes, the point-size
 # variant, units, the bottom legend, and pieces laid out in a row. Parity with
 # the pipeline helper plot_blobs() on the real event data is checked in
 # local_testing_and_equivalence/test-equiv-plot-blobs-eventdata.R.

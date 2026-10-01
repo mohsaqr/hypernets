@@ -34,7 +34,7 @@
       size_distribution = size_distribution,
       params = list(sparse = TRUE)
     ),
-    class = "net_hypergraph"
+    class = "net_hg"
   )
 }
 
@@ -70,7 +70,7 @@
 .thg_walk_operators <- function(hg, edge_weights = NULL) {
   incidence <- hg$incidence
   membership <- (incidence > 0) * 1
-  w <- edge_weights %||% .thg_sparse_edge_weights(incidence)
+  w <- edge_weights %||% hg$window_counts %||% .thg_sparse_edge_weights(incidence)
   stopifnot(
     "`edge_weights` must be positive and one per hyperedge" =
       is.numeric(w) && length(w) == ncol(incidence) &&
@@ -137,7 +137,7 @@
     ))
   }
   if (identical(type, "zhou")) {
-    w <- edge_weights %||% rep(1, ncol(incidence))
+    w <- edge_weights %||% hg$window_counts %||% rep(1, ncol(incidence))
     delta <- as.numeric(Matrix::colSums(membership))
     d_v <- as.numeric(membership %*% w)
     root_d <- sqrt(d_v)
@@ -247,7 +247,7 @@
                     seed = seed, tot_withinss = km$tot.withinss,
                     sparse = TRUE)
     ),
-    class = "net_hypergraph_cluster"
+    class = "net_hg_cluster"
   )
 }
 
@@ -296,7 +296,7 @@
          xi = xi, type = type, normalization = normalization,
          n_labeled = sum(!is.na(lab)), n_nodes = n,
          params = list(edge_weights = sim$w, sparse = TRUE)),
-    class = "net_hypergraph_transduction"
+    class = "net_hg_transduction"
   )
 }
 

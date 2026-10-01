@@ -72,22 +72,153 @@ test_that("hg_agreement raises classed errors on bad input", {
                class = "hypernets_bad_input")
 })
 
-test_that("hg_stability reports one tidy row per k and finds planted stability", {
+test_that("hg_stability(resample = 'seeds') keeps the two-seed solver check", {
   hg <- toy_hg()
-  out <- hg_stability(hg, k = 2, type = "random_walk")
+  out <- hg_stability(hg, k = 2, type = "random_walk", resample = "seeds")
   expect_s3_class(out, "data.frame")
   expect_identical(names(out), c("k", "identical_partition", "ari"))
   expect_identical(nrow(out), 1L)
   expect_true(out$identical_partition)
   expect_equal(out$ari, 1)
-  two <- hg_stability(hg, k = c(2, 3), type = "random_walk")
+  two <- hg_stability(hg, k = c(2, 3), type = "random_walk",
+                      resample = "seeds")
   expect_identical(two$k, c(2, 3))
 })
 
 test_that("hg_stability validates its contract", {
   hg <- toy_hg()
   expect_error(hg_stability(hg, k = 1), "at least 2")
-  expect_error(hg_stability(hg, k = 2, seeds = c(1, 1)), "distinct")
+  expect_error(hg_stability(hg, k = 2, resample = "seeds", seeds = c(1, 1)),
+               "distinct")
+  expect_error(hg_stability(hg, k = 2, resample = "seeds", what = "clusters"),
+               class = "hypernets_bad_input")
+})
+
+# base kmeans() (Hartigan-Wong) warns "did not converge in 100 iterations"
+# or "Quick-TRANSfer stage steps exceeded maximum" on the tied embedding rows
+# of planted blocks; hg_cluster() passes those on. Muffle exactly those two
+# kmeans warnings, nothing else.
+quiet_kmeans <- function(expr) {
+  withCallingHandlers(expr, warning = function(w) {
+    if (grepl("did not converge in|Quick-TRANSfer stage steps exceeded",
+              conditionMessage(w))) {
+      invokeRestart("muffleWarning")
+    }
+  })
+}
+
+# three planted topics of 12 documents each, tied by one shared word
+planted_hg <- function() {
+  old <- if (exists(".Random.seed", envir = globalenv())) .Random.seed
+  on.exit(if (!is.null(old)) assign(".Random.seed", old, envir = globalenv()))
+  set.seed(42L)
+  vocab <- list(a = paste0("a", 1:15), b = paste0("b", 1:15),
+                c = paste0("c", 1:15))
+  docs <- unlist(lapply(names(vocab), \(t) vapply(seq_len(12), \(i)
+    paste(c(sample(vocab[[t]], 6), "common"), collapse = " "), "")))
+  names(docs) <- paste0(rep(names(vocab), each = 12), seq_len(12))
+  text_hypergraph(docs)
+}
+
+test_that("subsampling stability recovers planted topics and the eigengap", {
+  hg <- planted_hg()
+  out <- quiet_kmeans(hg_stability(hg, k = 2:5, n_boot = 20))
+  expect_named(out, c("k", "n_runs", "n_failed", "mean_jaccard",
+                      "min_jaccard", "n_stable", "n_dissolved", "eigengap"))
+  expect_identical(out$k, 2:5)
+  expect_identical(out$n_runs, rep(20L, 4))
+  expect_identical(out$n_failed, rep(0L, 4))
+  at3 <- subset(out, k == 3)
+  expect_equal(at3$mean_jaccard, 1)
+  expect_identical(at3$n_stable, 3L)
+  # the planted k is the most stable resolution and the largest eigengap
+  expect_identical(out$k[which.max(out$mean_jaccard)], 3L)
+  expect_identical(out$k[which.max(out$eigengap)], 3L)
+  # the eigengap is the gap column of hg_cluster(what = "eigenvalues")
+  spectrum <- quiet_kmeans(hg_cluster(hg, k = 5, seed = 1,
+                                     what = "eigenvalues"))
+  expect_equal(out$eigengap, spectrum$gap[2:5])
+  clusters <- quiet_kmeans(hg_stability(hg, k = 3, n_boot = 20,
+                                        what = "clusters"))
+  expect_named(clusters, c("k", "cluster", "size", "jaccard", "n_dissolved",
+                           "n_recovered", "n_runs"))
+  expect_identical(clusters$size, rep(12L, 3))
+  expect_equal(clusters$jaccard, rep(1, 3))
+  expect_identical(clusters$n_recovered, rep(20L, 3))
+})
+
+test_that("planted stability holds across seeds; unstructured text is less stable", {
+  hg <- planted_hg()
+  across <- vapply(c(1L, 7L, 19L, 101L), \(s)
+    quiet_kmeans(hg_stability(hg, k = 3, n_boot = 15, seed = s))$mean_jaccard,
+    numeric(1))
+  expect_equal(across, rep(1, 4))
+  # words drawn from one shared pool: no topic structure to recover
+  old <- if (exists(".Random.seed", envir = globalenv())) .Random.seed
+  set.seed(3)
+  pool <- paste0("w", seq_len(40))
+  noise <- vapply(seq_len(36), \(i) paste(sample(pool, 7), collapse = " "), "")
+  if (!is.null(old)) assign(".Random.seed", old, envir = globalenv())
+  names(noise) <- paste0("d", seq_len(36))
+  noise_hg <- text_hypergraph(noise)
+  noisy <- vapply(c(1L, 7L, 19L), \(s)
+    quiet_kmeans(hg_stability(noise_hg, k = 3, n_boot = 15,
+                              seed = s))$mean_jaccard,
+    numeric(1))
+  expect_true(all(noisy < 0.75))
+})
+
+test_that("hg_stability is reproducible under a seed and restores the caller's RNG", {
+  hg <- planted_hg()
+  set.seed(123)
+  before <- stats::runif(1)
+  set.seed(123)
+  a <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10, seed = 5))
+  expect_identical(stats::runif(1), before)
+  b <- quiet_kmeans(hg_stability(hg, k = 2:4, n_boot = 10, seed = 5))
+  expect_identical(a, b)
+})
+
+test_that("a subsample that disconnects the hypergraph is counted and warned", {
+  # two topics joined only through the bridge document's two words
+  docs <- c(
+    a1 = "apple pear plum", a2 = "apple pear fig", a3 = "pear plum fig",
+    a4 = "apple plum fig", bridge = "fig kiwi",
+    b1 = "kiwi lime lemon", b2 = "kiwi lemon melon", b3 = "lime lemon melon",
+    b4 = "kiwi lime melon"
+  )
+  hg <- text_hypergraph(docs)
+  expect_warning(
+    out <- hg_stability(hg, k = 2, n_boot = 30, fraction = 0.6),
+    class = "hypernets_hypergraph_disconnected"
+  )
+  expect_gt(out$n_failed, 0L)
+  expect_identical(out$n_runs + out$n_failed, 30L)
+})
+
+test_that("hg_stability raises classed errors for a bad resampling design", {
+  hg <- planted_hg()
+  expect_error(hg_stability(hg, k = 2, fraction = 1),
+               class = "hypernets_bad_input")
+  expect_error(hg_stability(hg, k = 2, fraction = 0),
+               class = "hypernets_bad_input")
+  expect_error(hg_stability(hg, k = 2, n_boot = 0),
+               class = "hypernets_bad_input")
+  # floor(0.1 * 36) = 3 nodes cannot hold 3 clusters
+  expect_error(hg_stability(hg, k = 3, fraction = 0.1),
+               class = "hypernets_bad_input")
+})
+
+test_that("the best-match Jaccard follows Hennig's definition", {
+  full <- c(x = "A", y = "A", z = "B", w = "B")
+  sub <- c(x = "1", y = "2", z = "2", w = "2")
+  # A = {x, y}: with 1 = {x} 1/2, with 2 = {y, z, w} 1/4 -> 0.5
+  # B = {z, w}: with 2 -> 2/3
+  expect_equal(.thg_best_jaccard(full, sub, c("A", "B")),
+               c(A = 0.5, B = 2 / 3))
+  # a cluster with no member in the subsample scores 0
+  expect_equal(.thg_best_jaccard(full, sub, c("A", "B", "C")),
+               c(A = 0.5, B = 2 / 3, C = 0))
 })
 
 test_that("hg_seeds picks the top-pi nodes per cluster, deterministically", {

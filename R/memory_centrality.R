@@ -5,7 +5,7 @@
 #
 # Semantics follow pathpy 2.2.0 (Scholtes' own reference implementation,
 # pathpy/algorithms/centralities.py), generalized from its fixed-order
-# networks to the variable-order networks build_hon() produces:
+# networks to the variable-order networks hon() produces:
 #
 #   * a higher-order node "a -> b" stands for the first-order path
 #     (a, b); its ORDER is the number of states in that path.
@@ -329,8 +329,8 @@
 
 #' Higher-order centralities with first-order projection
 #'
-#' Computes centralities on the higher-order topology of a
-#' [build_hon()] network and, by default, projects them back onto the
+#' The memory-network method of [hg_centrality()]. Computes centralities on the higher-order topology of a
+#' [hon()] network and, by default, projects them back onto the
 #' first-order states, following Scholtes, Wider & Garas (2016). Because
 #' a higher-order node carries the memory of how a state was reached,
 #' these centralities can rank states differently from the same measures
@@ -339,13 +339,13 @@
 #'
 #' Semantics match pathpy 2.2.0 (the reference implementation by the
 #' method's author), generalized from fixed-order to the variable-order
-#' networks `build_hon()` produces: a higher-order node's order is the
+#' networks `hon()` produces: a higher-order node's order is the
 #' number of states in the path it represents, and the first-order
 #' distance implied by a higher-order hop count adds that node's order
 #' minus one. With a uniform order the generalization reduces exactly to
 #' pathpy's formulas.
 #'
-#' @param hon A `net_hon` object from [build_hon()].
+#' @param x A `net_hon` object from [hon()].
 #' @param type Character vector, any subset of
 #'   `c("pagerank", "betweenness", "closeness")`. Default computes all
 #'   three.
@@ -393,6 +393,8 @@
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
+#' @param ... Must be empty: an argument that only the hypergraph method
+#'   takes raises `hypernets_bad_input`.
 #'
 #' @references
 #' Scholtes, I., Wider, N., & Garas, A. (2016). Higher-order aggregate
@@ -409,28 +411,33 @@
 #'   replicate(6, rep(c("a", "b", "c"), 4), simplify = FALSE),
 #'   replicate(6, rep(c("x", "b", "d"), 4), simplify = FALSE)
 #' )
-#' hon <- build_hon(seqs, max_order = 2)
-#' hon_centrality(hon)
+#' hon <- hon(seqs, max_order = 2)
+#' hg_centrality(hon)
 #'
 #' # Which contexts, rather than which states, carry the flow?
-#' hon_centrality(hon, type = "pagerank", project = FALSE)
+#' hg_centrality(hon, type = "pagerank", project = FALSE)
+
 #'
-#' @seealso [build_hon()], [bootstrap_hon()], [path_dependence()]
+#' @seealso [hon()], [hg_bootstrap()], [memory()]
 #'
 #' @export
-hon_centrality <- function(hon,
-                           type = c("pagerank", "betweenness", "closeness"),
-                           project = TRUE,
-                           projection = c("scaled", "last", "first", "all"),
-                           damping = 0.85,
-                           weighted = FALSE,
-                           max_iter = 1000L,
-                           tol = 1e-12,
-                           max_paths = 1e6,
-                           sort_by = NULL,
-                           top = NULL) {
+hg_centrality.net_hon <- function(x,
+                                  type = c("pagerank", "betweenness",
+                                           "closeness"),
+                                  project = TRUE,
+                                  projection = c("scaled", "last", "first",
+                                                 "all"),
+                                  damping = 0.85,
+                                  weighted = FALSE,
+                                  max_iter = 1000L,
+                                  tol = 1e-12,
+                                  max_paths = 1e6,
+                                  sort_by = NULL,
+                                  top = NULL, ...) {
+  .ho_no_dots(..., .for = "a memory network")
+  hon <- x
   stopifnot(
-    "`hon` must be a net_hon object from build_hon()" =
+    "`x` must be a net_hon object from hon()" =
       inherits(hon, "net_hon"),
     "`project` must be TRUE or FALSE" =
       is.logical(project) && length(project) == 1L && !is.na(project),

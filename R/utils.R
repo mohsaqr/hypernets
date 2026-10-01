@@ -1,20 +1,20 @@
 # ---- Shared internal helpers ----
 #
-# Shared by all three structure families (memory networks, simplicial
-# complexes, hypergraphs). Copied verbatim from Nestimate (R/utils.R,
-# R/estimate_network.R, R/mcml.R) as part of the hypernets delegation (see
-# Nestimate's HYPERNETS-DELEGATION-PLAN.md). Nestimate keeps its own copies of
-# .coerce_sequence_input / .as_netobject / .extract_edges_from_matrix /
-# .validate_mcml_matrix / .wrap_netobject (used elsewhere there);
-# .ho_cograph_fields moves here outright (its only callers are the
-# memory-family builders).
+# PRIVATE copies of Nestimate internals that hypernets' own verbs need
+# (`:::` is not allowed and Nestimate does not export them):
+# .coerce_sequence_input / .as_netobject / .extract_edges_from_matrix
+# (sequence input of hg_bootstrap(), hg_compare(), temporal_hypergraph())
+# and .validate_mcml_matrix / .wrap_netobject (hg_clique_expansion()).
+# Each is a verbatim copy of Nestimate's same-named internal; identity is
+# asserted in local_testing_and_equivalence/test-identity-nestimate-memory.R.
+# .coerce_grouped_sequences() is hypernets' own (group_hypergraph()).
 
 #' Coerce tna or netobject to labeled sequence data.frame
 #'
 #' When \code{data} is a \code{tna} or \code{netobject}, extracts the
 #' sequence data and converts numeric state IDs to label names. This
-#' allows \code{build_hon()}, \code{build_hypa()}, and other pathway
-#' functions to accept model objects directly.
+#' allows \code{hg_bootstrap()}, \code{hg_compare()} and
+#' \code{temporal_hypergraph()} to accept model objects directly.
 #'
 #' @param data Input: data.frame, list, tna, or netobject.
 #' @return A data.frame or list suitable for \code{.hon_parse_input()}.
@@ -163,38 +163,6 @@
     to     = as.integer(idx[, 2]),
     weight = mat[idx],
     stringsAsFactors = FALSE
-  )
-}
-
-#' Add cograph_network fields to a higher-order network object
-#'
-#' @param mat Square weight matrix with named rows/columns.
-#' @param node_names Character vector of node names.
-#' @param method Character. Method label for metadata.
-#' @return Named list with \code{weights}, \code{nodes} (data.frame),
-#'   \code{edges}, \code{directed}, \code{meta} fields.
-#' @noRd
-.ho_cograph_fields <- function(mat, node_names, method = "hon") {
-  nodes_df <- data.frame(
-    id = seq_along(node_names),
-    label = node_names,
-    name = node_names,
-    stringsAsFactors = FALSE
-  )
-  edges <- .extract_edges_from_matrix(mat, directed = TRUE)
-  list(
-    weights = mat,
-    nodes = nodes_df,
-    edges = edges,
-    directed = TRUE,
-    n_nodes = length(node_names),
-    n_edges = nrow(edges),
-    meta = list(
-      source = "nestimate",
-      layout = NULL,
-      tna = list(method = method)
-    ),
-    node_groups = NULL
   )
 }
 
@@ -375,4 +343,195 @@
   sequences <- rows_of(data)
   groups <- lapply(seq_len(k), \(g) sequences[assignments == g])
   stats::setNames(groups, paste("Cluster", seq_len(k)))
+}
+
+# =========================================================================
+# One sequence-input helper for every sequence-taking verb
+# =========================================================================
+#
+# hon(), mogen(), hypa(), markov_order(), memory(),
+# hg_markov_stability(), hg_bootstrap(), hg_compare(), simplicial(type =
+# "window") and window_hypergraph() all read sequences through
+# .ho_sequence_input(). It accepts
+#   * a long event table, with `action` (the state column) and optionally
+#     `actor`, `session`, `time`, `time_threshold` and `timezone`;
+#   * a wide data.frame or character matrix, one sequence per row;
+#   * a list of vectors, one sequence per element;
+#   * a model object carrying its sequences (netobject, netobject_group,
+#     tna, cograph_network).
+# The long route is Nestimate's: build_network()'s detection of the columns
+# named action, time and session / session_id when those arguments are
+# NULL, then Nestimate::prepare() with the same arguments, whose wide
+# $sequence_data is returned unchanged. The sequences are therefore the
+# ones build_network(method = "relative", ...) builds from the same call.
+# `session = FALSE` switches session detection off. A long table passed
+# without `action` and without an `action` column is refused
+# (hypernets_long_format).
+
+#' Coerce any sequence input to what a sequence verb consumes
+#'
+#' @param data Sequence input (see the block comment above).
+#' @param action,actor,time,session Long-format column names or `NULL`;
+#'   `session = FALSE` switches session detection off.
+#' @param time_threshold,timezone Passed to [Nestimate::prepare()].
+#' @param lists `"keep"` returns a list of sequences as a list; `"wide"`
+#'   pads it into a wide data.frame (one row per sequence, `NA`-padded),
+#'   for consumers that read only frames.
+#' @param models `"keep"` passes model objects through untouched (the
+#'   consumer reads them itself); `"decode"` turns a `tna` or a bare
+#'   `cograph_network` into its wide, label-decoded sequence frame, for
+#'   consumers that only read a netobject's `$data`.
+#' @return The wide sequence data.frame of [Nestimate::prepare()] (long
+#'   input), a wide data.frame, a list, or the model object.
+#' @noRd
+.ho_sequence_input <- function(data, action = NULL, actor = NULL,
+                               time = NULL, session = NULL,
+                               time_threshold = 900, timezone = "UTC",
+                               lists = c("keep", "wide"),
+                               models = c("keep", "decode")) {
+  lists <- match.arg(lists)
+  models <- match.arg(models)
+  # build_network()'s column detection: a column named action, time,
+  # session or session_id (any case) is used when its argument is NULL
+  # (time and session matter only for a long table, so they are looked
+  # for once there is an action column)
+  if (is.data.frame(data)) {
+    detected <- .ho_detect_columns(data)
+    action <- action %||% detected$action
+    if (!is.null(action)) {
+      time <- time %||% detected$time
+      if (is.null(session)) session <- detected$session
+    }
+  }
+  if (isFALSE(session)) session <- NULL
+  if (is.null(action)) {
+    stray <- c(actor = !is.null(actor), time = !is.null(time),
+               session = !is.null(session))
+    if (any(stray)) {
+      .ho_bad_input(sprintf(
+        "`%s` requires `action` (the state column of a long event table)",
+        names(stray)[stray][1L]))
+    }
+    .hon_guard_long_format(data)
+    if (models == "decode" &&
+        (inherits(data, "tna") ||
+         (inherits(data, "cograph_network") && !inherits(data, "netobject")))) {
+      data <- .coerce_sequence_input(data)
+    }
+    if (is.matrix(data) && !is.numeric(data)) {
+      data <- as.data.frame(data, stringsAsFactors = FALSE)
+    }
+    if (lists == "wide" && is.list(data) && !is.data.frame(data) &&
+        !inherits(data, c("netobject", "netobject_group", "tna",
+                          "cograph_network"))) {
+      data <- .ho_wide_sequences(data)
+    }
+    return(data)
+  }
+  .ho_check_long_columns(data, action = action, actor = actor, time = time,
+                         session = session)
+  stopifnot(
+    "`time_threshold` must be a positive number, Inf, or FALSE" =
+      isFALSE(time_threshold) ||
+      (is.numeric(time_threshold) && length(time_threshold) == 1L &&
+         !is.na(time_threshold) && time_threshold > 0)
+  )
+  keys <- c(actor, session)
+  if (length(keys) > 0L && anyNA(data[keys])) {
+    .ho_bad_input(sprintf(paste0(
+      "missing values in %s: every event needs an identifier; drop or ",
+      "relabel these rows first"), paste0("`", keys, "`", collapse = ", ")))
+  }
+  if (is.null(actor)) {
+    # build_network()'s notice: without an actor every event is one sequence
+    notice <- simpleMessage(paste0(
+      "A network with one long sequence is not recommended and can't be ",
+      "validated using bootstrap and other confirmatory testings.\n"))
+    class(notice) <- c("hypernets_single_sequence", class(notice))
+    message(notice)
+  }
+  # only the columns that define the sequences, so prepare() has no other
+  # columns to aggregate into session metadata
+  columns <- unique(c(action, actor, time, session))
+  prepared <- Nestimate::prepare(data[columns], actor = actor,
+                                 action = action, time = time,
+                                 session = session,
+                                 time_threshold = time_threshold,
+                                 timezone = timezone)
+  prepared$sequence_data
+}
+
+#' Columns found by name, as build_network() finds them
+#'
+#' @param data A data.frame.
+#' @return A list with `action`, `time` and `session`: the column whose
+#'   lower-cased name is `"action"`, `"time"`, and `"session"` (else
+#'   `"session_id"`), each `NULL` when there is no single such column.
+#' @noRd
+.ho_detect_columns <- function(data) {
+  lower <- tolower(names(data))
+  match1 <- \(name) {
+    hit <- which(lower == name)
+    if (length(hit) == 1L) names(data)[hit]
+  }
+  list(action = match1("action"), time = match1("time"),
+       session = match1("session") %||% match1("session_id"))
+}
+
+#' Validate the long-format column arguments against a data.frame
+#'
+#' @param data The long table.
+#' @param action,actor,time,session Column names or `NULL`; `actor` and
+#'   `session` may name several columns.
+#' @return `NULL`, invisibly; raises `hypernets_bad_input`.
+#' @noRd
+.ho_check_long_columns <- function(data, action, actor, time, session) {
+  if (!is.data.frame(data)) {
+    .ho_bad_input("`data` must be a data.frame when `action` is given")
+  }
+  single <- list(action = action, time = time)
+  several <- list(actor = actor, session = session)
+  lapply(names(single), function(arg) {
+    col <- single[[arg]]
+    if (is.null(col)) return(NULL)
+    if (!is.character(col) || length(col) != 1L || !col %in% names(data)) {
+      .ho_bad_input(sprintf("`%s` must name a column of `data`", arg))
+    }
+    NULL
+  })
+  lapply(names(several), function(arg) {
+    col <- several[[arg]]
+    if (is.null(col)) return(NULL)
+    if (!is.character(col) || length(col) < 1L || !all(col %in% names(data))) {
+      .ho_bad_input(sprintf("`%s` must name one or more columns of `data`",
+                            arg))
+    }
+    NULL
+  })
+  invisible(NULL)
+}
+
+#' Pad a list of sequences into a wide data.frame
+#'
+#' @param sequences List of vectors.
+#' @return data.frame, one row per sequence, columns `T1`..`Tn`, `NA`-padded
+#'   on the right.
+#' @noRd
+.ho_wide_sequences <- function(sequences) {
+  sequences <- lapply(sequences, as.character)
+  width <- max(1L, lengths(sequences))
+  rows <- lapply(sequences, function(s) {
+    c(s, rep(NA_character_, width - length(s)))
+  })
+  out <- as.data.frame(do.call(rbind, rows), stringsAsFactors = FALSE)
+  names(out) <- paste0("T", seq_len(width))
+  rownames(out) <- NULL
+  out
+}
+
+#' Raise a classed bad-input error
+#' @param msg Message.
+#' @noRd
+.ho_bad_input <- function(msg) {
+  stop(errorCondition(msg, class = "hypernets_bad_input", call = NULL))
 }

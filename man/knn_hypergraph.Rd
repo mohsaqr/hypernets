@@ -16,7 +16,7 @@ rownames (the item IDs). No missing values; no all-zero rows.}
 \item{weight}{\code{"cosine"} (default) or \code{"binary"}.}
 }
 \value{
-A \code{net_hypergraph} (from \code{\link[=group_hypergraph]{group_hypergraph()}}) with one
+A \code{net_hg} (from \code{\link[=group_hypergraph]{group_hypergraph()}}) with one
 hyperedge per item, each of size \code{k + 1}, plus a \code{knn} field recording
 \code{k} and the weighting. Accepted by \code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_centrality]{hg_centrality()}},
 \code{\link[=hg_cluster]{hg_cluster()}}, and \code{\link[=hg_classify]{hg_classify()}}.
@@ -48,4 +48,9 @@ emb <- matrix(rnorm(20, mean = 3), nrow = 5,
               dimnames = list(paste0("doc_", 1:5), NULL))
 hg <- knn_hypergraph(emb, k = 2)
 hg_measures(hg, what = "edges")
+}
+\references{
+Feng, Y., You, H., Zhang, Z., Ji, R., & Gao, Y. (2019). Hypergraph neural
+networks. \emph{Proceedings of the AAAI Conference on Artificial Intelligence},
+33(01), 3558-3565. \doi{10.1609/aaai.v33i01.33013558}
 }

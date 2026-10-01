@@ -145,7 +145,7 @@
 #' value, not the p-value alone.
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
-#'   `net_hypergraph`.
+#'   `net_hg`.
 #' @param statistic Statistics to test; any of `"pairwise_participation"`,
 #'   `"density"`, `"avg_edge_size"`, `"avg_jaccard"` (mean pairwise edge
 #'   Jaccard), `"repeated_edges"` (hyperedges whose member set already
@@ -302,7 +302,3 @@ hg_null_test <- function(hg,
   rownames(out) <- NULL
   out
 }
-
-#' @rdname hg_null_test
-#' @export
-hypergraph_null_test <- hg_null_test

@@ -37,7 +37,7 @@ test_that("4-cycle clique complex has one essential H1", {
   weights <- c(0.51, 0.52, 0.53, 0.54)
   mat <- .ph_sim_mat(edges, weights, 4L)
 
-  ph <- persistent_homology(mat, n_steps = 5L, max_dim = 2L)
+  ph <- hg_homology(mat, n_steps = 5L, max_dim = 2L)
 
   # Exactly one essential H_1 (the hole) — clique mode sets essential death = 0.
   ess_b1 <- ph$persistence[ph$persistence$dimension == 1L &
@@ -59,7 +59,7 @@ test_that("filled triangle has only one essential H0 (contractible)", {
   weights <- c(0.6, 0.5, 0.4)
   mat <- .ph_sim_mat(edges, weights, 3L)
 
-  ph <- persistent_homology(mat, n_steps = 5L, max_dim = 2L)
+  ph <- hg_homology(mat, n_steps = 5L, max_dim = 2L)
 
   ess <- ph$persistence[ph$persistence$death == 0, , drop = FALSE]
   expect_equal(nrow(ess), 1L)
@@ -78,7 +78,7 @@ test_that("two disjoint edges give two essential H0 classes", {
   weights <- c(0.5, 0.5)
   mat <- .ph_sim_mat(edges, weights, 4L)
 
-  ph <- persistent_homology(mat, n_steps = 5L, max_dim = 2L)
+  ph <- hg_homology(mat, n_steps = 5L, max_dim = 2L)
 
   ess_b0 <- ph$persistence[ph$persistence$dimension == 0L &
                              ph$persistence$death == 0, , drop = FALSE]
@@ -94,8 +94,8 @@ test_that("two disjoint edges give two essential H0 classes", {
 test_that("bottleneck distance is zero for identical diagrams", {
   mat <- matrix(c(0, .6, .5, .6, 0, .4, .5, .4, 0), 3, 3)
   rownames(mat) <- colnames(mat) <- c("A", "B", "C")
-  ph <- persistent_homology(mat, n_steps = 5L)
-  d <- bottleneck_distance(ph, ph)
+  ph <- hg_homology(mat, n_steps = 5L)
+  d <- hg_bottleneck(ph, ph)
   expect_true(all(d == 0))
 })
 
@@ -104,11 +104,11 @@ test_that("bottleneck distance is symmetric", {
   m2 <- matrix(c(0, .7, .3, .7, 0, .2, .3, .2, 0), 3, 3)
   rownames(m1) <- colnames(m1) <- c("A","B","C")
   rownames(m2) <- colnames(m2) <- c("A","B","C")
-  ph1 <- persistent_homology(m1, n_steps = 5L)
-  ph2 <- persistent_homology(m2, n_steps = 5L)
+  ph1 <- hg_homology(m1, n_steps = 5L)
+  ph2 <- hg_homology(m2, n_steps = 5L)
 
-  d_12 <- bottleneck_distance(ph1, ph2)
-  d_21 <- bottleneck_distance(ph2, ph1)
+  d_12 <- hg_bottleneck(ph1, ph2)
+  d_21 <- hg_bottleneck(ph2, ph1)
   expect_equal(unname(d_12), unname(d_21))
 })
 
@@ -119,13 +119,13 @@ test_that("bottleneck distance satisfies the triangle inequality", {
   for (m in list(m1, m2, m3)) {
     rownames(m) <- colnames(m) <- c("A","B","C")
   }
-  ph1 <- persistent_homology(m1, n_steps = 5L)
-  ph2 <- persistent_homology(m2, n_steps = 5L)
-  ph3 <- persistent_homology(m3, n_steps = 5L)
+  ph1 <- hg_homology(m1, n_steps = 5L)
+  ph2 <- hg_homology(m2, n_steps = 5L)
+  ph3 <- hg_homology(m3, n_steps = 5L)
 
-  d_12 <- bottleneck_distance(ph1, ph2)
-  d_23 <- bottleneck_distance(ph2, ph3)
-  d_13 <- bottleneck_distance(ph1, ph3)
+  d_12 <- hg_bottleneck(ph1, ph2)
+  d_23 <- hg_bottleneck(ph2, ph3)
+  d_13 <- hg_bottleneck(ph1, ph3)
   expect_true(all(d_13 <= d_12 + d_23 + 1e-9))
 })
 
@@ -138,9 +138,9 @@ test_that("bottleneck returns Inf when essential counts differ", {
   rownames(m1) <- colnames(m1) <- c("A","B","C")
   rownames(m2) <- colnames(m2) <- paste0("v", 1:4)
 
-  ph1 <- persistent_homology(m1, n_steps = 5L)
-  ph2 <- persistent_homology(m2, n_steps = 5L)
-  d <- bottleneck_distance(ph1, ph2)
+  ph1 <- hg_homology(m1, n_steps = 5L)
+  ph2 <- hg_homology(m2, n_steps = 5L)
+  d <- hg_bottleneck(ph1, ph2)
   expect_true(is.infinite(d["dim_0"]))
 })
 
@@ -152,10 +152,10 @@ test_that("Wasserstein distance matches hand-computed diagram costs", {
                       death = numeric())
   shifted <- data.frame(dimension = 0L, birth = 1, death = 3)
 
-  expect_equal(unname(wasserstein_distance(one, empty, dimension = 0L)), 1)
-  expect_equal(unname(wasserstein_distance(one, shifted)), 1)
+  expect_equal(unname(hg_wasserstein(one, empty, dimension = 0L)), 1)
+  expect_equal(unname(hg_wasserstein(one, shifted)), 1)
   expect_equal(
-    unname(wasserstein_distance(one, empty, dimension = 0L,
+    unname(hg_wasserstein(one, empty, dimension = 0L,
                                 internal_p = 2)),
     sqrt(2)
   )
@@ -168,13 +168,13 @@ test_that("Wasserstein distance has metric properties", {
                    death = c(2.5, 6))
   d3 <- data.frame(dimension = 0L, birth = 1, death = 4)
 
-  expect_equal(wasserstein_distance(d1, d1, order = 2), c(dim_0 = 0))
-  expect_equal(wasserstein_distance(d1, d2, order = 2),
-               wasserstein_distance(d2, d1, order = 2))
+  expect_equal(hg_wasserstein(d1, d1, order = 2), c(dim_0 = 0))
+  expect_equal(hg_wasserstein(d1, d2, order = 2),
+               hg_wasserstein(d2, d1, order = 2))
   expect_lte(
-    unname(wasserstein_distance(d1, d3, order = 2)),
-    unname(wasserstein_distance(d1, d2, order = 2)) +
-      unname(wasserstein_distance(d2, d3, order = 2)) + 1e-12
+    unname(hg_wasserstein(d1, d3, order = 2)),
+    unname(hg_wasserstein(d1, d2, order = 2)) +
+      unname(hg_wasserstein(d2, d3, order = 2)) + 1e-12
   )
 })
 
@@ -183,19 +183,19 @@ test_that("Wasserstein handles dimensions and essential classes", {
                    death = c(Inf, 5))
   d2 <- data.frame(dimension = c(0L, 1L), birth = c(1, 2.5),
                    death = c(Inf, 5.5))
-  out <- wasserstein_distance(d1, d2)
+  out <- hg_wasserstein(d1, d2)
   expect_equal(out["dim_0"], c(dim_0 = 1))
   expect_equal(out["dim_1"], c(dim_1 = 0.5))
 
   mismatch <- rbind(d2, data.frame(dimension = 0L, birth = 3, death = Inf))
-  expect_true(is.infinite(wasserstein_distance(d1, mismatch)["dim_0"]))
+  expect_true(is.infinite(hg_wasserstein(d1, mismatch)["dim_0"]))
 })
 
 test_that("Wasserstein validates metric orders", {
   d <- data.frame(dimension = 0L, birth = 0, death = 1)
-  expect_error(wasserstein_distance(d, d, order = Inf), "finite")
-  expect_error(wasserstein_distance(d, d, order = 0), ">= 1")
-  expect_error(wasserstein_distance(d, d, internal_p = 0), ">= 1")
+  expect_error(hg_wasserstein(d, d, order = Inf), "finite")
+  expect_error(hg_wasserstein(d, d, order = 0), ">= 1")
+  expect_error(hg_wasserstein(d, d, internal_p = 0), ">= 1")
 })
 
 # Vietoris-Rips on a circle ---------------------------------------------
@@ -206,7 +206,7 @@ test_that("VR filtration on a circle recovers H_1 = 1 essential", {
   # get pulled in to fill the hole. The shortest "diagonal" distance on an
   # 8-gon is 2*sin(2*pi/8) ≈ 1.414; the shortest cycle edge is
   # 2*sin(pi/8) ≈ 0.765. Choose a cap between them.
-  ph <- persistent_homology(d, n_steps = 5L, max_dim = 2L,
+  ph <- hg_homology(d, n_steps = 5L, max_dim = 2L,
                             type = "vr", max_scale = 1.0)
 
   ess_b1 <- ph$persistence[ph$persistence$dimension == 1L &
@@ -229,13 +229,13 @@ test_that("VR filtration on a circle recovers H_1 = 1 essential", {
   expect_equal(b0_at_end, 1L)
 })
 
-test_that("build_simplicial(type='vr') filtration values match expectation", {
+test_that("simplicial(type='vr') filtration values match expectation", {
   # 3 points in a line: 1—2—3 with d(1,2)=0.5, d(2,3)=0.5, d(1,3)=1.0
   d <- matrix(c(0, 0.5, 1.0,
                 0.5, 0, 0.5,
                 1.0, 0.5, 0), 3, 3, byrow = TRUE)
   rownames(d) <- colnames(d) <- c("A","B","C")
-  sc <- build_simplicial(d, type = "vr", max_scale = 1.0, max_dim = 2L)
+  sc <- simplicial(d, type = "vr", max_scale = 1.0, max_dim = 2L)
 
   expect_identical(sc$type, "vr")
   # Vertices appear at filt = 0; edges at their distance; the 2-simplex
@@ -255,10 +255,10 @@ test_that("persistence landscape sup norms decrease with k", {
   edges <- rbind(c(1, 2), c(2, 3), c(3, 4), c(4, 1))
   weights <- c(0.51, 0.52, 0.53, 0.54)
   mat <- .ph_sim_mat(edges, weights, 4L)
-  ph <- persistent_homology(mat, n_steps = 5L, max_dim = 2L)
+  ph <- hg_homology(mat, n_steps = 5L, max_dim = 2L)
 
-  pl <- persistence_landscape(ph, k_max = 4L, dimension = 0L)
-  expect_s3_class(pl, "net_persistence_landscape")
+  pl <- hg_landscape(ph, k_max = 4L, dimension = 0L)
+  expect_s3_class(pl, "persistence_landscape")
 
   k_norms <- vapply(seq_len(4L), function(k) {
     sub <- pl$landscape[pl$landscape$k == k, ]
@@ -271,8 +271,8 @@ test_that("persistence landscape sup norms decrease with k", {
 test_that("persistence landscape is non-negative everywhere", {
   mat <- matrix(c(0, .6, .5, .6, 0, .4, .5, .4, 0), 3, 3)
   rownames(mat) <- colnames(mat) <- c("A","B","C")
-  ph <- persistent_homology(mat, n_steps = 5L)
-  pl <- persistence_landscape(ph, k_max = 3L, dimension = 0L)
+  ph <- hg_homology(mat, n_steps = 5L)
+  pl <- hg_landscape(ph, k_max = 3L, dimension = 0L)
   expect_true(all(pl$landscape$value >= 0))
 })
 
@@ -280,8 +280,8 @@ test_that("persistence landscape on empty diagram returns zeros", {
   # Diagram with only essentials (e.g., two disjoint edges)
   edges <- rbind(c(1, 2), c(3, 4))
   mat <- .ph_sim_mat(edges, c(0.5, 0.5), 4L)
-  ph <- persistent_homology(mat, n_steps = 5L)
-  pl <- persistence_landscape(ph, k_max = 2L, dimension = 0L)
+  ph <- hg_homology(mat, n_steps = 5L)
+  pl <- hg_landscape(ph, k_max = 2L, dimension = 0L)
   expect_true(all(pl$landscape$value == 0))
 })
 
@@ -290,7 +290,7 @@ test_that("persistence landscape on empty diagram returns zeros", {
 test_that("persistent_homology preserves $persistence column shape", {
   mat <- matrix(c(0, .6, .5, .6, 0, .4, .5, .4, 0), 3, 3)
   rownames(mat) <- colnames(mat) <- c("A","B","C")
-  ph <- persistent_homology(mat, n_steps = 5L)
+  ph <- hg_homology(mat, n_steps = 5L)
   expect_true(all(c("dimension", "birth", "death", "persistence") %in%
                     names(ph$persistence)))
   expect_true(all(ph$persistence$persistence >= 0))
@@ -307,7 +307,7 @@ test_that("VR includes off-diagonal zero-distance edges (duplicate points)", {
   d[2, 3] <- d[3, 2] <- 1
   rownames(d) <- colnames(d) <- c("A", "Ab", "B")  # Ab coincident with A
 
-  ph <- persistent_homology(d, n_steps = 5L, max_dim = 1L,
+  ph <- hg_homology(d, n_steps = 5L, max_dim = 1L,
                             type = "vr", max_scale = 1)
 
   # b0 at threshold 0: A and Ab are merged (zero-distance edge), B is alone.
@@ -336,7 +336,7 @@ test_that("VR persistence diagram plot retains essential classes", {
   pts <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
   d <- as.matrix(stats::dist(pts))
   rownames(d) <- colnames(d) <- paste0("p", 1:4)
-  ph <- persistent_homology(d, n_steps = 5L, max_dim = 2L,
+  ph <- hg_homology(d, n_steps = 5L, max_dim = 2L,
                             type = "vr", max_scale = 2)
   pl <- plot(ph, combined = FALSE)
   # The persistence diagram panel's underlying data must include all rows
@@ -353,17 +353,17 @@ test_that("VR persistence diagram plot retains essential classes", {
 
 # Regression: Codex review 2026-05-20 — filtered-complex handoff -------
 
-test_that("persistent_homology accepts a build_simplicial VR complex", {
+test_that("persistent_homology accepts a simplicial VR complex", {
   pts <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
   d <- as.matrix(stats::dist(pts))
   rownames(d) <- colnames(d) <- paste0("p", 1:4)
 
   # Path A: matrix → PH directly.
-  ph_a <- persistent_homology(d, n_steps = 5L, max_dim = 2L,
+  ph_a <- hg_homology(d, n_steps = 5L, max_dim = 2L,
                               type = "vr", max_scale = 2)
-  # Path B: matrix → build_simplicial(type = "vr") → PH.
-  sc <- build_simplicial(d, type = "vr", max_scale = 2, max_dim = 2L)
-  ph_b <- persistent_homology(sc, n_steps = 5L, max_dim = 2L,
+  # Path B: matrix → simplicial(type = "vr") → PH.
+  sc <- simplicial(d, type = "vr", max_scale = 2, max_dim = 2L)
+  ph_b <- hg_homology(sc, n_steps = 5L, max_dim = 2L,
                               type = "vr")
 
   # Persistence tables must match by row count and by (dimension, birth, death)
@@ -381,25 +381,25 @@ test_that("persistent_homology accepts a build_simplicial VR complex", {
 test_that("persistent_homology mode flag is set", {
   mat <- matrix(c(0, .6, .5, .6, 0, .4, .5, .4, 0), 3, 3)
   rownames(mat) <- colnames(mat) <- c("A","B","C")
-  ph_c <- persistent_homology(mat, n_steps = 5L)
+  ph_c <- hg_homology(mat, n_steps = 5L)
   expect_identical(ph_c$mode, "clique")
 
   d <- matrix(c(0, 0.4, 0.5,
                 0.4, 0, 0.6,
                 0.5, 0.6, 0), 3, 3, byrow = TRUE)
   rownames(d) <- colnames(d) <- c("A","B","C")
-  ph_v <- persistent_homology(d, n_steps = 5L, type = "vr", max_scale = 1)
+  ph_v <- hg_homology(d, n_steps = 5L, type = "vr", max_scale = 1)
   expect_identical(ph_v$mode, "vr")
 })
 
-# ---- Coefficient field: betti_numbers() is rational, PH is Z/2 ----
+# ---- Coefficient field: hg_betti() is rational, PH is Z/2 ----
 #
 # The 6-vertex triangulation of the real projective plane (Hatcher 2002):
 # H_1(RP^2; Z) = Z/2 is pure torsion, so the rational Betti numbers are
 # (1, 0, 0) while the Z/2 Betti numbers are (1, 1, 1). The two verbs are
 # documented to use these two fields; this pins that behaviour.
 
-test_that("betti_numbers() is rational and persistent_homology() is Z/2 on RP^2", {
+test_that("hg_betti() is rational and hg_homology() is Z/2 on RP^2", {
   triangles <- list(c(1L, 2L, 3L), c(1L, 3L, 4L), c(1L, 4L, 5L),
                     c(1L, 5L, 6L), c(1L, 2L, 6L), c(2L, 3L, 5L),
                     c(3L, 4L, 6L), c(2L, 4L, 5L), c(3L, 5L, 6L),
@@ -412,22 +412,25 @@ test_that("betti_numbers() is rational and persistent_homology() is Z/2 on RP^2"
   expect_true(all(table(vapply(edge_list, paste, character(1L),
                                collapse = ",")) == 2L))
 
-  sc <- .make_simplicial_complex(c(as.list(seq_len(6L)), edges, triangles),
+  # No public verb builds a complex from a simplex list; use Nestimate's own
+  # constructor so the object has exactly the shape its verbs expect.
+  make_sc <- utils::getFromNamespace(".make_simplicial_complex", "Nestimate")
+  sc <- make_sc(c(as.list(seq_len(6L)), edges, triangles),
                                  nodes = paste0("v", seq_len(6L)),
                                  type = "vr")
   sc$filtration <- rep(0, length(sc$simplices))
   expect_identical(unname(sc$f_vector), c(6L, 15L, 10L))
-  expect_identical(euler_characteristic(sc), 1L)
+  expect_identical(hg_euler(sc), 1L)
 
   # Rationals: torsion is invisible.
-  expect_identical(betti_numbers(sc), c(b0 = 1L, b1 = 0L, b2 = 0L))
+  expect_identical(hg_betti(sc), c(b0 = 1L, b1 = 0L, b2 = 0L))
 
   # Z/2: one essential class in each of dimensions 0, 1, 2.
-  ph <- persistent_homology(sc, type = "vr")
-  pers <- as.data.frame(ph)
+  ph <- hg_homology(sc, type = "vr")
+  pers <- hg_get(ph)
   essential <- subset(pers, is.infinite(death))
   expect_identical(sort(essential$dimension), c(0L, 1L, 2L))
   # Euler-Poincare holds in both fields.
-  expect_identical(sum(c(1L, -1L, 1L) * betti_numbers(sc)), 1L)
+  expect_identical(sum(c(1L, -1L, 1L) * hg_betti(sc)), 1L)
   expect_equal(sum((-1)^essential$dimension), 1)
 })

@@ -1,0 +1,51 @@
+---
+title: "plot.net_hon_group review"
+output:
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "",
+                      fig.width = 9, fig.height = 7, dpi = 120)
+```
+
+```{r fit}
+library(hypernets)
+data("human_long", package = "hypernets")
+fits <- build_hon(human_long, action = "code", actor = "session_id",
+                  time = "timestamp", by = "project", max_order = 2L)
+```
+
+## what = "edges" (default, cograph::plot_heatmap), top 30 rules
+
+```{r edges}
+plot(fits)
+```
+
+## what = "edges", memory rules only
+
+```{r edges-memory}
+plot(fits, order_min = 2L, top = 25L)
+```
+
+## what = "support" (cograph::plot_centrality)
+
+```{r support}
+plot(fits, what = "support")
+```
+
+## what = "network" (cograph::plot_tna), one project
+
+```{r network, fig.height = 8}
+plot(fits, what = "network", actor = "Project_7")
+```
+
+## keep_sparse = TRUE, support view
+
+```{r sparse}
+fits_all <- build_hon(human_long, action = "code", actor = "session_id",
+                      time = "timestamp", by = "project", max_order = 2L,
+                      keep_sparse = TRUE)
+plot(fits_all, what = "support")
+```

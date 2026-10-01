@@ -79,10 +79,10 @@ test_that("INVARIANT: projections are invariant to input row order", {
   expect_equal(line, line_shuffled)
 })
 
-test_that("clique projection matches clique_expansion()", {
+test_that("clique projection matches hg_clique_expansion()", {
   hg <- fixture(weight = c(2, 1, 3, 1, 4, 2, 1, 1, 5, 1, 2))
   ours <- hg_project(hg, method = "clique", what = "matrix")
-  expansion <- clique_expansion(hg)
+  expansion <- hg_clique_expansion(hg)
   theirs <- expansion$weights
   expect_equal(unname(as.matrix(ours)), unname(theirs))
 })

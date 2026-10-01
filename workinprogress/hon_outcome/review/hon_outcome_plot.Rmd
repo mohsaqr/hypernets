@@ -1,0 +1,259 @@
+---
+title: "Plot review: plot.net_outcome()"
+date: "2026-09-28"
+output:
+  html_document:
+    theme: flatly
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      comment = "", fig.width = 8, fig.height = 4.8,
+                      out.width = "100%", dpi = 130)
+library(hypernets)
+```
+
+## What is being compared with what
+
+`hon_outcome()` gives every **actor** (here: a student) one number per
+feature. The number is an average: take every higher-order state the student
+passed through (for example "`debug -> code`", the state *code* reached from
+*debug*), look up that state's centrality in the pooled network, and average
+over the student's visits. A student whose trajectory keeps returning to
+central states gets a high value; one who spends time in peripheral states
+gets a low one.
+
+The regression then compares **students with each other**: do students with
+a higher average exposure to central states have a different outcome? Nothing
+is compared within a student, and no single node or motif is being tested.
+
+Each section shows two views of the same fit:
+
+1. **Per-SD effects** (`plot(fit)`, the default): how much the outcome
+   differs between two students one standard deviation apart on that feature,
+   with the other features held fixed. All features sit on the same axis, so
+   they can be compared directly.
+2. **Contrasts** (`plot(fit, what = "contrasts")`): two hypothetical
+   students per feature, one at the 25th and one at the 75th percentile of
+   that feature, every other feature at its average; the plot shows the
+   predicted outcome for each.
+
+```{r describers, include = FALSE}
+# Sentence builders for the inline prose. They read the tidy tables returned
+# by the accessors; all indexing stays inside these function bodies.
+fmt <- function(v, digits = 2L) format(signif(v, digits))
+num <- function(v) formatC(v, format = "f", digits = 2L)
+
+describe_per_sd <- function(fit, who, verb_gauss = "score",
+                            odds_of = "the outcome") {
+  d <- as.data.frame(fit)
+  d <- d[order(d$p_adj, d$feature), , drop = FALSE]
+  lab <- hypernets:::.hoo_feature_label(d$feature)
+  lines <- vapply(seq_len(nrow(d)), function(i) {
+    ci <- sprintf("95%% CI %s to %s; BH-adjusted p = %s",
+                  num(d$per_sd_low[i]), num(d$per_sd_high[i]),
+                  fmt(d$p_adj[i]))
+    effect <- if (identical(fit$family, "gaussian")) {
+      sprintf("%s %s %s", verb_gauss, num(abs(d$effect_per_sd[i])),
+              if (d$effect_per_sd[i] < 0) "points lower" else "points higher")
+    } else {
+      sprintf("have %s times the %s", num(d$effect_per_sd[i]),
+              if (identical(fit$family, "binomial"))
+                paste("odds of", odds_of) else "expected count")
+    }
+    sprintf("%s one SD higher in %s (1 SD = %s) %s (%s).", who, lab[i],
+            fmt(d$feature_sd[i]), effect, ci)
+  }, character(1L))
+  paste(lines, collapse = " ")
+}
+
+describe_contrasts <- function(fit, who, pct = FALSE) {
+  d <- as.data.frame(fit, what = "contrasts")
+  lab <- hypernets:::.hoo_feature_label(d$feature)
+  show <- if (pct) function(v) sprintf("%s%%", num(100 * v)) else num
+  lines <- vapply(seq_len(nrow(d)), function(i) {
+    sprintf(paste0("For %s, a %s at the 25th percentile (%s) is predicted ",
+                   "at %s (95%% CI %s to %s) and one at the 75th percentile ",
+                   "(%s) at %s (%s to %s): a difference of %s (95%% CI %s ",
+                   "to %s)."),
+            lab[i], who, fmt(d$low_value[i], 3L),
+            show(d$predicted_low[i]), show(d$predicted_low_ci_low[i]),
+            show(d$predicted_low_ci_high[i]), fmt(d$high_value[i], 3L),
+            show(d$predicted_high[i]), show(d$predicted_high_ci_low[i]),
+            show(d$predicted_high_ci_high[i]),
+            if (pct) sprintf("%s percentage points",
+                             num(100 * d$difference[i]))
+            else num(d$difference[i]),
+            num(if (pct) 100 * d$conf_low[i] else d$conf_low[i]),
+            num(if (pct) 100 * d$conf_high[i] else d$conf_high[i]))
+  }, character(1L))
+  paste(lines, collapse = " ")
+}
+```
+
+```{r simulators}
+simulate_students <- function(n_classes = 20L, per_class = 6L) {
+  class_id <- rep(sprintf("class%02d", seq_len(n_classes)), each = per_class)
+  n <- length(class_id)
+  class_tilt <- rep(stats::rnorm(n_classes, sd = 0.8), each = per_class)
+  class_effect <- rep(stats::rnorm(n_classes, sd = 3), each = per_class)
+  debug_share <- stats::plogis(-0.5 + class_tilt + stats::rnorm(n, sd = 0.8))
+  data.frame(
+    student = sprintf("s%03d", seq_len(n)), class = class_id,
+    debug_share = debug_share,
+    score = 70 - 12 * debug_share + class_effect + stats::rnorm(n, sd = 3),
+    completed = stats::rbinom(n, 1L, stats::plogis(2 - 4 * debug_share)),
+    stringsAsFactors = FALSE)
+}
+simulate_logs <- function(students, n_motifs = 12L) {
+  motifs <- list(plan = c("plan", "code", "test"),
+                 debug = c("debug", "code", "debug"),
+                 read = c("read", "plan", "code"),
+                 review = c("test", "read", "plan"))
+  rows <- lapply(seq_len(nrow(students)), \(i) {
+    p <- students$debug_share[i]
+    pick <- sample(names(motifs), n_motifs, replace = TRUE,
+                   prob = c((1 - p) / 3, p, (1 - p) / 3, (1 - p) / 3))
+    actions <- unlist(motifs[pick], use.names = FALSE)
+    data.frame(student = students$student[i], step = seq_along(actions),
+               action = actions, stringsAsFactors = FALSE)
+  })
+  do.call(rbind, rows)
+}
+set.seed(2026)
+students <- simulate_students()
+logs <- simulate_logs(students)
+hon <- build_hon(logs, action = "action", actor = "student", time = "step",
+                 max_order = 2L)
+```
+
+## 1. Gaussian score, two centralities, CR3 over 20 classes
+
+```{r gaussian-two}
+fit_two <- hon_outcome(hon, outcome = students, sequences = logs,
+                       by = "student", outcome_col = "score",
+                       action = "action", time = "step",
+                       centrality_type = c("pagerank", "betweenness"),
+                       nested_in = "class")
+plot(fit_two)
+```
+
+**Reading it.** `r describe_per_sd(fit_two, "Students", "score")` The two
+features are adjusted for each other, and the intervals are cluster-robust
+because students in the same class are not independent.
+
+```{r gaussian-two-contrasts}
+plot(fit_two, what = "contrasts")
+```
+
+`r describe_contrasts(fit_two, "student")` The grey bar is the gap between the
+two hypothetical students; when the two intervals overlap heavily the gap is
+not distinguishable from zero.
+
+```{r gaussian-two-table}
+as.data.frame(fit_two)
+as.data.frame(fit_two, what = "contrasts")
+```
+
+## 2. Same fit, model-based covariance (no nesting)
+
+```{r gaussian-naive}
+fit_naive <- hon_outcome(hon, outcome = students, sequences = logs,
+                         by = "student", outcome_col = "score",
+                         action = "action", time = "step",
+                         centrality_type = c("pagerank", "betweenness"))
+plot(fit_naive)
+```
+
+**Reading it.** `r describe_per_sd(fit_naive, "Students", "score")` The point
+estimates are the same as in section 1; only the intervals change. These
+treat the 120 students as independent, which the class structure makes
+false, so they are too narrow.
+
+```{r gaussian-naive-contrasts}
+plot(fit_naive, what = "contrasts")
+```
+
+`r describe_contrasts(fit_naive, "student")`
+
+## 3. Gaussian, all five features (near-collinear)
+
+```{r gaussian-all}
+fit_all <- hon_outcome(hon, outcome = students, sequences = logs,
+                       by = "student", outcome_col = "score",
+                       action = "action", time = "step",
+                       features = c("centrality", "honem"),
+                       nested_in = "class")
+plot(fit_all, what = "per_sd")
+```
+
+**Reading it.** Five related features compete for the same signal, so each
+per-SD effect is "holding the other four fixed" -- a comparison between
+students who differ on one feature but not on the others, which barely exist
+in these data. The wide intervals are that collinearity (scaled condition
+index `r num(fit_all$condition_index)`), not an absence of signal.
+
+```{r gaussian-all-contrasts, fig.height = 6}
+plot(fit_all, what = "contrasts")
+```
+
+`r describe_contrasts(fit_all, "student")`
+
+## 4. Binomial completion, CR3 over 20 classes
+
+```{r binomial}
+fit_completed <- hon_outcome(hon, outcome = students, sequences = logs,
+                             by = "student", outcome_col = "completed",
+                             action = "action", time = "step",
+                             centrality_type = c("pagerank", "betweenness"),
+                             nested_in = "class", family = "binomial")
+plot(fit_completed)
+```
+
+**Reading it.** For a 0/1 outcome the effect is an odds ratio on a log
+axis; 1 means no association. `r describe_per_sd(fit_completed, "Students", odds_of = "completing")`
+
+```{r binomial-contrasts}
+plot(fit_completed, what = "contrasts")
+```
+
+The contrast turns the odds ratio back into probabilities of completing.
+`r describe_contrasts(fit_completed, "student", pct = TRUE)`
+
+## 5. Poisson on real sessions, CR3 over 34 projects
+
+```{r poisson}
+session_messages <- aggregate(cbind(n_messages = message_id) ~
+                                session_id + project,
+                              data = human_long,
+                              FUN = \(m) length(unique(m)))
+session_hon <- build_hon(human_long, action = "code", actor = "session_id",
+                         time = "order_in_session", max_order = 2L,
+                         min_freq = 50L)
+session_fit <- hon_outcome(session_hon, outcome = session_messages,
+                           sequences = human_long, by = "session_id",
+                           outcome_col = "n_messages", action = "code",
+                           time = "order_in_session",
+                           centrality_type = c("pagerank", "betweenness",
+                                               "closeness"),
+                           nested_in = "project", family = "poisson")
+plot(session_fit)
+```
+
+**Reading it.** Here the actors are sessions and the outcome is the number
+of human messages, so the effect is a rate ratio (log axis, 1 = no
+association). `r describe_per_sd(session_fit, "Sessions")` This is a
+mechanics demonstration: outcome and features come from the same sessions.
+
+```{r poisson-contrasts}
+plot(session_fit, what = "contrasts")
+```
+
+`r describe_contrasts(session_fit, "session")`
+
+## 6. The old view, kept as `what = "raw"`
+
+```{r raw}
+plot(fit_two, what = "raw")
+```

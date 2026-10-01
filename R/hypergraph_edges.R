@@ -14,7 +14,7 @@
 #' tribunal over time (Figure 5c) come from one call.
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], any hypernets
-#'   `net_hypergraph`, or a [temporal_hypergraph()].
+#'   `net_hg`, or a [temporal_hypergraph()].
 #' @param what `"edges"` (default) for one row per hyperedge,
 #'   `"distribution"` for the empirical distribution of `measure` across
 #'   hyperedges, or `"summary"` for its mean, standard deviation and
@@ -27,12 +27,12 @@
 #'   the thresholds used by [hg_edge_centrality()]. Several values give one
 #'   block of rows each, with an `s` column.
 #' @param start,end,step,window,at Measurement grid passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal: the bounds of the
+#'   [hg_snapshots()] when `hg` is temporal: the bounds of the
 #'   period, how often to look, how much time each look covers, or the
 #'   instants themselves.
 #' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
 #'   `"cumulative"`) and multi-edge handling passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal.
+#'   [hg_snapshots()] when `hg` is temporal.
 #' @return With `what = "edges"`, a base data.frame with one row per
 #'   hyperedge and columns `edge` (name), `size` (integer, vertices it
 #'   contains), `weight` (numeric, its incidence weights summed),
@@ -76,14 +76,14 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
   s <- as.integer(round(s))
 
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+    snaps <- hg_snapshots(hg, start = start, end = end, step = step,
                                   window = window, mode = snapshot_mode, at = at,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
       ans <- hg_edges(snaps[[i]], what = what, measure = measure, s = s)
       if (nrow(ans) == 0L) return(NULL)
       time <- snaps[[i]]$params$at %||% names(snaps)[i]
-      data.frame(time = rep(time, nrow(ans)), as.data.frame(ans),
+      data.frame(time = rep(time, nrow(ans)), .ho_plain(ans),
                  row.names = NULL, stringsAsFactors = FALSE)
     })
     out <- do.call(rbind, rows)
@@ -119,10 +119,6 @@ hg_edges <- function(hg, what = c("edges", "distribution", "summary"),
   rownames(out) <- NULL
   .thg_edges_class(out, what, measure)
 }
-
-#' @rdname hg_edges
-#' @export
-hypergraph_edges <- hg_edges
 
 # One row per hyperedge for one intersection threshold `s`.
 # One edge table per value of `s`. Everything except `n_incident_edges` is

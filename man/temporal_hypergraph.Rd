@@ -79,7 +79,7 @@ A \code{net_temporal_hypergraph} holding the membership table (\code{node},
 \code{edge}, \code{start}, \code{end}, \code{weight}), the edge metadata (\code{edge}, \code{start},
 \code{end} and the hyperedge attributes), the node universe with entry
 times, the sorted event times, \code{format} (\code{"interval"} or \code{"contact"}),
-\code{time_unit}, \code{origin} and the \code{observation} bounds. \code{as.data.frame(x, what = "memberships" | "edges" | "nodes")} returns the three tables;
+\code{time_unit}, \code{origin} and the \code{observation} bounds. \code{hg_get(x, what = "memberships" | "edges" | "nodes")} returns the three tables;
 \code{summary()} the one-row description.
 }
 \description{
@@ -103,7 +103,7 @@ contact log -- a citation, a message, a meeting on one day. It is
 present at that instant only. The cumulative view in which every
 hyperedge stays once it has appeared (the point-aggregation model of
 Coupette et al. 2024) is a snapshot \code{mode}, not a property of the
-data: ask for it with \code{mode = "cumulative"} in \code{\link[=hypergraph_snapshot]{hypergraph_snapshot()}},
+data: ask for it with \code{mode = "cumulative"} in \code{\link[=hg_snapshot]{hg_snapshot()}},
 \code{\link[=hg_growth]{hg_growth()}} and \code{\link[=hg_edges]{hg_edges()}}.}
 }
 
@@ -142,7 +142,7 @@ date for a calendar hypergraph or a number on that clock, and every
 is known independently of the log, with Dynet's meaning: they bound the
 snapshot times and the measurement grid, and an open-ended hyperedge is
 active through \code{observation_end}, but the stored memberships are never
-rewritten and \code{as.data.frame()} returns the original spells. Without them
+rewritten and \code{hg_get()} returns the original spells. Without them
 the window is the span of the data.
 
 Every other column that is constant within a hyperedge is kept as a
@@ -161,15 +161,15 @@ seats <- data.frame(
 thg <- temporal_hypergraph(seats, actor = "arbitrator", group = "case",
                            start = "constituted", end = "concluded")
 thg
-hypergraph_snapshot(thg, at = 3)
+hg_snapshot(thg, at = 3)
 
 # a contact log on a calendar: instants at each date, cumulative on request
 contacts <- data.frame(from = c("a", "b", "c"), to = c("b", "c", "a"),
                        date = as.Date(c("2024-01-01", "2024-01-05", "2024-01-09")))
 calls <- temporal_hypergraph(contacts, from = "from", to = "to", time = "date")
 calls
-hypergraph_snapshot(calls, at = as.Date("2024-01-05"))
-hypergraph_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
+hg_snapshot(calls, at = as.Date("2024-01-05"))
+hg_snapshot(calls, at = as.Date("2024-01-05"), mode = "cumulative")
 }
 \references{
 Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal

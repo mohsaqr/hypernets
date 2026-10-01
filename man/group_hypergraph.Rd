@@ -22,7 +22,7 @@ group_hypergraph(
 }
 \arguments{
 \item{data}{Data frame in long format, one row per actor-in-group or per
-edge; or a clustering of sequences from Nestimate -- a mixture Markov
+edge; or a clustering of sequences -- a mixture Markov
 fit (\code{net_mmm}), a distance clustering (\code{net_clustering}), or the
 per-cluster networks built from either (\code{netobject_group}). See
 "Clustered sequences" below.}
@@ -72,18 +72,18 @@ set before counting, and a sequence left with no state is not counted.
 \code{NULL} (default) keeps every state.}
 }
 \value{
-A \code{net_hypergraph} object with the same structure produced by
-\code{\link[=build_hypergraph]{build_hypergraph()}} (\code{hyperedges}, \code{incidence}, \code{nodes}, \code{n_nodes},
+A \code{net_hg} object with the same structure produced by
+\code{\link[=network_hypergraph]{network_hypergraph()}} (\code{hyperedges}, \code{incidence}, \code{nodes}, \code{n_nodes},
 \code{n_hyperedges}, \code{size_distribution}, \code{params}), plus \code{edge_data} when
 \code{data} carries hyperedge attributes (see Details). The \code{params} list
 records \code{source = "group_hypergraph"} and the original column names.
 For clustered sequences the object also has \code{group_sizes} and
-\code{state_counts} (read them with \code{as.data.frame()}) and \code{params} records
+\code{state_counts} (read them with \code{hg_get()}) and \code{params} records
 \code{source = "clustered_sequences"}, \code{top}, \code{states} and
 \code{unit = "sequences"}.
 }
 \description{
-Constructs a \link[=build_hypergraph]{net_hypergraph} the way a network is
+Constructs a \link[=network_hypergraph]{net_hg} the way a network is
 defined from data. \strong{Co-presence data} name an \code{actor} and a \code{group}:
 every actor sharing one value of \code{group} (a session, a team, a citation
 block) belongs to one hyperedge. An \strong{edge
@@ -97,13 +97,13 @@ produces a single 3-hyperedge containing all three, not three pairwise
 edges AB, AC, BC. This avoids information loss when group interactions are
 the primary unit of analysis (Perc et al. 2013).
 
-Unlike \code{\link[=build_hypergraph]{build_hypergraph()}} (which derives hyperedges from a network's
+Unlike \code{\link[=network_hypergraph]{network_hypergraph()}} (which derives hyperedges from a network's
 clique structure), \code{group_hypergraph()} takes group memberships
 directly. The two functions are complementary:
 \itemize{
 \item \code{group_hypergraph()} - when group membership is observed
 (sessions, transactions, co-authorships).
-\item \code{build_hypergraph()} - when only pairwise interactions are
+\item \code{network_hypergraph()} - when only pairwise interactions are
 observed and triadic structure must be inferred from triangles.
 }
 
@@ -123,27 +123,26 @@ attempting the allocation; pass \code{sparse = TRUE} for data at that scale.
 }
 \section{Clustered sequences}{
 
-Given a Nestimate clustering, every sequence of every group is reduced to
+Given a clustering of sequences, every sequence of every group is reduced to
 the set of its distinct states (order and repetition dropped; \code{NA} and
 empty cells ignored), and the \code{top} most frequent sets of each group
 become hyperedges -- frequent-itemset support counting with each sequence
 as one transaction (Agrawal & Srikant 1994), restricted to the sets that
 occur exactly. Sets of equal count are ranked by their name (states
 sorted and joined by \code{" + "}). Groups are named \code{"Cluster 1"},
-\code{"Cluster 2"}, ... for a \code{net_mmm} or \code{net_clustering}, as Nestimate's
-\code{build_network()} names them, and by the list names of a
-\code{netobject_group}, so names given with Nestimate's \code{rename_models()}
-carry through. Integer-coded states are decoded to their labels. The
-objects are read by their structure; Nestimate is not needed.
+\code{"Cluster 2"}, ... for a \code{net_mmm} or \code{net_clustering}, and by the list
+names of a \code{netobject_group}, so renamed groups carry through.
+Integer-coded states are decoded to their labels. The objects are read
+by their structure; the package that fitted them is not needed.
 
 The hyperedges are named \code{"<group>: <set>"} and carry \code{group}, \code{set} and
 \code{count} (sequences with exactly that set) as hyperedge attributes, so
 \code{plot()} colours and titles them by \code{count} in \code{"sequences"}, and
 \code{plot(hg, group = "Cluster 1")} draws one group's sets with each node
 sized by the sequences of that group containing the state. Read the
-tables with \code{as.data.frame(hg, what = "sets")} (one row per hyperedge:
+tables with \code{hg_get(hg, what = "sets")} (one row per hyperedge:
 its group, set, size, count and share of the group's sequences) and
-\code{as.data.frame(hg, what = "state_counts")} (one row per group and
+\code{hg_get(hg, what = "state_counts")} (one row per group and
 state). A malformed clustering (no \verb{$data}, assignments that do not match
 it, unnamed networks) raises \code{hypernets_bad_input}.
 
@@ -169,7 +168,7 @@ summary(hg)
 contacts <- data.frame(from = c("a", "b"), to = c("b", "c"))
 group_hypergraph(contacts, from = "from", to = "to")
 
-# a clustering of sequences, shaped as Nestimate's cluster_mmm() returns it
+# a clustering of sequences, shaped as a mixture Markov fit (net_mmm)
 fit <- structure(list(
   data = data.frame(V1 = c("a", "a", "b", "a", "c"),
                     V2 = c("b", "b", "c", "c", "a"),
@@ -177,7 +176,7 @@ fit <- structure(list(
   assignments = c(1L, 1L, 2L, 1L, 2L), k = 2L
 ), class = "net_mmm")
 sets <- group_hypergraph(fit, top = 3)
-as.data.frame(sets, what = "sets")
+hg_get(sets, what = "sets")
 plot(sets, group = "Cluster 1")
 
 }
@@ -193,6 +192,6 @@ populations: a review. \emph{Journal of the Royal Society Interface}
 10(80), 20120997. \doi{10.1098/rsif.2012.0997}
 }
 \seealso{
-\code{\link[=build_hypergraph]{build_hypergraph()}} for the clique-based constructor,
+\code{\link[=network_hypergraph]{network_hypergraph()}} for the clique-based constructor,
 \code{\link[=temporal_hypergraph]{temporal_hypergraph()}} for the same inputs with a clock.
 }

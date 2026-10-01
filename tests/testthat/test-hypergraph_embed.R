@@ -22,7 +22,7 @@ test_that("embedding verb exposes the shared engine coordinates", {
   clustered <- hg_cluster(h, k = 2, seed = 9, what = "embedding")
   expect_equal(unclass(direct[, c("node", "pi", "dim1", "dim2")]),
                unclass(clustered[, c("node", "pi", "dim1", "dim2")]))
-  expect_identical(hypergraph_embed, hg_embed)
+  expect_identical(hg_embed, hg_embed)
 })
 
 test_that("embedding verb validates dimensions", {

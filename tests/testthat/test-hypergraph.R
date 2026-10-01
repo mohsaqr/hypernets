@@ -1,4 +1,4 @@
-# ---- build_hypergraph() tests --------------------------------------------
+# ---- network_hypergraph() tests --------------------------------------------
 
 # Helpers ------------------------------------------------------------------
 
@@ -33,9 +33,9 @@
 
 # Structure ----------------------------------------------------------------
 
-test_that("build_hypergraph returns a net_hypergraph with required fields", {
-  hg <- build_hypergraph(.hg_triangle_adj(), p = 1, max_size = 3L)
-  expect_s3_class(hg, "net_hypergraph")
+test_that("network_hypergraph returns a net_hg with required fields", {
+  hg <- network_hypergraph(.hg_triangle_adj(), p = 1, max_size = 3L)
+  expect_s3_class(hg, "net_hg")
   expect_named(hg, c("hyperedges", "incidence", "nodes", "n_nodes",
                      "n_hyperedges", "size_distribution", "params"))
   expect_type(hg$hyperedges, "list")
@@ -47,7 +47,7 @@ test_that("build_hypergraph returns a net_hypergraph with required fields", {
 # Triangle, p = 1, include_pairwise = TRUE ---------------------------------
 
 test_that("single triangle p=1 yields 1 three-edge + 3 two-edges", {
-  hg <- build_hypergraph(.hg_triangle_adj(), p = 1, include_pairwise = TRUE)
+  hg <- network_hypergraph(.hg_triangle_adj(), p = 1, include_pairwise = TRUE)
   expect_equal(hg$n_hyperedges, 4L)
   sizes <- vapply(hg$hyperedges, length, integer(1))
   expect_equal(sort(sizes), c(2L, 2L, 2L, 3L))
@@ -58,7 +58,7 @@ test_that("single triangle p=1 yields 1 three-edge + 3 two-edges", {
 # Triangle, p = 0 ---------------------------------------------------------
 
 test_that("p=0 drops all higher-order, keeps pairwise", {
-  hg <- build_hypergraph(.hg_triangle_adj(), p = 0, include_pairwise = TRUE)
+  hg <- network_hypergraph(.hg_triangle_adj(), p = 0, include_pairwise = TRUE)
   expect_equal(hg$n_hyperedges, 3L)
   expect_true(all(vapply(hg$hyperedges, length, integer(1)) == 2L))
 })
@@ -66,7 +66,7 @@ test_that("p=0 drops all higher-order, keeps pairwise", {
 # Triangle, p = 1, include_pairwise = FALSE -------------------------------
 
 test_that("include_pairwise=FALSE keeps only k>=3 hyperedges", {
-  hg <- build_hypergraph(.hg_triangle_adj(), p = 1, include_pairwise = FALSE)
+  hg <- network_hypergraph(.hg_triangle_adj(), p = 1, include_pairwise = FALSE)
   expect_equal(hg$n_hyperedges, 1L)
   expect_equal(length(hg$hyperedges[[1]]), 3L)
   expect_equal(sort(hg$hyperedges[[1]]), 1:3)
@@ -75,13 +75,13 @@ test_that("include_pairwise=FALSE keeps only k>=3 hyperedges", {
 # No triangles ------------------------------------------------------------
 
 test_that("triangle-free network yields only 2-hyperedges", {
-  hg <- build_hypergraph(.hg_chain_adj(), p = 1, max_size = 3L)
+  hg <- network_hypergraph(.hg_chain_adj(), p = 1, max_size = 3L)
   expect_true(all(vapply(hg$hyperedges, length, integer(1)) == 2L))
   expect_equal(hg$n_hyperedges, 2L)
 })
 
 test_that("triangle-free + include_pairwise=FALSE yields empty hypergraph", {
-  hg <- build_hypergraph(.hg_chain_adj(), p = 1,
+  hg <- network_hypergraph(.hg_chain_adj(), p = 1,
                          include_pairwise = FALSE, max_size = 3L)
   expect_equal(hg$n_hyperedges, 0L)
   expect_equal(ncol(hg$incidence), 0L)
@@ -93,8 +93,8 @@ test_that("triangle-free + include_pairwise=FALSE yields empty hypergraph", {
 
 test_that("seed gives reproducible sampling at intermediate p", {
   adj <- .hg_two_triangles_adj()
-  hg1 <- build_hypergraph(adj, p = 0.5, seed = 42L)
-  hg2 <- build_hypergraph(adj, p = 0.5, seed = 42L)
+  hg1 <- network_hypergraph(adj, p = 0.5, seed = 42L)
+  hg2 <- network_hypergraph(adj, p = 0.5, seed = 42L)
   expect_identical(hg1$hyperedges, hg2$hyperedges)
 })
 
@@ -104,8 +104,8 @@ test_that("different seeds give (probably) different samples", {
   # only a 1/4 chance of matching by accident.
   set.seed(NULL)
   outcomes <- replicate(20, {
-    hg1 <- build_hypergraph(adj, p = 0.5, seed = sample.int(1e6, 1))
-    hg2 <- build_hypergraph(adj, p = 0.5, seed = sample.int(1e6, 1))
+    hg1 <- network_hypergraph(adj, p = 0.5, seed = sample.int(1e6, 1))
+    hg2 <- network_hypergraph(adj, p = 0.5, seed = sample.int(1e6, 1))
     identical(hg1$hyperedges, hg2$hyperedges)
   })
   # Out of 20 random pairs, at least one should differ.
@@ -115,7 +115,7 @@ test_that("different seeds give (probably) different samples", {
 # Incidence matrix structure ----------------------------------------------
 
 test_that("incidence rows index nodes, columns index hyperedges", {
-  hg <- build_hypergraph(.hg_two_triangles_adj(), p = 1)
+  hg <- network_hypergraph(.hg_two_triangles_adj(), p = 1)
   expect_equal(rownames(hg$incidence), hg$nodes)
   expect_equal(ncol(hg$incidence), hg$n_hyperedges)
   # node A (idx 1) belongs only to A-B, A-C edges and the A-B-C triangle
@@ -128,7 +128,7 @@ test_that("incidence rows index nodes, columns index hyperedges", {
 # Size distribution -------------------------------------------------------
 
 test_that("size distribution matches hyperedge sizes", {
-  hg <- build_hypergraph(.hg_two_triangles_adj(), p = 1, max_size = 3L)
+  hg <- network_hypergraph(.hg_two_triangles_adj(), p = 1, max_size = 3L)
   expect_equal(hg$size_distribution[["size_2"]], 6L)
   expect_equal(hg$size_distribution[["size_3"]], 2L)
 })
@@ -139,7 +139,7 @@ test_that("max_size = 4 includes 4-cliques", {
   # K4: complete graph on 4 nodes => one 4-clique, four 3-cliques, six 2-edges
   adj <- matrix(1L, 4L, 4L); diag(adj) <- 0L
   rownames(adj) <- colnames(adj) <- c("A", "B", "C", "D")
-  hg <- build_hypergraph(adj, p = 1, max_size = 4L, include_pairwise = TRUE)
+  hg <- network_hypergraph(adj, p = 1, max_size = 4L, include_pairwise = TRUE)
   sizes <- vapply(hg$hyperedges, length, integer(1))
   expect_equal(sum(sizes == 2L), 6L)
   expect_equal(sum(sizes == 3L), 4L)
@@ -151,16 +151,16 @@ test_that("max_size = 4 includes 4-cliques", {
 test_that("accepts a netobject", {
   adj <- .hg_two_triangles_adj()
   net <- .wrap_netobject(adj * 1.0, method = "manual", directed = FALSE)
-  hg <- build_hypergraph(net, p = 1)
-  expect_s3_class(hg, "net_hypergraph")
+  hg <- network_hypergraph(net, p = 1)
+  expect_s3_class(hg, "net_hg")
   expect_equal(hg$n_nodes, 6L)
 })
 
 test_that("accepts a simplicial_complex", {
   adj <- .hg_two_triangles_adj()
-  sc <- build_simplicial(adj, type = "clique", max_dim = 2L)
-  hg <- build_hypergraph(sc, p = 1)
-  expect_s3_class(hg, "net_hypergraph")
+  sc <- simplicial(adj, type = "clique", max_dim = 2L)
+  hg <- network_hypergraph(sc, p = 1)
+  expect_s3_class(hg, "net_hg")
   expect_equal(hg$n_nodes, 6L)
   expect_true(any(vapply(hg$hyperedges, length, integer(1)) == 3L))
 })
@@ -168,23 +168,23 @@ test_that("accepts a simplicial_complex", {
 # Input validation --------------------------------------------------------
 
 test_that("rejects out-of-range p", {
-  expect_error(build_hypergraph(.hg_triangle_adj(), p = -0.1))
-  expect_error(build_hypergraph(.hg_triangle_adj(), p =  1.1))
+  expect_error(network_hypergraph(.hg_triangle_adj(), p = -0.1))
+  expect_error(network_hypergraph(.hg_triangle_adj(), p =  1.1))
 })
 
 test_that("rejects max_size < 2", {
-  expect_error(build_hypergraph(.hg_triangle_adj(), max_size = 1L))
+  expect_error(network_hypergraph(.hg_triangle_adj(), max_size = 1L))
 })
 
 test_that("rejects bad input type", {
-  expect_error(build_hypergraph("not a network"),
+  expect_error(network_hypergraph("not a network"),
                "netobject, cograph_network")
 })
 
 # Print/summary methods don't error --------------------------------------
 
 test_that("print and summary methods run without error", {
-  hg <- build_hypergraph(.hg_two_triangles_adj(), p = 1)
+  hg <- network_hypergraph(.hg_two_triangles_adj(), p = 1)
   expect_invisible(print(hg))
   s <- summary(hg)
   expect_s3_class(s, "data.frame")
@@ -192,57 +192,57 @@ test_that("print and summary methods run without error", {
 })
 
 test_that("print/summary handle empty hypergraph", {
-  hg <- build_hypergraph(.hg_chain_adj(), p = 1,
+  hg <- network_hypergraph(.hg_chain_adj(), p = 1,
                          include_pairwise = FALSE)
   expect_invisible(print(hg))
   s <- summary(hg)
   expect_s3_class(s, "data.frame")
 })
 
-test_that("as.data.frame(what = 'nodes') reports one row per node", {
+test_that("hg_get(what = 'nodes') reports one row per node", {
   df <- data.frame(
     member = c("a", "b", "c", "b", "c", "d"),
     session = c("s1", "s1", "s1", "s2", "s2", "s2")
   )
   hg <- group_hypergraph(df, actor = "member", group = "session")
-  nodes <- as.data.frame(hg, what = "nodes")
+  nodes <- hg_get(hg, what = "nodes")
   expect_identical(names(nodes), c("node", "degree"))
   expect_identical(nodes$node, c("a", "b", "c", "d"))
   expect_identical(nodes$degree, c(1L, 2L, 2L, 1L))
-  by_degree <- as.data.frame(hg, what = "nodes", sort_by = "degree", top = 2)
+  by_degree <- hg_get(hg, what = "nodes", sort_by = "degree", top = 2)
   expect_identical(by_degree$node, c("b", "c"))
   sparse <- group_hypergraph(df, actor = "member", group = "session",
                              sparse = TRUE)
-  sparse_nodes <- as.data.frame(sparse, what = "nodes")
+  sparse_nodes <- hg_get(sparse, what = "nodes")
   expect_identical(sparse_nodes, nodes)
   # planted blocks ride along
   P <- matrix(c(.5, .05, .05, .5), 2, 2)
   sbm <- hg_sample_sbm(P = P, block_sizes = c(3, 3), d = 2, seed = 1)
-  sbm_nodes <- as.data.frame(sbm, what = "nodes")
+  sbm_nodes <- hg_get(sbm, what = "nodes")
   expect_identical(names(sbm_nodes), c("node", "degree", "block"))
   expect_identical(sbm_nodes$block, rep(1:2, each = 3))
 })
 
-test_that("as.data.frame(what = 'memberships') lists every incidence cell", {
+test_that("hg_get(what = 'memberships') lists every incidence cell", {
   dfw <- data.frame(person = c("A", "B", "A", "A", "B"),
                     grp = c("g1", "g1", "g1", "g2", "g2"),
                     n = c(2, 5, 3, 1, 4), stringsAsFactors = FALSE)
   hw <- group_hypergraph(dfw, actor = "person", group = "grp", weight = "n")
-  cells <- as.data.frame(hw, what = "memberships")
+  cells <- hg_get(hw, what = "memberships")
   expect_identical(names(cells), c("node", "hyperedge", "weight"))
   expect_identical(cells$node, c("A", "B", "A", "B"))
   expect_identical(cells$hyperedge, c("g1", "g1", "g2", "g2"))
   expect_equal(cells$weight, c(5, 5, 1, 4))
-  heaviest <- as.data.frame(hw, what = "memberships", sort_by = "weight", top = 1)
+  heaviest <- hg_get(hw, what = "memberships", sort_by = "weight", top = 1)
   expect_identical(heaviest$hyperedge, "g1")
   # INVARIANT: the table is the incidence matrix in long form, dense or sparse
   sparse <- group_hypergraph(dfw, actor = "person", group = "grp",
                              weight = "n", sparse = TRUE)
-  sparse_cells <- as.data.frame(sparse, what = "memberships")
+  sparse_cells <- hg_get(sparse, what = "memberships")
   expect_equal(sparse_cells, cells)
   expect_equal(sum(cells$weight), sum(hw$incidence))
   binary <- group_hypergraph(dfw, actor = "person", group = "grp")
-  binary_cells <- as.data.frame(binary, what = "memberships")
+  binary_cells <- hg_get(binary, what = "memberships")
   expect_equal(binary_cells$weight, rep(1, 4))
 })
 

@@ -10,7 +10,7 @@
 #
 # Rule extraction in replicates uses the eager counts-based path
 # (method = "hon"); the shipped test suite pins that "hon" and "hon+"
-# produce identical networks, so the results apply to build_hon() output
+# produce identical networks, so the results apply to hon() output
 # of either method.
 
 # ---------------------------------------------------------------------------
@@ -19,49 +19,28 @@
 
 #' Parse inference input into a list of character trajectories
 #'
-#' Long format (action given): one trajectory per actor, ordered by time
-#' (row order within actor when time is NULL). Otherwise delegates to the
-#' package input contract (.coerce_sequence_input + .hon_parse_input).
+#' Every input route goes through the package's one sequence-input helper
+#' (.ho_sequence_input): long format becomes one trajectory per actor (and
+#' session), ordered by time; wide frames, lists and model objects are then
+#' parsed by the package input contract (.coerce_sequence_input +
+#' .hon_parse_input).
 #'
 #' @param data Sequence data (wide data.frame, list, tna, netobject, or
 #'   long data.frame with `action`).
-#' @param action,actor,time Long-format column names or NULL.
-#' @param collapse_repeats Logical, as in build_hon().
+#' @param action,actor,time,session,time_threshold,timezone Long-format
+#'   arguments or NULL.
+#' @param collapse_repeats Logical, as in hon().
 #' @return List of character trajectories (length >= 1).
 #' @noRd
 .hi_parse <- function(data, action = NULL, actor = NULL, time = NULL,
-                      collapse_repeats = FALSE) {
-  if (!is.null(action)) {
-    stopifnot(
-      "`data` must be a data.frame when `action` is given" =
-        is.data.frame(data),
-      "`action` must name a column of `data`" =
-        is.character(action) && length(action) == 1L &&
-        action %in% names(data),
-      "`actor` must be NULL or name a column of `data`" =
-        is.null(actor) ||
-        (is.character(actor) && length(actor) == 1L && actor %in% names(data)),
-      "`time` must be NULL or name a column of `data`" =
-        is.null(time) ||
-        (is.character(time) && length(time) == 1L && time %in% names(data))
-    )
-    a <- as.character(data[[action]])
-    g <- if (is.null(actor)) rep("sequence_1", length(a)) else
-      as.character(data[[actor]])
-    keep <- !is.na(g)
-    a <- a[keep]
-    g <- g[keep]
-    o <- if (is.null(time)) order(g) else order(g, data[[time]][keep])
-    trajectories <- split(a[o], g[o])
-  } else {
-    stopifnot(
-      "`actor` requires `action`" = is.null(actor),
-      "`time` requires `action`"  = is.null(time)
-    )
-    data <- .coerce_sequence_input(data)
-    trajectories <- .hon_parse_input(data, verb = "bootstrap_hon",
-                                     collapse_repeats = FALSE)
-  }
+                      session = NULL, time_threshold = 900,
+                      timezone = "UTC", collapse_repeats = FALSE) {
+  data <- .ho_sequence_input(data, action = action, actor = actor,
+                             time = time, session = session,
+                             time_threshold = time_threshold,
+                             timezone = timezone)
+  data <- .coerce_sequence_input(data)
+  trajectories <- .hon_parse_input(data, collapse_repeats = FALSE)
   if (isTRUE(collapse_repeats)) {
     trajectories <- lapply(trajectories, function(traj) {
       if (length(traj) <= 1L) return(traj)
@@ -193,13 +172,13 @@
 }
 
 # ---------------------------------------------------------------------------
-# bootstrap_hon
+# hg_bootstrap
 # ---------------------------------------------------------------------------
 
 #' Bootstrap inference for higher-order network rules
 #'
 #' Nonparametric bootstrap over sequences for the rules of a higher-order
-#' network (see [build_hon()]): sequences are resampled with replacement,
+#' network (see [hon()]): sequences are resampled with replacement,
 #' and for every rule edge of the observed network the replicate
 #' distribution yields a percentile confidence interval for its
 #' conditional probability and a *support* - the fraction of replicates in
@@ -214,17 +193,20 @@
 #' before any parallel work, so `parallel = TRUE` reproduces the serial
 #' result under the same `seed`.
 #'
-#' @param data Sequence data: wide data.frame (one sequence per row), list
-#'   of vectors, `tna`/`netobject` model objects, or a long data.frame
-#'   together with `action` (and optionally `actor`, `time`).
+#' @param data Sequences in any form described in [sequence-input]: a long
+#'   event table (with `action`), a wide data.frame (one sequence per row),
+#'   a list of vectors, or a model object carrying its sequences. A group
+#'   model from [hon()] with `group` is resampled group by group with its
+#'   own settings, and the result is a `net_hon_boot_group` (one bootstrap
+#'   per group; `summary()` and [hg_get()] stack them with a `group`
+#'   column).
 #' @param n_boot Integer >= 2. Bootstrap replicates. Default `500`.
 #' @param level Confidence level in (0, 1). Default `0.95` (percentile
 #'   interval).
-#' @param max_order,min_freq,collapse_repeats As in [build_hon()].
-#' @param action,actor,time Long-format column names: `action` holds the
-#'   categorical state, `actor` groups events into sequences, `time`
-#'   orders them within an actor (row order when `NULL`). Leave `NULL`
-#'   for wide/list input.
+#' @param max_order,min_freq,collapse_repeats As in [hon()].
+#' @param action,actor,time,session,time_threshold,timezone Long-format
+#'   arguments (see [sequence-input]); leave the column names `NULL` for
+#'   wide or list input.
 #' @param parallel Logical. Use `parallel::mclapply` for the replicates
 #'   (not on Windows). Results are identical to the serial run.
 #' @param n_cores Integer. Cores when `parallel = TRUE`.
@@ -235,9 +217,9 @@
 #'   `from`, `to`, `order`, `count`, `probability`, `ci_lower`,
 #'   `ci_upper`, `support`, `n_boot_used`), `n_boot`, `level`,
 #'   `max_order`, `min_freq`, `n_trajectories`, and `seed`. Has `print`,
-#'   `summary`, `plot`, and `as.data.frame` methods; `as.data.frame()`
-#'   returns the inference table (optionally filtered with
-#'   `min_support =` or restricted with `order_min =`).
+#'   `summary` and `plot` methods; [hg_get()] returns the inference table
+#'   (optionally filtered with `min_support =` or restricted with
+#'   `order_min =`).
 #'
 #' @references
 #' Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
@@ -254,19 +236,33 @@
 #'   c("a", "b", "c", "a", "b", "c"),
 #'   c("x", "b", "d", "x", "b", "d")
 #' )
-#' bs <- bootstrap_hon(hg_seqs, n_boot = 50, max_order = 2, seed = 1)
+#' bs <- hg_bootstrap(hg_seqs, n_boot = 50, max_order = 2, seed = 1)
 #' bs
-#' rules <- as.data.frame(bs)
-#' head(rules)
+#' hg_get(bs, sort_by = "support", top = 6)
 #'
-#' @seealso [build_hon()], [compare_hon()], [markov_order_test()]
+#' @seealso [hon()], [hg_compare()], [markov_order()]
 #'
 #' @export
-bootstrap_hon <- function(data, n_boot = 500L, level = 0.95,
-                          max_order = 5L, min_freq = 1L,
-                          collapse_repeats = FALSE,
-                          action = NULL, actor = NULL, time = NULL,
-                          parallel = FALSE, n_cores = 2L, seed = NULL) {
+hg_bootstrap <- function(data, n_boot = 500L, level = 0.95,
+                         max_order = 5L, min_freq = 1L,
+                         collapse_repeats = FALSE,
+                         action = NULL, actor = NULL, time = NULL,
+                         parallel = FALSE, n_cores = 2L, seed = NULL,
+                         session = NULL, time_threshold = 900,
+                         timezone = "UTC") {
+  if (inherits(data, "net_hon_group")) {
+    # a group model: resample each group separately, with its settings
+    parts <- attr(data, "data")
+    args <- attr(data, "args")
+    fits <- lapply(parts, \(d) hg_bootstrap(
+      d, n_boot = n_boot, level = level, max_order = args$max_order,
+      min_freq = args$min_freq, collapse_repeats = args$collapse_repeats,
+      action = args$action, actor = args$actor, time = args$time,
+      parallel = parallel, n_cores = n_cores, seed = seed,
+      session = args$session, time_threshold = args$time_threshold,
+      timezone = args$timezone))
+    return(structure(fits, class = c("net_hon_boot_group", "list")))
+  }
   stopifnot(
     "`n_boot` must be a single integer >= 2" =
       is.numeric(n_boot) && length(n_boot) == 1L && is.finite(n_boot) &&
@@ -282,7 +278,9 @@ bootstrap_hon <- function(data, n_boot = 500L, level = 0.95,
   min_freq <- as.integer(min_freq)
 
   trajectories <- .hi_parse(data, action = action, actor = actor,
-                            time = time,
+                            time = time, session = session,
+                            time_threshold = time_threshold,
+                            timezone = timezone,
                             collapse_repeats = collapse_repeats)
   n_seq <- length(trajectories)
   if (n_seq < 2L) {
@@ -352,77 +350,19 @@ bootstrap_hon <- function(data, n_boot = 500L, level = 0.95,
 }
 
 # ---------------------------------------------------------------------------
-# compare_hon
+# hg_compare
 # ---------------------------------------------------------------------------
 
-#' Two-sample permutation comparison of higher-order network rules
-#'
-#' Tests whether two cohorts of sequences differ in their higher-order
-#' rule probabilities. The rule set is extracted from the pooled data (see
-#' [build_hon()]); for every pooled rule edge the statistic is the
-#' absolute difference of the two cohorts' conditional probabilities, and
-#' its null distribution comes from permuting cohort labels over
-#' sequences. Per-edge p-values are Benjamini-Hochberg adjusted; a global
-#' test aggregates the edge differences weighted by pooled counts.
-#'
-#' As in [bootstrap_hon()], per-sequence counts are precomputed once and
-#' every permutation is a weighted aggregation; permutations are drawn
-#' before any parallel work, so `parallel = TRUE` reproduces the serial
-#' result under the same `seed`. Edges whose context is unobserved in a
-#' cohort under some permutation contribute only their valid permutations
-#' (`n_perm_used`).
-#'
-#' @param x,y The two cohorts of sequence data, each in any input format
-#'   accepted by [bootstrap_hon()] (wide data.frame, list,
-#'   `tna`/`netobject`, or long data.frame with `action`/`actor`/`time`).
-#' @param n_perm Integer >= 2. Label permutations. Default `1000`.
-#' @param alpha Significance level for the `significant` flag on the
-#'   adjusted p-values. Default `0.05`.
-#' @param max_order,min_freq,collapse_repeats As in [build_hon()].
-#' @param action,actor,time Long-format column names applied to both `x`
-#'   and `y`; `NULL` for wide/list input.
-#' @param names Character vector of length 2 naming the cohorts in the
-#'   output (default `c("x", "y")`).
-#' @param parallel,n_cores,seed As in [bootstrap_hon()].
-#'
-#' @return An object of class `net_hon_compare`: a list with `edges` (one
-#'   row per pooled rule edge: `from`, `to`, `order`, `count`,
-#'   `count_x`/`count_y` and `prob_x`/`prob_y` (columns named after
-#'   `names`), `diff` (prob difference, first minus second), `p_value`,
-#'   `p_adj` (BH), `significant`, `n_perm_used`), `global` (list:
-#'   `statistic` - the pooled-count-weighted mean absolute difference -
-#'   and `p_value`), `names`, `n_perm`, `alpha`, `max_order`, `min_freq`,
-#'   `n_trajectories` (per cohort), and `seed`. Has `print`, `summary`,
-#'   `plot`, and `as.data.frame` methods; `as.data.frame()` returns the
-#'   edge table (`significant = TRUE` restricts it).
-#'
-#' @references
-#' Xu, J., Wickramarathne, T. L., & Chawla, N. V. (2016). Representing
-#' higher-order dependencies in networks. \emph{Science Advances} 2(5),
-#' e1600028. \doi{10.1126/sciadv.1600028}
-#'
-#' Good, P. (2005). \emph{Permutation, Parametric and Bootstrap Tests of
-#' Hypotheses} (3rd ed.). Springer.
-#'
-#' @examples
-#' first_order  <- replicate(6, sample(c("a", "b", "c"), 12, replace = TRUE),
-#'                           simplify = FALSE)
-#' second_order <- replicate(6, rep(c("a", "b", "c", "b"), 3),
-#'                           simplify = FALSE)
-#' cmp <- compare_hon(first_order, second_order, n_perm = 99,
-#'                    max_order = 2, seed = 1)
-#' cmp
-#' head(as.data.frame(cmp))
-#'
-#' @seealso [bootstrap_hon()], [build_hon()], [markov_order_test()]
-#'
-#' @export
-compare_hon <- function(x, y, n_perm = 1000L, alpha = 0.05,
-                        max_order = 5L, min_freq = 1L,
-                        collapse_repeats = FALSE,
-                        action = NULL, actor = NULL, time = NULL,
-                        names = c("x", "y"),
-                        parallel = FALSE, n_cores = 2L, seed = NULL) {
+# Two-cohort engine behind hg_compare(): x and y are the two groups'
+# sequence data in any input form; see hg_compare() for the method.
+.hg_compare_pair <- function(x, y, n_perm = 1000L, alpha = 0.05,
+                       max_order = 5L, min_freq = 1L,
+                       collapse_repeats = FALSE,
+                       action = NULL, actor = NULL, time = NULL,
+                       names = c("x", "y"),
+                       parallel = FALSE, n_cores = 2L, seed = NULL,
+                       session = NULL, time_threshold = 900,
+                       timezone = "UTC") {
   stopifnot(
     "`n_perm` must be a single integer >= 2" =
       is.numeric(n_perm) && length(n_perm) == 1L && is.finite(n_perm) &&
@@ -441,9 +381,11 @@ compare_hon <- function(x, y, n_perm = 1000L, alpha = 0.05,
   min_freq <- as.integer(min_freq)
 
   tr_x <- .hi_parse(x, action = action, actor = actor, time = time,
-                    collapse_repeats = collapse_repeats)
+                    session = session, time_threshold = time_threshold,
+                    timezone = timezone, collapse_repeats = collapse_repeats)
   tr_y <- .hi_parse(y, action = action, actor = actor, time = time,
-                    collapse_repeats = collapse_repeats)
+                    session = session, time_threshold = time_threshold,
+                    timezone = timezone, collapse_repeats = collapse_repeats)
   n_x <- length(tr_x)
   n_y <- length(tr_y)
   if (n_x < 2L || n_y < 2L) {
@@ -516,8 +458,8 @@ compare_hon <- function(x, y, n_perm = 1000L, alpha = 0.05,
   )
   edges[[paste0("count_", names[1L])]] <- count_of(count_x_env)
   edges[[paste0("count_", names[2L])]] <- count_of(count_y_env)
-  edges[[paste0("prob_", names[1L])]] <- obs_probs[, 1L]
-  edges[[paste0("prob_", names[2L])]] <- obs_probs[, 2L]
+  edges[[paste0("probability_", names[1L])]] <- obs_probs[, 1L]
+  edges[[paste0("probability_", names[2L])]] <- obs_probs[, 2L]
   edges$diff <- obs_diff
   edges$p_value <- p_edge
   edges$p_adj <- p_adj
@@ -544,11 +486,10 @@ compare_hon <- function(x, y, n_perm = 1000L, alpha = 0.05,
 # S3 methods: net_hon_boot
 # ---------------------------------------------------------------------------
 
-#' Coerce a net_hon_boot to its tidy inference table
+#' Inference table of a HON bootstrap
 #'
-#' @param x A `net_hon_boot` object.
-#' @param row.names Ignored (S3 consistency).
-#' @param optional Ignored (S3 consistency).
+#' @param x A `net_hon_boot` object from [hg_bootstrap()].
+#' @param what `"edges"`, the only table: one row per rule edge.
 #' @param ... Additional arguments (ignored).
 #' @param min_support Numeric in `[0, 1]` or NULL. Keep only rule edges
 #'   with at least this bootstrap support.
@@ -564,11 +505,11 @@ compare_hon <- function(x, y, n_perm = 1000L, alpha = 0.05,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @export
-as.data.frame.net_hon_boot <- function(x, row.names = NULL,
-                                       optional = FALSE, ...,
-                                       min_support = NULL,
-                                       order_min = NULL,
-                                       sort_by = NULL, top = NULL) {
+hg_get.net_hon_boot <- function(x, what = "edges", ...,
+                                min_support = NULL,
+                                order_min = NULL,
+                                sort_by = NULL, top = NULL) {
+  match.arg(what, "edges")
   out <- x$edges
   if (!is.null(min_support)) {
     stopifnot("`min_support` must be a single number in [0, 1]" =
@@ -593,10 +534,11 @@ as.data.frame.net_hon_boot <- function(x, row.names = NULL,
 #' Print method for net_hon_boot
 #'
 #' @param x A `net_hon_boot` object.
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
 #' @export
-print.net_hon_boot <- function(x, ...) {
+print.net_hon_boot <- function(x, n = 10L, ...) {
   e <- x$edges
   ho <- e[e$order > 1L, , drop = FALSE]
   cat(sprintf("HON bootstrap: %d rule edges (%d higher-order) from %d sequences\n",
@@ -607,35 +549,22 @@ print.net_hon_boot <- function(x, ...) {
     cat(sprintf("  Higher-order rule support: min %.2f, median %.2f, max %.2f\n",
                 min(ho$support), stats::median(ho$support), max(ho$support)))
   }
-  cat("  Tidy table: as.data.frame(x); higher-order only:",
-      "as.data.frame(x, order_min = 2)\n")
+  .ho_print_table(x, n)
   invisible(x)
 }
 
-#' Summary method for net_hon_boot
-#'
-#' @param object A `net_hon_boot` object.
-#' @param ... Additional arguments (ignored).
-#' @return A data.frame, one row per rule order: `order`, `n_edges`,
-#'   `mean_support`, `min_support`, `mean_ci_width`.
-#'   Returned **invisibly**: `summary(x)` prints the summary and nothing
-#'   else; assign the result to keep the table.
+#' @rdname result-summary
 #' @export
 summary.net_hon_boot <- function(object, ...) {
   e <- object$edges
-  by_ord <- split(e, e$order)
-  out <- do.call(rbind, lapply(by_ord, function(d) {
-    data.frame(
-      order = d$order[1L],
-      n_edges = nrow(d),
-      mean_support = mean(d$support),
-      min_support = min(d$support),
-      mean_ci_width = mean(d$ci_upper - d$ci_lower),
-      stringsAsFactors = FALSE
-    )
+  by_order <- do.call(rbind, lapply(split(e, e$order), function(d) {
+    data.frame(order = d$order[1L], n_edges = nrow(d),
+               mean_support = mean(d$support), min_support = min(d$support),
+               mean_ci_width = mean(d$ci_upper - d$ci_lower),
+               stringsAsFactors = FALSE)
   }))
-  rownames(out) <- NULL
-  invisible(out)
+  rownames(by_order) <- NULL
+  .ho_summary(object, list(by_order = by_order))
 }
 
 #' Plot method for net_hon_boot
@@ -683,11 +612,10 @@ plot.net_hon_boot <- function(x, top = 20L, ...) {
 # S3 methods: net_hon_compare
 # ---------------------------------------------------------------------------
 
-#' Coerce a net_hon_compare to its tidy edge table
+#' Edge table of a HON comparison
 #'
-#' @param x A `net_hon_compare` object.
-#' @param row.names Ignored (S3 consistency).
-#' @param optional Ignored (S3 consistency).
+#' @param x A `net_hon_compare` object from [hg_compare()].
+#' @param what `"edges"`, the only table: one row per pooled rule edge.
 #' @param ... Additional arguments (ignored).
 #' @param significant Logical. `TRUE` restricts to edges whose adjusted
 #'   p-value falls below the object's `alpha`. Default `FALSE` (all
@@ -697,15 +625,15 @@ plot.net_hon_boot <- function(x, top = 20L, ...) {
 #'   (largest first) or adjusted p-value (smallest first), ties broken by
 #'   from/to.
 #' @return A data.frame, one row per pooled rule edge (see
-#'   [compare_hon()] for the columns).
+#'   [hg_compare()] for the columns).
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @export
-as.data.frame.net_hon_compare <- function(x, row.names = NULL,
-                                          optional = FALSE, ...,
-                                          significant = FALSE,
-                                          sort_by = NULL, top = NULL) {
+hg_get.net_hon_compare <- function(x, what = "edges", ...,
+                                   significant = FALSE,
+                                   sort_by = NULL, top = NULL) {
+  match.arg(what, "edges")
   out <- x$edges
   if (isTRUE(significant)) {
     out <- out[out$significant, , drop = FALSE]
@@ -725,10 +653,11 @@ as.data.frame.net_hon_compare <- function(x, row.names = NULL,
 #' Print method for net_hon_compare
 #'
 #' @param x A `net_hon_compare` object.
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x`, invisibly.
 #' @export
-print.net_hon_compare <- function(x, ...) {
+print.net_hon_compare <- function(x, n = 10L, ...) {
   e <- x$edges
   cat(sprintf("HON comparison: %s (%d sequences) vs %s (%d sequences)\n",
               x$names[1L], x$n_trajectories[1L],
@@ -739,34 +668,25 @@ print.net_hon_compare <- function(x, ...) {
               x$global$statistic, x$global$p_value))
   cat(sprintf("  Significant edges (BH, alpha = %.2f): %d\n",
               x$alpha, sum(e$significant)))
-  cat("  Tidy table: as.data.frame(x); significant only:",
-      "as.data.frame(x, significant = TRUE)\n")
+  .ho_print_table(x, n)
   invisible(x)
 }
 
-#' Summary method for net_hon_compare
-#'
-#' @param object A `net_hon_compare` object.
-#' @param ... Additional arguments (ignored).
-#' @return A data.frame, one row per rule order: `order`, `n_edges`,
-#'   `n_significant`, `max_abs_diff`.
-#'   Returned **invisibly**: `summary(x)` prints the summary and nothing
-#'   else; assign the result to keep the table.
+#' @rdname result-summary
 #' @export
 summary.net_hon_compare <- function(object, ...) {
   e <- object$edges
-  by_ord <- split(e, e$order)
-  out <- do.call(rbind, lapply(by_ord, function(d) {
-    data.frame(
-      order = d$order[1L],
-      n_edges = nrow(d),
-      n_significant = sum(d$significant),
-      max_abs_diff = max(abs(d$diff), na.rm = TRUE),
-      stringsAsFactors = FALSE
-    )
+  by_order <- do.call(rbind, lapply(split(e, e$order), function(d) {
+    data.frame(order = d$order[1L], n_edges = nrow(d),
+               n_significant = sum(d$significant),
+               max_abs_diff = max(abs(d$diff), na.rm = TRUE),
+               stringsAsFactors = FALSE)
   }))
-  rownames(out) <- NULL
-  invisible(out)
+  rownames(by_order) <- NULL
+  overall <- data.frame(statistic = object$global$statistic,
+                        p_value = object$global$p_value,
+                        n_permutations = as.integer(object$n_perm))
+  .ho_summary(object, list(by_order = by_order, overall = overall))
 }
 
 #' Plot method for net_hon_compare

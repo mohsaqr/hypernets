@@ -59,6 +59,10 @@
 #'   (names kept), or the same data.frame with `column` replaced. `NA` and
 #'   low-content texts become `""`. Raises `hypernets_bad_input` for a
 #'   malformed `x`, `column` or switch.
+#' @references
+#' Manning, C. D., Raghavan, P., & Schütze, H. (2008). *Introduction to
+#' Information Retrieval*. Cambridge University Press.
+#' \doi{10.1017/CBO9780511809071}
 #' @examples
 #' messy <- c(
 #'   "1. The programme raised attainment in 2020, see section 3.2.1.",

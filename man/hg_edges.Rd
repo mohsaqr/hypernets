@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_edges.R
 \name{hg_edges}
 \alias{hg_edges}
-\alias{hypergraph_edges}
 \title{Hyperedge-level measures, as a tidy table}
 \usage{
 hg_edges(
@@ -18,24 +17,10 @@ hg_edges(
   snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
-
-hypergraph_edges(
-  hg,
-  what = c("edges", "distribution", "summary"),
-  measure = c("size", "weight", "n_incident_edges", "n_neighbors"),
-  s = 1L,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
 }
 \arguments{
 \item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}}, \code{\link[=knn_hypergraph]{knn_hypergraph()}}, any hypernets
-\code{net_hypergraph}, or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
+\code{net_hg}, or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{what}{\code{"edges"} (default) for one row per hyperedge,
 \code{"distribution"} for the empirical distribution of \code{measure} across
@@ -52,13 +37,13 @@ the thresholds used by \code{\link[=hg_edge_centrality]{hg_edge_centrality()}}. 
 block of rows each, with an \code{s} column.}
 
 \item{start, end, step, window, at}{Measurement grid passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal: the bounds of the
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal: the bounds of the
 period, how often to look, how much time each look covers, or the
 instants themselves.}
 
 \item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
 \code{"cumulative"}) and multi-edge handling passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 }
 \value{
 With \code{what = "edges"}, a base data.frame with one row per

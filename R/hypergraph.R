@@ -10,7 +10,7 @@
 #' with probability `p`. Optionally retains the underlying pairwise edges as
 #' 2-hyperedges. Foundation for higher-order analyses.
 #'
-#' @param net A `netobject`, `cograph_network`, `net_simplicial`, or
+#' @param net A `netobject`, `cograph_network`, `simplicial_complex`, or
 #'   numeric adjacency / weight matrix. Directed inputs are symmetrised by
 #'   the underlying clique enumerator.
 #' @param p Probability in `[0, 1]` that each k-clique with k >= 3 becomes a
@@ -32,7 +32,7 @@
 #' @param seed Optional integer for reproducible Bernoulli sampling when
 #'   `0 < p < 1`.
 #'
-#' @return A `net_hypergraph` object: a list with components
+#' @return A `net_hg` object: a list with components
 #' \describe{
 #'   \item{`hyperedges`}{List of integer vectors. Each entry is a hyperedge
 #'     given as the sorted node indices it spans.}
@@ -50,7 +50,7 @@
 #' @details
 #' The construction follows Burgio, Matamalas, Gomez & Arenas (2020) on
 #' simplicial / hypergraph contagion. For each k-clique with k >= 3 found in
-#' the underlying graph (via [build_simplicial()]), an independent
+#' the underlying graph (via [simplicial()]), an independent
 #' Bernoulli(`p`) trial decides whether that clique becomes a k-hyperedge.
 #' Underlying pairwise edges are always retained when
 #' `include_pairwise = TRUE`, so the resulting hypergraph contains both the
@@ -65,8 +65,7 @@
 #'     found in the network's clique complex.
 #' }
 #'
-#' @seealso [build_simplicial()] (underlying clique enumeration),
-#'   \code{Nestimate::build_network()}.
+#' @seealso [simplicial()] (underlying clique enumeration).
 #'
 #' @examples
 #' set.seed(1)
@@ -75,7 +74,7 @@
 #' diag(adj) <- 0
 #' adj <- (adj + t(adj)) > 0
 #' rownames(adj) <- colnames(adj) <- LETTERS[seq_len(n)]
-#' hg <- build_hypergraph(adj, p = 1, max_size = 3L)
+#' hg <- network_hypergraph(adj, p = 1, max_size = 3L)
 #' print(hg)
 #' summary(hg)
 #'
@@ -86,7 +85,7 @@
 #' \doi{10.3390/e22070744}
 #'
 #' @export
-build_hypergraph <- function(net,
+network_hypergraph <- function(net,
                               p = 1,
                               type = c("clique", "vr", "rips"),
                               include_pairwise = TRUE,
@@ -117,7 +116,7 @@ build_hypergraph <- function(net,
   n      <- length(nodes)
 
   # ---- Find all simplices (cliques) up to max_size --------------------
-  sc <- build_simplicial(adj, type = type, threshold = threshold,
+  sc <- simplicial(adj, type = type, threshold = threshold,
                          max_dim = max_size - 1L)
   simplices <- sc$simplices
 
@@ -171,7 +170,7 @@ build_hypergraph <- function(net,
       n_hyperedges      = m,
       size_distribution = size_dist,
       params = list(
-        source           = "build_hypergraph",
+        source           = "network_hypergraph",
         type             = type,
         p                = p,
         include_pairwise = include_pairwise,
@@ -180,7 +179,7 @@ build_hypergraph <- function(net,
         seed             = seed
       )
     ),
-    class = "net_hypergraph"
+    class = "net_hg"
   )
 }
 
@@ -189,7 +188,7 @@ build_hypergraph <- function(net,
 #' Extract symmetric numeric adjacency + node names from any supported input
 #' @noRd
 .hg_extract_adj <- function(net) {
-  if (inherits(net, "net_simplicial")) {
+  if (inherits(net, "simplicial_complex")) {
     nodes <- net$nodes
     n     <- length(nodes)
     adj   <- matrix(0, n, n, dimnames = list(nodes, nodes))
@@ -231,29 +230,29 @@ build_hypergraph <- function(net,
 
 # ---- S3 methods ---------------------------------------------------------
 
-#' @param x A `net_hypergraph` object (for `print`).
-#' @param object A `net_hypergraph` object (for `summary`).
+#' @param x A `net_hg` object (for `print`).
+#' @param object A `net_hg` object (for `summary`).
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Additional arguments (ignored).
 #' @return The input `x` invisibly.
-#' @rdname build_hypergraph
+#' @rdname network_hypergraph
 #' @export
-print.net_hypergraph <- function(x, ...) {
-  cat(sprintf("Hypergraph: %d nodes, %d hyperedges\n",
-              x$n_nodes, x$n_hyperedges))
-  if (length(x$size_distribution)) {
-    cat("Size distribution:\n")
-    for (nm in names(x$size_distribution)) {
-      cat(sprintf("  %-8s : %d\n", nm, x$size_distribution[[nm]]))
-    }
-  }
+print.net_hg <- function(x, n = 10L, ...) {
+  sizes <- sub("^size_", "", names(x$size_distribution))
+  cat(sprintf("Hypergraph: %d nodes, %d hyperedges (sizes %s)\n",
+              x$n_nodes, x$n_hyperedges,
+              paste(sprintf("%s: %d", sizes, x$size_distribution),
+                    collapse = ", ")))
   if (identical(x$params$source, "window_hypergraph")) {
     cat(sprintf(
       "Source: windowed sequences, window = %d, step = %d (%d windows from %d sequences)\n",
       x$params$window, x$params$step,
       x$params$n_windows, x$params$n_sequences))
   } else if (identical(x$params$source, "group_hypergraph")) {
-    cat(sprintf("Source: group membership (member = %s, group = %s)\n",
+    cat(sprintf("Source: group membership (actor = %s, group = %s)\n",
                 x$params$member, x$params$group))
+  } else if (identical(x$params$source, "hg_read_hif")) {
+    cat("Source: Hypergraph Interchange Format (hg_read_hif())\n")
   } else if (startsWith(x$params$source %||% "", "hg_sample_")) {
     cat(sprintf("Source: random %s model\n", x$params$model))
   } else {
@@ -262,10 +261,11 @@ print.net_hypergraph <- function(x, ...) {
       x$params$type, x$params$p,
       x$params$include_pairwise, x$params$max_size))
   }
+  .ho_print_table(x, n)
   invisible(x)
 }
 
-#' Coerce a net_hypergraph to a tidy hyperedge table
+#' Tables of a hypergraph
 #'
 #' One row per hyperedge: its identifier, size (number of distinct member
 #' states), the member states, and its weight (for hypergraphs built by
@@ -273,9 +273,7 @@ print.net_hypergraph <- function(x, ...) {
 #' hyperedge; `NA` for the other constructors, whose hyperedges are
 #' unweighted).
 #'
-#' @param x A `net_hypergraph` object.
-#' @param row.names Ignored (present for S3 consistency with the generic).
-#' @param optional Ignored (present for S3 consistency with the generic).
+#' @param x A `net_hg` object.
 #' @param ... Additional arguments (ignored).
 #' @param sort_by `NULL` (construction order, default), `"weight"`, or
 #'   `"size"` - sort the table by that column, largest first (ties broken
@@ -283,11 +281,13 @@ print.net_hypergraph <- function(x, ...) {
 #' @param what `"edges"` (default) for one row per hyperedge, `"nodes"`
 #'   for one row per node, or `"memberships"` for one row per node-in-
 #'   hyperedge cell of the incidence matrix. A hypergraph of clustered
-#'   sequences ([group_hypergraph()] on a Nestimate clustering) also has
-#'   `"sets"` and `"state_counts"`.
+#'   sequences ([group_hypergraph()] on a clustering of sequences) also has
+#'   `"sets"` and `"state_counts"`. A hypergraph read with [hg_read_hif()]
+#'   also has `"node_data"` and `"incidence_data"`; `"edge_data"` returns the
+#'   per-hyperedge attribute table any constructor or HIF file attached.
 #' @return A data.frame. For `what = "edges"`, one row per hyperedge with
-#'   columns `hyperedge` (character id), `size` (integer), `states`
-#'   (comma-separated member states), and `weight` (numeric window count,
+#'   columns `hyperedge` (character id), `size` (integer), `members`
+#'   (the member nodes, comma separated), and `weight` (numeric window count,
 #'   or `NA`). For `what = "nodes"`, one row per node with columns `node`
 #'   and `degree` (the number of hyperedges it belongs to), plus `block`
 #'   for a hypergraph with planted blocks ([hg_sample_sbm()]); `sort_by =
@@ -301,26 +301,37 @@ print.net_hypergraph <- function(x, ...) {
 #'   sequences), in group order and decreasing count. For
 #'   `what = "state_counts"`, one row per group and state with `group`,
 #'   `node`, `count` (sequences of the group containing the state) and
-#'   `share`. Asking for either of a hypergraph without them raises
-#'   `hypernets_bad_input`.
+#'   `share`. For `what = "node_data"`, one row per node with `node` and
+#'   the node weight and attributes an HIF file carried; for
+#'   `what = "incidence_data"`, one row per incidence with `node`, `edge`
+#'   and its attributes; for `what = "edge_data"`, one row per hyperedge
+#'   with `edge` and its attributes. Asking for any of these tables of a
+#'   hypergraph without it raises `hypernets_bad_input`.
 #' @param top Integer or `NULL`. Return only the first `top` rows,
 #'   applied after any filter and after `sort_by`, so `sort_by` and
 #'   `top` compose. Default `NULL` returns every row.
 #' @examples
 #' hg <- window_hypergraph(list(s1 = c("a", "b", "a", "c")), window = 2L)
-#' as.data.frame(hg)
-#' as.data.frame(hg, sort_by = "weight")
-#' as.data.frame(hg, sort_by = "weight", top = 3)
-#' as.data.frame(hg, what = "nodes", sort_by = "degree")
-#' as.data.frame(hg, what = "memberships")
+#' hg_get(hg)
+#' hg_get(hg, sort_by = "weight")
+#' hg_get(hg, sort_by = "weight", top = 3)
+#' hg_get(hg, what = "nodes", sort_by = "degree")
+#' hg_get(hg, what = "memberships")
 #' @export
-as.data.frame.net_hypergraph <- function(x, row.names = NULL,
-                                         optional = FALSE, ...,
-                                         what = c("edges", "nodes",
-                                                  "memberships", "sets",
-                                                  "state_counts"),
-                                         sort_by = NULL, top = NULL) {
+hg_get.net_hg <- function(x, what = c("edges", "nodes", "memberships",
+                                      "sets", "state_counts", "node_data",
+                                      "edge_data", "incidence_data"), ...,
+                          sort_by = NULL, top = NULL) {
   what <- match.arg(what)
+  if (what %in% c("node_data", "edge_data", "incidence_data")) {
+    if (is.null(x[[what]])) {
+      .thg_bad_input(sprintf(
+        "`what = \"%s\"`: this hypergraph carries no %s table", what, what))
+    }
+    out <- as.data.frame(x[[what]], stringsAsFactors = FALSE)
+    rownames(out) <- NULL
+    return(.ho_top(out, top))
+  }
   if (what %in% c("sets", "state_counts")) {
     if (is.null(x$group_sizes)) {
       .thg_bad_input(sprintf(
@@ -354,7 +365,7 @@ as.data.frame.net_hypergraph <- function(x, row.names = NULL,
     nodes <- x$nodes %||% rownames(x$incidence) %||%
       paste0("n", seq_len(x$n_nodes))
     hyperedges <- colnames(x$incidence) %||%
-      paste0("h", seq_len(x$n_hyperedges))
+      sprintf("h%d", seq_len(x$n_hyperedges))
     cells <- Matrix::which(x$incidence != 0, arr.ind = TRUE)
     out <- data.frame(
       node = as.character(nodes[cells[, 1L]]),
@@ -390,11 +401,11 @@ as.data.frame.net_hypergraph <- function(x, row.names = NULL,
   }
   out <- data.frame(
     hyperedge = colnames(x$incidence) %||%
-      paste0("h", seq_len(x$n_hyperedges)),
+      sprintf("h%d", seq_len(x$n_hyperedges)),
     size = lengths(x$hyperedges),
-    states = vapply(x$hyperedges,
-                    function(idx) paste(x$nodes[idx], collapse = ", "),
-                    character(1L)),
+    members = vapply(x$hyperedges,
+                     function(idx) paste(x$nodes[idx], collapse = ", "),
+                     character(1L)),
     weight = as.numeric(x$window_counts %||% rep(NA_real_, x$n_hyperedges)),
     stringsAsFactors = FALSE
   )
@@ -409,9 +420,9 @@ as.data.frame.net_hypergraph <- function(x, row.names = NULL,
 #' @return A data.frame, one row per node: `node`, `degree` (the number of
 #'   hyperedges the node belongs to). Returned **invisibly**: `summary(x)`
 #'   prints the summary and nothing else; assign the result to keep the table.
-#' @rdname build_hypergraph
+#' @rdname network_hypergraph
 #' @export
-summary.net_hypergraph <- function(object, ...) {
+summary.net_hg <- function(object, ...) {
   he_sizes <- vapply(object$hyperedges, length, integer(1L))
   cat("Hypergraph summary\n")
   cat(sprintf("  Nodes:         %d\n", object$n_nodes))

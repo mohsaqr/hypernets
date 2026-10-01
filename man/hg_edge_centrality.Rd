@@ -2,7 +2,6 @@
 % Please edit documentation in R/hypergraph_edge_centrality.R
 \name{hg_edge_centrality}
 \alias{hg_edge_centrality}
-\alias{hypergraph_edge_centrality}
 \title{s-betweenness and s-closeness centrality of hyperedges}
 \usage{
 hg_edge_centrality(
@@ -19,24 +18,9 @@ hg_edge_centrality(
   snapshot_mode = c("active", "cumulative"),
   multiedges = TRUE
 )
-
-hypergraph_edge_centrality(
-  hg,
-  s = 1L,
-  measure = c("betweenness", "closeness"),
-  normalized = TRUE,
-  top = NULL,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
 }
 \arguments{
-\item{hg}{A static \code{net_hypergraph} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
+\item{hg}{A static \code{net_hg} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{s}{One or more positive integer intersection thresholds.}
 
@@ -50,11 +34,11 @@ the Wasserman--Faust correction for disconnected line graphs.}
 \verb{(time, s, measure)} group.}
 
 \item{start, end, step, window, at}{Measurement grid passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 
 \item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
 \code{"cumulative"}) and multi-edge handling passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 }
 \value{
 A tidy data frame with \code{edge}, \code{s}, \code{measure}, and \code{value}; temporal

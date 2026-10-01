@@ -345,18 +345,20 @@
 #' @noRd
 .hcm_partition <- function(partition, states) {
   if (is.data.frame(partition)) {
-    if (!all(c("state", "module") %in% names(partition))) {
-      .hcm_bad_input("a `partition` data.frame needs `state` and `module` columns")
+    if (!all(c("node", "community") %in% names(partition))) {
+      .hcm_bad_input(
+        "a `partition` data.frame needs `node` and `community` columns")
     }
-    if (anyDuplicated(partition$state)) {
-      .hcm_bad_input("`partition` lists a state more than once")
+    if (anyDuplicated(partition$node)) {
+      .hcm_bad_input("`partition` lists a node more than once")
     }
-    partition <- stats::setNames(partition$module,
-                                 as.character(partition$state))
+    partition <- stats::setNames(partition$community,
+                                 as.character(partition$node))
   }
   if (!is.atomic(partition) || is.null(names(partition))) {
-    .hcm_bad_input(paste0("`partition` must be a named vector (names = state ",
-                          "labels) or a data.frame with `state` and `module`"))
+    .hcm_bad_input(paste0("`partition` must be a named vector (names = node ",
+                          "labels) or a data.frame with `node` and ",
+                          "`community`"))
   }
   missing_states <- setdiff(states, names(partition))
   if (length(missing_states)) {
@@ -365,7 +367,7 @@
                                  collapse = ", ")))
   }
   lab <- partition[states]
-  if (anyNA(lab)) .hcm_bad_input("`partition` has missing module labels")
+  if (anyNA(lab)) .hcm_bad_input("`partition` has missing community labels")
   match(as.character(lab), unique(as.character(lab)))
 }
 
@@ -427,7 +429,7 @@
 #' is fine-tuned by restarting the aggregation from single state nodes placed
 #' in their current modules. Coarse-tuning (Algorithm 6) is not implemented.
 #' `trials` independent runs are made from one seeded random stream and the
-#' shortest codelength is kept; `as.data.frame(x, what = "trials")` reports
+#' shortest codelength is kept; `hg_get(x, what = "trials")` reports
 #' every run and its agreement (adjusted Rand index) with the kept one.
 #'
 #' \strong{First-order comparison.} The link flow of the memory network is
@@ -436,21 +438,21 @@
 #' model and the same number of trials. Rosvall et al. (2014) compare memory
 #' and first-order maps of the same pathway data this way.
 #'
-#' @param hon A `net_hon` from [build_hon()].
+#' @param x A `net_hon` from [hon()].
 #' @param partition `NULL` (default) to search, or a given state-node
 #'   partition to evaluate without searching: a named vector (names = state
-#'   labels as in `as.data.frame(hon, what = "nodes")`) or a data.frame with
-#'   columns `state` and `module`.
+#'   labels as in `hg_get(hon, what = "nodes")`) or a data.frame with
+#'   columns `node` and `community`.
 #' @param trials Number of independent search trials (default 10). Ignored
 #'   when `partition` is given, except for the first-order search.
 #' @param teleportation Teleportation probability \eqn{\tau \in [0, 1)}
 #'   (default 0.15, Infomap's default).
 #' @param seed Integer seed for the random node orders (default 1). The
 #'   caller's random-number stream is restored on exit.
-#' @return A `net_hon_communities` object. Read it with [as.data.frame()]:
+#' @return A `net_hon_communities` object. Read it with [hg_get()]:
 #'   `what = "states"` (one row per state node), `"physical"` (one row per
 #'   physical node x module), `"modules"`, `"trials"`, `"first_order"` and
-#'   `"codelength"`; see [as.data.frame.net_hon_communities()].
+#'   `"codelength"`; see [hg_get.net_hon_communities()].
 #' @section Conditions:
 #' `hypernets_bad_input` for a non-`net_hon` input, invalid arguments, or a
 #' partition that does not cover every state; `hypernets_not_ergodic` when
@@ -480,17 +482,21 @@
 #'              c("c", "h", "d", "c", "h", "d", "c"),
 #'              c("a", "h", "b", "a", "h", "b"),
 #'              c("c", "h", "d", "c", "h", "d"))
-#' hon <- build_hon(seqs, max_order = 2L)
-#' comm <- hon_communities(hon, trials = 3L)
+#' hon <- hon(seqs, max_order = 2L)
+#' comm <- hg_communities(hon, trials = 3L)
 #' comm
 #' summary(comm)
-#' as.data.frame(comm)
-#' as.data.frame(comm, what = "physical")
+#' hg_get(comm)
+#' hg_get(comm, what = "physical")
+#' @param ... Must be empty: an argument that only the hypergraph method
+#'   takes raises `hypernets_bad_input`.
 #' @export
-hon_communities <- function(hon, partition = NULL, trials = 10L,
-                            teleportation = 0.15, seed = 1L) {
+hg_communities.net_hon <- function(x, partition = NULL, trials = 10L,
+                                   teleportation = 0.15, seed = 1L, ...) {
+  .ho_no_dots(..., .for = "a memory network")
+  hon <- x
   if (!inherits(hon, "net_hon")) {
-    .hcm_bad_input("`hon` must be a net_hon from build_hon()")
+    .hcm_bad_input("`x` must be a net_hon from hon()")
   }
   whole <- function(x) {
     is.numeric(x) && length(x) == 1L && is.finite(x) && x >= 1 &&
@@ -540,19 +546,19 @@ hon_communities <- function(hon, partition = NULL, trials = 10L,
       .thg_ari(p[carries], module[carries])
     }, numeric(1L))
     trial_tab <- data.frame(
-      trial = seq_len(trials),
+      run = seq_len(trials),
       codelength = srch$codelengths,
-      n_modules = vapply(srch$partitions, function(p) length(unique(p)),
-                         integer(1L)),
+      n_communities = vapply(srch$partitions, function(p) length(unique(p)),
+                             integer(1L)),
       ari_to_best = trial_ari,
       best = seq_len(trials) == srch$best,
       stringsAsFactors = FALSE)
     pair_ari <- .hcm_trial_ari(lapply(srch$partitions, function(p) p[carries]))
   } else {
     module <- .hcm_relabel(.hcm_partition(partition, states), fl$node_flow)
-    trial_tab <- data.frame(trial = integer(0L), codelength = numeric(0L),
-                            n_modules = integer(0L), ari_to_best = numeric(0L),
-                            best = logical(0L))
+    trial_tab <- data.frame(run = integer(0L), codelength = numeric(0L),
+                            n_communities = integer(0L),
+                            ari_to_best = numeric(0L), best = logical(0L))
     pair_ari <- NA_real_
   }
   cl <- .hcm_codelength(fl, phys, module)
@@ -570,29 +576,31 @@ hon_communities <- function(hon, partition = NULL, trials = 10L,
                                 rep(1L, n_phys))$codelength
 
   # tidy tables
-  state_tab <- data.frame(state = states, physical = phys_label,
-                          module = module, flow = fl$node_flow,
+  # a memory node is a `node`; the physical node it belongs to is its `state`
+  state_tab <- data.frame(node = states, state = phys_label,
+                          community = module, flow = fl$node_flow,
                           stringsAsFactors = FALSE)
   k <- max(module)
-  pim <- stats::aggregate(fl$node_flow, by = list(physical = phys_label,
-                                                  module = module), FUN = sum)
+  pim <- stats::aggregate(fl$node_flow, by = list(state = phys_label,
+                                                  community = module),
+                          FUN = sum)
   names(pim)[names(pim) == "x"] <- "flow"
   # a state with no link in-flow (reached only by teleportation) carries no
   # physical flow, so it does not make its physical node a module member
   pim <- pim[pim$flow > 0, , drop = FALSE]
-  tot <- tapply(pim$flow, pim$physical, sum)
-  pim$share <- pim$flow / tot[pim$physical]
+  tot <- tapply(pim$flow, pim$state, sum)
+  pim$share <- pim$flow / tot[pim$state]
   pim$share[!is.finite(pim$share)] <- 0
-  nmod <- table(pim$physical)
-  pim$n_modules <- as.integer(nmod[pim$physical])
-  pim <- pim[order(pim$physical, pim$module), , drop = FALSE]
+  nmod <- table(pim$state)
+  pim$n_communities <- as.integer(nmod[pim$state])
+  pim <- pim[order(pim$state, pim$community), , drop = FALSE]
   rownames(pim) <- NULL
 
   cross <- module[fl$from] != module[fl$to]
   mod_tab <- data.frame(
-    module = seq_len(k),
-    n_states = tabulate(module, nbins = k),
-    n_physical = vapply(seq_len(k), function(j)
+    community = seq_len(k),
+    n_nodes = tabulate(module, nbins = k),
+    n_states = vapply(seq_len(k), function(j)
       length(unique(phys_label[module == j])), integer(1L)),
     flow = vapply(seq_len(k), function(j) sum(fl$node_flow[module == j]),
                   numeric(1L)),
@@ -602,7 +610,7 @@ hon_communities <- function(hon, partition = NULL, trials = 10L,
       sum(fl$flow[cross & module[fl$to] == j]), numeric(1L)),
     stringsAsFactors = FALSE)
 
-  fo_tab <- data.frame(physical = phys_names, module = srch1$module,
+  fo_tab <- data.frame(state = phys_names, community = srch1$module,
                        flow = fl1$node_flow, stringsAsFactors = FALSE)
 
   cl_tab <- data.frame(
@@ -614,7 +622,7 @@ hon_communities <- function(hon, partition = NULL, trials = 10L,
     savings_bits = c(one_level - cl$codelength, one_level1 - cl1$codelength),
     savings_pct = 100 * c(1 - cl$codelength / one_level,
                           1 - cl1$codelength / one_level1),
-    n_modules = c(k, length(unique(srch1$module))),
+    n_communities = c(k, length(unique(srch1$module))),
     stringsAsFactors = FALSE)
 
   structure(list(
@@ -637,49 +645,50 @@ hon_communities <- function(hon, partition = NULL, trials = 10L,
 #' Tidy tables of a memory-network community result
 #'
 #' @param x A `net_hon_communities` object.
-#' @param row.names,optional Ignored (S3 consistency).
 #' @param ... Ignored.
 #' @param what Which table:
 #'   \describe{
-#'     \item{`"states"` (default)}{one row per state node: `state`,
-#'       `physical`, `module`, `flow`.}
-#'     \item{`"physical"`}{one row per physical node x module it appears in:
-#'       `physical`, `module`, `flow` (\eqn{\pi_{i \cap m}}), `share` (of that
-#'       physical node's flow), `n_modules` (> 1 marks an overlapping node).}
-#'     \item{`"modules"`}{one row per module: `module`, `n_states`,
-#'       `n_physical`, `flow`, `exit_flow`, `enter_flow`.}
-#'     \item{`"trials"`}{one row per search trial: `trial`, `codelength`,
-#'       `n_modules`, `ari_to_best` (adjusted Rand index with the kept
+#'     \item{`"states"` (default)}{one row per memory node: `node` (the
+#'       memory node, `"a -> b"`), `state` (the physical state it belongs
+#'       to, `b`), `community`, `flow`.}
+#'     \item{`"physical"`}{one row per state x community it appears in:
+#'       `state`, `community`, `flow` (\eqn{\pi_{i \cap m}}), `share` (of that
+#'       state's flow), `n_communities` (> 1 marks an overlapping state).}
+#'     \item{`"modules"`}{one row per community: `community`, `n_nodes`
+#'       (memory nodes), `n_states`, `flow`, `exit_flow`, `enter_flow`.}
+#'     \item{`"trials"`}{one row per search run: `run`, `codelength`,
+#'       `n_communities`, `ari_to_best` (adjusted Rand index with the kept
 #'       partition), `best`.}
-#'     \item{`"first_order"`}{one row per physical node: its module in the
-#'       best first-order partition and its first-order flow.}
+#'     \item{`"first_order"`}{one row per state: `state`, its `community`
+#'       in the best first-order partition, and its first-order `flow`.}
 #'     \item{`"codelength"`}{one row per model (`memory`, `first_order`):
 #'       `codelength`, `index_codelength`, `module_codelength`,
-#'       `one_level_codelength`, `savings_bits`, `savings_pct`, `n_modules`.}
+#'       `one_level_codelength`, `savings_bits`, `savings_pct`,
+#'       `n_communities`.}
 #'   }
-#' @param module Integer vector or `NULL`: keep only these modules (tables
-#'   `"states"`, `"physical"`, `"modules"`).
-#' @param overlapping Logical: for `what = "physical"`, keep only physical
-#'   nodes that appear in more than one module. Default `FALSE`.
+#' @param community Integer vector or `NULL`: keep only these communities
+#'   (tables `"states"`, `"physical"`, `"modules"`).
+#' @param overlapping Logical: for `what = "physical"`, keep only states
+#'   that appear in more than one community. Default `FALSE`.
 #' @return A base data.frame as described under `what`.
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
 #'              c("c", "h", "d", "c", "h", "d", "c"))
-#' comm <- hon_communities(build_hon(seqs, max_order = 2L), trials = 2L)
-#' as.data.frame(comm, what = "modules")
-#' as.data.frame(comm, what = "physical", overlapping = TRUE)
+#' comm <- hg_communities(hon(seqs, max_order = 2L), trials = 2L)
+#' hg_get(comm, what = "modules")
+#' hg_get(comm, what = "physical", overlapping = TRUE)
 #' @export
-as.data.frame.net_hon_communities <- function(
-    x, row.names = NULL, optional = FALSE, ...,
-    what = c("states", "physical", "modules", "trials", "first_order",
-             "codelength"),
-    module = NULL, overlapping = FALSE) {
+hg_get.net_hon_communities <- function(
+    x, what = c("states", "physical", "modules", "trials", "first_order",
+                "codelength"), ...,
+    community = NULL, overlapping = FALSE) {
   what <- match.arg(what)
   stopifnot(
     "`overlapping` must be TRUE or FALSE" =
       is.logical(overlapping) && length(overlapping) == 1L && !is.na(overlapping),
-    "`module` must be NULL or whole numbers" =
-      is.null(module) || (is.numeric(module) && all(is.finite(module)))
+    "`community` must be NULL or whole numbers" =
+      is.null(community) ||
+      (is.numeric(community) && all(is.finite(community)))
   )
   out <- switch(what,
                 states = x$states,
@@ -688,11 +697,11 @@ as.data.frame.net_hon_communities <- function(
                 trials = x$trials,
                 first_order = x$first_order,
                 codelength = x$codelengths)
-  if (!is.null(module) && what %in% c("states", "physical", "modules")) {
-    out <- out[out$module %in% module, , drop = FALSE]
+  if (!is.null(community) && what %in% c("states", "physical", "modules")) {
+    out <- out[out$community %in% community, , drop = FALSE]
   }
   if (isTRUE(overlapping) && identical(what, "physical")) {
-    out <- out[out$n_modules > 1L, , drop = FALSE]
+    out <- out[out$n_communities > 1L, , drop = FALSE]
   }
   rownames(out) <- NULL
   out
@@ -701,86 +710,48 @@ as.data.frame.net_hon_communities <- function(
 #' Print a memory-network community result
 #'
 #' @param x A `net_hon_communities` object.
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Ignored.
 #' @return `x`, invisibly.
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
 #'              c("c", "h", "d", "c", "h", "d", "c"))
-#' print(hon_communities(build_hon(seqs, max_order = 2L), trials = 2L))
+#' print(hg_communities(hon(seqs, max_order = 2L), trials = 2L))
 #' @export
-print.net_hon_communities <- function(x, ...) {
+print.net_hon_communities <- function(x, n = 10L, ...) {
   cl <- x$codelengths
   mem <- cl[cl$model == "memory", , drop = FALSE]
   fo <- cl[cl$model == "first_order", , drop = FALSE]
-  n_over <- length(unique(x$physical$physical[x$physical$n_modules > 1L]))
+  n_over <- length(unique(x$physical$state[x$physical$n_communities > 1L]))
   cat("Memory-network communities (map equation)\n")
-  cat(sprintf("  State nodes: %d | physical nodes: %d | modules: %d\n",
-              nrow(x$states), length(unique(x$states$physical)),
-              mem$n_modules))
+  cat(sprintf("  Memory nodes: %d | states: %d | communities: %d\n",
+              nrow(x$states), length(unique(x$states$state)),
+              mem$n_communities))
   n_zero <- sum(x$modules$flow <= 0)
   if (n_zero > 0L) {
-    cat(sprintf(paste0("  (%d module(s) hold only states with zero flow, ",
-                       "reached by teleportation alone)\n"), n_zero))
+    cat(sprintf(paste0("  (%d %s only nodes with zero flow, ",
+                       "reached by teleportation alone)\n"), n_zero,
+                if (n_zero == 1L) "community holds" else "communities hold"))
   }
-  cat(sprintf("  Overlapping physical nodes: %d\n", n_over))
+  cat(sprintf("  States in more than one community: %d\n", n_over))
   cat(sprintf("  Codelength memory:      %.4f bits (one module %.4f)\n",
               mem$codelength, mem$one_level_codelength))
-  cat(sprintf("  Codelength first-order: %.4f bits (one module %.4f; modules: %d)\n",
-              fo$codelength, fo$one_level_codelength, fo$n_modules))
+  cat(sprintf(paste0("  Codelength first-order: %.4f bits (one module %.4f; ",
+                     "communities: %d)\n"),
+              fo$codelength, fo$one_level_codelength, fo$n_communities))
   if (isTRUE(x$searched)) {
-    cat(sprintf("  Trials: %d (teleportation %.2f, seed %s)\n", x$n_trials,
+    cat(sprintf("  Runs: %d (teleportation %.2f, seed %s)\n", x$n_trials,
                 x$teleportation, format(x$seed)))
   } else {
     cat("  Partition supplied (no memory-network search)\n")
   }
-  cat("  Tables: as.data.frame(x, what = \"states\" | \"physical\" |",
-      "\"modules\" | \"trials\" | \"first_order\" | \"codelength\")\n")
+  .ho_print_table(x, n)
   invisible(x)
 }
 
-#' Summarise a memory-network community result
-#'
-#' Prints the codelength comparison (memory vs first-order, bits and percent
-#' saved against the one-module code), the module count, the overlap, and
-#' trial stability.
-#'
-#' @param object A `net_hon_communities` object.
-#' @param ... Ignored.
-#' @return The codelength table (as `as.data.frame(object, what =
-#'   "codelength")`), invisibly: one row per model with `codelength`,
-#'   `index_codelength`, `module_codelength`, `one_level_codelength`,
-#'   `savings_bits`, `savings_pct`, `n_modules`.
-#' @examples
-#' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
-#'              c("c", "h", "d", "c", "h", "d", "c"))
-#' summary(hon_communities(build_hon(seqs, max_order = 2L), trials = 2L))
+#' @rdname result-summary
 #' @export
-summary.net_hon_communities <- function(object, ...) {
-  cl <- as.data.frame(object, what = "codelength")
-  mem <- cl[cl$model == "memory", , drop = FALSE]
-  fo <- cl[cl$model == "first_order", , drop = FALSE]
-  phys <- object$physical
-  n_phys <- length(unique(phys$physical))
-  n_over <- length(unique(phys$physical[phys$n_modules > 1L]))
-  cat("Memory-network communities: summary\n")
-  cat(sprintf("  Memory:      %.4f bits, modules: %d, saves %.4f bits (%.1f%%) vs one module\n",
-              mem$codelength, mem$n_modules, mem$savings_bits,
-              mem$savings_pct))
-  cat(sprintf("  First-order: %.4f bits, modules: %d, saves %.4f bits (%.1f%%) vs one module\n",
-              fo$codelength, fo$n_modules, fo$savings_bits, fo$savings_pct))
-  cat(sprintf("  Memory minus first-order: %+.4f bits\n",
-              mem$codelength - fo$codelength))
-  cat(sprintf("  Overlap: %d of %d physical nodes in more than one module (mean %.2f modules per node)\n",
-              n_over, n_phys,
-              mean(as.numeric(table(phys$physical)))))
-  tr <- object$trials
-  if (nrow(tr)) {
-    n_best <- sum(tr$codelength - min(tr$codelength) < 1e-10)
-    cat(sprintf("  Trials: %d; %d reached the best codelength; ARI to best: mean %.3f, min %.3f\n",
-                nrow(tr), n_best, mean(tr$ari_to_best), min(tr$ari_to_best)))
-  }
-  invisible(cl)
-}
+summary.net_hon_communities <- function(object, ...) .ho_summary(object)
 
 .HCM_PALETTE <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
                   "#D55E00", "#CC79A7", "#999999")
@@ -803,25 +774,25 @@ summary.net_hon_communities <- function(object, ...) {
   st <- x$states
   hidden <- if (show_zero_flow) 0L else sum(st$flow <= 0)
   if (!show_zero_flow) st <- st[st$flow > 0, , drop = FALSE]
-  st <- st[order(st$module, st$state), , drop = FALSE]
-  W <- x$weights[st$state, st$state, drop = FALSE]
-  mods <- sort(unique(st$module))
-  biggest <- max(tabulate(st$module))
+  st <- st[order(st$community, st$node), , drop = FALSE]
+  W <- x$weights[st$node, st$node, drop = FALSE]
+  mods <- sort(unique(st$community))
+  biggest <- max(tabulate(st$community))
   # cograph's group layout: one ring per community; the ring widens with
   # the community so large ones do not pile their nodes on top of each other
   lay <- cograph::layout_groups(
-    cograph::as_cograph(W), st$module,
+    cograph::as_cograph(W), st$community,
     inner_radius = min(0.3, max(0.12, 0.006 * biggest)))
   args <- list(
     x = W,
-    communities = split(st$state, factor(st$module, levels = mods)),
+    communities = split(st$node, factor(st$community, levels = mods)),
     blob_colors = .hcm_col(mods), blob_alpha = 0.18,
     layout = as.matrix(lay),
-    groups = sprintf("Community %d", st$module),
+    groups = sprintf("Community %d", st$community),
     legend = TRUE, legend_edge_colors = FALSE,
-    node_fill = .hcm_col(st$module),
+    node_fill = .hcm_col(st$community),
     node_size = .hcm_node_size(st$flow),
-    labels = st$state, label_size = if (nrow(st) > 40L) 0.45 else 0.8,
+    labels = st$node, label_size = if (nrow(st) > 40L) 0.45 else 0.8,
     title_size = 1.1,
     edge_color = "grey40", edge_alpha = 0.25, threshold = 0.05,
     title = sprintf("%d communit%s of state nodes", length(mods),
@@ -839,20 +810,20 @@ summary.net_hon_communities <- function(object, ...) {
 #' @noRd
 .hcm_physical_plot_data <- function(x) {
   ph <- x$physical
-  mods <- sort(unique(ph$module))
+  mods <- sort(unique(ph$community))
   community_names <- sprintf("Community %d", mods)
-  members <- data.frame(physical = ph$physical,
-                        community = sprintf("Community %d", ph$module),
+  members <- data.frame(state = ph$state,
+                        community = sprintf("Community %d", ph$community),
                         stringsAsFactors = FALSE)
-  hg <- group_hypergraph(members, actor = "physical", group = "community")
+  hg <- group_hypergraph(members, actor = "state", group = "community")
   # a community with one physical node has no pebble, so it gets no colour
   # key either (an empty key reads as a missing colour); the caption names it
-  counts <- tabulate(match(ph$module, mods), nbins = length(mods))
+  counts <- tabulate(match(ph$community, mods), nbins = length(mods))
   lone <- mods[counts == 1L]
   community <- stats::setNames(
     factor(community_names, levels = community_names[counts > 1L]),
     community_names)
-  flow <- tapply(ph$flow, ph$physical, sum)
+  flow <- tapply(ph$flow, ph$state, sum)
   sizes <- data.frame(node = names(flow), value = as.numeric(flow),
                       stringsAsFactors = FALSE)
   W1 <- x$physical_weights
@@ -860,12 +831,12 @@ summary.net_hon_communities <- function(object, ...) {
   moves <- data.frame(from = rownames(W1)[ij[, 1L]],
                       to = colnames(W1)[ij[, 2L]], weight = W1[ij],
                       stringsAsFactors = FALSE)
-  n_mod <- tapply(ph$module, ph$physical, length)
+  n_mod <- tapply(ph$community, ph$state, length)
   n_shared <- sum(n_mod > 1L)
   n_hidden <- sum(x$states$flow <= 0)
   notes <- c(
     if (length(lone)) {
-      alone <- ph$physical[match(lone, ph$module)]
+      alone <- ph$state[match(lone, ph$community)]
       sprintf("%s: a single physical node, drawn without a pebble.",
               paste(sprintf("Community %d (%s)", lone, alone),
                     collapse = ", "))
@@ -876,7 +847,7 @@ summary.net_hon_communities <- function(object, ...) {
     }
   )
   # a community's flow: the visit rate of its state nodes, for its title box
-  module_flow <- tapply(x$states$flow, x$states$module, sum)
+  module_flow <- tapply(x$states$flow, x$states$community, sum)
   community_flow <- stats::setNames(
     as.numeric(module_flow[as.character(mods)]), community_names)
   list(hypergraph = hg, community = community, flow = community_flow,
@@ -892,8 +863,8 @@ summary.net_hon_communities <- function(object, ...) {
 #' \describe{
 #'   \item{`type = "physical"` (default)}{every community is drawn as a
 #'     pebble around the physical nodes it holds, through
-#'     [plot.net_hypergraph()] on the community hypergraph (member = physical
-#'     node, group = `"Community k"`, from `as.data.frame(x, what =
+#'     [plot.net_hg()] on the community hypergraph (member = physical
+#'     node, group = `"Community k"`, from `hg_get(x, what =
 #'     "physical")`). A physical node shared by several communities lies
 #'     inside each of their pebbles. Pebbles are coloured by community
 #'     (Okabe-Ito, legend "Community"). Each node is a black circle whose
@@ -901,7 +872,7 @@ summary.net_hon_communities <- function(object, ...) {
 #'     over its state nodes), and a triangle inside the circle points at the
 #'     physical node its link flow most often goes to next. Each community
 #'     has a title box with its name and flow (the visit rate of its state
-#'     nodes) beside its pebble, drawn by [plot.net_hypergraph()] (haloed
+#'     nodes) beside its pebble, drawn by [plot.net_hg()] (haloed
 #'     labels, legend below, wide margins); the boxes sit a little further
 #'     out than there (`title_gap = 0.14`) to clear the labels of the nodes at
 #'     a pebble's rim. A
@@ -914,29 +885,29 @@ summary.net_hon_communities <- function(object, ...) {
 #'     below 0.05 hidden).}
 #' }
 #' State nodes with zero flow (reached only by teleportation, see
-#' [hon_communities()]) carry no physical flow and are never drawn in the
+#' [hg_communities()]) carry no physical flow and are never drawn in the
 #' physical view; the state view leaves them and the singleton communities
 #' they form out unless `show_zero_flow = TRUE`. A caption says how many were
-#' left out. The tables returned by [as.data.frame.net_hon_communities()] are
+#' left out. The tables returned by [hg_get.net_hon_communities()] are
 #' unaffected.
 #'
 #' @param x A `net_hon_communities` object.
 #' @param type `"physical"` (default) or `"states"`.
 #' @param show_zero_flow Draw zero-flow state nodes in the state view?
 #'   Default `FALSE`.
-#' @param ... For `type = "physical"`, passed to [plot.net_hypergraph()]
+#' @param ... For `type = "physical"`, passed to [plot.net_hg()]
 #'   (e.g. `seed`, `label_size`, `arrow_style = "outside"`, `layout`),
 #'   overriding the defaults set here; for `type = "states"`, passed to
 #'   [cograph::overlay_communities()] and on to [cograph::splot()].
 #' @return For `type = "physical"`, a ggplot object (print it to draw). For
 #'   `type = "states"`, `x`, invisibly (cograph draws with base graphics).
 #' @section Conditions:
-#' `hypernets_bad_input` from [plot.net_hypergraph()] for arguments passed
+#' `hypernets_bad_input` from [plot.net_hg()] for arguments passed
 #' through `...` that it rejects.
 #' @examples
 #' seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
 #'              c("c", "h", "d", "c", "h", "d", "c"))
-#' comm <- hon_communities(build_hon(seqs, max_order = 2L), trials = 2L)
+#' comm <- hg_communities(hon(seqs, max_order = 2L), trials = 2L)
 #' plot(comm)
 #' plot(comm, type = "states")
 #' @export
@@ -962,7 +933,7 @@ plot.net_hon_communities <- function(x, type = c("physical", "states"),
     return(invisible(x))
   }
   spec <- .hcm_physical_plot_data(x)
-  # a title box per community with its flow; plot.net_hypergraph() puts the
+  # a title box per community with its flow; plot.net_hg() puts the
   # legends below and halos the labels
   args <- list(x = spec$hypergraph,
                color_by = spec$community, legend_title = "Community",
@@ -972,7 +943,7 @@ plot.net_hon_communities <- function(x, type = c("physical", "states"),
                size_title = "physical flow (visit rate summed over the node's states)",
                title_gap = 0.14)
   args[names(dots)] <- dots
-  p <- do.call(plot.net_hypergraph, args)
+  p <- do.call(plot.net_hg, args)
   # the key one sentence to a line, then the notes, left-aligned under the
   # whole plot: one long line is wider than the figure
   p + ggplot2::labs(

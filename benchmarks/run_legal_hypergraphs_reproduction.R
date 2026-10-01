@@ -217,7 +217,7 @@ icsid_temporal <- temporal_hypergraph(
 
 centrality_rows <- list()
 for (representation in c("active", "aggregate")) {
-  snapshot <- hypergraph_snapshot(
+  snapshot <- hg_snapshot(
     icsid_temporal, at = cutoff,
     mode = if (representation == "active") "active" else "cumulative",
     multiedges = FALSE

@@ -86,7 +86,7 @@
 #' symmetric patent-citation indicator for `S`; any finite non-negative
 #' node-by-node relation matrix can be supplied here.
 #'
-#' @param hg A connected `net_hypergraph`.
+#' @param hg A connected `net_hg`.
 #' @param relations A non-negative `n_nodes` by `n_nodes` numeric matrix.
 #'   If it has dimnames, rows and columns are reordered to `hg$nodes`.
 #' @param k Number of clusters, between 2 and `n_nodes - 1`.
@@ -102,7 +102,7 @@
 #' @param max_iter Maximum multiplicative-update iterations.
 #' @param tol Relative objective tolerance.
 #'
-#' @return A `net_hypergraph_cluster` object. Its `$embedding` is the fitted
+#' @return A `net_hg_cluster` object. Its `$embedding` is the fitted
 #'   vertex factor `M`; `$params` contains all fitted factors, the objective
 #'   trace and convergence diagnostics.
 #' @references
@@ -110,7 +110,7 @@
 #' random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
 #' \doi{10.1145/3340531.3412034}
 #' @export
-hypergraph_joint_cluster <- function(
+hg_joint_cluster <- function(
     hg, relations, k, method = c("joint", "joint_symmetric"),
     alpha = 1, beta = 1, gamma = 1,
     type = c("random_walk", "zhou"), edge_weights = NULL,
@@ -187,7 +187,7 @@ hypergraph_joint_cluster <- function(
     params = c(list(alpha = alpha, beta = beta, gamma = gamma,
                     nstart = as.integer(nstart), seed = seed,
                     max_iter = as.integer(max_iter), tol = tol), best)
-  ), class = "net_hypergraph_cluster")
+  ), class = "net_hg_cluster")
 }
 
 .hl_joint_nmf_fit <- function(hg, S, k, method, alpha, beta, gamma,

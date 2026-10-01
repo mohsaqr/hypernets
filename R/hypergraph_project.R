@@ -72,7 +72,7 @@
 #' orientation; the default symmetrises.
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
-#'   `net_hypergraph`.
+#'   `net_hg`.
 #' @param method Weighting. `"clique"` (default) sums incidence products;
 #'   `"association"` applies the \eqn{1/(|e|-1)} normalisation above;
 #'   `"citation"` joins each hyperedge's source to its members.
@@ -322,7 +322,7 @@ hg_project <- function(hg, method = c("clique", "association", "citation"),
 #' the tests assert.
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
-#'   `net_hypergraph`.
+#'   `net_hg`.
 #' @param s Minimum number of shared vertices for two hyperedges to be
 #'   adjacent. A single integer of at least 1; `1` (default) is the ordinary
 #'   line graph.
@@ -368,11 +368,3 @@ hg_line_graph <- function(hg, s = 1, what = c("edges", "matrix")) {
   if (identical(what, "matrix")) return(overlap)
   .thg_tidy_pairs(overlap, edges)
 }
-
-#' @rdname hg_project
-#' @export
-hypergraph_project <- hg_project
-
-#' @rdname hg_line_graph
-#' @export
-hypergraph_line_graph <- hg_line_graph

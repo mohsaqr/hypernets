@@ -9,14 +9,17 @@
 #' bag-construction [text_hypergraph()], the dual is identical to rebuilding
 #' with the opposite `nodes` orientation (tested), so document-level and
 #' word-level analyses can share one constructed object. Duals of windowed
-#' and kNN hypergraphs are returned as plain `net_hypergraph` objects (their
+#' and kNN hypergraphs are returned as plain `net_hg` objects (their
 #' corpus bookkeeping does not transpose meaningfully).
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
-#'   `net_hypergraph`.
+#'   `net_hg`.
 #' @return A hypergraph whose incidence is the transpose of `hg`'s: a
 #'   `text_hypergraph` with flipped `nodes` for bag constructions, otherwise
-#'   a `net_hypergraph`. Accepted by all `hg_*` verbs.
+#'   a `net_hg`. Accepted by all `hg_*` verbs.
+#' @references
+#' Berge, C. (1989). *Hypergraphs: Combinatorics of Finite Sets*.
+#' North-Holland Mathematical Library 45. North-Holland.
 #' @examples
 #' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
 #' dual <- dual_hypergraph(hg)

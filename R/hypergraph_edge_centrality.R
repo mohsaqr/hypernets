@@ -8,7 +8,7 @@
 #' then ordinary shortest-path vertex centralities on that graph. At `s = 1`
 #' these are the paper's hyperedge 1-betweenness and 1-closeness.
 #'
-#' @param hg A static `net_hypergraph` or a [temporal_hypergraph()].
+#' @param hg A static `net_hg` or a [temporal_hypergraph()].
 #' @param s One or more positive integer intersection thresholds.
 #' @param measure Any of `"betweenness"` and `"closeness"`.
 #' @param normalized Use NetworkX/HypergraphX normalization: undirected
@@ -17,10 +17,10 @@
 #' @param top Optional number of highest-scoring hyperedges to retain per
 #'   `(time, s, measure)` group.
 #' @param start,end,step,window,at Measurement grid passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal.
+#'   [hg_snapshots()] when `hg` is temporal.
 #' @param snapshot_mode,multiedges Snapshot `mode` (`"active"` or
 #'   `"cumulative"`) and multi-edge handling passed to
-#'   [hypergraph_snapshots()] when `hg` is temporal.
+#'   [hg_snapshots()] when `hg` is temporal.
 #' @return A tidy data frame with `edge`, `s`, `measure`, and `value`; temporal
 #'   input adds a leading `time` column.
 #' @references Coupette, C., Hartung, D., & Katz, D. M. (2024). Legal
@@ -55,7 +55,7 @@ hg_edge_centrality <- function(hg, s = 1L,
   }
 
   if (inherits(hg, "net_temporal_hypergraph")) {
-    snaps <- hypergraph_snapshots(hg, start = start, end = end, step = step,
+    snaps <- hg_snapshots(hg, start = start, end = end, step = step,
                                   window = window, at = at, mode = snapshot_mode,
                                   multiedges = multiedges)
     rows <- lapply(seq_along(snaps), function(i) {
@@ -125,7 +125,3 @@ hg_edge_centrality <- function(hg, s = 1L,
   rownames(out) <- NULL
   out
 }
-
-#' @rdname hg_edge_centrality
-#' @export
-hypergraph_edge_centrality <- hg_edge_centrality

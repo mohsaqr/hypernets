@@ -14,9 +14,9 @@
 
 # Structure ----------------------------------------------------------------
 
-test_that("returns a net_hypergraph with required fields", {
+test_that("returns a net_hg with required fields", {
   hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
-  expect_s3_class(hg, "net_hypergraph")
+  expect_s3_class(hg, "net_hg")
   expect_named(hg, c("hyperedges", "incidence", "nodes", "n_nodes",
                      "n_hyperedges", "size_distribution", "params"))
   expect_equal(hg$n_nodes, 5L)
@@ -171,7 +171,7 @@ test_that("non-data.frame input rejected", {
 
 # print and summary work --------------------------------------------------
 
-test_that("print and summary work via shared net_hypergraph methods", {
+test_that("print and summary work via shared net_hg methods", {
   hg <- group_hypergraph(.bg_sample_data(), actor = "member", group = "session")
   expect_invisible(print(hg))
   # summary now returns a tidy node-degree data.frame (visible)
@@ -185,7 +185,7 @@ test_that("print and summary work via shared net_hypergraph methods", {
 test_that("works on bundled human_long dataset (long-format event data)", {
   data("human_long", package = "hypernets")
   hg <- group_hypergraph(human_long, actor = "code", group = "session_id")
-  expect_s3_class(hg, "net_hypergraph")
+  expect_s3_class(hg, "net_hg")
   expect_gt(hg$n_nodes, 0L)
   expect_gt(hg$n_hyperedges, 0L)
   # Each session is a hyperedge; members = codes appearing in that session
@@ -249,5 +249,5 @@ test_that("an unaddressable dense incidence is refused, not attempted", {
                class = "hypernets_dense_too_large")
   expect_s3_class(group_hypergraph(d, actor = "member", group = "group",
                                    sparse = TRUE),
-                  "net_hypergraph")
+                  "net_hg")
 })

@@ -31,14 +31,14 @@ test_that("hg_edges summary is a series over time", {
   expect_equal(s$mean, c(0, 2, 2, 2, 0))
   summary_plot <- plot(s, columns = c("mean", "max"))
   expect_s3_class(summary_plot, "ggplot")
-  snap_two <- hypergraph_snapshot(.edges_thg(), at = 2)
+  snap_two <- hg_snapshot(.edges_thg(), at = 2)
   one <- hg_edges(snap_two, what = "summary")
   expect_identical(class(one), "data.frame")
   expect_equal(one$mean, 3)
 })
 
 test_that("several thresholds give one block each, and distributions carry time", {
-  snap <- hypergraph_snapshot(.edges_thg(), at = 2)
+  snap <- hg_snapshot(.edges_thg(), at = 2)
   multi <- hg_edges(snap, s = 1:2)
   expect_identical(names(multi)[1L], "s")
   expect_identical(multi$s, c(1L, 1L, 2L, 2L))

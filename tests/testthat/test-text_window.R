@@ -5,7 +5,7 @@ test_that("sliding windows are hand-computed correctly", {
   hg <- text_hypergraph(c(d = "a b c a b"), construction = "window",
                         window = 2)
   expect_identical(
-    as.data.frame(hg),
+    hg_get(hg),
     data.frame(
       edge = c("a+b", "a+b", "a+c", "a+c", "b+c", "b+c"),
       word = c("a", "b", "a", "c", "b", "c"),
@@ -19,7 +19,7 @@ test_that("tumbling windows include the trailing partial chunk", {
   hg <- text_hypergraph(c(d = "a b c a b"), construction = "window",
                         window = 2, window_mode = "tumbling")
   expect_identical(
-    as.data.frame(hg),
+    hg_get(hg),
     data.frame(
       edge = c("a+b", "a+b", "a+c", "a+c", "b"),
       word = c("a", "b", "a", "c", "b"),
@@ -32,7 +32,7 @@ test_that("tumbling windows include the trailing partial chunk", {
 test_that("repeated tokens inside a window collapse to a singleton edge", {
   hg <- text_hypergraph(c(d = "a a b"), construction = "window", window = 2)
   expect_identical(
-    as.data.frame(hg),
+    hg_get(hg),
     data.frame(
       edge = c("a", "a+b", "a+b"),
       word = c("a", "a", "b"),
@@ -44,7 +44,7 @@ test_that("repeated tokens inside a window collapse to a singleton edge", {
 test_that("a document shorter than the window forms one whole-document window", {
   hg <- text_hypergraph(c(d = "a b"), construction = "window", window = 5)
   expect_identical(
-    as.data.frame(hg),
+    hg_get(hg),
     data.frame(edge = c("a+b", "a+b"), word = c("a", "b"), weight = c(1, 1))
   )
   expect_identical(hg$text$n_windows, 1L)
@@ -53,14 +53,14 @@ test_that("a document shorter than the window forms one whole-document window", 
 test_that("windows never cross document boundaries", {
   hg <- text_hypergraph(c(x = "a b", y = "c d"), construction = "window",
                         window = 2)
-  expect_identical(sort(unique(as.data.frame(hg)$edge)), c("a+b", "c+d"))
+  expect_identical(sort(unique(hg_get(hg)$edge)), c("a+b", "c+d"))
 })
 
 test_that("window counts are conserved", {
   corpus <- c(d1 = "a b c a b c a", d2 = "b c b c b")
   hg <- text_hypergraph(corpus, construction = "window", window = 3)
   # sliding, full windows: (7 - 3 + 1) + (5 - 3 + 1) = 8
-  tab <- as.data.frame(hg)
+  tab <- hg_get(hg)
   per_edge <- aggregate(weight ~ edge, data = tab, FUN = max)
   expect_identical(sum(per_edge$weight), 8)
   expect_identical(hg$text$n_windows, 8L)
@@ -72,7 +72,7 @@ test_that("window counts are conserved", {
 test_that("min_count filtering closes the gap before windowing", {
   hg <- text_hypergraph(c(d = "a q b a b"), construction = "window",
                         window = 2, min_count = 2L)
-  tab <- as.data.frame(hg)
+  tab <- hg_get(hg)
   expect_false("q" %in% tab$word)
   # filtered sequence a b a b -> windows (a,b),(b,a),(a,b) -> a+b weight 3
   expect_identical(

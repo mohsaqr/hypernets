@@ -1,6 +1,6 @@
 Package: hypernets
 Title: Higher-Order Network Analysis
-Version: 0.5.1
+Version: 0.6.0
 Authors@R: c(
     person("Mohammed", "Saqr", email = "saqr@saqr.me", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5881-3109"))
@@ -9,7 +9,9 @@ Description: Build and analyze higher-order networks, in which a relation
     can involve more than two nodes or can depend on more than the current
     node. Covers the three structure families of the higher-order network
     literature Battiston et al. (2020) <doi:10.1016/j.physrep.2020.05.004>,
-    plus a text family that reads a corpus as a hypergraph.
+    plus a text family that reads a corpus as a hypergraph. Every object
+    is read through one accessor, and every sequence-taking verb reads long,
+    wide, list or model input.
     Memory networks from categorical sequences: higher-order networks with
     rule extraction Xu, Wickramarathne, and Chawla (2016)
     <doi:10.1126/sciadv.1600028>, higher-order network embedding Saebi et
@@ -44,7 +46,7 @@ Description: Build and analyze higher-order networks, in which a relation
     embedding nearest neighbours), analysed with tidy verbs for clustering,
     keyword extraction, few-label classification, and null testing.
 License: MIT + file LICENSE
-URL: https://github.com/mohsaqr/hypernets, https://mohsaqr.github.io/hypernets
+URL: https://github.com/mohsaqr/hypernets, https://mohsaqr.github.io/hypernets/
 BugReports: https://github.com/mohsaqr/hypernets/issues
 Language: en-US
 Encoding: UTF-8
@@ -53,13 +55,14 @@ RoxygenNote: 7.3.3
 Depends:
     R (>= 4.4)
 Imports:
-    cograph,
+    cograph (>= 2.7.2),
     ggplot2,
     graphics,
     grDevices,
     grid,
     Matrix,
     methods,
+    Nestimate (>= 0.8.5),
     parallel,
     RSpectra,
     stats,

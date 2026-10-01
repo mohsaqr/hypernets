@@ -3,7 +3,7 @@
 # EDVW transition matrix is built here (verified at machine precision against
 # the stationary distribution of the random-walk Laplacian in
 # hypergraph_laplacian.R, itself HyperNetX-parity-tested) and against
-# hypergraph_centrality(type = "pagerank"); PageRank adds damping and
+# .hg_centrality_fit(type = "pagerank"); PageRank adds damping and
 # personalization on top.
 
 # EDVW transition matrix: from vertex v, pick an incident hyperedge e with
@@ -13,6 +13,9 @@
 .thg_transition <- function(hg, edge_weights = NULL) {
   incidence <- hg$incidence
   membership <- (incidence > 0) * 1
+  # Package-wide default (.hl_build, .hl_rw_transition): explicit weights,
+  # else a window hypergraph's window counts, else the heuristic below.
+  edge_weights <- edge_weights %||% hg$window_counts
   if (is.null(edge_weights)) {
     # Hayashi et al. (2020) heuristic, the HyperNetX default:
     # population SD of the edge's non-zero vertex weights, plus one.
@@ -61,12 +64,12 @@
 #' (tested against the closed-form graph stationary distribution). With
 #' `damping = 1` and default `edge_weights`, the result equals the
 #' stationary distribution of the Hayashi et al. (2020) EDVW walk used by
-#' [hg_cluster()] (tested at `1e-12` against [hypergraph_laplacian()]), and
+#' [hg_cluster()] (tested at `1e-12` against [hg_laplacian()]), and
 #' with uniform teleportation it equals
-#' `hypergraph_centrality(type = "pagerank")` (tested).
+#' `hg_centrality(type = "pagerank")` (tested).
 #'
 #' @param hg A [text_hypergraph()], [knn_hypergraph()], or any hypernets
-#'   `net_hypergraph` (connected when `damping = 1`).
+#'   `net_hg` (connected when `damping = 1`).
 #' @param damping Probability of following the hypergraph walk (default
 #'   `0.85`); `1 - damping` is the teleport probability. Must be in
 #'   `(0, 1]`; `damping = 1` gives the pure stationary distribution and
@@ -77,10 +80,11 @@
 #'   vertex names; unnamed vertices get teleport probability 0. `NULL`
 #'   (default) teleports uniformly.
 #' @param edge_weights Positive hyperedge weights (one per hyperedge), or
-#'   `NULL` (default) for the Hayashi et al. heuristic used by the
-#'   Laplacian engines: the population standard deviation of each edge's
-#'   non-zero vertex weights plus one, which reduces to unit weights on a
-#'   binary incidence.
+#'   `NULL` (default): a window hypergraph's window counts when present,
+#'   otherwise the Hayashi et al. heuristic used by the Laplacian engines
+#'   (the population standard deviation of each edge's non-zero vertex
+#'   weights plus one, which reduces to unit weights on a binary
+#'   incidence).
 #' @param sort_by `NULL` (default, vertex order) or `"pagerank"` to sort
 #'   descending (ties broken by vertex name).
 #' @param n Return only the first `n` rows after sorting (default all).
@@ -197,7 +201,3 @@ hg_pagerank <- function(hg, damping = 0.85, personalized = NULL,
   }
   out
 }
-
-#' @rdname hg_pagerank
-#' @export
-hypergraph_pagerank <- hg_pagerank

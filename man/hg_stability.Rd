@@ -2,55 +2,133 @@
 % Please edit documentation in R/agreement.R
 \name{hg_stability}
 \alias{hg_stability}
-\alias{hypergraph_stability}
-\title{Seed stability of a hypergraph clustering across resolutions}
+\title{Stability of a hypergraph clustering across resolutions}
 \usage{
 hg_stability(
   hg,
   k,
   type = c("zhou", "random_walk"),
-  seeds = c(1L, 99L),
-  nstart = 25L
-)
-
-hypergraph_stability(
-  hg,
-  k,
-  type = c("zhou", "random_walk"),
+  resample = c("subset", "seeds"),
+  n_boot = 100L,
+  fraction = 0.5,
+  seed = 1L,
+  what = c("k", "clusters"),
   seeds = c(1L, 99L),
   nstart = 25L
 )
 }
 \arguments{
-\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hypergraph}).}
+\item{hg}{A \code{\link[=text_hypergraph]{text_hypergraph()}} (or any hypernets \code{net_hg}).}
 
 \item{k}{Vector of cluster counts to test, each at least 2.}
 
-\item{type}{\code{"zhou"} or \code{"random_walk"}, as in \code{\link[=hg_cluster]{hg_cluster()}}.}
+\item{type}{\code{"zhou"} or \code{"random_walk"}, the Laplacian of \code{\link[=hg_cluster]{hg_cluster()}}.}
 
-\item{seeds}{Two distinct k-means seeds (default \code{c(1L, 99L)}).}
+\item{resample}{\code{"subset"} (default) for subsampling stability, or
+\code{"seeds"} for the two-seed solver check.}
+
+\item{n_boot}{Number of subsamples (default \code{100L}).}
+
+\item{fraction}{Share of the nodes in each subsample, strictly between 0
+and 1 (default \code{0.5}, as in \code{fpc::clusterboot()}).}
+
+\item{seed}{Seed for the subsample draws and the k-means starts of every
+fit (default \code{1L}).}
+
+\item{what}{For \code{resample = "subset"}: \code{"k"} (default) for one row per
+resolution, or \code{"clusters"} for one row per resolution and cluster.}
+
+\item{seeds}{For \code{resample = "seeds"}: two distinct k-means seeds
+(default \code{c(1L, 99L)}).}
 
 \item{nstart}{Number of k-means starts per fit (default \code{25L}).}
 }
 \value{
-A base \code{data.frame}, one row per resolution, with columns \code{k},
+A base \code{data.frame}.
+
+\code{resample = "subset"}, \code{what = "k"}: one row per resolution with \code{k},
+\code{n_runs} (subsamples scored), \code{n_failed} (subsamples that disconnected
+the hypergraph), \code{mean_jaccard} and \code{min_jaccard} (the mean and the
+smallest of the clusters' stabilities), \code{n_stable} (clusters with
+stability at least 0.75), \code{n_dissolved} (clusters with stability 0.5 or
+below) and \code{eigengap}.
+
+\code{resample = "subset"}, \code{what = "clusters"}: one row per resolution and
+cluster of the full partition, with \code{k}, \code{cluster}, \code{size} (its nodes),
+\code{jaccard} (its stability, \code{fpc::clusterboot()}'s \code{subsetmean}),
+\code{n_dissolved} (subsamples with Jaccard 0.5 or below, \code{subsetbrd}),
+\code{n_recovered} (subsamples with Jaccard above 0.75, \code{subsetrecover}) and
+\code{n_runs}.
+
+\code{resample = "seeds"}: one row per resolution with \code{k},
 \code{identical_partition} (are the two partitions literally identical,
-labels included) and \code{ari} (their adjusted Rand index; 1 means the
-same partition up to label names).
+labels included) and \code{ari} (their adjusted Rand index).
+
+Raises \code{hypernets_bad_input} for a \code{fraction} outside (0, 1), a
+subsample too small to hold \code{k} clusters, a non-positive \code{n_boot}, or
+\code{what = "clusters"} with \code{resample = "seeds"}.
 }
 \description{
-Fits \code{\link[=hg_cluster]{hg_cluster()}} twice per requested \code{k} with different k-means
-seeds and reports whether the partitions agree -- the reproducibility
-criterion for choosing a resolution: a partition that changes with
-the seed is not estimable from the data, whatever its eigengap looks
-like.
+Asks whether the partition \code{\link[=hg_cluster]{hg_cluster()}} finds is a property of the data
+or of the particular sample, one resolution \code{k} at a time.
+}
+\details{
+\strong{\code{resample = "subset"} (default)} is cluster-wise subsampling stability
+(Hennig 2007; the subsetting scheme of Ben-Hur et al. 2002). The nodes
+(on a document hypergraph, the documents) are clustered once in full.
+Then, \code{n_boot} times, a subsample of \code{floor(fraction * n)} nodes is drawn
+without replacement, the sub-hypergraph is formed by restricting every
+hyperedge to the drawn nodes (hyperedges left empty are dropped; the
+incidence weights are kept, so a tf-idf corpus keeps the full corpus's
+idf), and it is clustered again with the same \code{k}, \code{type}, \code{seed} and
+\code{nstart}. Each original cluster, restricted to the drawn nodes, is matched
+to its most similar subsample cluster by the Jaccard coefficient
+\eqn{|A \cap B| / |A \cup B|} (0 when the cluster has no drawn member). A
+cluster's stability is its mean Jaccard over the subsamples. Hennig
+(2007) reads a mean of 0.5 or below as a dissolved cluster and 0.75 or
+above as a stable one. The subsamples are drawn once, up front, after
+\code{set.seed(seed)}, so they are the ones \code{fpc::clusterboot(bootmethod = "subset", subtuning = floor(fraction * n), seed = seed)} draws, and the
+same subsamples serve every \code{k}. The caller's random number stream is
+restored on exit.
+
+A subsample can disconnect the hypergraph (a word that tied two groups of
+documents may not be drawn); \code{\link[=hg_cluster]{hg_cluster()}} cannot cut a disconnected
+hypergraph, so that run is not scored, is counted in \code{n_failed}, and a
+warning of class \code{hypernets_hypergraph_disconnected} reports the count.
+
+The \code{eigengap} column is the gap \eqn{\lambda_{k+1} - \lambda_k} between
+consecutive eigenvalues of the full hypergraph's Laplacian (the \code{gap}
+column of \code{hg_cluster(what = "eigenvalues")}); the eigengap heuristic
+(von Luxburg 2007, Sec. 8.1) prefers the \code{k} where it is large relative
+to the gaps before it. Read it beside the stability: a \code{k} with a large
+gap and stable clusters is supported twice.
+
+\strong{\code{resample = "seeds"}} keeps the check this verb made before 0.6.0: it
+fits the full hypergraph twice per \code{k} with the two k-means \code{seeds} and
+reports whether the partitions agree. It measures whether the solver is
+deterministic on this embedding, not whether the structure survives a
+change of sample, and it never resamples the data.
 }
 \examples{
-hg <- text_hypergraph(c(
-  cooking_1 = "simmer the soup with onions and carrots",
-  cooking_2 = "this soup recipe needs salt on a cold night",
-  space_1 = "the telescope revealed a distant galaxy and stars",
-  space_2 = "astronomers aimed the telescope at the stars all night"
-), stop_words = c("the", "with", "and", "a", "this", "at", "on", "all"))
-hg_stability(hg, k = 2, type = "random_walk")
+hg <- text_hypergraph(head(covid_abstracts, 40), column = "abstract",
+                      id = "doc", stop_words = stop_words_en(),
+                      min_count = 3)
+hg_stability(hg, k = 2:4, n_boot = 20)
+hg_stability(hg, k = 3, n_boot = 20, what = "clusters")
+hg_stability(hg, k = 2, resample = "seeds")
+}
+\references{
+Hennig, C. (2007). Cluster-wise assessment of cluster stability.
+\emph{Computational Statistics & Data Analysis}, 52(1), 258--271.
+\doi{10.1016/j.csda.2006.11.025}
+
+Ben-Hur, A., Elisseeff, A., & Guyon, I. (2002). A stability based method
+for discovering structure in clustered data. \emph{Pacific Symposium on
+Biocomputing}, 7, 6--17. \doi{10.1142/9789812799623_0002}
+
+von Luxburg, U. (2007). A tutorial on spectral clustering. \emph{Statistics and
+Computing}, 17(4), 395--416. \doi{10.1007/s11222-007-9033-z}
+
+Hubert, L., & Arabie, P. (1985). Comparing partitions. \emph{Journal of
+Classification}, 2, 193--218.
 }

@@ -1,24 +1,24 @@
 # Hypergeometric anomaly detection for hypergraph co-occurrence.
 #
-# The memory family's build_hypa() scores transitions of a De Bruijn graph
+# The memory family's sequence HYPA (hypa() on sequences) scores transitions of a De Bruijn graph
 # against a hypergeometric null whose propensity is the product of the
 # endpoints' strengths (LaRock et al. 2020). The same null applies to a
 # hypergraph: a pair of nodes co-occurs in some number of hyperedges, and the
 # question is whether that count exceeds what the two hyperdegrees predict.
 #
-# Two things keep this tractable where build_hypa() is not. Only pairs that
+# Two things keep this tractable where the sequence HYPA is not. Only pairs that
 # actually co-occur are scored, so the propensity is held sparse rather than
-# as the dense n x n outer product build_hypa() materialises. And `min_count`
+# as the dense n x n outer product the sequence HYPA materialises. And `min_count`
 # drops cells that cannot reach significance before they enter the
 # multiplicity correction.
 
 #' Hypergeometric anomaly detection for co-occurring node pairs
 #'
-#' Scores every co-occurring pair of nodes against a hypergeometric null in
+#' The hypergraph method of [hypa()]. Scores every co-occurring pair of nodes against a hypergeometric null in
 #' which a pair's propensity to share hyperedges is the product of the two
 #' nodes' hyperdegrees. A pair that co-occurs far more often than that
 #' product predicts is over-represented; far less often, under-represented.
-#' This is the hypergraph counterpart of [build_hypa()], which applies the
+#' This is the hypergraph counterpart of [hypa.default()], which applies the
 #' same null to the transitions of a higher-order network, and it returns the
 #' same columns so the two read alike.
 #'
@@ -45,10 +45,10 @@
 #' Time is handled by scoring a cumulative snapshot rather than by slicing
 #' into periods. Disjoint periods split a pair's evidence across cells while
 #' multiplying the number of tests, so both terms move the wrong way; a
-#' sequence of `hypergraph_snapshot(hg, at = ..., mode = "cumulative")`
+#' sequence of `hg_snapshot(hg, at = ..., mode = "cumulative")`
 #' accumulates evidence instead and shows when a pair becomes anomalous.
 #'
-#' @param hg A `net_hypergraph`, or a snapshot of a temporal one.
+#' @param x A `net_hg`, or a snapshot of a temporal one.
 #' @param min_count Minimum observed co-occurrence count for a pair to be
 #'   scored (default `5L`). Pairs below the floor are not tested and do not
 #'   enter the multiplicity correction.
@@ -69,7 +69,7 @@
 #' and Schweitzer, F. (2020). HYPA: Efficient detection of path anomalies in
 #' time series data on networks. *Proceedings of the 2020 SIAM International
 #' Conference on Data Mining*, 460-468.
-#' @seealso [build_hypa()] for the same null on a higher-order network,
+#' @seealso [hypa.default()] for the same null on the paths of sequences,
 #'   [hg_null_test()] for the Monte Carlo whole-hypergraph tests.
 #' @examples
 #' memberships <- data.frame(
@@ -77,10 +77,14 @@
 #'   group = rep(c("g1","g2","g3","g4","g5"), each = 3)
 #' )
 #' hg <- group_hypergraph(memberships, actor = "actor", group = "group")
-#' hg_hypa(hg, min_count = 2L)
+#' hypa(hg, min_count = 2L)
+#' @param ... Must be empty: an argument that only the sequence method
+#'   takes (`order`, `action`, ...) raises `hypernets_bad_input`.
 #' @export
-hg_hypa <- function(hg, min_count = 5L, alpha = 0.05, p_adjust = "BH",
-                    top = NULL) {
+hypa.net_hg <- function(x, min_count = 5L, alpha = 0.05, p_adjust = "BH",
+                           top = NULL, ...) {
+  .ho_no_dots(..., .for = "a hypergraph")
+  hg <- x
   .thg_check_hg(hg)
   stopifnot(
     "`min_count` must be a single count >= 1" =
@@ -110,7 +114,7 @@ hg_hypa <- function(hg, min_count = 5L, alpha = 0.05, p_adjust = "BH",
     ))
   }
 
-  # The null is the whole co-occurrence ensemble, as in build_hypa(): N and
+  # The null is the whole co-occurrence ensemble, as in the sequence HYPA: N and
   # the draw count come from every co-occurring pair, not only the pairs above
   # the floor. Estimating them from the survivors alone would make the null
   # self-fulfilling -- with one survivor, expected would always equal observed.

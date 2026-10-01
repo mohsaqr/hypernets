@@ -3,17 +3,11 @@
 \name{hg_sample_uniform}
 \alias{hg_sample_uniform}
 \alias{hg_sample_regular}
-\alias{hypergraph_sample_uniform}
-\alias{hypergraph_sample_regular}
 \title{Sample Uniform or Regular Random Hypergraphs}
 \usage{
 hg_sample_uniform(n, m, k, prob = NULL, seed = NULL)
 
 hg_sample_regular(n, m, k, prob = NULL, seed = NULL)
-
-hypergraph_sample_uniform(n, m, k, prob = NULL, seed = NULL)
-
-hypergraph_sample_regular(n, m, k, prob = NULL, seed = NULL)
 }
 \arguments{
 \item{n}{Number of nodes.}
@@ -32,7 +26,7 @@ model.}
 restored on exit.}
 }
 \value{
-A \code{net_hypergraph}.
+A \code{net_hg}.
 }
 \description{
 \code{hg_sample_uniform()} makes every hyperedge contain exactly \code{k} distinct
@@ -44,4 +38,8 @@ u <- hg_sample_uniform(20, 8, k = 3, seed = 1)
 r <- hg_sample_regular(20, 8, k = 2, seed = 1)
 hg_measures(u, what = "distribution", measure = "size")
 hg_measures(r, what = "distribution", measure = "hyperdegree")
+}
+\references{
+Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+1.0.0.
 }

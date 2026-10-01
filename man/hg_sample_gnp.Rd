@@ -2,12 +2,9 @@
 % Please edit documentation in R/hypergraph_random.R
 \name{hg_sample_gnp}
 \alias{hg_sample_gnp}
-\alias{hypergraph_sample_gnp}
 \title{Sample Bernoulli-Incidence Random Hypergraphs}
 \usage{
 hg_sample_gnp(n, m = NULL, p, lambda = NULL, seed = NULL)
-
-hypergraph_sample_gnp(n, m = NULL, p, lambda = NULL, seed = NULL)
 }
 \arguments{
 \item{n}{Number of nodes.}
@@ -24,7 +21,7 @@ required.}
 restored on exit.}
 }
 \value{
-A \code{net_hypergraph} with binary incidence and model parameters in
+A \code{net_hg} with binary incidence and model parameters in
 \verb{$params}.
 }
 \description{

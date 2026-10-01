@@ -14,7 +14,7 @@
 #' decision in the block). The degree statistics show how much the choice
 #' of representation changes what a node looks like.
 #'
-#' @param hg A static `net_hypergraph`, typically a snapshot of a
+#' @param hg A static `net_hg`, typically a snapshot of a
 #'   [temporal_hypergraph()].
 #' @param graph `"clique"` (default) or `"citation"`, the graph projection
 #'   compared; see [hg_project()]. `"citation"` needs hyperedge sources.
@@ -97,7 +97,3 @@ hg_representations <- function(hg, graph = c("clique", "citation"),
   rownames(out) <- NULL
   out
 }
-
-#' @rdname hg_representations
-#' @export
-hypergraph_representations <- hg_representations

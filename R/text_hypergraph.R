@@ -207,11 +207,11 @@
 #'   agree with the dense engines (tested), while tensor centralities and
 #'   the null test currently require the dense representation.
 #'
-#' @return An object of class `c("text_hypergraph", "net_hypergraph")` -- a
+#' @return An object of class `c("text_hypergraph", "net_hg")` -- a
 #'   [group_hypergraph()] hypergraph accepted by every hypernets
 #'   hypergraph verb and by [hg_measures()], [hg_centrality()],
 #'   [hg_cluster()], and [hg_classify()] -- with a `text` field recording the
-#'   corpus tables. Use [as.data.frame.text_hypergraph()] for the tidy
+#'   corpus tables. Use [hg_get.text_hypergraph()] for the tidy
 #'   weight table, and its `what` argument for the document and vocabulary
 #'   tables.
 #'
@@ -243,7 +243,7 @@
 #' )
 #' hg <- text_hypergraph(corpus, weight = "tfidf")
 #' hg
-#' as.data.frame(hg)
+#' hg_get(hg)
 #'
 #' win <- text_hypergraph(corpus, construction = "window", window = 3)
 #' win
@@ -435,7 +435,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
   doc_freq <- tapply(counts$doc, counts$word, \(d) length(unique(d)))
   vocabulary <- data.frame(
     word = names(doc_freq),
-    n = as.integer(tapply(counts$n, counts$word, sum)),
+    count = as.integer(tapply(counts$n, counts$word, sum)),
     doc_freq = as.integer(doc_freq)
   )
   vocabulary <- vocabulary[order(vocabulary$word), , drop = FALSE]
@@ -529,7 +529,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
       builder(counts, actor = "word", group = "doc", weight = "w")
     }
     weights <- data.frame(doc = counts$doc, word = counts$word,
-                          n = counts$n, weight = counts$w)
+                          count = counts$n, weight = counts$w)
     weights <- weights[order(weights$doc, weights$word), , drop = FALSE]
     rownames(weights) <- NULL
   }
@@ -640,7 +640,7 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
 
   hg$text <- list(
     documents = documents,
-    vocabulary = data.frame(word = character(0), n = integer(0),
+    vocabulary = data.frame(word = character(0), count = integer(0),
                             doc_freq = integer(0)),
     weights = weights,
     construction = "knn",
@@ -656,10 +656,11 @@ text_hypergraph <- function(x, column = NULL, id = NULL,
 #' Print a text hypergraph
 #'
 #' @param x A [text_hypergraph()] object.
+#' @param n Number of rows of the default table to print. Default `10`.
 #' @param ... Unused.
 #' @return `x`, invisibly.
 #' @export
-print.text_hypergraph <- function(x, ...) {
+print.text_hypergraph <- function(x, n = 10L, ...) {
   head_line <- switch(x$text$construction,
     bag = sprintf(
       "Text hypergraph: %d documents, %d words (%s as nodes, weight = %s)",
@@ -696,15 +697,15 @@ print.text_hypergraph <- function(x, ...) {
     ),
     min(sizes), max(sizes), stats::median(sizes)
   ))
+  .ho_print_table(x, n)
   invisible(x)
 }
 
 #' Tidy tables of a text hypergraph
 #'
 #' @param x A [text_hypergraph()] object.
-#' @param row.names,optional Ignored; present for S3 consistency.
 #' @param what Which table: `"weights"` (default) -- for the bag construction
-#'   one row per document-word pair (`doc`, `word`, `n`, `weight`); for the
+#'   one row per document-word pair (`doc`, `word`, `count`, `weight`); for the
 #'   window construction one row per window-content/word membership
 #'   (`edge`, `word`, `weight` = window count); for the sentence
 #'   construction one row per sentence/word membership (`edge`, `word`,
@@ -715,21 +716,18 @@ print.text_hypergraph <- function(x, ...) {
 #'   `"documents"` gives one row per document (with
 #'   `n_tokens`/`n_types` for token-based constructions, plus any metadata
 #'   columns carried from the input). `"vocabulary"` gives one row per word
-#'   (`word`, `n`, `doc_freq`, and `idf` under tf-idf weighting; empty for
+#'   (`word`, `count`, `doc_freq`, and `idf` under tf-idf weighting; empty for
 #'   the knn construction, which has no token layer).
 #' @param ... Unused.
 #' @return A base `data.frame` as described under `what`.
 #' @examples
 #' hg <- text_hypergraph(c(a = "salt and soup", b = "soup and stars"))
-#' as.data.frame(hg)
-#' as.data.frame(hg, what = "documents")
+#' hg_get(hg)
+#' hg_get(hg, what = "documents")
 #' @export
-as.data.frame.text_hypergraph <- function(x, row.names = NULL,
-                                          optional = FALSE,
-                                          what = c("weights", "documents",
-                                                   "vocabulary",
-                                                   "sentences"),
-                                          ...) {
+hg_get.text_hypergraph <- function(x, what = c("weights", "documents",
+                                               "vocabulary", "sentences"),
+                                   ...) {
   what <- match.arg(what)
   if (identical(what, "sentences") && is.null(x$text$sentences)) {
     stop(errorCondition(

@@ -4,7 +4,6 @@
 \alias{hg_keywords}
 \alias{print.hypernets_keywords}
 \alias{plot.hypernets_keywords}
-\alias{hypergraph_keywords}
 \title{Characteristic words (keywords) per cluster}
 \usage{
 hg_keywords(
@@ -22,18 +21,6 @@ hg_keywords(
 \method{print}{hypernets_keywords}(x, ...)
 
 \method{plot}{hypernets_keywords}(x, value = c("score", "share"), label = TRUE, ncol = NULL, ...)
-
-hypergraph_keywords(
-  hg,
-  clusters,
-  n = 10L,
-  type = NULL,
-  sort_by = c("score", "share"),
-  min_docs = 1L,
-  centrality = c("pagerank", "clique", "Z", "H"),
-  scores = NULL,
-  collapse = FALSE
-)
 }
 \arguments{
 \item{hg}{The hypergraph the clustering was computed on, or the
@@ -60,7 +47,7 @@ cluster's documents (default \code{1}). The support floor that stops
 \code{sort_by = "share"} from surfacing words a cluster owns because they
 occur once.}
 
-\item{centrality}{For \code{type = "centrality"}, the \code{\link[=hypergraph_centrality]{hypergraph_centrality()}}
+\item{centrality}{For \code{type = "centrality"}, the \code{\link[=hg_centrality]{hg_centrality()}}
 measure: \code{"pagerank"} (default; it reads the incidence weights and does
 not tie on words present in every document, as the clique measure
 does), \code{"clique"}, \code{"Z"} or \code{"H"}.}
@@ -96,10 +83,11 @@ ranked by \code{sort_by} within type and cluster; only words with a
 positive score and at least \code{min_docs} documents appear. With
 \code{collapse = TRUE}: one row per type and cluster, columns \code{type},
 \code{cluster}, \code{size} and \code{words}. The print method shows the collapsed
-view, truncated to the console width; \code{as.data.frame()} is the long
-form. Raises \code{hypernets_bad_input} for unknown node names, a \code{type} that
-needs the token layer on a hypergraph without one, or a malformed
-\code{scores} table.
+view, truncated to the console width; the returned table itself is
+the long form. Raises \code{hypernets_bad_input} for unknown node names, a \code{type} that
+needs the token layer on a hypergraph without one, a malformed
+\code{scores} table, or a bag-of-words \code{text_hypergraph(nodes = "word")},
+whose hyperedges are documents rather than words.
 
 \code{plot()} returns a ggplot: one panel per cluster (rows) and score type
 (columns), each with its own word axis, horizontal bars of \code{value} per
@@ -127,7 +115,7 @@ count and \code{A} the average token count per cluster (truncated to an
 integer, as in the reference implementation).
 \item \code{"centrality"}: the word's centrality within the cluster's own word
 hypergraph (words as nodes, the cluster's documents as hyperedges,
-incidence = the stored weights), from \code{\link[=hypergraph_centrality]{hypergraph_centrality()}} with
+incidence = the stored weights), from \code{\link[=hg_centrality]{hg_centrality()}} with
 the measure named in \code{centrality}.
 }
 

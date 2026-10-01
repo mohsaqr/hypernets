@@ -1,5 +1,5 @@
 # EDVW hypergraph PageRank: independent linear-solve reference, the
-# Chitra & Raphael collapse theorem, hypergraph_centrality parity, and
+# Chitra & Raphael collapse theorem, .hg_centrality_fit parity, and
 # invariants.
 
 pr_corpus <- c(
@@ -44,7 +44,7 @@ test_that("pagerank matches a direct linear solve of the published formula", {
 test_that("damping = 1 equals the spectral engine's stationary distribution", {
   hg <- text_hypergraph(pr_corpus, stop_words = pr_stop, weight = "tfidf")
   out <- hg_pagerank(hg, damping = 1, tol = 1e-15, max_iter = 10000L)
-  engine <- hypergraph_cluster(hg, k = 2, type = "random_walk",
+  engine <- .hg_cluster_fit(hg, k = 2, type = "random_walk",
                                           seed = 1)
   expect_equal(
     out$pagerank,
@@ -134,7 +134,7 @@ test_that("contract violations and non-convergence are classed", {
   expect_warning(hg_pagerank(hg, max_iter = 1L), class = "hypernets_no_converge")
 })
 
-test_that("hg_pagerank equals hypergraph_centrality(type = \"pagerank\")", {
+test_that("hg_pagerank equals .hg_centrality_fit(type = \"pagerank\")", {
   # same walk, same damping, uniform teleport: the verb and the engine must
   # agree to solver tolerance on binary and on weighted incidences
   long <- data.frame(
@@ -147,9 +147,23 @@ test_that("hg_pagerank equals hypergraph_centrality(type = \"pagerank\")", {
                                weight = "w")
   for (hg in list(binary, weighted)) {
     verb <- hg_pagerank(hg, damping = 0.85, tol = 1e-14)
-    engine <- hypergraph_centrality(hg, type = "pagerank", damping = 0.85,
+    engine <- .hg_centrality_fit(hg, type = "pagerank", damping = 0.85,
                                     tol = 1e-14)
     expect_identical(verb$node, engine$node)
     expect_equal(verb$pagerank, engine$pagerank, tolerance = 1e-10)
   }
+})
+
+test_that("hg_pagerank defaults to window counts like the other walk verbs", {
+  # Before 0.6.0 hg_pagerank() ignored window_counts while
+  # hg_centrality(type = "pagerank") and the Laplacian used them.
+  hg <- window_hypergraph(ring_sequences, window = 3L)
+  pr <- hg_pagerank(hg)
+  cen <- hg_centrality(hg, type = "pagerank")
+  # Two independent power iterations, each stopped at L1 change < 1e-8, so
+  # agreement is ~1e-9, not machine precision; the old behaviour missed by
+  # 0.018 on this hypergraph.
+  expect_lt(max(abs(pr$pagerank - cen$pagerank)), 1e-7)
+  explicit <- hg_pagerank(hg, edge_weights = as.numeric(hg$window_counts))
+  expect_identical(pr, explicit)
 })

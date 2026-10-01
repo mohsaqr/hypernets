@@ -1,23 +1,26 @@
 # Tidy text-facing analysis verbs. Each delegates to the matching engine in
-# the hypergraph family (hypergraph_measures, hypergraph_centrality,
-# hypergraph_cluster, hypergraph_transduction) and returns a base data.frame.
+# the hypergraph family (.hg_measures_fit, .hg_centrality_fit,
+# .hg_cluster_fit, .hg_transduction_fit) and returns a base data.frame.
 
 .thg_check_hg <- function(hg) {
-  if (!inherits(hg, "net_hypergraph")) {
+  if (!inherits(hg, "net_hg")) {
     stop(errorCondition(
-      "`hg` must be a net_hypergraph (text_hypergraph, knn_hypergraph, group_hypergraph, ...)",
+      "`hg` must be a net_hg (text_hypergraph, knn_hypergraph, group_hypergraph, ...)",
       class = "hypernets_bad_input", call = NULL
     ))
   }
   invisible(hg)
 }
 
-#' Structural measures of a hypergraph, as tidy tables
+#' Structural measures for a hypergraph
 #'
-#' Delegates to [hypergraph_measures()] and returns the requested
-#' slice as a tidy data.frame.
+#' Computes a comprehensive structural-statistics suite for a
+#' [net_hg][network_hypergraph]: node-level, hyperedge-level, and
+#' global measures. All measures are derived in a few BLAS calls on the
+#' incidence matrix.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
+#' `what =` selects which table is returned, as a tidy data.frame.
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
 #' @param what Which table: `"nodes"` (default; one row per node with
 #'   `hyperdegree`, `strength`, `max_edge_size` and `n_neighbors`, the
 #'   distinct nodes it shares a hyperedge with), `"edges"` (one row per
@@ -31,8 +34,37 @@
 #' @param measure For `what = "distribution"`: `"hyperdegree"` (default),
 #'   `"strength"`, `"n_neighbors"` (node measures) or `"size"` (hyperedge
 #'   cardinality).
+#' @details
+#' All measures are computed via standard matrix operations on the binary
+#' incidence \eqn{B = (b_{ij})} where \eqn{b_{ij} = 1} iff node \eqn{i}
+#' is in hyperedge \eqn{j}:
+#' \itemize{
+#'   \item `hyperdegree = rowSums(B)`,
+#'         `edge_sizes = colSums(B)`
+#'   \item `co_degree = tcrossprod(B)` (with zero diagonal)
+#'   \item `edge_pairwise_overlap = crossprod(B)` (with zero diagonal)
+#'   \item `overlap_coefficient[i, j] = overlap[i, j] /
+#'         min(edge_sizes[i], edge_sizes[j])`
+#'   \item `jaccard[i, j] = overlap[i, j] /
+#'         (edge_sizes[i] + edge_sizes[j] - overlap[i, j])`
+#' }
+#'
+#' Empty hypergraph (`n_hyperedges == 0`) returns trivial zeros and
+#' empty matrices.
+#'
 #' @return A base `data.frame`, one row per node, edge, edge pair, measure,
 #'   distinct value, or component according to `what`.
+#' @seealso [network_hypergraph()], [group_hypergraph()],
+#'   [hg_clique_expansion()].
+#'
+#' @references
+#' Lee, G., Bu, F., Eliassi-Rad, T., & Shin, K. (2025). A survey on
+#' hypergraph mining: patterns, tools, and generators. \emph{ACM Computing
+#' Surveys}, 57(8), 203. \doi{10.1145/3719002}
+#'
+#' Do, M. T., Yoon, S., Hooi, B., & Shin, K. (2020). Structural patterns
+#' and generative models of real-world hypergraphs. arXiv:2006.07060.
+#'
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   a = "salt and soup and onions",
@@ -65,7 +97,7 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
   if (.thg_is_sparse(hg)) {
     return(.thg_sparse_measures(hg, what))
   }
-  m <- hypergraph_measures(hg)
+  m <- .hg_measures_fit(hg)
   edges <- colnames(hg$incidence)
   switch(what,
     nodes = data.frame(
@@ -102,22 +134,147 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
   )
 }
 
-#' Hypergraph node centralities, as a tidy table
+#' Hypergraph eigenvector centralities
 #'
-#' Delegates to [hypergraph_centrality()]: clique-expansion
-#' eigenvector centrality and the tensor Z- and H-eigenvector centralities.
+#' The hypergraph method of [hg_centrality()]. Computes one or more eigenvector-style centralities on a
+#' [net_hg][network_hypergraph]: *clique-motif* (CEC),
+#' *Z-eigenvector* (ZEC), and *H-eigenvector* (HEC). Each variant
+#' captures influence differently - CEC flattens group structure via
+#' clique expansion, while ZEC and HEC propagate through the
+#' higher-order groups directly.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
+#' `type` also accepts `"pagerank"` (EDVW hypergraph PageRank),
+#' `"subhypergraph"` and `"katz"` (Katz centrality, which needs `alpha`);
+#' the result is one row per node.
+#' @param x A [text_hypergraph()] (or any hypernets `net_hg`).
 #' @param type Centralities to compute; any of `"clique"`, `"Z"`, `"H"`
-#'   (default: all three).
+#'   (default: all three), `"pagerank"`, `"subhypergraph"`, `"katz"`.
 #' @param sort_by Optional centrality name to sort by, descending (ties broken
 #'   by node name); default keeps node order.
 #' @param n Return only the first `n` rows after sorting (default all) --
 #'   e.g. `sort_by = "clique", n = 10` for the ten most central nodes.
-#' @param max_iter,tol,normalize Passed to
-#'   [hypergraph_centrality()].
+#' @param max_iter Maximum number of power-iteration steps. Default
+#'   `1000`.
+#' @param tol Convergence tolerance on the L1 change between successive
+#'   iterates. Default `1e-8`.
+#' @param normalize Logical. If `TRUE` (default), each returned
+#'   centrality vector is L2-normalized to unit norm (compatible with
+#'   `igraph::eigen_centrality()`'s scale for type `"clique"`). Does not
+#'   apply to `"pagerank"`, which always sums to 1, or
+#'   `"subhypergraph"`, which is returned on its natural log scale.
+#' @param damping Single numeric in (0, 1). PageRank damping factor
+#'   (probability of following the walk rather than teleporting).
+#'   Default `0.85`. Only used by `type = "pagerank"`.
+#' @param edge_weights NULL, a single positive number (recycled to every
+#'   hyperedge, e.g. `1` for unit weights), or a positive numeric vector,
+#'   one per hyperedge. Hyperedge weights of the EDVW random walk behind
+#'   `type = "pagerank"`; `NULL` defaults to the window counts for
+#'   hypergraphs built by [window_hypergraph()], else the Hayashi et al.
+#'   dispersion heuristic (unit weights on a binary incidence). Only used
+#'   by `type = "pagerank"`.
+#' @param alpha Attenuation factor of `type = "katz"`: a single number in
+#'   \eqn{(0, 1/\lambda_{max})}, where \eqn{\lambda_{max}} is the largest
+#'   eigenvalue of the hypergraph adjacency. There is no correct default;
+#'   `type = "katz"` without `alpha` raises `hypernets_bad_input`, and so
+#'   does an `alpha` at or above the bound (the message reports it).
+#'
+#' @details
+#' **Clique-motif eigenvector centrality (CEC)**: forms the
+#' clique-expanded pairwise graph \eqn{W} where
+#' \eqn{W_{ij} = |\{e : i, j \in e\}|} and returns the leading
+#' eigenvector of \eqn{W}. Equivalent to running
+#' `igraph::eigen_centrality()` on [hg_clique_expansion()] output.
+#'
+#' **Z-eigenvector centrality (ZEC)**: solves the linear
+#' eigen-equation on the hyperedge tensor,
+#' \deqn{\lambda\, x_i \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j,}
+#' via power iteration. Works for hypergraphs with mixed edge sizes.
+#'
+#' **H-eigenvector centrality (HEC)**: solves the power-k-1
+#' eigen-equation,
+#' \deqn{\lambda\, x_i^{k-1} \;=\; \sum_{e \ni i}\; \prod_{j \in e,\; j \neq i} x_j.}
+#' For uniform hypergraphs (all hyperedges of size \eqn{k}), this is
+#' equivalent to normalizing the ZEC update by the geometric-mean
+#' exponent \eqn{1/(k-1)}. For mixed sizes, the effective exponent is
+#' taken from the largest hyperedge; expect slightly different rankings
+#' from ZEC in the mixed case.
+#'
+#' **Hypergraph PageRank** (`"pagerank"`): the stationary distribution of
+#' the damped EDVW random walk of Chitra & Raphael (2019): from node
+#' \eqn{v}, pick a hyperedge \eqn{e \ni v} with probability proportional
+#' to its weight \eqn{w(e)}, then a node \eqn{u \in e} with probability
+#' proportional to its edge-dependent vertex weight \eqn{\gamma_e(u)}
+#' (the incidence cell, i.e. occurrence totals for
+#' [window_hypergraph()]); with probability \eqn{1 - damping} teleport
+#' uniformly. Their collapse theorem: with edge-*independent* vertex
+#' weights (a binary incidence) the walk is equivalent to PageRank on the
+#' weighted clique expansion with edge weights
+#' \eqn{\sum_{e \ni u,v} w(e)/\delta(e)} -- the hypergraph adds
+#' information exactly when \eqn{\gamma} is edge-dependent. Nodes left in
+#' no hyperedge (possible after `min_weight`/`min_size` filtering)
+#' teleport from every step and receive only teleportation mass. The
+#' undamped stationary distribution of the same walk is the `pi` column
+#' reported by [hg_cluster()].
+#'
+#' **Subhypergraph centrality** (`"subhypergraph"`): the logarithm of the
+#' diagonal of the matrix exponential of the clique adjacency derived from
+#' binary incidence (so entries count shared hyperedges),
+#' \eqn{\log[\exp(W)]_{ii}}. It counts closed walks based at each node with a
+#' factorial penalty for length and matches the implementation used by
+#' HypergraphX 1.5 in the legal-hypergraphs analysis.
+#'
+#' **Katz centrality** (`"katz"`): Katz's (1953) status index on the
+#' hypergraph adjacency of Estrada & Rodriguez-Velazquez (2006),
+#' \eqn{A_{ij}} = the number of hyperedges containing both \eqn{i} and
+#' \eqn{j} (the weighted clique expansion),
+#' \deqn{x = \sum_{k \ge 1} \alpha^k A^k \mathbf{1} = (I - \alpha A)^{-1}
+#' \alpha A \mathbf{1},\qquad 0 < \alpha < 1/\lambda_{max}(A),}
+#' the \eqn{\alpha}-discounted number of walks leaving each node (Battiston
+#' et al. 2020, Sec. III.B.3). Returned on this natural scale, not
+#' normalized; the alpha centrality of Bonacich & Lloyd (2001) with unit
+#' exogenous status, which also counts the length-0 walk, is `katz + 1`
+#' (tested against `igraph::alpha_centrality()` on the clique expansion).
+#' XGI's `katz_centrality()` is the same vector for its fixed
+#' \eqn{\alpha = 2^{-n}}, rescaled to sum to one (tested). It is the only
+#' type that also runs on a sparse incidence.
+#'
 #' @return A base `data.frame`, one row per node (or the `n` requested rows),
 #'   with one column per requested centrality.
+#' @seealso [network_hypergraph()], [hg_clique_expansion()],
+#'   [hg_measures()].
+#'
+#' @references
+#' Benson, A. R. (2019). Three hypergraph eigenvector centralities.
+#' \emph{SIAM Journal on Mathematics of Data Science} 1(2), 293-312.
+#' arXiv:1807.09644.
+#'
+#' Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+#' edge-dependent vertex weights. \emph{Proceedings of the 36th
+#' International Conference on Machine Learning}, PMLR 97, 1172-1181.
+#'
+#' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+#' random walks, Laplacians, and clustering. \emph{Proceedings of CIKM
+#' 2020}, 495-504. \doi{10.1145/3340531.3412034}
+#'
+#' Estrada, E., & Rodriguez-Velazquez, J. A. (2005). Complex networks as
+#' hypergraphs. *arXiv preprint physics/0505137*.
+#'
+#' Estrada, E., & Rodriguez-Velazquez, J. A. (2006). Subgraph centrality
+#' and clustering in complex hyper-networks. \emph{Physica A}, 364,
+#' 581-594. \doi{10.1016/j.physa.2005.12.002}
+#'
+#' Katz, L. (1953). A new status index derived from sociometric analysis.
+#' \emph{Psychometrika}, 18(1), 39-43. \doi{10.1007/BF02289026}
+#'
+#' Bonacich, P., & Lloyd, P. (2001). Eigenvector-like measures of
+#' centrality for asymmetric relations. \emph{Social Networks}, 23(3),
+#' 191-201. \doi{10.1016/S0378-8733(01)00038-7}
+#'
+#' Battiston, F., Cencetti, G., Iacopini, I., Latora, V., Lucas, M.,
+#' Patania, A., Young, J.-G., & Petri, G. (2020). Networks beyond pairwise
+#' interactions: Structure and dynamics. \emph{Physics Reports}, 874,
+#' 1-92. \doi{10.1016/j.physrep.2020.05.004}
+#'
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   a = "salt and soup and onions",
@@ -125,13 +282,23 @@ hg_measures <- function(hg, what = c("nodes", "edges", "overlap", "summary",
 #'   c = "stars and salt"
 #' ))
 #' hg_centrality(hg, type = "clique")
+#' hg_centrality(hg, type = c("clique", "katz"), alpha = 0.1)
+#' @param ... Must be empty: an argument that only the memory-network
+#'   method takes raises `hypernets_bad_input`.
 #' @export
-hg_centrality <- function(hg, type = c("clique", "Z", "H"),
-                          sort_by = NULL, n = Inf,
-                          max_iter = 1000L, tol = 1e-8, normalize = TRUE) {
+hg_centrality.net_hg <- function(x, type = c("clique", "Z", "H"),
+                                 sort_by = NULL, n = Inf,
+                                 max_iter = 1000L, tol = 1e-8,
+                                 normalize = TRUE, damping = 0.85,
+                                 edge_weights = NULL, alpha = NULL, ...) {
+  .ho_no_dots(..., .for = "a hypergraph")
+  hg <- x
   .thg_check_hg(hg)
-  type <- match.arg(type, several.ok = TRUE)
-  if (.thg_is_sparse(hg)) {
+  type <- match.arg(type, choices = c("clique", "Z", "H", "pagerank",
+                                      "subhypergraph", "katz"),
+                    several.ok = TRUE)
+  engine_types <- setdiff(type, "katz")
+  if (.thg_is_sparse(hg) && length(engine_types) > 0L) {
     stop(errorCondition(
       "tensor centralities need the dense representation; use hg_pagerank() at scale",
       class = "hypernets_sparse_unsupported", call = NULL
@@ -141,9 +308,24 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
     "`n` must be a single count >= 1" =
       length(n) == 1L && (is.infinite(n) || (is.finite(n) && n >= 1))
   )
-  out <- hypergraph_centrality(
-    hg, type = type, max_iter = max_iter, tol = tol, normalize = normalize
-  )
+  if ("katz" %in% type && is.null(alpha)) {
+    stop(errorCondition(
+      "`type = \"katz\"` needs `alpha` in (0, 1 / lambda_max)",
+      class = "hypernets_bad_input", call = NULL
+    ))
+  }
+  out <- if (length(engine_types) > 0L) {
+    .hg_centrality_fit(
+      hg, type = engine_types, max_iter = max_iter, tol = tol,
+      normalize = normalize, damping = damping, edge_weights = edge_weights
+    )
+  } else {
+    data.frame(node = rownames(hg$incidence), stringsAsFactors = FALSE)
+  }
+  if ("katz" %in% type) {
+    out$katz <- .hg_katz_fit(hg, alpha = alpha)$katz
+  }
+  out <- out[, c("node", type), drop = FALSE]
   if (!is.null(sort_by)) {
     sort_by <- match.arg(sort_by, choices = type)
     out <- out[order(-out[[sort_by]], out$node), , drop = FALSE]
@@ -155,26 +337,40 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
   out
 }
 
-#' Spectral clustering of a hypergraph, as a tidy table
+#' Spectral or symmetric-NMF clustering of hypergraph vertices
 #'
-#' Calls the in-package [hypergraph_cluster()] engine (Zhou et al. 2006 normalized
-#' Laplacian, or the Hayashi et al. 2020 random-walk Laplacian with
-#' edge-dependent vertex weights -- the natural choice for tf-idf-weighted
-#' text hypergraphs).
+#' Partitions the nodes of a hypergraph into `k` clusters with either of
+#' Hayashi et al.'s (2020) representative-digraph algorithms. `algorithm =
+#' "spectral"` (RDC-Spec) row-normalizes the `k` smallest Laplacian
+#' eigenvectors and applies k-means. `algorithm = "symnmf"` (RDC-Sym)
+#' computes a rank-`k` non-negative factorization `T ~= U U'` of the
+#' normalized similarity `T = I - L`, then assigns each vertex to the
+#' largest entry in its row of `U`, exactly as Algorithm 2 specifies.
+#' With `type = "random_walk"` and a weighted
+#' incidence (e.g. from [group_hypergraph()] with `weight =`), the
+#' edge-dependent vertex weights genuinely change the partition - with
+#' edge-independent weights the walk collapses to a graph random walk
+#' (Chitra & Raphael 2019).
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
+#' Both solvers are stochastic: `nstart` initializations are used and a
+#' `seed` fixes the result. Report stability across seeds for consequential
+#' results.
+#'
+#' `type = "random_walk"` (Hayashi et al. 2020) is the natural choice for
+#' tf-idf-weighted text hypergraphs. `what =` returns the cluster table,
+#' the embedding or the leading eigenvalues as a tidy data.frame.
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
 #' @param k Number of clusters (explicit by design; there is no correct
 #'   default).
-#' @param type `"zhou"` or `"random_walk"`, as in
-#'   [hypergraph_cluster()].
+#' @param type The Laplacian, as in [hg_laplacian()]: `"zhou"` (Zhou et al.
+#'   2006) or `"random_walk"` (Hayashi et al. 2020).
 #' @param n For `what = "eigenvalues"`, how many rows to keep, leading first
 #'   (default `Inf`, all of them). The spectrum carries one eigenvalue per
 #'   node, so a corpus of a few thousand documents returns a few thousand
 #'   rows, and only the leading ones carry the gap that decides how many
 #'   groups the structure supports. Ignored for the other values of `what`.
-#' @param algorithm `"spectral"` (RDC-Spec) or `"symnmf"` (RDC-Sym), as in
-#'   [hypergraph_cluster()]. SymNMF currently requires a dense incidence
-#'   matrix because its paper objective factorizes a dense node similarity.
+#' @param algorithm Character. `"spectral"` (default; RDC-Spec) or
+#'   `"symnmf"` (RDC-Sym).
 #' @param edge_weights Hyperedge weights for the Laplacian: `NULL`
 #'   (default, every hyperedge counts once), a positive numeric vector with
 #'   one entry per hyperedge, or `"idf"` to weight each word hyperedge by
@@ -186,21 +382,42 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #' @param seed Random seed passed to the selected solver; set it for a
 #'   reproducible partition.
 #' @param nstart Number of solver starts (default `25L`).
-#' @param max_iter,tol SymNMF convergence controls passed to
-#'   [hypergraph_cluster()].
+#' @param max_iter Maximum multiplicative-update iterations for
+#'   `algorithm = "symnmf"`.
+#' @param tol Relative objective tolerance for `algorithm = "symnmf"`.
+#'
 #' @param what What to return: `"clusters"` (default) for the partition,
 #'   `"embedding"` for the partition plus the row-normalized spectral
 #'   embedding used by k-means (`dim1..dimk` -- plot these to map the
 #'   corpus) and the stationary weight `pi`, or `"eigenvalues"` for the
 #'   Laplacian spectrum (dense engines return all `n` values; the sparse
 #'   engine returns the `k + 1` it computed -- raise `k` for an eigengap
-#'   scan).
+#'   scan), or, with `algorithm = "symnmf"`, `"membership"` for the graded
+#'   membership of every node in every cluster: the node's row of the
+#'   non-negative factor, normalised to sum to one (Kuang, Ding & Park
+#'   2012).
 #' @return A base `data.frame`. For `what = "clusters"`: one row per node,
 #'   columns `node` and `cluster`. For `what = "embedding"`: `node`,
 #'   `cluster`, `pi`, `dim1..dimk`. For `what = "eigenvalues"`: one row
 #'   per eigenvalue, columns `index`, `value` (ascending) and `gap` (the
 #'   distance to the next eigenvalue -- large gaps indicate supported
-#'   cluster counts; `NA` on the last row).
+#'   cluster counts; `NA` on the last row). For `what = "membership"`: one
+#'   row per node and cluster, columns `node`, `cluster` and `membership`
+#'   (summing to one over a node's clusters); a node's largest membership
+#'   is its cluster in `what = "clusters"`.
+#' @references
+#' Kuang, D., Ding, C., & Park, H. (2012). Symmetric nonnegative matrix
+#' factorization for graph clustering. \emph{Proceedings of the 2012 SIAM
+#' International Conference on Data Mining}, 106-117.
+#' \doi{10.1137/1.9781611972825.10}
+#'
+#' Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph
+#' random walks, Laplacians, and clustering. \emph{CIKM 2020}, 495-504.
+#' \doi{10.1145/3340531.3412034}
+#'
+#' Chitra, U., & Raphael, B. J. (2019). Random walks on hypergraphs with
+#' edge-dependent vertex weights. \emph{ICML 2019}.
+#'
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -214,7 +431,8 @@ hg_centrality <- function(hg, type = c("clique", "Z", "H"),
 #' @export
 hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
                        edge_weights = NULL, seed = NULL, nstart = 25L,
-                       what = c("clusters", "embedding", "eigenvalues"),
+                       what = c("clusters", "embedding", "eigenvalues",
+                                "membership"),
                        n = Inf, algorithm = c("spectral", "symnmf"),
                        max_iter = 500L, tol = 1e-6) {
   .thg_check_hg(hg)
@@ -226,6 +444,11 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
   algorithm <- match.arg(algorithm)
   what <- match.arg(what)
   edge_weights <- .thg_edge_weights(hg, edge_weights)
+  if (identical(what, "membership") && !identical(algorithm, "symnmf")) {
+    .thg_bad_input(paste0("`what = \"membership\"` needs ",
+                          "`algorithm = \"symnmf\"`; for the spectral ",
+                          "clustering use hg_membership()"))
+  }
   if (.thg_is_sparse(hg) && algorithm == "symnmf") {
     stop(errorCondition(
       paste0("`algorithm = \"symnmf\"` requires a dense incidence matrix; ",
@@ -237,7 +460,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
     .thg_sparse_cluster(hg, k = k, type = type, edge_weights = edge_weights,
                         nstart = nstart, seed = seed)
   } else {
-    hypergraph_cluster(hg, k = k, type = type, edge_weights = edge_weights,
+    .hg_cluster_fit(hg, k = k, type = type, edge_weights = edge_weights,
                        algorithm = algorithm, seed = seed, nstart = nstart,
                        max_iter = max_iter, tol = tol)
   }
@@ -251,7 +474,9 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
     return(utils::head(out, n))
   }
   out <- if (identical(what, "embedding")) {
-    as.data.frame(fit)
+    hg_get(fit)
+  } else if (identical(what, "membership")) {
+    .hl_symnmf_membership(fit)
   } else {
     fit$clusters
   }
@@ -311,7 +536,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   integer, as in the reference implementation).
 #' * `"centrality"`: the word's centrality within the cluster's own word
 #'   hypergraph (words as nodes, the cluster's documents as hyperedges,
-#'   incidence = the stored weights), from [hypergraph_centrality()] with
+#'   incidence = the stored weights), from [hg_centrality()] with
 #'   the measure named in `centrality`.
 #'
 #' `"frequency"`, `"ctfidf"` and `"centrality"` need the token-level layer
@@ -348,7 +573,7 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   cluster's documents (default `1`). The support floor that stops
 #'   `sort_by = "share"` from surfacing words a cluster owns because they
 #'   occur once.
-#' @param centrality For `type = "centrality"`, the [hypergraph_centrality()]
+#' @param centrality For `type = "centrality"`, the [hg_centrality()]
 #'   measure: `"pagerank"` (default; it reads the incidence weights and does
 #'   not tie on words present in every document, as the clique measure
 #'   does), `"clique"`, `"Z"` or `"H"`.
@@ -375,10 +600,11 @@ hg_cluster <- function(hg, k, type = c("zhou", "random_walk"),
 #'   positive score and at least `min_docs` documents appear. With
 #'   `collapse = TRUE`: one row per type and cluster, columns `type`,
 #'   `cluster`, `size` and `words`. The print method shows the collapsed
-#'   view, truncated to the console width; `as.data.frame()` is the long
-#'   form. Raises `hypernets_bad_input` for unknown node names, a `type` that
-#'   needs the token layer on a hypergraph without one, or a malformed
-#'   `scores` table.
+#'   view, truncated to the console width; the returned table itself is
+#'   the long form. Raises `hypernets_bad_input` for unknown node names, a `type` that
+#'   needs the token layer on a hypergraph without one, a malformed
+#'   `scores` table, or a bag-of-words `text_hypergraph(nodes = "word")`,
+#'   whose hyperedges are documents rather than words.
 #'
 #'   `plot()` returns a ggplot: one panel per cluster (rows) and score type
 #'   (columns), each with its own word axis, horizontal bars of `value` per
@@ -408,6 +634,7 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
                         centrality = c("pagerank", "clique", "Z", "H"),
                         scores = NULL, collapse = FALSE) {
   .thg_check_hg(hg)
+  .thg_require_doc_nodes(hg, "hg_keywords")
   sort_by <- match.arg(sort_by)
   choices <- c("mass", "frequency", "ctfidf", "centrality")
   type <- type %||% (if (is.null(scores)) "mass" else character(0))
@@ -521,8 +748,8 @@ hg_keywords <- function(hg, clusters, n = 10L, type = NULL,
 #' @rdname hg_keywords
 #' @export
 print.hypernets_keywords <- function(x, ...) {
-  shown <- if ("words" %in% names(x)) as.data.frame(x) else
-    .thg_kw_collapse(as.data.frame(x))
+  shown <- if ("words" %in% names(x)) .ho_plain(x) else
+    .thg_kw_collapse(.ho_plain(x))
   # fit the words column to the console: the other columns plus separators
   # take a fixed width, the rest goes to the words, cut with a marker
   fixed <- max(nchar(shown$type), 4L) + max(nchar(shown$cluster), 7L) +
@@ -533,7 +760,7 @@ print.hypernets_keywords <- function(x, ...) {
                                            room - 3L), "...")
   print(shown, right = FALSE, row.names = FALSE)
   if (!"words" %in% names(x)) {
-    cat(sprintf("%d rows in the long form (rank, score, share, n_docs): as.data.frame()\n",
+    cat(sprintf("%d rows in the returned long table (rank, score, share, n_docs)\n",
                 nrow(x)))
   }
   invisible(x)
@@ -555,7 +782,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
     ))
   }
   stopifnot("`label` must be TRUE or FALSE" = isTRUE(label) || isFALSE(label))
-  d <- as.data.frame(x)
+  d <- .ho_plain(x)
   types <- unique(d$type)
   d$type <- factor(d$type, levels = types)
   d$cluster <- factor(d$cluster, levels = unique(d$cluster))
@@ -594,6 +821,25 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
   p
 }
 
+# hg_keywords() reads a partition of NODES and ranks the hyperedges of each
+# part, reporting them as `word`. On a bag-of-words text_hypergraph(nodes =
+# "word") the hyperedges are documents, so it would rank document ids and
+# label them words; refuse that instead of mislabelling. (Window and sentence
+# hypergraphs keep word-bearing hyperedges or a document scope and pass.)
+.thg_require_doc_nodes <- function(hg, fn) {
+  layer <- hg$text
+  if (identical(layer$construction, "bag") && identical(layer$nodes, "word")) {
+    stop(errorCondition(
+      sprintf(paste0("%s() ranks the words of document clusters, but `hg` is ",
+                     "a word-node text_hypergraph (nodes = \"word\") whose ",
+                     "hyperedges are documents; build it with nodes = \"doc\""),
+              fn),
+      class = "hypernets_bad_input", call = NULL
+    ))
+  }
+  invisible(hg)
+}
+
 # Cluster labels in natural order: by their number when every label carries
 # one ("Cluster 2" before "Cluster 10"), alphabetically otherwise.
 .thg_kw_natural <- function(labels) {
@@ -630,7 +876,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
   token <- NULL
   if (!is.null(layer) && identical(layer$construction, "bag") &&
       identical(layer$nodes, "doc") && is.data.frame(layer$weights) &&
-      all(c("doc", "word", "n", "weight") %in% names(layer$weights))) {
+      all(c("doc", "word", "count", "weight") %in% names(layer$weights))) {
     token <- layer$weights
   }
   list(docs = hg$nodes, mass = hg$incidence, token = token, edges = NULL,
@@ -668,7 +914,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
   Matrix::sparseMatrix(
     i = match(weights$doc, scope$docs),
     j = match(weights$word, colnames(scope$mass)),
-    x = as.numeric(weights$n),
+    x = as.numeric(weights$count),
     dims = dim(scope$mass), dimnames = dimnames(scope$mass)
   )
 }
@@ -687,7 +933,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
 
 # One word hypergraph per cluster (words = nodes; the cluster's documents,
 # or its sentences under sentence scope, = hyperedges; stored weights =
-# incidence); rank by hypergraph_centrality().
+# incidence); rank by .hg_centrality_fit().
 .thg_kw_centrality <- function(hg, scope, groups, centrality) {
   edges <- if (isTRUE(scope$sentence)) {
     scope$edges
@@ -713,7 +959,7 @@ plot.hypernets_keywords <- function(x, value = c("score", "share"),
     }
     word_hg <- group_hypergraph(sub, actor = "word", group = "edge",
                                 weight = "weight")
-    values <- hypergraph_centrality(word_hg, type = centrality)
+    values <- .hg_centrality_fit(word_hg, type = centrality)
     row[values$node] <- values[[centrality]]
     row
   })
@@ -870,25 +1116,43 @@ hg_relations <- function(hg, clusters,
   net
 }
 
-#' Transductive label spreading on a hypergraph, as a tidy table
+#' Transductive label spreading on a hypergraph
 #'
-#' Calls the in-package [hypergraph_transduction()] engine (Zhou et al. 2006):
-#' labels known for a few nodes spread over the hypergraph structure to
-#' classify every node.
+#' Semi-supervised classification of hypergraph nodes by the regularization
+#' framework of Zhou et al. (2006): given labels for a subset of nodes, the
+#' scores `F = (1 - xi) * (I - xi * S)^{-1} Y` spread the labels over the
+#' hypergraph, where `S = I - L` is the normalized similarity operator of
+#' the chosen Laplacian and `Y` is the label indicator matrix. Each node is
+#' assigned the class with the highest score. This is the non-neural
+#' ancestor of hypergraph-attention text classifiers: with documents as
+#' hyperedges over words (or vice versa) it classifies unlabeled nodes from
+#' a handful of labeled ones.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`).
+#' The result is one row per node with its given and predicted label.
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`).
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers -- documents under `nodes = "doc"` -- values their
 #'   class labels), or a tidy data.frame with a `node` column and a
 #'   `label`, `cluster` or `predicted` column.
-#' @param xi,type Passed to [hypergraph_transduction()].
+#' @param xi Numeric in `(0, 1)`. Spreading coefficient (default `0.99`);
+#'   larger values weight the hypergraph structure more relative to the
+#'   initial labels.
+#' @param type,edge_weights Passed to [hg_laplacian()].
 #' @param normalization Decision rule for turning spread scores into
 #'   predictions: `"none"` (default, the raw Zhou 2006 argmax) or
 #'   `"class_mass"` (class-mass normalization, Zhu et al. 2003). Use
 #'   `"class_mass"` when the labeled seeds are class-imbalanced -- the raw
 #'   rule can collapse every prediction onto the majority class.
+#' @param type,edge_weights Passed to [hg_laplacian()].
 #' @return A base `data.frame`, one row per node, with columns `node`,
 #'   `label` (the given label or `NA`), `predicted`, `score`, and `margin`.
+#' @references
+#' Zhou, D., Huang, J., & Scholkopf, B. (2006). Learning with hypergraphs:
+#' Clustering, classification, and embedding. \emph{NeurIPS 19}.
+#'
+#' Zhu, X., Ghahramani, Z., & Lafferty, J. (2003). Semi-supervised learning
+#' using Gaussian fields and harmonic functions. \emph{ICML 20}.
+#'
 #' @examples
 #' hg <- text_hypergraph(c(
 #'   cooking_1 = "simmer the soup with onions and carrots",
@@ -900,34 +1164,45 @@ hg_relations <- function(hg, clusters,
 #' @export
 hg_classify <- function(hg, labels, xi = 0.99,
                         type = c("zhou", "random_walk"),
-                        normalization = c("none", "class_mass")) {
+                        normalization = c("none", "class_mass"),
+                        edge_weights = NULL) {
   .thg_check_hg(hg)
   type <- match.arg(type)
   normalization <- match.arg(normalization)
   labels <- .thg_labels_input(labels)
   fit <- if (.thg_is_sparse(hg)) {
     .thg_sparse_transduction(hg, labels = labels, xi = xi, type = type,
-                             edge_weights = NULL,
+                             edge_weights = edge_weights,
                              normalization = normalization)
   } else {
-    hypergraph_transduction(hg, labels = labels, xi = xi, type = type,
-                            normalization = normalization)
+    .hg_transduction_fit(hg, labels = labels, xi = xi, type = type,
+                         edge_weights = edge_weights,
+                         normalization = normalization)
   }
   out <- fit$predictions
   rownames(out) <- NULL
   out
 }
 
-# Long-form aliases for text-facing verbs whose hypergraph names are not
-# already occupied by lower-level engines.
-#' @rdname hg_keywords
-#' @export
-hypergraph_keywords <- hg_keywords
-
-#' @rdname hg_relations
-#' @export
-hypergraph_relations <- hg_relations
-
-#' @rdname hg_classify
-#' @export
-hypergraph_classify <- hg_classify
+# Graded membership from the SymNMF factor: each node's row normalised to
+# sum to one, the factor's columns labelled as the clusters they produce
+# (the hard assignment is the row maximum), unused columns numbered after.
+.hl_symnmf_membership <- function(fit) {
+  factor <- fit$embedding
+  k <- ncol(factor)
+  first_seen <- unique(max.col(factor, ties.method = "first"))
+  column_order <- c(first_seen, setdiff(seq_len(k), first_seen))
+  labels <- character(k)
+  labels[column_order] <- paste("Cluster", seq_len(k))
+  totals <- rowSums(factor)
+  shares <- factor / ifelse(totals > 0, totals, 1)
+  nodes <- rownames(factor)
+  out <- data.frame(node = rep(nodes, times = k),
+                    cluster = rep(labels, each = length(nodes)),
+                    membership = as.vector(shares),
+                    stringsAsFactors = FALSE)
+  out <- out[order(match(out$node, nodes),
+                   match(out$cluster, paste("Cluster", seq_len(k)))), ]
+  rownames(out) <- NULL
+  out
+}

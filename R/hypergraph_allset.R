@@ -108,13 +108,13 @@
 #' multiset function framework for hypergraph neural networks. \emph{ICLR
 #' 2022}.
 #' @export
-hypergraph_allset <- function(
+hg_allset <- function(
     hg, labels, features = "incidence",
     model = c("deepsets", "transformer"), hidden = 128L, heads = 4L,
     epochs = 200L, lr = 0.001, weight_decay = 5e-4, dropout = 0.5,
     validation = 0.1, seed = 1L, verbose = FALSE) {
   if (!requireNamespace("torch", quietly = TRUE)) {
-    stop(errorCondition("hypergraph_allset() needs the torch package",
+    stop(errorCondition("hg_allset() needs the torch package",
                         class = "hypernets_missing_torch", call = NULL))
   }
   model <- match.arg(model)
@@ -185,21 +185,4 @@ hypergraph_allset <- function(
     "AllDeepSets"
   } else "AllSetTransformer"
   out
-}
-
-#' @rdname hypergraph_allset
-#' @export
-hg_allset <- hypergraph_allset
-
-#' @rdname hypergraph_allset
-#' @param ... Arguments passed to [hypergraph_allset()].
-#' @export
-hypergraph_alldeepsets <- function(...) {
-  hypergraph_allset(..., model = "deepsets")
-}
-
-#' @rdname hypergraph_allset
-#' @export
-hypergraph_allset_transformer <- function(...) {
-  hypergraph_allset(..., model = "transformer")
 }

@@ -11,30 +11,25 @@ window_hypergraph(
   action = NULL,
   actor = NULL,
   time = NULL,
+  session = NULL,
+  time_threshold = 900,
+  timezone = "UTC",
   min_size = 1L,
   min_weight = 1L
 )
 }
 \arguments{
-\item{data}{Sequence data: a wide data.frame or character matrix (one
-sequence per row, trailing \code{NA}s stripped), a list of character
-vectors, or a long data.frame together with \code{action} (and optionally
-\code{actor}, \code{time}).}
+\item{data}{Sequences in any form described in \link{sequence-input}: a long
+event table, a wide data.frame or character matrix (one sequence per
+row, trailing \code{NA}s stripped), or a list of character vectors.}
 
 \item{window}{Integer >= 2. Window size in sequence positions.}
 
 \item{step}{Integer >= 1. Offset between consecutive window starts:
 \code{1} slides, \code{window} tumbles.}
 
-\item{action}{Character or NULL. Long format only: column holding the
-categorical state of each event.}
-
-\item{actor}{Character or NULL. Long format only: column grouping events
-into sequences (one sequence per actor). \code{NULL} treats all rows as one
-sequence.}
-
-\item{time}{Character or NULL. Long format only: column ordering events
-within each actor. \code{NULL} keeps row order.}
+\item{action, actor, time, session, time_threshold, timezone}{Long-format
+arguments, as in \link{sequence-input}.}
 
 \item{min_size}{Integer >= 1. Drop hyperedges with fewer distinct states
 after collapsing. The default \code{1} keeps everything.}
@@ -47,7 +42,7 @@ is recorded in \code{params$n_dropped}; with both at their defaults,
 \code{sum(window_counts)} equals the number of non-empty full windows.}
 }
 \value{
-A \code{net_hypergraph} object (as from \code{\link[=build_hypergraph]{build_hypergraph()}} and
+A \code{net_hg} object (as from \code{\link[=network_hypergraph]{network_hypergraph()}} and
 \code{\link[=group_hypergraph]{group_hypergraph()}}): a list with \code{hyperedges} (list of sorted node
 index vectors), \code{incidence} (numeric node x hyperedge matrix of
 within-window occurrence totals), \code{nodes}, \code{n_nodes}, \code{n_hyperedges},
@@ -55,7 +50,7 @@ within-window occurrence totals), \code{nodes}, \code{n_nodes}, \code{n_hyperedg
 windows collapsed into it), \code{size_distribution}, and \code{params}
 (\code{source = "window_hypergraph"}, \code{window}, \code{step}, \code{min_size},
 \code{n_sequences}, \code{n_short_sequences}, \code{n_windows}, \code{n_empty_windows},
-\code{n_dropped}). Use \code{\link[=as.data.frame]{as.data.frame()}} for the tidy one-row-per-hyperedge
+\code{n_dropped}). Use \code{\link[=hg_get]{hg_get()}} for the tidy one-row-per-hyperedge
 table.
 }
 \description{
@@ -66,10 +61,10 @@ state sets coincide collapse into a single hyperedge whose weight is the
 number of such windows (\code{window_counts}); the incidence cells hold the
 total within-window occurrences of each state, so the incidence matrix
 carries edge-dependent vertex weights (Chitra & Raphael 2019) that
-\code{\link[=hypergraph_cluster]{hypergraph_cluster()}} with \code{type = "random_walk"} uses directly. The
+\code{\link[=hg_cluster]{hg_cluster()}} with \code{type = "random_walk"} uses directly. The
 window counts are the default hyperedge weights of the whole Laplacian
-family (\code{\link[=hypergraph_laplacian]{hypergraph_laplacian()}}, \code{\link[=hypergraph_cluster]{hypergraph_cluster()}},
-\code{\link[=hypergraph_transduction]{hypergraph_transduction()}}).
+family (\code{\link[=hg_laplacian]{hg_laplacian()}}, \code{\link[=hg_cluster]{hg_cluster()}},
+\code{\link[=hg_classify]{hg_classify()}}).
 }
 \details{
 \code{step = 1} (default) gives sliding windows; \code{step = window} gives
@@ -89,7 +84,7 @@ hg <- window_hypergraph(human_long, action = "code",
                         actor = "session_id", time = "timestamp",
                         window = 3L)
 hg
-edges <- as.data.frame(hg)
+edges <- hg_get(hg)
 head(edges)
 
 # Tumbling windows over wide-format sequences
@@ -111,6 +106,6 @@ edge-dependent vertex weights. \emph{Proceedings of the 36th
 International Conference on Machine Learning}, PMLR 97, 1172-1181.
 }
 \seealso{
-\code{\link[=build_hypergraph]{build_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
-\code{\link[=hypergraph_measures]{hypergraph_measures()}}, \code{\link[=hypergraph_cluster]{hypergraph_cluster()}}, \code{\link[=clique_expansion]{clique_expansion()}}
+\code{\link[=network_hypergraph]{network_hypergraph()}}, \code{\link[=group_hypergraph]{group_hypergraph()}},
+\code{\link[=hg_measures]{hg_measures()}}, \code{\link[=hg_cluster]{hg_cluster()}}, \code{\link[=hg_clique_expansion]{hg_clique_expansion()}}
 }

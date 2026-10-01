@@ -1,7 +1,7 @@
 # Sub-hypergraphs: keep chosen hyperedges, the hyperedges inside a node set,
 # or the hyperedges of one source (the citation blocks of one decision).
 
-# Rebuild the derived fields of a net_hypergraph from a new incidence matrix
+# Rebuild the derived fields of a net_hg from a new incidence matrix
 # (dense or sparse), keeping edge-level metadata aligned with the columns.
 .thg_rebuild <- function(hg, incidence, keep_edges) {
   edge_names <- colnames(incidence)
@@ -51,7 +51,7 @@
 
 #' Sub-hypergraph by hyperedges, nodes or hyperedge attributes
 #'
-#' Keeps part of a hypergraph and returns it as a `net_hypergraph` with the
+#' Keeps part of a hypergraph and returns it as a `net_hg` with the
 #' same incidence weights, edge metadata and multiplicities. Three selectors
 #' combine by intersection. `edges` names the hyperedges to keep. `nodes`
 #' keeps the hyperedges whose members all lie in the set, the induced
@@ -60,8 +60,8 @@
 #' citation-block hypergraph is the hypergraph of one citing decision
 #' (Coupette et al. 2024, Figure 3).
 #'
-#' @param hg A `net_hypergraph` (from [group_hypergraph()],
-#'   [hypergraph_snapshot()], [text_hypergraph()], ...).
+#' @param hg A `net_hg` (from [group_hypergraph()],
+#'   [hg_snapshot()], [text_hypergraph()], ...).
 #' @param edges Hyperedge names to keep: a character vector, or a data.frame
 #'   with an `edge` column such as the table [hg_edge_centrality()] or
 #'   [hg_edges()] returns, so a ranking can be passed straight through.
@@ -76,7 +76,7 @@
 #'   3-uniform hypergraph that [hg_motifs()] needs.
 #' @param drop_isolated Drop nodes that belong to no retained hyperedge?
 #'   Default `TRUE`. Ignored when `nodes` is given.
-#' @return A `net_hypergraph` whose incidence matrix is the selected
+#' @return A `net_hg` whose incidence matrix is the selected
 #'   sub-matrix of the input, sparse if the input is sparse. Edge metadata
 #'   (`edge_data`) and duplicate multiplicities (`edge_multiplicity`) are
 #'   subset alongside.
@@ -173,7 +173,3 @@ hg_subset <- function(hg, edges = NULL, nodes = NULL, where = NULL,
                             size = size, drop_isolated = drop_isolated)
   out
 }
-
-#' @rdname hg_subset
-#' @export
-hypergraph_subset <- hg_subset

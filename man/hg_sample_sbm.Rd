@@ -2,21 +2,9 @@
 % Please edit documentation in R/hypergraph_random.R
 \name{hg_sample_sbm}
 \alias{hg_sample_sbm}
-\alias{hypergraph_sample_sbm}
 \title{Sample Stochastic-Block-Model Hypergraphs}
 \usage{
 hg_sample_sbm(
-  n = NULL,
-  P,
-  block_sizes,
-  d,
-  impurity = 0L,
-  variable_size = FALSE,
-  absolute_purity = TRUE,
-  seed = NULL
-)
-
-hypergraph_sample_sbm(
   n = NULL,
   P,
   block_sizes,
@@ -49,7 +37,7 @@ outside the endpoint blocks; otherwise any nonmember may be used.}
 restored on exit.}
 }
 \value{
-A \code{net_hypergraph}; \verb{$blocks} records each node's planted block.
+A \code{net_hg}; \verb{$blocks} records each node's planted block.
 }
 \description{
 Samples a graph stochastic block model and augments every sampled dyad to
@@ -60,5 +48,9 @@ hypergraph SBM construction used by HyperG.
 \examples{
 P <- matrix(c(.5, .05, .05, .5), 2, 2)
 h <- hg_sample_sbm(P = P, block_sizes = c(10, 10), d = 3, seed = 1)
-as.data.frame(h, what = "nodes")
+hg_get(h, what = "nodes")
+}
+\references{
+Marchette, D. J. (2021). HyperG: Hypergraphs in R. R package version
+1.0.0.
 }

@@ -26,15 +26,18 @@
   (`hg_communities()` on eight representations + `hg_compare_communities()`),
   footnote 7 (`hg_null_test(method = "assignment")`). Not reproduced:
   Figure 6c (graph edge betweenness, a graph-engine computation).
-- **API mapping**: `temporal_hypergraph()` / `hypergraph_snapshots()`,
-  `hypergraph_edges()`, `hypergraph_edge_centrality()`,
-  `hypergraph_centrality(type = "subhypergraph")`,
-  `hypergraph_project(method = "association")`, `hypergraph_motifs()`,
-  `hypergraph_communities()`, `hypergraph_agreement(method = "ami")`, and
-  `hypergraph_community_quality()`.
+- **API mapping** (exports as of 2026-09-29; ROADMAP.md Phase 0b G1 drops
+  the `hypergraph_*` aliases, so the `hg_*` names are the ones to keep):
+  `temporal_hypergraph()` / `hg_snapshots()`, `hg_edges()`,
+  `hg_edge_centrality()`, `hypergraph_centrality(type = "subhypergraph")`
+  (the `hg_centrality()` front end offers only clique/Z/H today),
+  `hg_project(method = "association")`, `hg_motifs()`, `hg_communities()`,
+  `hg_agreement(method = "ami")`, and `hg_community_quality()`.
 - **Verified 2026-09-02**: bibliographic metadata, open-access license, the
   19-page paper, and the complete Zenodo source were inspected. Formula-level
-  tests match HypergraphX 1.5, NetworkX and scikit-learn conventions.
+  tests match HypergraphX 1.5 (the version inspected then; 1.8.0 is current on
+  PyPI as of 2026-09-29 and the fixtures were not re-derived against it),
+  NetworkX and scikit-learn conventions.
   Rebuilding the 441-node, 742-case ICSID aggregate reproduces the observed
   motif census exactly: **Y = 478, T = 7, O = 0**.
 - **Full-data reproduction**: [`run_legal_hypergraphs_reproduction.R`](../benchmarks/run_legal_hypergraphs_reproduction.R)

@@ -1,11 +1,14 @@
 # Nestimate hypergraph module — historical source/oracle
 
-This note records the pre-consolidation implementation. hypernets now owns the
-methods and does not depend on Nestimate. No current hypernets work should edit
-or call Nestimate; retained local identity tests treat it only as a frozen
-historical oracle. The original five exports were:
-CLAUDE.md and `R/hypergraph*.R`, `R/bipartite_groups.R`,
-`R/clique_expansion.R`):
+This note records the pre-consolidation implementation. As of 2026-09-29
+hypernets' DESCRIPTION does not list Nestimate, and the retained local
+identity tests treat it as a frozen historical oracle. **Planned change**
+(ROADMAP.md Phase 0b, decided 2026-09-29): hypernets will `Import`
+Nestimate (>= 0.8.5) and re-export its memory and simplicial verbs, while
+the hypergraph and text families stay hypernets' own; Nestimate itself does
+not change. Update this note when that lands. The original five exports
+(Nestimate CLAUDE.md, `R/hypergraph*.R`, `R/bipartite_groups.R`,
+`R/clique_expansion.R`) were:
 
 - `build_hypergraph()` — hyperedges from ESTIMATED WEIGHTED networks
   (netobject / cograph_network / simplicial_complex input; clique promotion

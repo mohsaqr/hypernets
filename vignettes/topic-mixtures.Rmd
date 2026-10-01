@@ -1,0 +1,331 @@
+---
+title: "Mixed-membership topics of the COVID-19 education literature"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Mixed-membership topics of the COVID-19 education literature}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
+                      warning = FALSE, fig.width = 7, fig.height = 5,
+                      out.width = "100%")
+library(hypernets)
+```
+
+A topic model describes a corpus by a small number of themes. Each theme, or
+topic, is a probability distribution over the words of the vocabulary, and
+each document is a mixture of topics in proportions of its own. An abstract on
+the online teaching of medical students draws on a topic about online teaching
+and on a topic about medical education, and it belongs to both in the
+proportions its words indicate. A partition, in which every document belongs
+to exactly one topic, is the special case of documents that are each about
+one thing. The shares of a mixed-membership model show how close a corpus
+comes to that case.
+
+## The corpus
+
+`covid_sample` holds a random sample of 1,000 abstracts of research on
+COVID-19 and education published from 2020 to 2024. `clean_text()` removes
+what a bibliographic export adds to an abstract, such as HTML, citation
+numbers in brackets, URLs and copyright notices. The stop list is
+`stop_words_en()` together with the words that name the subject of every
+abstract, since a word that occurs in every document separates none of them.
+
+```{r corpus}
+abstracts <- clean_text(covid_sample, column = "abstract")
+boilerplate <- c("covid", "coronavirus", "sars", "cov", "pandemic",
+                 "disease", "study", "studies", "result", "results",
+                 "conclusion", "conclusions", "background", "method",
+                 "methods", "objective", "aim")
+stops <- c(stop_words_en(), boilerplate)
+```
+
+## The hypergraph
+
+Each abstract is a node, and each word that occurs at least five times in the
+corpus is a hyperedge that binds the abstracts using it. The incidence of an
+abstract and a word is the count of the word in the abstract. The incidence
+matrix is stored dense (`sparse = FALSE`), which the graded memberships at the
+end require.
+
+```{r hypergraph}
+abstracts_hg <- text_hypergraph(abstracts, column = "abstract", id = "doc",
+                                stop_words = stops, min_count = 5,
+                                min_chars = 2, sparse = FALSE)
+abstracts_hg
+```
+
+```{r hypergraph-values, include = FALSE}
+vocabulary <- hg_get(abstracts_hg, what = "vocabulary")
+```
+
+The hypergraph has `r abstracts_hg$n_nodes` abstracts and
+`r format(nrow(vocabulary), big.mark = ",")` words.
+
+## How many topics
+
+A topic model has as many topics as it is given, and no statistic identifies
+the correct number. Two properties of the topics guide the choice. Semantic
+coherence measures how often the most probable words of a topic occur in the
+same documents (Mimno et al. 2011). For every pair of top words it takes the
+logarithm of the number of documents containing both, plus one, divided by
+the number of documents containing the more probable word, and it sums these
+values over the pairs. Values closer to zero are more coherent. Exclusivity
+measures how far the top words of a topic belong to that topic rather than to
+the others. FREX combines, for every top word, the rank of its probability
+within the topic and the rank of its share of the probability it has across
+all topics, and sums these over the top words (Bischof & Airoldi 2012).
+Models with fewer topics have broader, more coherent topics, and models with
+more topics have narrower, more exclusive ones. A number of topics is worth
+considering when no other number gives both a higher coherence and a higher
+exclusivity, and these numbers form the frontier of the two measures (Roberts
+et al. 2014).
+
+`hg_topic_search()` fits the topic model of the next section for 4, 8, 12, 16
+and 20 topics, each from two random starts, and reports the mean coherence
+and the mean exclusivity of the ten most probable words of the topics.
+
+```{r topic-search}
+topic_search <- hg_topic_search(abstracts_hg, k = seq(4, 20, by = 4),
+                                nstart = 2, parallel = TRUE, n_cores = 2)
+topic_search
+```
+
+```{r topic-search-plot}
+plot(topic_search)
+```
+
+```{r topic-search-values, include = FALSE}
+k4 <- subset(topic_search, k == 4)
+k16 <- subset(topic_search, k == 16)
+k20 <- subset(topic_search, k == 20)
+on_frontier <- subset(topic_search, frontier)
+frontier_k <- sub(", ([^,]*)$", " and \\1", toString(on_frontier$k))
+```
+
+Mean coherence falls from `r round(k4$coherence, 1)` with 4 topics to
+`r round(k16$coherence, 1)` with 16 and `r round(k20$coherence, 1)` with 20,
+and mean exclusivity rises from `r round(k4$exclusivity, 2)` to
+`r round(k16$exclusivity, 2)` and `r round(k20$exclusivity, 2)`. The models
+with `r frontier_k` topics lie on the frontier.
+Sixteen topics is the number of the published structural topic model of this
+literature (Saqr et al. 2023), and the model below uses it.
+
+## A mixed-membership model of 16 topics
+
+`hg_topics()` approximates the matrix of word counts, with one row per
+abstract and one column per word, by the product of two non-negative
+matrices. The first gives every abstract a weight on every topic, and the
+second gives every topic a weight on every word. The fit minimises the
+Kullback-Leibler divergence between the counts and their approximation by the
+multiplicative updates of Lee and Seung (2001). With this divergence the
+factorization is the maximum-likelihood fit of probabilistic latent semantic
+analysis (Hofmann 1999; Gaussier & Goutte 2005). After normalisation, the
+weights of an abstract are its shares of the topics, which sum to one, and
+the weights of a topic are the probabilities of its words.
+
+The fit depends on its random start. It is run from five starts, and the
+start with the smallest divergence is kept. The agreement of a topic is the
+average Jaccard coefficient of its first one, two, and up to ten most probable
+words with those of the matching topic of another start, the topics of two
+starts being paired by the Hungarian method (Kuhn 1955; Greene et al. 2014).
+A topic whose agreement is close to one is found again from every start.
+
+```{r topic-model}
+topic_model <- hg_topics(abstracts_hg, k = 16, nstart = 5, parallel = TRUE,
+                         n_cores = 2)
+topic_model
+```
+
+```{r topic-model-values, include = FALSE}
+topic_table <- hg_get(topic_model)
+largest <- subset(topic_table, prevalence == max(prevalence))
+smallest <- subset(topic_table, prevalence == min(prevalence))
+```
+
+The prevalence of a topic is its mean share over the abstracts, and its
+documents column is the sum of those shares, the expected number of abstracts
+it accounts for. The largest topic, led by `r largest$top_words`, accounts for
+`r round(100 * largest$prevalence, 1)`% of the corpus, and the smallest, led by
+`r smallest$top_words`, for `r round(100 * smallest$prevalence, 1)`%. The mean
+agreement of the topics across the starts is
+`r round(mean(topic_table$agreement), 2)`. Topics with a low agreement are one
+of several divisions of their part of the vocabulary that the data support
+about equally well.
+
+```{r topic-model-plot, fig.height = 9}
+plot(topic_model)
+```
+
+## How mixed the abstracts are
+
+The largest share of an abstract identifies its main topic.
+
+```{r main-topics}
+main_topics <- hg_get(topic_model, what = "documents")
+head(main_topics)
+```
+
+```{r main-topic-values, include = FALSE}
+main_share <- main_topics$share
+share_quartiles <- quantile(main_share, c(0.25, 0.5, 0.75))
+```
+
+In the median abstract the main topic has a share of
+`r round(share_quartiles[2], 2)`, and half the abstracts lie between
+`r round(share_quartiles[1], 2)` and `r round(share_quartiles[3], 2)`.
+`r round(100 * mean(main_share >= 0.9), 1)`% of the abstracts have a main
+topic with a share of 0.9 or more, and `r round(100 * mean(main_share < 0.5), 1)`%
+have no topic with a share above one half. Most abstracts combine topics.
+
+The shares of a single abstract show the mixture.
+
+```{r example-shares}
+shares <- hg_get(topic_model, what = "shares")
+example_shares <- subset(shares, node == "2-s2.0-85101300775" & share >= 0.05)
+example_shares
+```
+
+```{r example-text}
+example_abstract <- subset(abstracts, doc == "2-s2.0-85101300775")
+with(example_abstract, writeLines(strwrap(abstract, 78)))
+```
+
+```{r example-values, include = FALSE}
+ranked <- example_shares[order(-example_shares$share), ]
+words_of <- function(label) subset(topic_table, topic == label)$top_words
+```
+
+The abstract describes near-peer teaching in a medical course moved online.
+It takes a share of `r round(ranked$share[1], 2)` of the topic led by
+`r words_of(ranked$topic[1])` and `r round(ranked$share[2], 2)` of the topic
+led by `r words_of(ranked$topic[2])`. A partition would assign it to one of
+the two and lose the other half of what it is about.
+
+## Topic quality
+
+`hg_topic_quality()` scores every topic by the same coherence and
+exclusivity. The size of a topic is its expected number of abstracts.
+
+```{r model-quality}
+model_quality <- hg_topic_quality(abstracts_hg, topics = topic_model)
+model_quality
+```
+
+```{r model-quality-plot}
+plot(model_quality)
+```
+
+## A partition of the abstracts
+
+A partition is appropriate when the abstracts are each about one topic. It is
+useful when they have to be drawn or compared as groups, and the hypergraph
+can then be divided directly. `hg_cluster()` places the abstracts by the
+eigenvectors of the 16 smallest eigenvalues of the hypergraph Laplacian of
+Zhou et al. (2006) and divides them by k-means.
+
+```{r clusters}
+clusters <- hg_cluster(abstracts_hg, k = 16, seed = 1)
+cluster_quality <- hg_topic_quality(abstracts_hg, clusters = clusters)
+cluster_quality
+```
+
+```{r cluster-agreement}
+hg_agreement(clusters, main_topics, label = c("cluster", "topic"),
+             method = c("ari", "nmi"))
+```
+
+```{r cluster-values, include = FALSE}
+cluster_agreement <- hg_agreement(clusters, main_topics,
+                                  label = c("cluster", "topic"),
+                                  method = c("ari", "nmi"))
+```
+
+The clusters have a mean coherence of
+`r round(mean(cluster_quality$coherence), 1)` and a mean exclusivity of
+`r round(mean(cluster_quality$exclusivity), 2)`, against
+`r round(mean(model_quality$coherence), 1)` and
+`r round(mean(model_quality$exclusivity), 2)` for the topics of the mixed
+model, so the clusters are more coherent and less exclusive. The adjusted Rand
+index between the clusters and the main topics is
+`r round(cluster_agreement$ari, 2)`. A partition has to place every abstract
+that lies between topics on one side, and the two divisions agree only in
+part.
+
+The clustering can itself be given graded memberships. The symmetric
+non-negative factorization of the similarity between abstracts that the
+hypergraph Laplacian defines (Kuang et al. 2012; Hayashi et al. 2020) gives
+every abstract a non-negative weight on every cluster, normalised to sum to
+one. These memberships describe how strongly the position of an abstract in
+the hypergraph loads on each cluster, and they do not model its words.
+
+```{r symnmf}
+cluster_membership <- hg_cluster(abstracts_hg, k = 16, algorithm = "symnmf",
+                                 seed = 1, nstart = 5, what = "membership")
+subset(cluster_membership, node == "2-s2.0-85101300775" & membership >= 0.05)
+```
+
+```{r symnmf-values, include = FALSE}
+cluster_main <- tapply(cluster_membership$membership,
+                       cluster_membership$node, max)
+```
+
+The main cluster of an abstract has a membership of
+`r round(median(cluster_main), 2)` in the median abstract, and
+`r round(100 * mean(cluster_main >= 0.9), 1)`% of the abstracts have a main
+cluster with a membership of 0.9 or more. The graded memberships of the
+clustering also place most abstracts between clusters.
+
+## References
+
+Bischof, J. M., & Airoldi, E. M. (2012). Summarizing topical content with word
+frequency and exclusivity. *Proceedings of the 29th International Conference
+on Machine Learning*, 201-208.
+
+Gaussier, E., & Goutte, C. (2005). Relation between PLSA and NMF and
+implications. *Proceedings of SIGIR 2005*, 601-602.
+https://doi.org/10.1145/1076034.1076148
+
+Greene, D., O'Callaghan, D., & Cunningham, P. (2014). How many topics?
+Stability analysis for topic models. *Machine Learning and Knowledge Discovery
+in Databases*, 498-513. https://doi.org/10.1007/978-3-662-44848-9_32
+
+Hayashi, K., Aksoy, S. G., Park, C. H., & Park, H. (2020). Hypergraph random
+walks, Laplacians, and clustering. *Proceedings of CIKM 2020*, 495-504.
+https://doi.org/10.1145/3340531.3412034
+
+Hofmann, T. (1999). Probabilistic latent semantic indexing. *Proceedings of
+SIGIR 1999*, 50-57. https://doi.org/10.1145/312624.312649
+
+Kuang, D., Ding, C., & Park, H. (2012). Symmetric nonnegative matrix
+factorization for graph clustering. *Proceedings of the 2012 SIAM
+International Conference on Data Mining*, 106-117.
+https://doi.org/10.1137/1.9781611972825.10
+
+Kuhn, H. W. (1955). The Hungarian method for the assignment problem. *Naval
+Research Logistics Quarterly*, 2, 83-97. https://doi.org/10.1002/nav.3800020109
+
+Lee, D. D., & Seung, H. S. (2001). Algorithms for non-negative matrix
+factorization. *Advances in Neural Information Processing Systems*, 13,
+556-562.
+
+Mimno, D., Wallach, H. M., Talley, E., Leenders, M., & McCallum, A. (2011).
+Optimizing semantic coherence in topic models. *Proceedings of EMNLP 2011*,
+262-272.
+
+Roberts, M. E., Stewart, B. M., Tingley, D., Lucas, C., Leder-Luis, J.,
+Gadarian, S. K., Albertson, B., & Rand, D. G. (2014). Structural topic models
+for open-ended survey responses. *American Journal of Political Science*,
+58(4), 1064-1082. https://doi.org/10.1111/ajps.12103
+
+Saqr, M., Raspopovic Milic, M., Pancheva, K., Jovic, J., Peltekova, E. V., &
+Conde, M. Á. (2023). A multimethod synthesis of Covid-19 education research:
+The tightrope between covidization and meaningfulness. *Universal Access in
+the Information Society*, 23(3), 1163-1176.
+https://doi.org/10.1007/s10209-023-00989-w
+
+Zhou, D., Huang, J., & Schölkopf, B. (2006). Learning with hypergraphs:
+Clustering, classification, and embedding. *Advances in Neural Information
+Processing Systems*, 19, 1601-1608.

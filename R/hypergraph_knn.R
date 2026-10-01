@@ -22,7 +22,7 @@
 #'   `nrow(embeddings) - 1`).
 #' @param weight `"cosine"` (default) or `"binary"`.
 #'
-#' @return A `net_hypergraph` (from [group_hypergraph()]) with one
+#' @return A `net_hg` (from [group_hypergraph()]) with one
 #'   hyperedge per item, each of size `k + 1`, plus a `knn` field recording
 #'   `k` and the weighting. Accepted by [hg_measures()], [hg_centrality()],
 #'   [hg_cluster()], and [hg_classify()].
@@ -33,6 +33,10 @@
 #'   the random-walk machinery downstream; use `weight = "binary"` or a
 #'   smaller `k` instead.
 #'
+#' @references
+#' Feng, Y., You, H., Zhang, Z., Ji, R., & Gao, Y. (2019). Hypergraph neural
+#' networks. *Proceedings of the AAAI Conference on Artificial Intelligence*,
+#' 33(01), 3558-3565. \doi{10.1609/aaai.v33i01.33013558}
 #' @examples
 #' set.seed(1)
 #' emb <- matrix(rnorm(20, mean = 3), nrow = 5,

@@ -26,7 +26,7 @@ test_that("fill selectors map to Okabe-Ito colours or the ramp", {
   expect_identical(constant$colours[1L], constant$colours[2L])
 })
 
-test_that("plot.net_hypergraph draws one hull per drawable hyperedge, largest first", {
+test_that("plot.net_hg draws one hull per drawable hyperedge, largest first", {
   hg <- .plot_fixture()
   grDevices::pdf(NULL)
   before <- grDevices::dev.cur()
@@ -92,7 +92,7 @@ test_that("dismantled panels ink exactly the members of their hyperedge", {
                class = "hypernets_bad_input")
 })
 
-test_that("plot.net_hypergraph returns a ggplot for every selector", {
+test_that("plot.net_hg returns a ggplot for every selector", {
   hg <- .plot_fixture()
   default_plot <- plot(hg)
   expect_s3_class(default_plot, "ggplot")
@@ -123,7 +123,7 @@ test_that("a layout table is reused and validated", {
   expect_error(plot(hg, layout = pos[-1, ]), class = "hypernets_bad_input")
 })
 
-test_that("plot.net_hypergraph rejects bad selectors", {
+test_that("plot.net_hg rejects bad selectors", {
   hg <- .plot_fixture()
   expect_error(plot(hg, color_by = "nope"), class = "hypernets_bad_input")
   expect_error(plot(hg, color_by = 1:3), class = "hypernets_bad_input")

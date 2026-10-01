@@ -40,20 +40,20 @@ projects, in long format: \code{human_long} holds the human turns (10,796
 rows), \code{ai_long} the AI turns (8,551 rows). Each session's ordered
 codes form one categorical sequence, which makes the pair a natural
 two-cohort input for the higher-order verbs -- e.g.
-\code{bootstrap_hon(human_long, action = "code", actor = "session_id", time = "timestamp")} or \code{compare_hon(human_long, ai_long, ...)}.
+\code{hg_bootstrap(human_long, action = "code", actor = "session_id", time = "timestamp")} or \code{hg_compare(human_long, ai_long, ...)}.
 }
 \details{
 The same data feed all three structure families: the ordered codes are
 sequences for the memory family, a session is a natural hyperedge over
 the codes that co-occur in it (\code{\link[=group_hypergraph]{group_hypergraph()}}), and a fitted
 memory network becomes a pathway complex for the simplicial family
-(\code{\link[=build_simplicial]{build_simplicial()}} with \code{type = "pathway"}).
+(\code{\link[=simplicial]{simplicial()}} with \code{type = "pathway"}).
 }
 \examples{
-bs <- bootstrap_hon(human_long, action = "code", actor = "session_id",
+bs <- hg_bootstrap(human_long, action = "code", actor = "session_id",
                     time = "timestamp", n_boot = 20, max_order = 2,
                     seed = 1)
-rules <- as.data.frame(bs, order_min = 2)
+rules <- hg_get(bs, order_min = 2)
 head(rules)
 
 }

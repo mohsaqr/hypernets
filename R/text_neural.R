@@ -2,7 +2,7 @@
 #
 # The HGNN propagation matrix G = Dv^-1/2 H W De^-1 H^T Dv^-1/2 is exactly
 # the Zhou (2006) similarity operator S = I - L_zhou that
-# hypergraph_transduction() spreads with -- HGNN is learned filters on the
+# .hg_transduction_fit() spreads with -- HGNN is learned filters on the
 # operator the closed-form classifier uses fixed. That identity is asserted
 # in the tests (machine precision against .hl_build()), tying the neural
 # code to the oracle-verified spectral core. Layer semantics (bias applied
@@ -35,9 +35,19 @@ utils::globalVariables("self")
   list(a = a, w = w, de = de, dv = dv)
 }
 
-# dgCMatrix -> torch sparse COO tensor.
+# Any Matrix/base matrix -> every stored cell as a general (dgT) triplet.
+# Coercing straight to "TsparseMatrix" keeps Matrix's packed storage: a
+# symmetric matrix becomes a dsTMatrix holding only the upper triangle and a
+# unit-triangular one omits its diagonal, so reading @i/@j/@x would silently
+# drop cells. Going through "generalMatrix" expands them first.
+.thg_general_triplet <- function(x) {
+  methods::as(methods::as(methods::as(x, "CsparseMatrix"), "generalMatrix"),
+              "TsparseMatrix")
+}
+
+# Matrix -> torch sparse COO tensor.
 .thg_torch_sparse <- function(x) {
-  triplet <- methods::as(x, "TsparseMatrix")
+  triplet <- .thg_general_triplet(x)
   torch::torch_sparse_coo_tensor(
     indices = torch::torch_tensor(rbind(triplet@i + 1L, triplet@j + 1L),
                                   dtype = torch::torch_int64()),
@@ -55,7 +65,7 @@ utils::globalVariables("self")
 #' between layers and a cross-entropy loss on the labeled vertices.
 #' Needs the suggested \pkg{torch} package.
 #'
-#' @param hg A [text_hypergraph()] (or any hypernets `net_hypergraph`),
+#' @param hg A [text_hypergraph()] (or any hypernets `net_hg`),
 #'   dense or sparse.
 #' @param labels The known labels: a named character vector (names are
 #'   node identifiers, values class labels) or a tidy data.frame with a
@@ -263,7 +273,3 @@ hg_neural <- function(hg, labels, features = "incidence", hidden = 128L,
   )
   out
 }
-
-#' @rdname hg_neural
-#' @export
-hypergraph_neural <- hg_neural

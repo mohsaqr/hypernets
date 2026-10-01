@@ -2,22 +2,10 @@
 % Please edit documentation in R/hypergraph_series.R
 \name{hg_growth}
 \alias{hg_growth}
-\alias{hypergraph_growth}
 \alias{plot.hypernets_series}
 \title{Growth of a temporal hypergraph over time}
 \usage{
 hg_growth(
-  x,
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  mode = c("active", "cumulative"),
-  components = FALSE
-)
-
-hypergraph_growth(
   x,
   start = NULL,
   end = NULL,

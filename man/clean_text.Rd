@@ -100,3 +100,8 @@ clean_text(messy, min_content = 0.5)
 clean_text(c("[No abstract available]", "A real abstract."),
            remove = "no abstract available")
 }
+\references{
+Manning, C. D., Raghavan, P., & Schütze, H. (2008). \emph{Introduction to
+Information Retrieval}. Cambridge University Press.
+\doi{10.1017/CBO9780511809071}
+}

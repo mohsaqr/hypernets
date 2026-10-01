@@ -28,11 +28,11 @@ every state is in \link{ring_communities}.
 }
 \examples{
 length(ring_sequences)
-ring_hon <- build_hon(ring_sequences, max_order = 2L)
+ring_hon <- hon(ring_sequences, max_order = 2L)
 ring_hon
 }
 \seealso{
-\code{\link[=hon_communities]{hon_communities()}}, which recovers the four groups from these
+\code{\link[=hg_communities]{hg_communities()}}, which recovers the four groups from these
 sequences.
 }
 \keyword{datasets}

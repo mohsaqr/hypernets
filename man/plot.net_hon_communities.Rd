@@ -14,7 +14,7 @@
 \item{show_zero_flow}{Draw zero-flow state nodes in the state view?
 Default \code{FALSE}.}
 
-\item{...}{For \code{type = "physical"}, passed to \code{\link[=plot.net_hypergraph]{plot.net_hypergraph()}}
+\item{...}{For \code{type = "physical"}, passed to \code{\link[=plot.net_hg]{plot.net_hg()}}
 (e.g. \code{seed}, \code{label_size}, \code{arrow_style = "outside"}, \code{layout}),
 overriding the defaults set here; for \code{type = "states"}, passed to
 \code{\link[cograph:overlay_communities]{cograph::overlay_communities()}} and on to \code{\link[cograph:splot]{cograph::splot()}}.}
@@ -27,15 +27,15 @@ For \code{type = "physical"}, a ggplot object (print it to draw). For
 \describe{
 \item{\code{type = "physical"} (default)}{every community is drawn as a
 pebble around the physical nodes it holds, through
-\code{\link[=plot.net_hypergraph]{plot.net_hypergraph()}} on the community hypergraph (member = physical
-node, group = \code{"Community k"}, from \code{as.data.frame(x, what = "physical")}). A physical node shared by several communities lies
+\code{\link[=plot.net_hg]{plot.net_hg()}} on the community hypergraph (member = physical
+node, group = \code{"Community k"}, from \code{hg_get(x, what = "physical")}). A physical node shared by several communities lies
 inside each of their pebbles. Pebbles are coloured by community
 (Okabe-Ito, legend "Community"). Each node is a black circle whose
 area follows its physical flow (the memory network's visit rate summed
 over its state nodes), and a triangle inside the circle points at the
 physical node its link flow most often goes to next. Each community
 has a title box with its name and flow (the visit rate of its state
-nodes) beside its pebble, drawn by \code{\link[=plot.net_hypergraph]{plot.net_hypergraph()}} (haloed
+nodes) beside its pebble, drawn by \code{\link[=plot.net_hg]{plot.net_hg()}} (haloed
 labels, legend below, wide margins); the boxes sit a little further
 out than there (\code{title_gap = 0.14}) to clear the labels of the nodes at
 a pebble's rim. A
@@ -48,22 +48,22 @@ legend, short state labels, and faded edges (transition probability
 below 0.05 hidden).}
 }
 State nodes with zero flow (reached only by teleportation, see
-\code{\link[=hon_communities]{hon_communities()}}) carry no physical flow and are never drawn in the
+\code{\link[=hg_communities]{hg_communities()}}) carry no physical flow and are never drawn in the
 physical view; the state view leaves them and the singleton communities
 they form out unless \code{show_zero_flow = TRUE}. A caption says how many were
-left out. The tables returned by \code{\link[=as.data.frame.net_hon_communities]{as.data.frame.net_hon_communities()}} are
+left out. The tables returned by \code{\link[=hg_get.net_hon_communities]{hg_get.net_hon_communities()}} are
 unaffected.
 }
 \section{Conditions}{
 
-\code{hypernets_bad_input} from \code{\link[=plot.net_hypergraph]{plot.net_hypergraph()}} for arguments passed
+\code{hypernets_bad_input} from \code{\link[=plot.net_hg]{plot.net_hg()}} for arguments passed
 through \code{...} that it rejects.
 }
 
 \examples{
 seqs <- list(c("a", "h", "b", "a", "h", "b", "a"),
              c("c", "h", "d", "c", "h", "d", "c"))
-comm <- hon_communities(build_hon(seqs, max_order = 2L), trials = 2L)
+comm <- hg_communities(hon(seqs, max_order = 2L), trials = 2L)
 plot(comm)
 plot(comm, type = "states")
 }

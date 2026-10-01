@@ -35,7 +35,7 @@ test_that("HyperGCN variants train end to end", {
   hg <- text_hypergraph(corpus)
   labels <- c(cooking_1 = "cooking", space_1 = "space")
   for (method in c("hypergcn", "fast", "one")) {
-    fit <- hypergraph_hypergcn(
+    fit <- hg_hypergcn(
       hg, labels, method = method, hidden = 8, epochs = 10,
       validation = 0, seed = 2
     )

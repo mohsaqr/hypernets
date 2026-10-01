@@ -2,8 +2,7 @@
 % Please edit documentation in R/hypergraph_motifs.R
 \name{hg_motifs}
 \alias{hg_motifs}
-\alias{hypergraph_motifs}
-\alias{as.data.frame.hypernets_motifs}
+\alias{hg_get.hypernets_motifs}
 \alias{plot.hypernets_motifs}
 \title{Y, T and O motif census with a hypergraph configuration null}
 \usage{
@@ -22,33 +21,12 @@ hg_motifs(
   multiedges = TRUE
 )
 
-hypergraph_motifs(
-  hg,
-  n = 1000L,
-  seed = NULL,
-  what = c("test", "counts", "draws"),
-  alternative = c("two_sided", "greater", "less"),
-  start = NULL,
-  end = NULL,
-  step = NULL,
-  window = NULL,
-  at = NULL,
-  snapshot_mode = c("active", "cumulative"),
-  multiedges = TRUE
-)
-
-\method{as.data.frame}{hypernets_motifs}(
-  x,
-  row.names = NULL,
-  optional = FALSE,
-  what = c("test", "draws"),
-  ...
-)
+\method{hg_get}{hypernets_motifs}(x, what = c("test", "draws"), ...)
 
 \method{plot}{hypernets_motifs}(x, motif = c("Y", "T", "O"), ...)
 }
 \arguments{
-\item{hg}{A 3-uniform \code{net_hypergraph} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
+\item{hg}{A 3-uniform \code{net_hg} or a \code{\link[=temporal_hypergraph]{temporal_hypergraph()}}.}
 
 \item{n}{Number of configuration-model draws. The paper uses 1000.}
 
@@ -61,15 +39,13 @@ counts only, or \code{"draws"} for every null count.}
 \item{alternative}{Empirical permutation-test direction.}
 
 \item{start, end, step, window, at}{Measurement grid passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 
 \item{snapshot_mode, multiedges}{Snapshot \code{mode} (\code{"active"} or
 \code{"cumulative"}) and multi-edge handling passed to
-\code{\link[=hypergraph_snapshots]{hypergraph_snapshots()}} when \code{hg} is temporal.}
+\code{\link[=hg_snapshots]{hg_snapshots()}} when \code{hg} is temporal.}
 
 \item{x}{A \code{hypernets_motifs} test table.}
-
-\item{row.names, optional}{Unused; present for the base S3 contract.}
 
 \item{...}{Unused; for S3 consistency.}
 
@@ -77,11 +53,13 @@ counts only, or \code{"draws"} for every null count.}
 \code{"T"} or \code{"O"}.}
 }
 \value{
-A tidy data frame. Test output includes observed count, null mean
-and standard deviation, z-score, empirical p-value, relative abundance
-\code{delta}, and the normalized motif profile used by HypergraphX.
+A tidy data frame. The test table has one row per motif:
+\code{motif}, \code{count} (observed), \code{expected} and \code{null_sd} (mean and
+standard deviation of the null counts), \code{z}, \code{p_value} (empirical),
+\code{delta} (relative abundance), \code{normalized_delta} (the motif profile used
+by HypergraphX), \code{n_null} (null draws) and \code{method}.
 
-For \code{as.data.frame}, the test table (\code{what = "test"}) or every null
+For \code{hg_get()}, the test table (\code{what = "test"}) or every null
 count (\code{what = "draws"}, columns \code{run}, \code{motif}, \code{count}) as a plain
 data.frame.
 

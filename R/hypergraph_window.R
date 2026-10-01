@@ -5,7 +5,7 @@
 # inside one window form one hyperedge. Windows with identical state sets
 # collapse into a single hyperedge whose weight is the window count; the
 # incidence cells hold within-window occurrence totals, i.e. edge-dependent
-# vertex weights (Chitra & Raphael 2019) that hypergraph_cluster(type =
+# vertex weights (Chitra & Raphael 2019) that .hg_cluster_fit(type =
 # "random_walk") consumes directly.
 
 # ---------------------------------------------------------------------------
@@ -112,10 +112,10 @@
 #' number of such windows (`window_counts`); the incidence cells hold the
 #' total within-window occurrences of each state, so the incidence matrix
 #' carries edge-dependent vertex weights (Chitra & Raphael 2019) that
-#' [hypergraph_cluster()] with `type = "random_walk"` uses directly. The
+#' [hg_cluster()] with `type = "random_walk"` uses directly. The
 #' window counts are the default hyperedge weights of the whole Laplacian
-#' family ([hypergraph_laplacian()], [hypergraph_cluster()],
-#' [hypergraph_transduction()]).
+#' family ([hg_laplacian()], [hg_cluster()],
+#' [hg_classify()]).
 #'
 #' `step = 1` (default) gives sliding windows; `step = window` gives
 #' tumbling (non-overlapping) windows. Only full windows are formed: a
@@ -129,20 +129,14 @@
 #' data with `member = action` and `group = actor`; use this verb when the
 #' hyperedges should be local in time.
 #'
-#' @param data Sequence data: a wide data.frame or character matrix (one
-#'   sequence per row, trailing `NA`s stripped), a list of character
-#'   vectors, or a long data.frame together with `action` (and optionally
-#'   `actor`, `time`).
+#' @param data Sequences in any form described in [sequence-input]: a long
+#'   event table, a wide data.frame or character matrix (one sequence per
+#'   row, trailing `NA`s stripped), or a list of character vectors.
 #' @param window Integer >= 2. Window size in sequence positions.
 #' @param step Integer >= 1. Offset between consecutive window starts:
 #'   `1` slides, `window` tumbles.
-#' @param action Character or NULL. Long format only: column holding the
-#'   categorical state of each event.
-#' @param actor Character or NULL. Long format only: column grouping events
-#'   into sequences (one sequence per actor). `NULL` treats all rows as one
-#'   sequence.
-#' @param time Character or NULL. Long format only: column ordering events
-#'   within each actor. `NULL` keeps row order.
+#' @param action,actor,time,session,time_threshold,timezone Long-format
+#'   arguments, as in [sequence-input].
 #' @param min_size Integer >= 1. Drop hyperedges with fewer distinct states
 #'   after collapsing. The default `1` keeps everything.
 #' @param min_weight Integer >= 1. Drop hyperedges observed in fewer than
@@ -152,7 +146,7 @@
 #'   is recorded in `params$n_dropped`; with both at their defaults,
 #'   `sum(window_counts)` equals the number of non-empty full windows.
 #'
-#' @return A `net_hypergraph` object (as from [build_hypergraph()] and
+#' @return A `net_hg` object (as from [network_hypergraph()] and
 #'   [group_hypergraph()]): a list with `hyperedges` (list of sorted node
 #'   index vectors), `incidence` (numeric node x hyperedge matrix of
 #'   within-window occurrence totals), `nodes`, `n_nodes`, `n_hyperedges`,
@@ -160,7 +154,7 @@
 #'   windows collapsed into it), `size_distribution`, and `params`
 #'   (`source = "window_hypergraph"`, `window`, `step`, `min_size`,
 #'   `n_sequences`, `n_short_sequences`, `n_windows`, `n_empty_windows`,
-#'   `n_dropped`). Use [as.data.frame()] for the tidy one-row-per-hyperedge
+#'   `n_dropped`). Use [hg_get()] for the tidy one-row-per-hyperedge
 #'   table.
 #'
 #' @references
@@ -178,7 +172,7 @@
 #'                         actor = "session_id", time = "timestamp",
 #'                         window = 3L)
 #' hg
-#' edges <- as.data.frame(hg)
+#' edges <- hg_get(hg)
 #' head(edges)
 #'
 #' # Tumbling windows over wide-format sequences
@@ -188,13 +182,15 @@
 #' )
 #' window_hypergraph(wide, window = 2L, step = 2L)
 #'
-#' @seealso [build_hypergraph()], [group_hypergraph()],
-#'   [hypergraph_measures()], [hypergraph_cluster()], [clique_expansion()]
+#' @seealso [network_hypergraph()], [group_hypergraph()],
+#'   [hg_measures()], [hg_cluster()], [hg_clique_expansion()]
 #'
 #' @export
 window_hypergraph <- function(data, window = 3L, step = 1L,
                               action = NULL, actor = NULL, time = NULL,
-                              min_size = 1L, min_weight = 1L) {
+                              session = NULL, time_threshold = 900,
+                              timezone = "UTC", min_size = 1L,
+                              min_weight = 1L) {
   stopifnot(
     "`window` must be a single integer >= 2" =
       is.numeric(window) && length(window) == 1L && is.finite(window) &&
@@ -215,7 +211,14 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
   min_size <- as.integer(min_size)
   min_weight <- as.integer(min_weight)
 
-  trajectories <- .wh_parse_input(data, action, actor, time)
+  # the long route is the package-wide one (Nestimate's prepare()); what
+  # comes back is a wide frame, a list or a matrix, parsed here
+  data <- .ho_sequence_input(data, action = action, actor = actor,
+                             time = time, session = session,
+                             time_threshold = time_threshold,
+                             timezone = timezone, models = "decode")
+  trajectories <- .wh_parse_input(data, action = NULL, actor = NULL,
+                                  time = NULL)
   n_sequences <- length(trajectories)
 
   per <- lapply(trajectories, .wh_windows_one, window = window, step = step)
@@ -308,6 +311,6 @@ window_hypergraph <- function(data, window = 3L, step = 1L,
         n_dropped         = n_dropped
       )
     ),
-    class = "net_hypergraph"
+    class = "net_hg"
   )
 }

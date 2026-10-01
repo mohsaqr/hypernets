@@ -3,7 +3,6 @@
 \name{hg_membership}
 \alias{hg_membership}
 \alias{plot.hypernets_membership}
-\alias{hypergraph_membership}
 \title{Soft topic membership from the spectral embedding}
 \usage{
 hg_membership(
@@ -14,13 +13,6 @@ hg_membership(
 )
 
 \method{plot}{hypernets_membership}(x, ...)
-
-hypergraph_membership(
-  hg,
-  clusters,
-  type = c("zhou", "random_walk"),
-  edge_weights = NULL
-)
 }
 \arguments{
 \item{hg}{The document hypergraph the clustering was computed on.}
